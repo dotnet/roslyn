@@ -5270,43 +5270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (element is WithElementSyntax withElementSyntax)
                 {
-                    // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
-                    // we still bind the arguments in those later with elements.  However, we only validate those
-                    // arguments against the final arguments against the destination target type if the with element
-                    // was in the proper position.
-
-                    var analyzedArguments = AnalyzedArguments.GetInstance();
-
-                    // PROTOTYPE: Spec says we should only allow arglist if trivial.  Circle back on this and see if
-                    // this just falls out with the 'allowArgList: true' below.  If so, let LDM know it was easy and
-                    // allow it.  If it requires substantial work beyond this, disallow it for this feature.
-                    BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
-
-                    var arguments = analyzedArguments.Arguments;
-                    for (int i = 0; i < arguments.Count; i++)
-                    {
-                        var arg = arguments[i];
-                        if (arg.Type is { TypeKind: TypeKind.Dynamic })
-                        {
-                            diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
-                            arguments[i] = new BoundBadExpression(arg.Syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [arg], type: Compilation.GetSpecialType(SpecialType.System_Object));
-                        }
-                    }
-
-                    if (withElementSyntax != syntax.Elements.First())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
-                    }
-                    else
-                    {
-                        withElement = new BoundUnconvertedWithElement(
-                            withElementSyntax,
-                            analyzedArguments.Arguments.ToImmutable(),
-                            analyzedArguments.Names.ToImmutableOrNull(),
-                            analyzedArguments.RefKinds.ToImmutableOrNull());
-                    }
-
-                    analyzedArguments.Free();
+                    withElement = bindWithElement(withElementSyntax);
                 }
                 else
                 {
@@ -5387,6 +5351,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementPlaceholder: null,
                     iteratorBody: null,
                     hasErrors: false);
+            }
+
+            BoundUnconvertedWithElement? bindWithElement(WithElementSyntax withElementSyntax)
+            {
+                // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
+                // we still bind the arguments in those later with elements.  However, we only validate those
+                // arguments against the final arguments against the destination target type if the with element
+                // was in the proper position.
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+
+                // PROTOTYPE: Spec says we should only allow arglist if trivial.  Circle back on this and see if
+                // this just falls out with the 'allowArgList: true' below.  If so, let LDM know it was easy and
+                // allow it.  If it requires substantial work beyond this, disallow it for this feature.
+                BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+
+                var arguments = analyzedArguments.Arguments;
+                for (int i = 0; i < arguments.Count; i++)
+                {
+                    var arg = arguments[i];
+                    if (arg.Type is { TypeKind: TypeKind.Dynamic })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
+                        arguments[i] = new BoundBadExpression(arg.Syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [arg], type: Compilation.GetSpecialType(SpecialType.System_Object));
+                    }
+                }
+
+                BoundUnconvertedWithElement? withElement;
+
+                if (withElementSyntax != syntax.Elements.First())
+                {
+                    withElement = null;
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
+                }
+                else
+                {
+                    withElement = new BoundUnconvertedWithElement(
+                        withElementSyntax,
+                        analyzedArguments.Arguments.ToImmutable(),
+                        analyzedArguments.Names.ToImmutableOrNull(),
+                        analyzedArguments.RefKinds.ToImmutableOrNull());
+                }
+
+                analyzedArguments.Free();
+                return withElement;
             }
         }
 #nullable disable
