@@ -5388,7 +5388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (withElementSyntax == syntax.Elements.First())
                 {
                     // Got a with-element, and it was in the right place.  Pass it along directly in
-                    // unconverted-collection-expression so that we can construct the collectin properly.
+                    // unconverted-collection-expression so that we can construct the collection properly.
                     withElement = new BoundUnconvertedWithElement(
                         withElementSyntax,
                         analyzedArguments.Arguments.ToImmutable(),
@@ -5404,9 +5404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
 
                     withElement = null;
-                    badExpression = MakeBadExpressionForObjectCreation(
-                        withElementSyntax, this.Compilation.GetSpecialType(SpecialType.System_Object),
-                        analyzedArguments, initializerOpt: null, typeSyntax: null, diagnostics);
+                    badExpression = BadExpression(withElementSyntax, BuildArgumentsForErrorRecovery(analyzedArguments));
                 }
 
                 analyzedArguments.Free();
