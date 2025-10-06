@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -5263,14 +5264,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
-            BoundUnconvertedWithElement? withElement = null;
+            BoundUnconvertedWithElement? firstWithElement = null;
 
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
                 if (element is WithElementSyntax withElementSyntax)
                 {
-                    withElement = bindWithElement(withElementSyntax);
+                    var (withElement, badElement) = bindWithElement(withElementSyntax);
+                    firstWithElement ??= withElement;
+                    builder.AddIfNotNull(badElement);
                 }
                 else
                 {
@@ -5278,7 +5281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundUnconvertedCollectionExpression(syntax, withElement, builder.ToImmutableAndFree());
+            return new BoundUnconvertedCollectionExpression(syntax, firstWithElement, builder.ToImmutableAndFree());
 
             static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
             {
@@ -5353,7 +5356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors: false);
             }
 
-            BoundUnconvertedWithElement? bindWithElement(WithElementSyntax withElementSyntax)
+            (BoundUnconvertedWithElement? withElement, BoundBadExpression? badExpression) bindWithElement(
+                WithElementSyntax withElementSyntax)
             {
                 // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
                 // we still bind the arguments in those later with elements.  However, we only validate those
@@ -5379,23 +5383,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundUnconvertedWithElement? withElement;
+                BoundBadExpression? badExpression;
 
-                if (withElementSyntax != syntax.Elements.First())
+                if (withElementSyntax == syntax.Elements.First())
                 {
-                    withElement = null;
-                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
-                }
-                else
-                {
+                    // Got a with-element, and it was in the right place.  Pass it along directly in
+                    // unconverted-collection-expression so that we can construct the collectin properly.
                     withElement = new BoundUnconvertedWithElement(
                         withElementSyntax,
                         analyzedArguments.Arguments.ToImmutable(),
                         analyzedArguments.Names.ToImmutableOrNull(),
                         analyzedArguments.RefKinds.ToImmutableOrNull());
+                    badExpression = null;
+                }
+                else
+                {
+                    // Improperly placed with-element.  Report an error and pass along the arguments so they remain
+                    // in the tree for further analysis, but replace the with-element itself with a bad node so that
+                    // it doesn't influence later transformations.
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
+
+                    withElement = null;
+                    badExpression = MakeBadExpressionForObjectCreation(
+                        withElementSyntax, this.Compilation.GetSpecialType(SpecialType.System_Object),
+                        analyzedArguments, initializerOpt: null, typeSyntax: null, diagnostics);
                 }
 
                 analyzedArguments.Free();
-                return withElement;
+                return (withElement, badExpression);
             }
         }
 #nullable disable
@@ -5657,7 +5672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="typeSyntax">Shouldn't be null if <paramref name="initializerOpt"/> is not null.</param>
-        private BoundExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt, SyntaxNode? typeSyntax, BindingDiagnosticBag diagnostics, bool wasCompilerGenerated = false)
+        private BoundBadExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt, SyntaxNode? typeSyntax, BindingDiagnosticBag diagnostics, bool wasCompilerGenerated = false)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
             children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
