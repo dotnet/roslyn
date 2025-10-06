@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplementsIEnumerable,
 
         /// <summary>
-        /// One of the well-known interfaces that can be implemented by an array:
+        /// One of the well-known interfaces known to be implemented by any array:
         /// <list type="bullet">
         /// <item><see cref="IReadOnlyCollection{T}"/></item>
         /// <item><see cref="IReadOnlyList{T}"/></item>
