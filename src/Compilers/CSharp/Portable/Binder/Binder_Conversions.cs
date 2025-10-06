@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        (collectionBuilderMethod, collectionBuilderProjectionCallConversion) = bindCollectionBuilderProjectionCallConversion();
+                        (collectionBuilderMethod, collectionBuilderProjectionCallConversion) = bindCollectionBuilderProjectionCallConversion(collectionBuilderMethods);
                         if (collectionBuilderMethod is null || collectionBuilderProjectionCallConversion is null)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
@@ -1043,6 +1043,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementPlaceholder: elementPlaceholder,
                     iteratorBody: new BoundExpressionStatement(expressionSyntax, convertElement) { WasCompilerGenerated = true },
                     lengthOrCount: element.LengthOrCount);
+            }
+
+            (MethodSymbol? collectionBuilderMethod, BoundConversion? collectionCallConversion) bindCollectionBuilderProjectionCallConversion(
+                ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> collectionBuilderMethods)
+            {
+                Debug.Assert(collectionBuilderMethods.Length > 0);
+
+                var projectionToOriginalMethod = PooledDictionary<MethodSymbol, MethodSymbol>.GetInstance();
+                var projectionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+                foreach (var (builderMethod, _, _) in collectionBuilderMethods)
+                {
+                    var projection = new SynthesizedCollectionBuilderProjectedMethodSymbol(builderMethod);
+                    projectionMethods.Add(projection);
+                    projectionToOriginalMethod.Add(projection, builderMethod);
+                }
+
+                var analyzedArguments = node.WithElement is null
+                    ? AnalyzedArguments.GetInstance()
+                    : AnalyzedArguments.GetInstance(node.WithElement.Arguments, node.WithElement.ArgumentRefKindsOpt, node.WithElement.ArgumentNamesOpt);
+
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
+
+                // All the methods were instantiated with the same type-arguments, so we can grab what we need off of the first in the list.
+                Debug.Assert(collectionBuilderMethods.All(t => t.method.TypeArgumentsWithAnnotations.SequenceEqual(collectionBuilderMethods[0].method.TypeArgumentsWithAnnotations)));
+                Debug.Assert(collectionBuilderMethods.All(t => t.method.Name == collectionBuilderMethods[0].method.Name));
+
+                var lookupResult = LookupResult.GetInstance();
+                var methodGround = new BoundMethodGroup(
+                    node.WithElement?.Syntax ?? node.Syntax,
+                    typeArgumentsOpt: collectionBuilderMethods[0].method.TypeArgumentsWithAnnotations,
+                    receiverOpt: null,
+                    name: collectionBuilderMethods[0].method.Name,
+                    methods: collectionBuilderMethods.SelectAsArray(m => ),
+                    lookupResult,
+                    BoundMethodGroupFlags.None,
+                    this)
+                {
+                    WasCompilerGenerated = true,
+                };
+
+                    lookupResult.Free();
+                overloadResolutionResult.Free();
+                analyzedArguments.Free();
+                projectionToOriginalMethod.Free();
+                projectionMethods.Free();
             }
         }
 
@@ -2046,6 +2092,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return [];
             }
 
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            targetType.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
+            var allTypeArguments = builder.ToImmutableAndFree();
+
             var readOnlySpanType = Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
 
             var result = ArrayBuilder<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)>.GetInstance();
@@ -2066,10 +2116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-
-                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                targetType.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
-                var allTypeArguments = builder.ToImmutableAndFree();
 
                 if (method.Arity != allTypeArguments.Length)
                 {
