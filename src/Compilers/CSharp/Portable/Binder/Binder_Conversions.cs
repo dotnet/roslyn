@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, targetType);
             }
 
-            ImmutableArray<(MethodSymbol method, NamedTypeSymbol elementType, Conversion returnTypeConversion)> collectionBuilderMethods = [];
+            ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> collectionBuilderMethods = [];
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
 
@@ -855,13 +855,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var namedType = (NamedTypeSymbol)targetType;
 
-                        collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics);
+                        collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, forParams: false);
                         if (collectionBuilderMethods.IsEmpty)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        elementType = updatedElementType;
                         collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
                         collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
                     }
@@ -1070,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// created.</item>
         /// </list>
         /// </returns>
-        internal ImmutableArray<(MethodSymbol method, NamedTypeSymbol elementType, Conversion returnTypeConversion)> GetAndValidateCollectionBuilderMethods(
+        internal ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> GetAndValidateCollectionBuilderMethods(
             SyntaxNode syntax,
             NamedTypeSymbol namedType,
             BindingDiagnosticBag diagnostics,
@@ -2016,7 +2015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return;
         }
 
-        private ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)>  GetCollectionBuilderMethods(
+        private ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> GetCollectionBuilderMethods(
             NamedTypeSymbol targetType,
             bool forParams,
             TypeSymbol elementTypeOriginalDefinition,
