@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var namedType = (NamedTypeSymbol)targetType;
 
-                        collectionBuilderMethod = GetAndValidateCollectionBuilderMethod(syntax, namedType, diagnostics, out var updatedElementType);
+                        collectionBuilderMethod = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, out var updatedElementType);
                         if (collectionBuilderMethod is null)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
@@ -1054,13 +1054,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal MethodSymbol? GetAndValidateCollectionBuilderMethod(
+        /// <param name="forParams">Determines if this is finding collection builder methods for the <c>params
+        /// SomeCollectionType</c> case, or for the general <c>>SomeCollection c = [...]</c> case.  The former differs
+        /// from the latter in that the collection builder method itself can only contain a single <see
+        /// cref="ReadOnlySpan{T}"/> parameter, while the latter can be any method that <em>ends</em> with a <see
+        /// cref="ReadOnlySpan{T}"/> parameter, but otherwise follows the collection builder method pattern.</param>
+        internal ImmutableArray<MethodSymbol> GetAndValidateCollectionBuilderMethods(
             SyntaxNode syntax,
             NamedTypeSymbol namedType,
             BindingDiagnosticBag diagnostics,
-            out TypeSymbol? elementType)
+            bool forParams)
         {
-            MethodSymbol? collectionBuilderMethod;
             bool result = namedType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
             Debug.Assert(result);
 
@@ -1069,24 +1073,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(result);
 
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion collectionBuilderReturnTypeConversion;
-            collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo, out collectionBuilderReturnTypeConversion);
+            var collectionBuilderMethods = GetCollectionBuilderMethods(
+                namedType, forParams, elementTypeOriginalDefinition.Type, builderType, methodName,
+                ref useSiteInfo, out var collectionBuilderReturnTypeConversion);
+
             diagnostics.Add(syntax, useSiteInfo);
-            if (collectionBuilderMethod is null)
+            if (collectionBuilderMethods.IsEmpty)
             {
                 diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
-                elementType = null;
-                return null;
+                return [];
             }
 
             Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
+            return collectionBuilderMethods;
 
+            //ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
+
+            //var parameterType = (NamedTypeSymbol)collectionBuilderMethod.Parameters[0].Type;
+            //Debug.Assert(parameterType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+
+            //elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+
+            //collectionBuilderMethod.CheckConstraints(
+            //    new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
+
+            //ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
+            //ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
+            //ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
+            //Debug.Assert(!collectionBuilderMethod.GetIsNewExtensionMember());
+
+            //return collectionBuilderMethod;
+        }
+
+        internal void CheckCollectionBuilderMethod(
+            SyntaxNode syntax,
+            MethodSymbol collectionBuilderMethod,
+            BindingDiagnosticBag diagnostics)
+        {
             ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
 
             var parameterType = (NamedTypeSymbol)collectionBuilderMethod.Parameters[0].Type;
             Debug.Assert(parameterType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
-            elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+            var elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
 
             collectionBuilderMethod.CheckConstraints(
                 new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
@@ -1095,8 +1124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
             Debug.Assert(!collectionBuilderMethod.GetIsNewExtensionMember());
-
-            return collectionBuilderMethod;
         }
 
         private BoundExpression BindIEnumerableCollectionExpressionConstructor(
