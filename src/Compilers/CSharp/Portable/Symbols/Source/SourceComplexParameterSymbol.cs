@@ -1700,7 +1700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 syntax, (NamedTypeSymbol)Type, diagnostics, forParams: true);
                             Debug.Assert(collectionBuilderMethods.Length <= 1);
 
-                            if (collectionBuilderMethods is not [var (collectionBuilderMethod, _)])
+                            if (collectionBuilderMethods is not [var (collectionBuilderMethod, _, _)])
                             {
                                 Debug.Assert(diagnostics.HasAnyErrors(), "GetAndValidateCollectionBuilderMethods should have reported an error in this case");
                                 return;

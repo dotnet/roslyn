@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, targetType);
             }
 
-            MethodSymbol? collectionBuilderMethod = null;
+            ImmutableArray<(MethodSymbol method, Conversion returnTypeConversion)> collectionBuilderMethods = [];
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
 
@@ -855,8 +855,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var namedType = (NamedTypeSymbol)targetType;
 
-                        collectionBuilderMethod = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, out var updatedElementType);
-                        if (collectionBuilderMethod is null)
+                        collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, out var updatedElementType);
+                        if (collectionBuilderMethods.IsEmpty)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
@@ -1059,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// from the latter in that the collection builder method itself can only contain a single <see
         /// cref="ReadOnlySpan{T}"/> parameter, while the latter can be any method that <em>ends</em> with a <see
         /// cref="ReadOnlySpan{T}"/> parameter, but otherwise follows the collection builder method pattern.</param>
-        internal ImmutableArray<(MethodSymbol method, Conversion returnTypeConversion)> GetAndValidateCollectionBuilderMethods(
+        internal ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> GetAndValidateCollectionBuilderMethods(
             SyntaxNode syntax,
             NamedTypeSymbol namedType,
             BindingDiagnosticBag diagnostics,
@@ -2005,7 +2005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return;
         }
 
-        private ImmutableArray<(MethodSymbol method, Conversion returnTypeConversion)> GetCollectionBuilderMethods(
+        private ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)>  GetCollectionBuilderMethods(
             NamedTypeSymbol targetType,
             bool forParams,
             TypeSymbol elementTypeOriginalDefinition,
@@ -2026,7 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var readOnlySpanType = Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
 
-            var result = ArrayBuilder<(MethodSymbol method, Conversion returnTypeConversion)>.GetInstance();
+            var result = ArrayBuilder<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)>.GetInstance();
             foreach (var candidate in builderType.GetMembers(methodName))
             {
                 if (candidate is not MethodSymbol { IsStatic: true } method)
@@ -2054,7 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (method.Parameters is not [.., { RefKind: RefKind.None, Type: var parameterType }]
+                if (method.Parameters is not [.., { RefKind: RefKind.None, Type: NamedTypeSymbol parameterType }]
                     || !readOnlySpanType.Equals(parameterType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
                 {
                     continue;
@@ -2072,8 +2072,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodWithTargetTypeParameters = method;
                 }
 
-                parameterType = methodWithTargetTypeParameters.Parameters.Last().Type;
-                var spanTypeArg = ((NamedTypeSymbol)parameterType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                parameterType = (NamedTypeSymbol)methodWithTargetTypeParameters.Parameters.Last().Type;
+                var elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                 var conversion = Conversions.ClassifyImplicitConversionFromType(elementTypeOriginalDefinition, spanTypeArg, ref candidateUseSiteInfo);
                 if (!conversion.IsIdentity)
                 {
@@ -2092,7 +2092,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 useSiteInfo.AddDiagnostics(candidateUseSiteInfo.Diagnostics);
-                result.Add((method, conversion));
+
+                result.Add((method, elementType, conversion));
                 if (forParams)
                     break;
             }
