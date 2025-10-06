@@ -5388,7 +5388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (withElementSyntax == syntax.Elements.First())
                 {
                     // Got a with-element, and it was in the right place.  Pass it along directly in
-                    // unconverted-collection-expression so that we can construct the collectin properly.
+                    // unconverted-collection-expression so that we can construct the collection properly.
                     withElement = new BoundUnconvertedWithElement(
                         withElementSyntax,
                         analyzedArguments.Arguments.ToImmutable(),
