@@ -836,6 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? collectionBuilderMethod = null;
+            ImmutableArray<BoundExpression> collectionBuilderPrefixArguments = [];
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
 
@@ -999,6 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderMethod,
+                collectionBuilderPrefixArguments,
                 collectionBuilderInvocationPlaceholder,
                 collectionBuilderInvocationConversion,
                 wasTargetTyped: true,

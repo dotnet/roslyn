@@ -6469,11 +6469,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionExpression : BoundCollectionExpressionBase
     {
-        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, ImmutableArray<BoundNode> collectionBuilderPrefixArguments, BoundValuePlaceholder? collectionBuilderInvocationPlaceholder, BoundExpression? collectionBuilderInvocationConversion, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionExpression, syntax, elements, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderPrefixArguments.HasErrors() || collectionBuilderInvocationPlaceholder.HasErrors() || collectionBuilderInvocationConversion.HasErrors() || unconvertedCollectionExpression.HasErrors() || elements.HasErrors())
+        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, BoundExpression? collectionBuilderProjectionCall, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionExpression, syntax, elements, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderProjectionCall.HasErrors() || unconvertedCollectionExpression.HasErrors() || elements.HasErrors())
         {
 
-            RoslynDebug.Assert(!collectionBuilderPrefixArguments.IsDefault, "Field 'collectionBuilderPrefixArguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(unconvertedCollectionExpression is object, "Field 'unconvertedCollectionExpression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6481,10 +6480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CollectionTypeKind = collectionTypeKind;
             this.Placeholder = placeholder;
             this.CollectionCreation = collectionCreation;
-            this.CollectionBuilderMethod = collectionBuilderMethod;
-            this.CollectionBuilderPrefixArguments = collectionBuilderPrefixArguments;
-            this.CollectionBuilderInvocationPlaceholder = collectionBuilderInvocationPlaceholder;
-            this.CollectionBuilderInvocationConversion = collectionBuilderInvocationConversion;
+            this.CollectionBuilderProjectionCall = collectionBuilderProjectionCall;
             this.WasTargetTyped = wasTargetTyped;
             this.HasWithElement = hasWithElement;
             this.UnconvertedCollectionExpression = unconvertedCollectionExpression;
@@ -6494,10 +6490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public CollectionExpressionTypeKind CollectionTypeKind { get; }
         public BoundObjectOrCollectionValuePlaceholder? Placeholder { get; }
         public BoundExpression? CollectionCreation { get; }
-        public MethodSymbol? CollectionBuilderMethod { get; }
-        public ImmutableArray<BoundNode> CollectionBuilderPrefixArguments { get; }
-        public BoundValuePlaceholder? CollectionBuilderInvocationPlaceholder { get; }
-        public BoundExpression? CollectionBuilderInvocationConversion { get; }
+        public BoundExpression? CollectionBuilderProjectionCall { get; }
         public bool WasTargetTyped { get; }
         public bool HasWithElement { get; }
         public BoundUnconvertedCollectionExpression UnconvertedCollectionExpression { get; }
@@ -6505,11 +6498,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionExpression(this);
 
-        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, ImmutableArray<BoundNode> collectionBuilderPrefixArguments, BoundValuePlaceholder? collectionBuilderInvocationPlaceholder, BoundExpression? collectionBuilderInvocationConversion, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type)
+        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, BoundExpression? collectionBuilderProjectionCall, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type)
         {
-            if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(collectionBuilderMethod, this.CollectionBuilderMethod) || collectionBuilderPrefixArguments != this.CollectionBuilderPrefixArguments || collectionBuilderInvocationPlaceholder != this.CollectionBuilderInvocationPlaceholder || collectionBuilderInvocationConversion != this.CollectionBuilderInvocationConversion || wasTargetTyped != this.WasTargetTyped || hasWithElement != this.HasWithElement || unconvertedCollectionExpression != this.UnconvertedCollectionExpression || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || collectionBuilderProjectionCall != this.CollectionBuilderProjectionCall || wasTargetTyped != this.WasTargetTyped || hasWithElement != this.HasWithElement || unconvertedCollectionExpression != this.UnconvertedCollectionExpression || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionExpression(this.Syntax, collectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderPrefixArguments, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, wasTargetTyped, hasWithElement, unconvertedCollectionExpression, elements, type, this.HasErrors);
+                var result = new BoundCollectionExpression(this.Syntax, collectionTypeKind, placeholder, collectionCreation, collectionBuilderProjectionCall, wasTargetTyped, hasWithElement, unconvertedCollectionExpression, elements, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10583,7 +10576,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
-            this.VisitList(node.CollectionBuilderPrefixArguments);
             this.VisitList(node.Elements);
             return null;
         }
@@ -11993,16 +11985,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
-            MethodSymbol? collectionBuilderMethod = this.VisitMethodSymbol(node.CollectionBuilderMethod);
             BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
             BoundExpression? collectionCreation = node.CollectionCreation;
-            ImmutableArray<BoundNode> collectionBuilderPrefixArguments = this.VisitList(node.CollectionBuilderPrefixArguments);
-            BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
-            BoundExpression? collectionBuilderInvocationConversion = node.CollectionBuilderInvocationConversion;
+            BoundExpression? collectionBuilderProjectionCall = node.CollectionBuilderProjectionCall;
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderPrefixArguments, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, node.HasWithElement, unconvertedCollectionExpression, elements, type);
+            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderProjectionCall, node.WasTargetTyped, node.HasWithElement, unconvertedCollectionExpression, elements, type);
         }
         public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
         {
@@ -14277,24 +14266,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
-            MethodSymbol? collectionBuilderMethod = GetUpdatedSymbol(node, node.CollectionBuilderMethod);
             BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
             BoundExpression? collectionCreation = node.CollectionCreation;
-            ImmutableArray<BoundNode> collectionBuilderPrefixArguments = this.VisitList(node.CollectionBuilderPrefixArguments);
-            BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
-            BoundExpression? collectionBuilderInvocationConversion = node.CollectionBuilderInvocationConversion;
+            BoundExpression? collectionBuilderProjectionCall = node.CollectionBuilderProjectionCall;
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             BoundCollectionExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderPrefixArguments, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, node.HasWithElement, unconvertedCollectionExpression, elements, infoAndType.Type!);
+                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderProjectionCall, node.WasTargetTyped, node.HasWithElement, unconvertedCollectionExpression, elements, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderPrefixArguments, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, node.HasWithElement, unconvertedCollectionExpression, elements, node.Type);
+                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderProjectionCall, node.WasTargetTyped, node.HasWithElement, unconvertedCollectionExpression, elements, node.Type);
             }
             return updatedNode;
         }
@@ -16721,10 +16707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("collectionTypeKind", node.CollectionTypeKind, null),
             new TreeDumperNode("placeholder", null, new TreeDumperNode[] { Visit(node.Placeholder, null) }),
             new TreeDumperNode("collectionCreation", null, new TreeDumperNode[] { Visit(node.CollectionCreation, null) }),
-            new TreeDumperNode("collectionBuilderMethod", node.CollectionBuilderMethod, null),
-            new TreeDumperNode("collectionBuilderPrefixArguments", null, from x in node.CollectionBuilderPrefixArguments select Visit(x, null)),
-            new TreeDumperNode("collectionBuilderInvocationPlaceholder", null, new TreeDumperNode[] { Visit(node.CollectionBuilderInvocationPlaceholder, null) }),
-            new TreeDumperNode("collectionBuilderInvocationConversion", null, new TreeDumperNode[] { Visit(node.CollectionBuilderInvocationConversion, null) }),
+            new TreeDumperNode("collectionBuilderProjectionCall", null, new TreeDumperNode[] { Visit(node.CollectionBuilderProjectionCall, null) }),
             new TreeDumperNode("wasTargetTyped", node.WasTargetTyped, null),
             new TreeDumperNode("hasWithElement", node.HasWithElement, null),
             new TreeDumperNode("unconvertedCollectionExpression", null, new TreeDumperNode[] { Visit(node.UnconvertedCollectionExpression, null) }),
