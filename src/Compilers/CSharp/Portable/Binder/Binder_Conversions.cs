@@ -836,9 +836,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? collectionBuilderMethod = null;
-            ImmutableArray<BoundExpression> collectionBuilderPrefixArguments = [];
-            BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
-            BoundExpression? collectionBuilderInvocationConversion = null;
+            BoundExpression? collectionBuilderProjectionCall = null;
+            //ImmutableArray<BoundExpression> collectionBuilderPrefixArguments = [];
+            //BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
+            //BoundExpression? collectionBuilderInvocationConversion = null;
 
             switch (collectionTypeKind)
             {
@@ -858,6 +859,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, forParams: false);
                         if (collectionBuilderMethods.IsEmpty)
+                        {
+                            return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                        }
+
+                        (collectionBuilderMethod, collectionBuilderProjectionCall) = bindCollectionBuilderProjectionCall();
+                        if (collectionBuilderMethod is null || collectionBuilderProjectionCall is null)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
@@ -1000,9 +1007,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderMethod,
-                collectionBuilderPrefixArguments,
-                collectionBuilderInvocationPlaceholder,
-                collectionBuilderInvocationConversion,
+                collectionBuilderProjectionCall,
+                //collectionBuilderPrefixArguments,
+                //collectionBuilderInvocationPlaceholder,
+                //collectionBuilderInvocationConversion,
                 wasTargetTyped: true,
                 hasWithElement: node.WithElement != null,
                 node,
@@ -1916,8 +1924,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderMethod: null,
-                collectionBuilderInvocationPlaceholder: null,
-                collectionBuilderInvocationConversion: null,
+                collectionBuilderProjectionCall: null,
+                //collectionBuilderInvocationPlaceholder: null,
+                //collectionBuilderInvocationConversion: null,
                 wasTargetTyped: inConversion,
                 hasWithElement: node.WithElement != null,
                 node,

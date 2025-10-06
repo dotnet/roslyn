@@ -506,8 +506,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.CollectionCreation is null);
             Debug.Assert(node.Placeholder is null);
             Debug.Assert(node.CollectionBuilderMethod is { });
-            Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
-            Debug.Assert(node.CollectionBuilderInvocationConversion is { });
+            Debug.Assert(node.CollectionBuilderProjectionCall is { });
+            //Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
+            //Debug.Assert(node.CollectionBuilderInvocationConversion is { });
+
+            Debug.Assert(node.CollectionBuilderProjectionCall is BoundCall or BoundConversion { Operand: BoundCall });
 
             var constructMethod = node.CollectionBuilderMethod;
 
@@ -524,27 +527,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? VisitExpression(spreadExpression)
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
-            var invocation = new BoundCall(
+            var originalConversion = node.CollectionBuilderProjectionCall as BoundConversion;
+            var originalInvocation = (BoundCall)(originalConversion?.Operand ?? node.CollectionBuilderProjectionCall);
+
+            // Add the final 'span' to the arguments of the original call.
+
+            var arguments = originalInvocation.Arguments;
+            var argumentNames = originalInvocation.ArgumentNamesOpt;
+            var argumentRefKinds = originalInvocation.ArgumentRefKindsOpt;
+
+            arguments = arguments.Add(span);
+            if (!argumentNames.IsDefault)
+                argumentNames = argumentNames.Add(null);
+
+            if (!argumentRefKinds.IsDefault)
+                argumentRefKinds = argumentRefKinds.Add(RefKind.None);
+
+            var finalInvocation = new BoundCall(
                 node.Syntax,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: constructMethod,
-                arguments: ImmutableArray.Create(span),
-                argumentNamesOpt: default,
-                argumentRefKindsOpt: default,
+                arguments: arguments,
+                argumentNamesOpt: argumentNames,
+                argumentRefKindsOpt: argumentRefKinds,
                 isDelegateCall: false,
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default,
-                defaultArguments: default,
+                defaultArguments: originalInvocation.DefaultArguments,
                 resultKind: LookupResultKind.Viable,
                 type: constructMethod.ReturnType);
 
-            var invocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
-            AddPlaceholderReplacement(invocationPlaceholder, invocation);
-            var result = VisitExpression(node.CollectionBuilderInvocationConversion);
-            RemovePlaceholderReplacement(invocationPlaceholder);
-            return result;
+            BoundExpression finalNode = originalConversion is null
+                ? finalInvocation
+                : originalConversion.Update(
+                    finalInvocation, originalConversion.Conversion, originalConversion.IsBaseConversion, originalConversion.Checked,
+                    originalConversion.ExplicitCastInCode, originalConversion.ConstantValueOpt, originalConversion.ConversionGroupOpt, originalConversion.Type);
+
+            //var invocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
+            //AddPlaceholderReplacement(invocationPlaceholder, originalInvocation);
+            //var result = VisitExpression(node.CollectionBuilderInvocationConversion);
+            //RemovePlaceholderReplacement(invocationPlaceholder);
+            return finalNode;
         }
 
         internal static bool IsAllocatingRefStructCollectionExpression(BoundCollectionExpressionBase node, CollectionExpressionTypeKind collectionKind, TypeSymbol? elementType, CSharpCompilation compilation)
