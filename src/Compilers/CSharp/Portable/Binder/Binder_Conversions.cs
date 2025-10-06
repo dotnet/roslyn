@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? collectionBuilderMethod = null;
-            BoundExpression? collectionBuilderProjectionCall = null;
+            BoundConversion? collectionBuilderProjectionCallConversion = null;
             //ImmutableArray<BoundExpression> collectionBuilderPrefixArguments = [];
             //BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             //BoundExpression? collectionBuilderInvocationConversion = null;
@@ -863,8 +863,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        (collectionBuilderMethod, collectionBuilderProjectionCall) = bindCollectionBuilderProjectionCall();
-                        if (collectionBuilderMethod is null || collectionBuilderProjectionCall is null)
+                        (collectionBuilderMethod, collectionBuilderProjectionCallConversion) = bindCollectionBuilderProjectionCallConversion();
+                        if (collectionBuilderMethod is null || collectionBuilderProjectionCallConversion is null)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderMethod,
-                collectionBuilderProjectionCall,
+                collectionBuilderProjectionCallConversion,
                 //collectionBuilderPrefixArguments,
                 //collectionBuilderInvocationPlaceholder,
                 //collectionBuilderInvocationConversion,
@@ -1924,7 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderMethod: null,
-                collectionBuilderProjectionCall: null,
+                collectionBuilderProjectionCallConversion: null,
                 //collectionBuilderInvocationPlaceholder: null,
                 //collectionBuilderInvocationConversion: null,
                 wasTargetTyped: inConversion,
