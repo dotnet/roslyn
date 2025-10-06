@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, targetType);
             }
 
-            ImmutableArray<(MethodSymbol method, Conversion returnTypeConversion)> collectionBuilderMethods = [];
+            ImmutableArray<(MethodSymbol method, NamedTypeSymbol elementType, Conversion returnTypeConversion)> collectionBuilderMethods = [];
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
 
@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var namedType = (NamedTypeSymbol)targetType;
 
-                        collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, out var updatedElementType);
+                        collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics);
                         if (collectionBuilderMethods.IsEmpty)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
@@ -1059,7 +1059,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// from the latter in that the collection builder method itself can only contain a single <see
         /// cref="ReadOnlySpan{T}"/> parameter, while the latter can be any method that <em>ends</em> with a <see
         /// cref="ReadOnlySpan{T}"/> parameter, but otherwise follows the collection builder method pattern.</param>
-        internal ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> GetAndValidateCollectionBuilderMethods(
+        /// <returns>
+        /// An array containing tuples where the elements of the tuple are:
+        /// <list type="number">
+        /// <item>The actual collection builder method found.</item>
+        /// <item>The final element type determined.  This will be equivalent to the type-argument of the final <see
+        /// cref="ReadOnlySpan{T}"/> parameter type in the collection builder method (after construction has been
+        /// performed using the type arguments from <paramref name="namedType"/>.</item>
+        /// <item>The conversion from the return type of the constructed method, to the actual collection type being
+        /// created.</item>
+        /// </list>
+        /// </returns>
+        internal ImmutableArray<(MethodSymbol method, NamedTypeSymbol elementType, Conversion returnTypeConversion)> GetAndValidateCollectionBuilderMethods(
             SyntaxNode syntax,
             NamedTypeSymbol namedType,
             BindingDiagnosticBag diagnostics,
@@ -2074,7 +2085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 parameterType = (NamedTypeSymbol)methodWithTargetTypeParameters.Parameters.Last().Type;
                 var elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                var conversion = Conversions.ClassifyImplicitConversionFromType(elementTypeOriginalDefinition, spanTypeArg, ref candidateUseSiteInfo);
+                var conversion = Conversions.ClassifyImplicitConversionFromType(elementTypeOriginalDefinition, elementType, ref candidateUseSiteInfo);
                 if (!conversion.IsIdentity)
                 {
                     continue;
