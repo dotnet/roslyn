@@ -1012,7 +1012,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
     public void WithElement_ArgList_Empty()
     {
         var source = """
