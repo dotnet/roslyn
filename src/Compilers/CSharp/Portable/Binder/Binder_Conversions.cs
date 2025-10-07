@@ -1161,14 +1161,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                // For params, we want to see, up front, if this type is suitable as a params collection. To do that, we
-                // explicitly go look to see if there is a suitable constructor that we can find that takes no arguments
-                // (not exactly the same the same as a no-params constructor).  If not, there is no collection conversion
-                // and params is not allowed.
+                // From the specification: https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#conversions
                 //
-                // For collection expressions, except in the case where it has a with() element.  In that case, it's ok
-                // to not have a no-arg constructor.  It just needs *some* constructor that would be accessible to the
-                // caller.  They can then potentially instantiate the type through one of those constructors.
+                // A struct or class type that implements System.Collections.IEnumerable where:
+                //
+                // a. the collection expression has no `with_element` and the type has an applicable constructor
+                //    that can be invoked with no arguments, accessible at the location of the collection expression.or
+                // b. the collection expression has a `with_element` and the type has at least one constructor
+                //    accessible at the location of the collection expression.
+
+                // This is the 'b' case above. 
                 if (hasWithElement)
                 {
                     var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -1189,6 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // don't have the no-arg one, and should report the below message saying there is a problem.
                 }
 
+                // This is the 'a' case, and the error recovery path for the 'b' case as well.
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 var binder = new ParamsCollectionTypeInProgressBinder(namedType, this);
 
