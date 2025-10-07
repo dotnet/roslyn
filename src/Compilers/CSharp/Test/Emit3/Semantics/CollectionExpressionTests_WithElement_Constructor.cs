@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1266,6 +1263,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
+        // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
         CreateCompilation(source).VerifyDiagnostics(
             // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
             //         MyList<int> list = [with(10)];
@@ -1292,6 +1290,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
+        // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
         CreateCompilation(source).VerifyDiagnostics(
             // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
             //         MyList<int> list = [with(10)];
@@ -2046,6 +2045,57 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             // (25,9): error CS0121: The call is ambiguous between the following methods or properties: 'D.M(Collection1)' and 'D.M(Collection2)'
             //         M([with(capacity: 42)]);
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("D.M(Collection1)", "D.M(Collection2)").WithLocation(25, 9));
+    }
+
+    [Fact]
+    public void WithElement_DoesNotContributeToTypeInference1()
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void G()
+                {
+                    M([with(capacity: 10)]);
+                }
+
+                void M<T>(List<T> list) { }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,9): error CS0411: The type arguments for method 'C.M<T>(List<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //         M([with(capacity: 10)]);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(System.Collections.Generic.List<T>)").WithLocation(7, 9));
+    }
+
+    [Fact]
+    public void WithElement_DoesNotContributeToTypeInference2()
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T value) { }
+            }
+
+            class C
+            {
+                void G()
+                {
+                    M([with(10)]);
+                }
+
+                void M<T>(MyList<T> list) { }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,9): error CS0411: The type arguments for method 'C.M<T>(MyList<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //         M([with(10)]);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(MyList<T>)").WithLocation(12, 9));
     }
 
     #endregion

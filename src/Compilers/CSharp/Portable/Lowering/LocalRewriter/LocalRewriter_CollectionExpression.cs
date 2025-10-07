@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 return CreateAndPopulateList(
                                     node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node),
-                                    // We have no with-element.  Create a List<T> is an optimal a fashion as possible.
+                                    // We have no with-element.  Create a List<T> in an optimal a fashion as possible.
                                     receiver: null);
                             }
                         }
