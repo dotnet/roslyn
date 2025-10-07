@@ -5380,6 +5380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var arg = arguments[i];
                     if (arg.Type is { TypeKind: TypeKind.Dynamic })
                     {
+                        // Collection arguments cannot be dynamic
                         diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
                         arguments[i] = new BoundBadExpression(
                             arg.Syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [arg], type: @this.Compilation.GetSpecialType(SpecialType.System_Object));
