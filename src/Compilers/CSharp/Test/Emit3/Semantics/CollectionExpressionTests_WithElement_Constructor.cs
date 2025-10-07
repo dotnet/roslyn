@@ -1938,5 +1938,29 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "i").WithArguments("lambda expression").WithLocation(15, 25));
     }
 
+    [Fact]
+    public void WithElement_Ambiguous_WithOverloads()
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M(List<int> list) { }
+                void M(HashSet<int> set) { }
+
+                void G()
+                {
+                    M([with(capacity: 10)]);
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(List<int>)' and 'C.M(HashSet<int>)'
+            //         M([with(capacity: 10)]);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Collections.Generic.List<int>)", "C.M(System.Collections.Generic.HashSet<int>)").WithLocation(10, 9));
+    }
+
     #endregion
 }
