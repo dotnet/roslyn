@@ -1067,24 +1067,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
                 // All the methods were instantiated with the same type-arguments, so we can grab what we need off of the first in the list.
-                Debug.Assert(collectionBuilderMethods.All(t => t.method.TypeArgumentsWithAnnotations.SequenceEqual(collectionBuilderMethods[0].method.TypeArgumentsWithAnnotations)));
                 Debug.Assert(collectionBuilderMethods.All(t => t.method.Name == collectionBuilderMethods[0].method.Name));
 
                 var lookupResult = LookupResult.GetInstance();
-                var methodGround = new BoundMethodGroup(
-                    node.WithElement?.Syntax ?? node.Syntax,
-                    typeArgumentsOpt: collectionBuilderMethods[0].method.TypeArgumentsWithAnnotations,
+
+                var syntax = node.WithElement?.Syntax ?? node.Syntax;
+                var methodName = collectionBuilderMethods[0].method.Name;
+
+                var methodGroup = new BoundMethodGroup(
+                    syntax,
+                    typeArgumentsOpt: [],
                     receiverOpt: null,
-                    name: collectionBuilderMethods[0].method.Name,
+                    name: methodName,
                     methods: collectionBuilderMethods.SelectAsArray(m => ),
                     lookupResult,
                     BoundMethodGroupFlags.None,
-                    this)
-                {
-                    WasCompilerGenerated = true,
-                };
+                    this).MakeCompilerGenerated();
 
-                    lookupResult.Free();
+                this.BindInvocationExpression(
+                    syntax, node.Syntax, methodName, methodGroup,
+                    analyzedArguments, diagnostics, acceptOnlyMethods: true);
+
+
+                lookupResult.Free();
                 overloadResolutionResult.Free();
                 analyzedArguments.Free();
                 projectionToOriginalMethod.Free();

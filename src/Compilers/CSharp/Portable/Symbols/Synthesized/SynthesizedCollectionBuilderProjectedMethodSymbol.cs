@@ -16,28 +16,27 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
 {
     private readonly MethodSymbol _originalCollectionBuilderMethod = originalCollectionBuilderMethod;
 
-    private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
     private ImmutableArray<ParameterSymbol> _lazyParameters;
 
     public override MethodSymbol UnderlyingMethod => _originalCollectionBuilderMethod;
 
     public override TypeWithAnnotations ReturnTypeWithAnnotations => throw new System.NotImplementedException();
 
-    public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => throw new System.NotImplementedException();
-
-    public override ImmutableArray<TypeParameterSymbol> TypeParameters
-    {
-        get
-        {
-            if (_lazyTypeParameters.IsDefault)
-            {
-                var parameters = _originalCollectionBuilderMethod.TypeParameters.SelectAsArray(
-                    static (p, @this) => (TypeParameterSymbol)new SynthesizedCollectionBuilderProjectedTypeParameterSymbol(@this, p), this);
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, parameters);
-            }
-            return _lazyTypeParameters;
-        }
-    }
+    // Note: it is very intentional that we return empty arrays for Type arguments/parameters.  Consider a
+    // hypothetical signature like:
+    //
+    //  Dict<TKey, TValue> Create<TKey, TValue>(IEqualityComparer<TKey> comparer, ReadOnlySpan<KeyValuePair<TKey, TValue>> elements)
+    //
+    // Where the target type is `Dict<int, string>`.  The conversion process will already have instantiated this method
+    // with the appropriate `int, string` type arguments.  What we want to then expose is a signature like:
+    //
+    //  Dict<int, string> Create(IEqualityComparer<int> comparer)
+    //
+    // i.e.  we want to remove the type parameters and the final parameter that takes the elements.  That way there is
+    // no more inference done, or any confusion about needing type arguments when resolving a `with(...)` element
+    // against this signature.
+    public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => [];
+    public override ImmutableArray<TypeParameterSymbol> TypeParameters => [];
 
     public override ImmutableArray<ParameterSymbol> Parameters
     {
