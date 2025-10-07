@@ -1266,6 +1266,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
+        // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
         CreateCompilation(source).VerifyDiagnostics(
             // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
             //         MyList<int> list = [with(10)];
@@ -1292,6 +1293,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
+        // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
         CreateCompilation(source).VerifyDiagnostics(
             // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
             //         MyList<int> list = [with(10)];
