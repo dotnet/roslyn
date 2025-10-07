@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
             //Debug.Assert(node.CollectionBuilderInvocationConversion is { });
 
-            Debug.Assert(node.CollectionBuilderProjectionCallConversion is { });
+            Debug.Assert(node.CollectionBuilderProjectionCall is { });
 
             var constructMethod = node.CollectionBuilderMethod;
 
@@ -526,14 +526,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? VisitExpression(spreadExpression)
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
-            var originalConversion = node.CollectionBuilderProjectionCallConversion as BoundConversion;
-            var originalInvocation = (BoundCall)originalConversion.Operand;
+            var originalCall = node.CollectionBuilderProjectionCall;
 
             // Add the final 'span' to the arguments of the original call.
 
-            var arguments = originalInvocation.Arguments;
-            var argumentNames = originalInvocation.ArgumentNamesOpt;
-            var argumentRefKinds = originalInvocation.ArgumentRefKindsOpt;
+            var arguments = originalCall.Arguments;
+            var argumentNames = originalCall.ArgumentNamesOpt;
+            var argumentRefKinds = originalCall.ArgumentRefKindsOpt;
 
             arguments = arguments.Add(span);
             if (!argumentNames.IsDefault)
@@ -554,9 +553,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default,
-                defaultArguments: originalInvocation.DefaultArguments,
+                defaultArguments: originalCall.DefaultArguments,
                 resultKind: LookupResultKind.Viable,
                 type: constructMethod.ReturnType);
+
+            var conversin = new 
 
             var finalConversion = originalConversion.Update(
                 finalInvocation, originalConversion.Conversion, originalConversion.IsBaseConversion, originalConversion.Checked,

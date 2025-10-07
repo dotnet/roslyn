@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArgumentsOpt: [],
                     receiverOpt: null,
                     name: methodName,
-                    methods: collectionBuilderMethods.SelectAsArray(m => ),
+                    methods: projectionMethods.ToImmutableAndFree(),
                     lookupResult,
                     BoundMethodGroupFlags.None,
                     this).MakeCompilerGenerated();
@@ -1093,7 +1093,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 overloadResolutionResult.Free();
                 analyzedArguments.Free();
                 projectionToOriginalMethod.Free();
-                projectionMethods.Free();
             }
         }
 
@@ -1978,7 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderMethod: null,
-                collectionBuilderProjectionCallConversion: null,
+                collectionBuilderProjectionCall: null,
                 //collectionBuilderInvocationPlaceholder: null,
                 //collectionBuilderInvocationConversion: null,
                 wasTargetTyped: inConversion,

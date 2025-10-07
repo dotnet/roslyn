@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundMethodGroup(
             SyntaxNode syntax,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
-            BoundExpression receiverOpt,
+            BoundExpression? receiverOpt,
             string name,
             ImmutableArray<MethodSymbol> methods,
             LookupResult lookupResult,
