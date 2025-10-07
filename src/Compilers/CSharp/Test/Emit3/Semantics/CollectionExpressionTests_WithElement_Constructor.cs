@@ -960,7 +960,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     #region ArgList Tests
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [Fact]
     public void WithElement_ArgList()
     {
         var source = """
@@ -983,7 +983,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CreateCompilation(source).VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [Fact]
     public void WithElement_ArgList_Empty()
     {
         var source = """
@@ -994,7 +994,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 public MyList(__arglist) : base() 
                 {
-                    Console.WriteLine("ArgList constructor called");
+                    Console.Write ("ArgList constructor called ");
                 }
             }
             
@@ -1008,7 +1008,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("ArgList constructor called\r\n1"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("ArgList constructor called 1"));
     }
 
     #endregion
