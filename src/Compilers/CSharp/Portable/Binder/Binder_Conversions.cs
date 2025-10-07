@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? collectionBuilderMethod = null;
-            BoundConversion? collectionBuilderProjectionCallConversion = null;
+            BoundCall? collectionBuilderProjectionCall = null;
             //ImmutableArray<BoundExpression> collectionBuilderPrefixArguments = [];
             //BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             //BoundExpression? collectionBuilderInvocationConversion = null;
@@ -863,8 +863,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        (collectionBuilderMethod, collectionBuilderProjectionCallConversion) = bindCollectionBuilderProjectionCallConversion(collectionBuilderMethods);
-                        if (collectionBuilderMethod is null || collectionBuilderProjectionCallConversion is null)
+                        (collectionBuilderMethod, collectionBuilderProjectionCall) = bindCollectionBuilderProjectionCallConversion(collectionBuilderMethods);
+                        if (collectionBuilderMethod is null || collectionBuilderProjectionCall is null)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderMethod,
-                collectionBuilderProjectionCallConversion,
+                collectionBuilderProjectionCall,
                 //collectionBuilderPrefixArguments,
                 //collectionBuilderInvocationPlaceholder,
                 //collectionBuilderInvocationConversion,
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: element.LengthOrCount);
             }
 
-            (MethodSymbol? collectionBuilderMethod, BoundConversion? collectionCallConversion) bindCollectionBuilderProjectionCallConversion(
+            (MethodSymbol? collectionBuilderMethod, BoundCall? collectionProjectionCall) bindCollectionBuilderProjectionCallConversion(
                 ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> collectionBuilderMethods)
             {
                 Debug.Assert(collectionBuilderMethods.Length > 0);

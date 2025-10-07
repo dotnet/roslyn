@@ -1956,11 +1956,12 @@
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <!-- Call to instantiate a collection with a constructor. -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <!-- Actual method (not the projection method) to call in the collection-builder case. This will be constructed with
+         the right type arguments in the case of generic builder methods -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow" />
-    <!-- Conversion node wrapping the invocation of the projected collection builder method.  This will be lowered to
-         the final call to the original collection builder with these invocation arguments followed by the actual
-         elements as the last arg. -->
-    <Field Name="CollectionBuilderProjectionCallConversion" Type="BoundConversion?" Null="allow" SkipInVisitor="true"/>
+    <!-- Call of the projected collection builder method.  This will be lowered to the final call to the original
+         collection builder with these invocation arguments followed by the actual elements as the last arg. -->
+    <Field Name="CollectionBuilderProjectionCall" Type="BoundCall?" Null="allow" SkipInVisitor="true"/>
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="HasWithElement" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
