@@ -145,10 +145,10 @@ var suggestedTargetVsVersionAfterSnap = inferredVsVersion;
 
 var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should insert to")
     .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsVsBranchName()));
-var sourceVsAsDraftAfterSnap = console.Prompt(new TextPrompt<bool>($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?").DefaultValue(false));
+var sourceVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
 var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to")
     .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
-var targetVsAsDraftAfterSnap = console.Prompt(new TextPrompt<bool>($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?").DefaultValue(false));
+var targetVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
 
 // Check subscriptions.
 var darc = new DarcHelper(console);
@@ -397,6 +397,19 @@ static partial class Patterns
 
 file static class Extensions
 {
+    extension(IAnsiConsole console)
+    {
+        public bool Confirm(string prompt, bool defaultValue)
+        {
+            return new ConfirmationPrompt(prompt)
+            {
+                DefaultValue = defaultValue,
+                DefaultValueStyle = Style.Plain.Foreground(Color.Grey),
+            }
+            .Show(console);
+        }
+    }
+
     extension<T>(IEnumerable<T?> collection)
     {
         public IEnumerable<T> AssertNonNullElements(string message)
