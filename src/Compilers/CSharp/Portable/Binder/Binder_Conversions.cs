@@ -1069,20 +1069,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // All the methods were instantiated with the same type-arguments, so we can grab what we need off of the first in the list.
                 Debug.Assert(collectionBuilderMethods.All(t => t.method.Name == collectionBuilderMethods[0].method.Name));
 
-                var lookupResult = LookupResult.GetInstance();
-
                 var syntax = node.WithElement?.Syntax ?? node.Syntax;
                 var methodName = collectionBuilderMethods[0].method.Name;
 
                 var methodGroup = new BoundMethodGroup(
                     syntax,
-                    typeArgumentsOpt: [],
-                    receiverOpt: null,
+                    typeArgumentsOpt: default,
                     name: methodName,
                     methods: projectionMethods.ToImmutableAndFree(),
-                    lookupResult,
+                    lookupSymbolOpt: null,
+                    lookupError: null,
                     BoundMethodGroupFlags.None,
-                    @this).MakeCompilerGenerated();
+                    functionType: null,
+                    receiverOpt: null,
+                    resultKind: LookupResultKind.Viable).MakeCompilerGenerated();
 
                 var projectionInvocationExpression = @this.BindInvocationExpression(
                     syntax, node.Syntax, methodName, methodGroup,
@@ -1106,7 +1106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         collectionBuilderMethod, projectionCall, placeHolder, conversion);
                 }
 
-                lookupResult.Free();
                 overloadResolutionResult.Free();
                 analyzedArguments.Free();
                 projectionToOriginalMethod.Free();
