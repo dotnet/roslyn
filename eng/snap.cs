@@ -16,10 +16,12 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.DotNet.DarcLib;
@@ -65,6 +67,9 @@ console.Pipeline.Attach(new LoggingRenderHook(logWriter));
 // Welcome message.
 console.MarkupLineInterpolated($"Welcome to [gray]{getFileName()}[/], an interactive script to help with snap-related infra tasks");
 
+var httpClient = new HttpClient();
+httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("dotnet-roslyn-snap-script");
+
 // Ask for source repo.
 
 var defaultRepo = (await Cli.Wrap("gh")
@@ -92,8 +97,22 @@ var sourceRepoUrl = $"https://github.com/{sourceRepoShort}";
 var sourceBranchName = console.Prompt(new TextPrompt<string>("Source branch")
     .DefaultValue("main"));
 
+// Find Roslyn version number.
+var sourceVersionsProps = await VersionsProps.LoadAsync(httpClient, sourceRepoShort, sourceBranchName);
+console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] has version [teal]{sourceVersionsProps?.ToString() ?? "N/A"}[/]");
+
+string? suggestedTargetBranchName = null;
+
+// From the version number, infer the VS version it inserts to.
+if (sourceVersionsProps != null)
+{
+    // Roslyn 4.x corresponds to VS 17.x and so on.
+    var vsMajorVersion = sourceVersionsProps.MajorVersion + 13;
+    suggestedTargetBranchName = $"release/dev{vsMajorVersion}.{sourceVersionsProps.MinorVersion}";
+}
+
 // Find the latest branch starting with release/.
-var latestReleaseBranch = (await Cli.Wrap("git")
+suggestedTargetBranchName ??= (await Cli.Wrap("git")
     .WithArguments(["for-each-ref", "--sort=-committerdate", "--format=%(refname:short)", "refs/remotes/*/release/*", "--count=1"])
     .ExecuteBufferedAsync())
     .StandardOutput
@@ -102,16 +121,18 @@ var latestReleaseBranch = (await Cli.Wrap("git")
     .FirstOrDefault();
 
 var targetBranchName = console.Prompt(new TextPrompt<string>("Target branch")
-    .DefaultValue(latestReleaseBranch ?? "release/insiders"));
+    .DefaultValue(suggestedTargetBranchName ?? "release/insiders"));
+
+// Find Roslyn version number.
+var targetVersionsProps = await VersionsProps.LoadAsync(httpClient, sourceRepoShort, targetBranchName);
+console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] has version [teal]{targetVersionsProps?.ToString() ?? "N/A"}[/]");
 
 // Find which VS the branches insert to.
-var httpClient = new HttpClient();
-httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("dotnet-roslyn-snap-script");
 var sourcePublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, sourceBranchName);
 var targetPublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, targetBranchName);
 var sourcePublishData = await sourcePublishDataTask;
-var targetPublishData = await targetPublishDataTask;
 console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] inserts to VS [teal]{sourcePublishData?.BranchInfo.Summarize() ?? "N/A"}[/]");
+var targetPublishData = await targetPublishDataTask;
 console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] inserts to VS [teal]{targetPublishData?.BranchInfo.Summarize() ?? "N/A"}[/]");
 
 // Where should branches insert after the snap?
@@ -293,7 +314,7 @@ file sealed record PublishData(
             return await httpClient.GetFromJsonAsync<PublishData>($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/eng/config/PublishData.json")
                 ?? throw new InvalidOperationException("Null PublishData.json");
         }
-        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }
@@ -310,6 +331,45 @@ file sealed record BranchInfo(
     string InsertionTitlePrefix)
 {
     public string Summarize() => VsBranch + (InsertionCreateDraftPR ? " (as draft)" : null);
+}
+
+file sealed record VersionsProps(
+    int MajorVersion,
+    int MinorVersion,
+    int PatchVersion,
+    string PreReleaseVersionLabel)
+{
+    /// <returns>
+    /// <see langword="null"/> if the repo or branch does not exist.
+    /// </returns>
+    public static async Task<VersionsProps?> LoadAsync(HttpClient httpClient, string repoOwnerAndName, string branchName)
+    {
+        try
+        {
+            var xml = await httpClient.GetAsXmlDocumentAsync($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/eng/Versions.props");
+
+            var majorVersion = int.Parse(xml.SelectSingleNode("//MajorVersion")?.InnerText
+                ?? throw new InvalidOperationException("MajorVersion not found"));
+            var minorVersion = int.Parse(xml.SelectSingleNode("//MinorVersion")?.InnerText
+                ?? throw new InvalidOperationException("MinorVersion not found"));
+            var patchVersion = int.Parse(xml.SelectSingleNode("//PatchVersion")?.InnerText
+                ?? throw new InvalidOperationException("PatchVersion not found"));
+            var preReleaseVersionLabel = xml.SelectSingleNode("//PreReleaseVersionLabel")?.InnerText
+                ?? throw new InvalidOperationException("PreReleaseVersionLabel not found");
+
+            return new VersionsProps(majorVersion, minorVersion, patchVersion, preReleaseVersionLabel);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Cannot load Versions.props from '{repoOwnerAndName}' branch '{branchName}'", ex);
+        }
+    }
+
+    public override string ToString() => $"{MajorVersion}.{MinorVersion}.{PatchVersion}-{PreReleaseVersionLabel}";
 }
 
 file sealed record VsVersion(int Major, int Minor)
@@ -350,6 +410,17 @@ file static class Extensions
 
                 yield return item;
             }
+        }
+    }
+
+    extension(HttpClient httpClient)
+    {
+        public async Task<XmlDocument> GetAsXmlDocumentAsync(string requestUri)
+        {
+            using var stream = await httpClient.GetStreamAsync(requestUri);
+            var doc = new XmlDocument();
+            doc.Load(stream);
+            return doc;
         }
     }
 
