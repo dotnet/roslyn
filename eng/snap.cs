@@ -14,12 +14,14 @@
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.DotNet.DarcLib;
+using Microsoft.DotNet.ProductConstructionService.Client.Models;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
@@ -84,40 +86,16 @@ var sourceRepoShort = console.Prompt(new TextPrompt<string>("Source repo in the 
 var sourceRepoUrl = $"https://github.com/{sourceRepoShort}";
 
 // Check subscriptions.
-var barApiClient = new BarApiClient(
-    buildAssetRegistryPat: null,
-    managedIdentityId: null,
-    disableInteractiveAuth: false);
-var defaultChannelsTask = barApiClient.GetDefaultChannelsAsync(sourceRepoUrl);
+var darc = new DarcHelper(console);
 var printers = await Task.WhenAll([
-    listSubscriptionsAsync("https://github.com/dotnet/dotnet", "VMR"),
-    listSubscriptionsAsync("https://github.com/dotnet/sdk", "SDK"),
-    listSubscriptionsAsync("https://github.com/dotnet/runtime", "runtime"),
+    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/dotnet", "VMR"),
+    darc.ListBackflowsAsync(sourceRepoUrl),
+    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/sdk", "SDK"),
+    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/runtime", "runtime"),
 ]);
 foreach (var printer in printers)
 {
     printer();
-}
-
-async Task<Action> listSubscriptionsAsync(string targetRepoUrl, string targetRepoFriendlyName)
-{
-    var subscriptionsTask = barApiClient.GetSubscriptionsAsync(sourceRepoUrl, targetRepoUrl);
-    var defaultChannels = await defaultChannelsTask;
-    var subscriptions = await subscriptionsTask;
-    var flows = (
-        from channel in defaultChannels
-        join subscription in subscriptions on channel.Channel.Id equals subscription.Channel.Id
-        where subscription.Enabled
-        select $"{channel.Branch} -> {channel.Channel.Name} -> {subscription.TargetBranch}")
-        .ToArray();
-    return () =>
-    {
-        console.MarkupLineInterpolated($"Found [teal]{flows.Length}[/] subscriptions to {targetRepoFriendlyName}:");
-        foreach (var flow in flows)
-        {
-            console.WriteLine($" - {flow}");
-        }
-    };
 }
 
 // Ask for source and target branches.
@@ -348,7 +326,7 @@ file static class Extensions
     }
 }
 
-file class LoggingRenderHook(StreamWriter logWriter) : IRenderHook
+file sealed class LoggingRenderHook(StreamWriter logWriter) : IRenderHook
 {
     private long _lastOffset;
 
@@ -372,5 +350,46 @@ file class LoggingRenderHook(StreamWriter logWriter) : IRenderHook
         _lastOffset = logWriter.BaseStream.Position;
 
         return renderables;
+    }
+}
+
+file sealed class DarcHelper(IAnsiConsole console)
+{
+    private readonly BarApiClient _barApiClient = new(
+        buildAssetRegistryPat: null,
+        managedIdentityId: null,
+        disableInteractiveAuth: false);
+
+    private readonly ConcurrentDictionary<string, Task<IEnumerable<DefaultChannel>>> _defaultChannelsCache = new();
+
+    public Task<IEnumerable<DefaultChannel>> GetDefaultChannelsAsync(string repoUrl)
+    {
+        return _defaultChannelsCache.GetOrAdd(repoUrl, static (repoUrl, @this) => @this._barApiClient.GetDefaultChannelsAsync(repoUrl), this);
+    }
+
+    public async Task<Action> ListSubscriptionsAsync(string sourceRepoUrl, string targetRepoUrl, string targetRepoFriendlyName, string subscriptionsText = "subscriptions to")
+    {
+        var subscriptionsTask = _barApiClient.GetSubscriptionsAsync(sourceRepoUrl, targetRepoUrl);
+        var defaultChannels = await GetDefaultChannelsAsync(sourceRepoUrl);
+        var subscriptions = await subscriptionsTask;
+        var flows = (
+            from channel in defaultChannels
+            join subscription in subscriptions on channel.Channel.Id equals subscription.Channel.Id
+            where subscription.Enabled
+            select $"{channel.Branch} -> {channel.Channel.Name} -> {subscription.TargetBranch}")
+            .ToArray();
+        return () =>
+        {
+            console.MarkupLineInterpolated($"Found [teal]{flows.Length}[/] {subscriptionsText} {targetRepoFriendlyName}:");
+            foreach (var flow in flows)
+            {
+                console.WriteLine($" - {flow}");
+            }
+        };
+    }
+
+    public Task<Action> ListBackflowsAsync(string targetRepoUrl, string sourceRepoUrl = "https://github.com/dotnet/dotnet", string sourceRepoFriendlyName = "VMR")
+    {
+        return ListSubscriptionsAsync(sourceRepoUrl, targetRepoUrl, sourceRepoFriendlyName, "back flows from");
     }
 }
