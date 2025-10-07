@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -542,13 +543,16 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         var source = $$"""
             using System;
             using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
             
             class MyList<T> : List<T>
             {
                 public int Value { get; }
                 public MyList(in int value) : base() 
                 { 
+                    Console.Write(value + " ");
                     Value = value;
+                    Unsafe.AsRef(value) = 10;
                 }
             }
             
@@ -558,12 +562,12 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 {
                     int x = 42;
                     MyList<int> list = [with({{modifier}}x), 1];
-                    Console.WriteLine(list.Value);
+                    Console.WriteLine(x);
                 }
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42"));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("42 10"));
     }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
