@@ -8215,6 +8215,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'with(...)' element arguments cannot be dynamic</value>
   </data>
   <data name="ERR_CollectionArgumentsMustBeEmpty" xml:space="preserve">
-    <value>Collection arguments for read-only interface must be empty</value>
+    <value>'with(...)' element for read-only interface must be empty</value>
   </data>
 </root>
