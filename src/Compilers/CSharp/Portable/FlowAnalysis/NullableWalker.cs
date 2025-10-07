@@ -4025,7 +4025,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (collectionKind is CollectionExpressionTypeKind.CollectionBuilder)
                 {
-                    var createMethod = node.CollectionBuilderMethod;
+                    Debug.Assert(node.CollectionBuilderInfo is { });
+                    var createMethod = node.CollectionBuilderInfo.Value.Method;
                     if (createMethod is not null)
                     {
                         var annotations = createMethod.GetFlowAnalysisAnnotations();
@@ -4041,7 +4042,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionKind = ConversionsBase.GetCollectionExpressionTypeKind(this.compilation, collectionType, out var targetElementType);
                 if (collectionKind is CollectionExpressionTypeKind.CollectionBuilder)
                 {
-                    var createMethod = node.CollectionBuilderMethod;
+                    Debug.Assert(node.CollectionBuilderInfo is { });
+                    var createMethod = node.CollectionBuilderInfo.Value.Method;
                     if (createMethod is not null)
                     {
                         var foundIterationType = _binder.TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
