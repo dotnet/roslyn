@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1066,7 +1067,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             
             class C
             {
-                void M()
+                static void Main()
                 {
                     short s = 10;
                     MyList<int> list = [with(s)];
@@ -1645,6 +1646,36 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 {
                     MyList<int> list = [with(() => 42), 1];
                     Console.WriteLine(list.ValueFunc());
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42"));
+    }
+
+    [Fact]
+    public void WithElement_WithLambda_ToDelegate()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public Delegate ValueFunc { get; }
+                
+                public MyList(Delegate func) : base()
+                {
+                    ValueFunc = func;
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(() => 42), 1];
+                    Console.WriteLine(list.DynamicInvoke());
                 }
             }
             """;
