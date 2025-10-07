@@ -55,6 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //      For a known length literal [e1, ..s1, etc] ...
                         //
                         // So once we have a `with(...)` element we no longer match the pattern for a known length literal.
+                        //
+                        // PROTOTYPE: Revisit this.  We should not let construction be changed.  But we could still
+                        // have optimizations like calling .AddRange(spreadedElement) for `[.. spreadedElement]`.
+                        // Ensure that we're not giving that up.
                         if (!node.HasWithElement &&
                             ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {
