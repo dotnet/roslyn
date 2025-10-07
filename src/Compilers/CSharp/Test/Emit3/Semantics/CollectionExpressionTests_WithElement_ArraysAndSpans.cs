@@ -391,6 +391,7 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             """;
 
         // PROTOTYPE: This should be blocked.  We generate code that fails to load.
+        // https://github.com/dotnet/roslyn/issues/77827
         CompileAndVerify(source, targetFramework: TargetFramework.Net90, verify: Verification.Fails).VerifyIL("C.Main", """
             {
               // Code size      131 (0x83)
