@@ -233,6 +233,20 @@ var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumb
     ?.FirstOrDefault()
     ?? throw new InvalidOperationException($"Cannot find PR #{lastPrNumber}");
 
+var lastPrCommitDetails = (await Cli.Wrap("gh")
+    .WithArguments(["api", $"repos/{sourceRepoShort}/commits/{lastPr.MergeCommit.Oid}"])
+    .ExecuteBufferedAsync())
+    .StandardOutput
+    .ParseJson<CommitDetails>()
+    ?? throw new InvalidOperationException($"Null commit details for {lastPr.MergeCommit.Oid}");
+
+if (lastPr.MergeCommit.Oid != lastPrCommitDetails.Sha)
+{
+    console.MarkupLineInterpolated($"[red]Unexpected:[/] Commit ID mismatch: PR says {lastPr.MergeCommit.Oid} but API returned {lastPrCommitDetails.Sha}");
+}
+
+console.MarkupLineInterpolated($"Last included commit will be [teal]{lastPrCommitDetails.Sha}[/]: {lastPrCommitDetails.Commit.Message.GetFirstLine()}");
+
 if (milestonePullRequests is [var defaultLastMilestonePr, ..])
 {
     var lastMilestonePr = milestonePullRequests.FirstOrDefault(pr => pr.Number == lastPr.Number);
@@ -294,6 +308,10 @@ file sealed record Commit(string Oid)
 {
     public override string ToString() => Oid;
 }
+
+file sealed record CommitDetails(string Sha, CommitDetailsCommit Commit);
+
+file sealed record CommitDetailsCommit(string Message);
 
 file sealed record Milestone(int Number, string Title)
 {
@@ -439,6 +457,28 @@ file static class Extensions
 
     extension(string s)
     {
+        public string? GetFirstLine()
+        {
+            foreach (var line in s.EnumerateLines())
+            {
+                return line.ToString();
+            }
+
+            return null;
+        }
+
+        public T? ParseJson<T>()
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<T>(s, JsonSerializerOptions.Web);
+            }
+            catch (JsonException e)
+            {
+                throw new Exception($"Cannot deserialize JSON '{s}'", e);
+            }
+        }
+
         public T[]? ParseJsonList<T>()
         {
             try
