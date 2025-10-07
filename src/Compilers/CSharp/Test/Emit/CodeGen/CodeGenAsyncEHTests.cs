@@ -688,11 +688,7 @@ class Test
                         [G]: Unexpected type on the stack. { Offset = 0x13, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -739,11 +735,7 @@ exception
                     [H]: Unexpected type on the stack. { Offset = 0xa, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -904,11 +896,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                         [G]: Unexpected type on the stack. { Offset = 0x29, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -1008,11 +996,7 @@ class Test
                     [F]: Unexpected type on the stack. { Offset = 0xb, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -1368,11 +1352,7 @@ class Test
                     [G]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -1489,11 +1469,7 @@ class Test
                         [G]: Unexpected type on the stack. { Offset = 0x3e, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -1773,11 +1749,7 @@ class Test
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(6, 28)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
                 {
                   // Code size       72 (0x48)
@@ -2051,11 +2023,7 @@ class Test
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(6, 28)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G(System.Threading.SemaphoreSlim)", """
                 {
                   // Code size       43 (0x2b)
@@ -2304,11 +2272,7 @@ class Test
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(6, 28)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G(System.Threading.SemaphoreSlim)", """
                 {
                   // Code size       43 (0x2b)
@@ -2386,11 +2350,7 @@ class Test
                     [G]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (5,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(5, 28)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
                 {
                   // Code size       70 (0x46)
@@ -2859,11 +2819,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                         [G]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -4013,7 +3969,6 @@ class Driver
         public void NestedRethrow_02(bool await1, bool await2, bool await3)
         {
             var source = $$"""
-                #pragma warning disable 1998 // async method lacks 'await' operators
                 using System;
                 using System.Threading.Tasks;
 

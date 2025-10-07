@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
@@ -28,7 +27,7 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
         IMethodSymbol method,
         int position,
         SemanticModel semanticModel,
-        ImmutableArray<SymbolDisplayPart>? descriptionParts)
+        IList<SymbolDisplayPart>? descriptionParts)
     {
         var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
         var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
@@ -45,12 +44,12 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
             descriptionParts: descriptionParts);
     }
 
-    private static ImmutableArray<SymbolDisplayPart> GetMethodGroupPreambleParts(
+    private static IList<SymbolDisplayPart> GetMethodGroupPreambleParts(
         IMethodSymbol method,
         SemanticModel semanticModel,
         int position)
     {
-        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var result);
+        var result = new List<SymbolDisplayPart>();
 
         var awaitable = method.GetOriginalUnreducedDefinition().IsAwaitableNonDynamic(semanticModel, position);
         var extension = method.GetOriginalUnreducedDefinition().IsExtensionMethod();
@@ -82,9 +81,9 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
         result.AddRange(method.ToMinimalDisplayParts(semanticModel, position, MinimallyQualifiedWithoutParametersFormat));
         result.Add(Punctuation(SyntaxKind.OpenParenToken));
 
-        return result.ToImmutableAndClear();
+        return result;
     }
 
-    private static ImmutableArray<SymbolDisplayPart> GetMethodGroupPostambleParts()
+    private static IList<SymbolDisplayPart> GetMethodGroupPostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }

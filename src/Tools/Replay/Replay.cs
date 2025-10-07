@@ -146,11 +146,22 @@ static async Task<(TimeSpan BuildTime, TimeSpan TotalTime)> RunOneAsync(List<Com
     var stopwatch = new Stopwatch();
     stopwatch.Start();
     TimeSpan buildTime;
+
     try
     {
         await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None).ConfigureAwait(false))
         {
-            Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {buildData.BuildResponse.Type}");
+            if (buildData.BuildResponse is not CompletedBuildResponse completedBuildResponse)
+            {
+                throw new Exception($"Error sending build request to server: {buildData.BuildResponse.Type}");
+            }
+
+            var succeeded = completedBuildResponse.ReturnCode == 0;
+            Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {(succeeded ? "Succeeded" : "Failed")}");
+            if (!succeeded)
+            {
+                Console.WriteLine(completedBuildResponse.Output);
+            }
         }
 
         buildTime = stopwatch.Elapsed;
@@ -186,6 +197,7 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
     var maxParallel = options.MaxParallel;
     var tasks = new List<Task<BuildData>>(capacity: maxParallel);
     var outputSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var completed = 0;
 
     do
     {
@@ -204,7 +216,8 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
 
         var buildData = await completedTask.ConfigureAwait(false);
         yield return buildData;
-    } while (index < compilerCalls.Count);
+        completed++;
+    } while (completed < compilerCalls.Count);
 
     string GetOutputName(CompilerCall compilerCall)
     {
@@ -218,9 +231,12 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
             name = $"{compilerCall.ProjectFileName}-{compilerCall.TargetFramework}-{compilerCall.Kind}";
         }
 
-        if (!outputSet.Add(name))
+        var rootName = name;
+        var count = 0;
+        while (!outputSet.Add(name))
         {
-            name = $"{name}-{outputSet.Count}";
+            name = $"{rootName}-{count}";
+            count++;
         }
 
         return name;

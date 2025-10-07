@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -334,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="nameOpt">Optional method name</param>
         /// <param name="arity">Method arity</param>
         /// <param name="options">Lookup options</param>
+        /// <remarks>Does not perform a full viability check</remarks>
         internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             var assembly = this.ContainingAssembly;
@@ -355,13 +357,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal virtual void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+#nullable enable
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal virtual void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
             foreach (var type in this.GetTypeMembersUnordered())
             {
-                type.GetExtensionContainers(extensions);
+                type.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
             }
         }
+#nullable disable
 
         internal string QualifiedName
         {

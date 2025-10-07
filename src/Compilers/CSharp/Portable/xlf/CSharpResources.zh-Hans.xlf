@@ -332,6 +332,11 @@
         <target state="translated">使用别名不能是 “ref” 类型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpreadInCatchFilter">
+        <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
+        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
         <source>'static' modifier must precede 'unsafe' modifier.</source>
         <target state="translated">'static' 修饰符必须位于 'unsafe' 修饰符之前。</target>
@@ -705,6 +710,16 @@
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">用户定义的运算符“{0}”的显式实现必须声明为静态</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -2253,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">类型 “Microsoft.CodeAnalysis.EmbeddedAttribute” 必须是非泛型、内部、密封的非静态构造函数、具有无参数构造函数、从 System.Attribute 继承，并且能够应用于任何类型。</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">类型 “Microsoft.CodeAnalysis.EmbeddedAttribute” 必须是非泛型、内部、密封的非静态构造函数、具有无参数构造函数、从 System.Attribute 继承，并且能够应用于任何类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2995,6 +3010,21 @@
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} 不是有效的 C# 分布操作</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="ParameterRequiresTypeOrIdentifier">
+        <source>ParameterSyntax requires either a type or an identifier.</source>
+        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
@@ -11123,16 +11153,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       <trans-unit id="ERR_BadAwaitInQuery">
         <source>The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause</source>
         <target state="translated">"await" 运算符只能用在初始 "from" 子句的第一个集合表达式或 "join" 子句的集合表达式内的查询表达式中</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits">
-        <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">此异步方法缺少 "await" 运算符，将以同步方式运行。请考虑使用 "await" 运算符等待非阻止的 API 调用，或者使用 "await Task.Run(...)" 在后台线程上执行占用大量 CPU 的工作。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits_Title">
-        <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">异步方法缺少 "await" 运算符，将以同步方式运行</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnobservedAwaitableExpression">

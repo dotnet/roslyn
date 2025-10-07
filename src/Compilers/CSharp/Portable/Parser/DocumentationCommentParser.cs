@@ -691,9 +691,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (prefixTrailingWidth > 0 || colonLeadingWidth > 0)
                 {
-                    // NOTE: offset is relative to full-span start of colon (i.e. before leading trivia).
-                    int offset = -prefixTrailingWidth;
+                    // NOTE: offset is relative to Start (not FullStart) of colon.
                     int width = prefixTrailingWidth + colonLeadingWidth;
+                    int offset = -width;
                     colon = WithAdditionalDiagnostics(colon, new XmlSyntaxDiagnosticInfo(offset, width, XmlParseErrorCode.XML_InvalidWhitespace));
                 }
 
@@ -704,9 +704,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 int localNameLeadingWidth = id.GetLeadingTriviaWidth();
                 if (colonTrailingWidth > 0 || localNameLeadingWidth > 0)
                 {
-                    // NOTE: offset is relative to full-span start of identifier (i.e. before leading trivia).
-                    int offset = -colonTrailingWidth;
+                    // NOTE: offset is relative to Start (not FullStart) of identifier.
                     int width = colonTrailingWidth + localNameLeadingWidth;
+                    int offset = -width;
                     id = WithAdditionalDiagnostics(id, new XmlSyntaxDiagnosticInfo(offset, width, XmlParseErrorCode.XML_InvalidWhitespace));
 
                     // CONSIDER: Another interpretation would be that the local part of this name is a missing identifier and the identifier
@@ -807,15 +807,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected override SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual)
+        protected override SyntaxDiagnosticInfo GetExpectedMissingNodeOrTokenError(
+            GreenNode missingNodeOrToken, SyntaxKind expected, SyntaxKind actual)
         {
+            Debug.Assert(missingNodeOrToken.IsMissing);
+
             // NOTE: There are no errors in crefs - only warnings.  We accomplish this by wrapping every diagnostic in ErrorCode.WRN_ErrorOverride.
             if (InCref)
             {
-                int offset, width;
-                this.GetDiagnosticSpanForMissingToken(out offset, out width);
-
-                return GetExpectedTokenError(expected, actual, offset, width);
+                return base.GetExpectedMissingNodeOrTokenError(missingNodeOrToken, expected, actual);
             }
 
             switch (expected)
@@ -1030,9 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
 
                 // Grab the offset and width before we consume the invalid keyword and change our position.
-                int offset;
-                int width;
-                GetDiagnosticSpanForMissingToken(out offset, out width);
+                var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(missingNodeOrToken: operatorToken);
 
                 if (SyntaxFacts.IsUnaryOperatorDeclarationToken(CurrentToken.Kind) || SyntaxFacts.IsBinaryExpressionOperatorToken(CurrentToken.Kind))
                 {

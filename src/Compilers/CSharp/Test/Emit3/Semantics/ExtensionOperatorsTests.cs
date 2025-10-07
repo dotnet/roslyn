@@ -3667,7 +3667,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x208d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -3684,11 +3684,11 @@ public class C2
                 33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
                 32 31 43 45 33 42 30 00 00
             )
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2086
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -3755,7 +3755,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x208d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -3772,11 +3772,11 @@ public class C2
                 33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
                 32 31 43 45 33 42 30 00 00
             )
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2086
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -3835,7 +3835,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x208d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -3852,11 +3852,11 @@ public class C2
                 33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
                 32 31 43 45 33 42 30 00 00
             )
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2086
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -7718,7 +7718,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
                 );
 #else
-            // https://github.com/dotnet/roslyn/issues/78968: Understand what is causing DEBUG/RELEASE behavior difference
+            // Ordering difference is acceptable and doesn't affect determinism. It is caused by ConditionallyDeOrder
             comp.VerifyEmitDiagnostics(
                 // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator --()' and 'Extensions2.extension(C1).operator --()'
                 //         _ = --c1;
@@ -9929,7 +9929,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x20b5
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -9949,11 +9949,11 @@ public class C2
                 38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
                 42 31 34 35 39 36 39 00 00
             )
-            // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ae
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -10022,7 +10022,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x20b5
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -10042,11 +10042,11 @@ public class C2
                 38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
                 42 31 34 35 39 36 39 00 00
             )
-            // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ae
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -10107,7 +10107,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x20b5
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -10127,11 +10127,11 @@ public class C2
                 38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
                 42 31 34 35 39 36 39 00 00
             )
-            // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ae
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -18487,7 +18487,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x208d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -18505,11 +18505,11 @@ public class C2
                 33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
                 32 31 43 45 33 42 30 00 00
             )
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2086
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -18577,7 +18577,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x208d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -18595,11 +18595,11 @@ public class C2
                 33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
                 32 31 43 45 33 42 30 00 00
             )
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2086
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -18659,7 +18659,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x208d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -18677,11 +18677,11 @@ public class C2
                 33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
                 32 31 43 45 33 42 30 00 00
             )
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2086
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -23800,7 +23800,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigCall, "-=").WithArguments("Extensions1.extension(C1).operator checked -=(C1)", "Extensions2.extension(C1).operator -=(C1)").WithLocation(39, 20)
                 );
 #else
-            // https://github.com/dotnet/roslyn/issues/78968: Understand what is causing DEBUG/RELEASE behavior difference
+            // Ordering difference is acceptable and doesn't affect determinism. It is caused by ConditionallyDeOrder
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator -=(C1)' and 'Extensions2.extension(C1).operator -=(C1)'
                 //         _ = c1 -= c1;
@@ -26613,7 +26613,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x20b5
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -26635,11 +26635,11 @@ public class C2
                 38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
                 42 31 34 35 39 36 39 00 00
             )
-            // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ae
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -26709,7 +26709,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x20b5
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -26731,11 +26731,11 @@ public class C2
                 38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
                 42 31 34 35 39 36 39 00 00
             )
-            // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ae
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -26797,7 +26797,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x20b5
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -26819,11 +26819,11 @@ public class C2
                 38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
                 42 31 34 35 39 36 39 00 00
             )
-            // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ae
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -27649,6 +27649,1683 @@ static class E2
             var model = comp.GetSemanticModel(tree);
             var binary = GetSyntax<BinaryExpressionSyntax>(tree, "new S() + new S()");
             AssertEx.Equal("S E1.<G>$3B24C9A1A6673CA92CA71905DDEE0A6C.op_Addition(S s1, S s2)", model.GetSymbolInfo(binary).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Using_Binary_01()
+        {
+            var src = """
+using N1;
+using N2;
+
+_ = new C() + new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) => throw null;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'C'
+                // _ = new C() + new C();
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(4, 5));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = GetSyntax<BinaryExpressionSyntax>(tree, "new C() + new C()");
+            var symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            AssertEx.SetEqual([
+                "C N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)",
+                "C N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)"
+                ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Using_Binary_02()
+        {
+            var src = """
+using N1;
+using N2;
+
+_ = new C() + new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("ran"); return c1; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, int i) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Binary_03()
+        {
+            var src = """
+using N1;
+using N2;
+
+_ = new C() + new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator checked +(C c1, C c2) => throw null;
+            public static C operator +(C c1, C c2) => throw null;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'C'
+                // _ = new C() + new C();
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(4, 5));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = GetSyntax<BinaryExpressionSyntax>(tree, "new C() + new C()");
+            var symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            AssertEx.SetEqual([
+                "C N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)",
+                "C N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)"
+                ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Using_Binary_04()
+        {
+            var src = """
+using N1;
+using N2;
+
+_ = new C() + new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("ran"); return c1; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T)
+        {
+            public static T operator +(T t1, T t2) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Binary_05()
+        {
+            var src = """
+using N1;
+using N2;
+
+_ = new C() + new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("ran"); return c1; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator -(C c1, C c2) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Compound_01()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c1)
+        {
+            public void operator +=(C c2) => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c1)
+        {
+            public void operator +=(C c2) => throw null;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+            comp.VerifyEmitDiagnostics(
+                // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(C).operator +=(C)' and 'N2.E2.extension(C).operator +=(C)'
+                // c += new C();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "+=").WithArguments("N1.E1.extension(C).operator +=(C)", "N2.E2.extension(C).operator +=(C)").WithLocation(5, 3));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = GetSyntax<AssignmentExpressionSyntax>(tree, "c += new C()");
+            var symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            AssertEx.SetEqual([
+                "void N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_AdditionAssignment(C c2)",
+                "void N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_AdditionAssignment(C c2)"
+                ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Using_Compound_02()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c1)
+        {
+            public void operator +=(C c2) { System.Console.Write("ran"); }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c1)
+        {
+            public void operator +=(int i) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Compound_03()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c1)
+        {
+            public void operator +=(C c2) => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c1)
+        {
+            public void operator checked +=(C c2) => throw null;
+            public void operator +=(C c2) => throw null;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+            comp.VerifyEmitDiagnostics(
+                // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(C).operator +=(C)' and 'N2.E2.extension(C).operator +=(C)'
+                // c += new C();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "+=").WithArguments("N1.E1.extension(C).operator +=(C)", "N2.E2.extension(C).operator +=(C)").WithLocation(5, 3));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = GetSyntax<AssignmentExpressionSyntax>(tree, "c += new C()");
+            var symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            AssertEx.SetEqual([
+                "void N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_AdditionAssignment(C c2)",
+                "void N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_AdditionAssignment(C c2)"
+                ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Using_Compound_04()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c1)
+        {
+            public void operator +=(C c2) { System.Console.Write("ran"); }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c1)
+        {
+            public void operator checked +=(int i) => throw null;
+            public void operator +=(int i) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Compound_05()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c1)
+        {
+            public void operator +=(C c2) { System.Console.Write("ran"); }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t1) where T : class
+        {
+            public void operator +=(T t2) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Compound_06()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c1)
+        {
+            public void operator +=(C c2) { System.Console.Write("ran"); }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) => throw null; 
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Compound_07()
+        {
+            var src = """
+using N1;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c1)
+        {
+            public void operator +=(C c2) => throw null;
+        }
+    }
+}
+
+static class E2
+{
+    extension(C)
+    {
+        public static C operator +(C c1, C c2) { System.Console.Write("ran"); return c1; }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void Using_Compound_08()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) => throw null; 
+        }
+    }
+}
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) => throw null; 
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,1): error CS0034: Operator '+=' is ambiguous on operands of type 'C' and 'C'
+                // c += new C();
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c += new C()").WithArguments("+=", "C", "C").WithLocation(5, 1));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = GetSyntax<AssignmentExpressionSyntax>(tree, "c += new C()");
+            var symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            AssertEx.SetEqual([
+                "C N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)",
+                "C N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)"
+                ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Using_Compound_09()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("ran"); return c1; }
+        }
+    }
+}
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator -(C c1, C c2) => throw null; 
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Compound_10()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("ran"); return c1; }
+        }
+    }
+}
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, int i) => throw null; 
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Compound_11()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+c += new C();
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("ran"); return c1; }
+        }
+    }
+}
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T)
+        {
+            public static T operator +(T t1, T t2) => throw null; 
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Unary_01()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = +c;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c) => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator +(C c) => throw null;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0035: Operator '+' is ambiguous on an operand of type 'C'
+                // _ = +c;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "+c").WithArguments("+", "C").WithLocation(5, 5));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = GetSyntax<PrefixUnaryExpressionSyntax>(tree, "+c");
+            var symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            AssertEx.SetEqual([
+                "C N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_UnaryPlus(C c)",
+                "C N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_UnaryPlus(C c)"
+                ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Using_Unary_02()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = +c;
+
+class C { }
+class D { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c) { System.Console.Write("ran"); return c; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(D)
+        {
+            public static D operator +(D d) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Unary_03()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = +c;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c) { System.Console.Write("ran"); return c; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator -(C c) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Unary_04()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = +c;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator +(C c) { System.Console.Write("ran"); return c; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T)
+        {
+            public static T operator +(T t) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_01()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = c++;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) => throw null;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0035: Operator '++' is ambiguous on an operand of type 'C'
+                // _ = c++;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "c++").WithArguments("++", "C").WithLocation(5, 5));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = GetSyntax<PostfixUnaryExpressionSyntax>(tree, "c++");
+            var symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            AssertEx.SetEqual([
+                "C N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Increment(C c)",
+                "C N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Increment(C c)"
+                ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Using_Increment_02()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = c++;
+
+class C { }
+class D { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) { System.Console.Write("ran"); return c; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(D)
+        {
+            public static D operator ++(D d) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_03()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = c++;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) { System.Console.Write("ran"); return c; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T)
+        {
+            public static T operator ++(T t) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_04()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = ++c;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) => throw null;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0035: Operator '++' is ambiguous on an operand of type 'C'
+                // _ = ++c;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "++c").WithArguments("++", "C").WithLocation(5, 5));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = GetSyntax<PrefixUnaryExpressionSyntax>(tree, "++c");
+            var symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            AssertEx.SetEqual([
+                "C N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Increment(C c)",
+                "C N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Increment(C c)"
+                ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Using_Increment_05()
+        {
+            // IL has class C and an extension property `N2.E2.op_Increment`
+            // Because the property is not an operator, the namespace N2 is not considered used
+            var ilSrc = """
+.class public auto ansi beforefieldinit C
+    extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void System.Object::.ctor()
+        ret
+    }
+}
+
+.class public auto ansi abstract sealed beforefieldinit N2.E2
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$9794DAFCCB9E752B29BFD6350ADA77F2'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$97E2B955DB039EABEEA2419CE447FF1C'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( class C '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+
+        .method public hidebysig specialname static class C get_op_Increment () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 39 37 45 32 42 39 35 35 44
+                42 30 33 39 45 41 42 45 45 41 32 34 31 39 43 45
+                34 34 37 46 46 31 43 00 00
+            )
+
+            ldnull
+            throw
+        }
+
+        .property class C op_Increment()
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 39 37 45 32 42 39 35 35 44
+                42 30 33 39 45 41 42 45 45 41 32 34 31 39 43 45
+                34 34 37 46 46 31 43 00 00
+            )
+            .get class C N2.E2/'<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::get_op_Increment()
+        }
+    }
+
+    .method public hidebysig static class C get_op_Increment () cil managed 
+    {
+        ldnull
+        ret
+    }
+}
+""";
+
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = ++c;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) => throw null;
+        }
+    }
+}
+""";
+            var comp = CreateCompilationWithIL(src, ilSrc + ExtensionMarkerAttributeIL);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Increment_06()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = ++c;
+
+class C { }
+class D { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) { System.Console.Write("ran"); return c; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(D)
+        {
+            public static D operator ++(D d) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_07()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = ++c;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) { System.Console.Write("ran"); return c; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T)
+        {
+            public static T operator ++(T t) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_08()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = ++c;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) { System.Console.Write("ran"); return c; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public static C operator --(C c) => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Increment_09()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = ++c;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C)
+        {
+            public static C operator ++(C c) => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator ++() { System.Console.Write("ran"); }
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void Using_Increment_10()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = ++c;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(C).operator ++()' and 'N2.E2.extension(C).operator ++()'
+                // _ = ++c;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("N1.E1.extension(C).operator ++()", "N2.E2.extension(C).operator ++()").WithLocation(5, 5));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = GetSyntax<PrefixUnaryExpressionSyntax>(tree, "++c");
+            var symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            AssertEx.SetEqual([
+                "void N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_IncrementAssignment()",
+                "void N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_IncrementAssignment()"
+                ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Using_Increment_11()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+_ = ++c;
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() { System.Console.Write("ran"); }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t) where T : class
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_12()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() { System.Console.Write("ran"); }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t) where T : class
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_13()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            CreateCompilation([src, CompilerFeatureRequiredAttribute]).VerifyEmitDiagnostics(
+                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(C).operator ++()' and 'N2.E2.extension(C).operator ++()'
+                //     _ = ++c;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("N1.E1.extension(C).operator ++()", "N2.E2.extension(C).operator ++()").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void Using_Increment_14()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator --() => throw null;
+        }
+    }
+}
+""";
+            CreateCompilation([src, CompilerFeatureRequiredAttribute]).VerifyEmitDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Increment_15()
+        {
+            var src = """
+using static N1.E1;
+using static N2.E2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() { System.Console.Write("ran"); }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t) where T : class
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_16()
+        {
+            var src = """
+using static N1.E1;
+using static N2.E2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            CreateCompilation([src, CompilerFeatureRequiredAttribute]).VerifyEmitDiagnostics(
+                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(C).operator ++()' and 'N2.E2.extension(C).operator ++()'
+                //     _ = ++c;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("N1.E1.extension(C).operator ++()", "N2.E2.extension(C).operator ++()").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void Using_Increment_17()
+        {
+            var src = """
+using static N1.E1;
+using static N2.E2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator --() => throw null;
+        }
+    }
+}
+""";
+            CreateCompilation([src, CompilerFeatureRequiredAttribute]).VerifyEmitDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static N2.E2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static N2.E2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Increment_18()
+        {
+            //public struct S { }
+            //
+            //namespace N1
+            //{
+            //    static class E1
+            //    {
+            //        extension(S s)
+            //        {
+            //            public void operator ++() => throw null;
+            //        }
+            //    }
+            //}
+            var ilSrc = """
+.class public sequential ansi sealed beforefieldinit S
+    extends System.ValueType
+{
+    .pack 0
+    .size 1
+}
+
+.class private auto ansi abstract sealed beforefieldinit N1.E1
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$3B24C9A1A6673CA92CA71905DDEE0A6C'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$B97DBA9601C1D9D405F877E292405C09'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( valuetype S s ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+
+        .method public hidebysig specialname instance void op_IncrementAssignment () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 39 37 44 42 41 39 36 30
+                31 43 31 44 39 44 34 30 35 46 38 37 37 45 32 39
+                32 34 30 35 43 30 39 00 00
+            )
+
+            ldnull
+            throw
+        }
+    }
+
+    .method public hidebysig static void op_IncrementAssignment ( valuetype S s ) cil managed 
+    {
+        ldnull
+        throw
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+            var src = """
+using N1;
+
+S s = new S();
+_ = ++s;
+""";
+            var comp = CreateCompilationWithIL(src, ilSrc);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS0023: Operator '++' cannot be applied to operand of type 'S'
+                // _ = ++s;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s").WithArguments("++", "S").WithLocation(4, 5));
         }
     }
 }

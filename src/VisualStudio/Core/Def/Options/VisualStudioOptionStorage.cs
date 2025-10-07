@@ -103,6 +103,9 @@ internal abstract class VisualStudioOptionStorage
     public static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> Storages = new Dictionary<string, VisualStudioOptionStorage>()
     {
         {"dotnet_analyze_copilot_changes", new FeatureFlagStorage(@"Roslyn.AnalyzeCopilotChanges")},
+        {"dotnet_copilot_fix_code_format", new FeatureFlagStorage(@"Roslyn.Copilot.FixCodeFormat")},
+        {"dotnet_copilot_fix_add_missing_tokens", new FeatureFlagStorage(@"Roslyn.Copilot.FixAddMissingTokens")},
+        {"dotnet_copilot_fix_add_missing_imports", new FeatureFlagStorage(@"Roslyn.Copilot.FixAddMissingImports")},
         {"dotnet_collapse_empty_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened")},
         {"dotnet_collapse_imports_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened")},
         {"dotnet_collapse_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened")},
@@ -120,8 +123,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_classify_reassigned_variables", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyReassignedVariables")},
         {"dotnet_classify_obsolete_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyObsoleteSymbols")},
         {"dotnet_prefer_system_hash_code", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode")},
-        {"visual_studio_color_scheme_name", new RoamingProfileStorage("TextEditor.Roslyn.ColorSchemeName")},
-        {"visual_studio_color_scheme_use_legacy_enhanced_colors", new RoamingProfileStorage("WindowManagement.Options.UseEnhancedColorsForManagedLanguages")},
         {"block_for_completion_items", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems")},
         {"dotnet_enable_argument_completion_snippets", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets")},
         {"dotnet_return_key_completion_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior")},

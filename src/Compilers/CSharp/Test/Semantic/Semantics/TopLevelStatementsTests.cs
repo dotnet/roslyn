@@ -1571,7 +1571,7 @@ string e() => ""1"";
             Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, model1.GetTypeInfo(reference).Nullability.FlowState);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80487")]
         public void FlowAnalysis_02()
         {
             var text = @"
@@ -1583,18 +1583,10 @@ if (args.Length == 0)
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions).VerifyDiagnostics(
                 // (2,1): error CS0161: '<top-level-statements-entry-point>': not all code paths return a value
                 // System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_ReturnExpected, @"System.Console.WriteLine();
-
-if (args.Length == 0)
-{
-    return 10;
-}
-").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1)
-                );
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "System.Console.WriteLine();").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1));
         }
 
         [Fact]
@@ -9879,11 +9871,10 @@ partial ext X
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
                 // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial").WithLocation(2, 1),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
         }
 
         [Fact]

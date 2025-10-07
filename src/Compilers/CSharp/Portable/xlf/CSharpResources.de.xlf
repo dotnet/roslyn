@@ -332,6 +332,11 @@
         <target state="translated">Die Verwendung des Alias darf nicht vom Typ 'ref' sein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpreadInCatchFilter">
+        <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
+        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
         <source>'static' modifier must precede 'unsafe' modifier.</source>
         <target state="translated">Der Modifizierer 'static' muss dem Modifizierer 'unsicher' vorangestellt sein.</target>
@@ -705,6 +710,16 @@
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Die explizite Implementierung eines benutzerdefinierten Operators "{0}" muss als statisch deklariert werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -2253,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">Der Typ "Microsoft.CodeAnalysis.EmbeddedAttribute" muss nicht generisch, intern, versiegelt oder nicht statisch sein, einen parameterlosen Konstruktor aufweisen, von System.Attribute erben und auf einen beliebigen Typ angewendet werden können.</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">Der Typ "Microsoft.CodeAnalysis.EmbeddedAttribute" muss nicht generisch, intern, versiegelt oder nicht statisch sein, einen parameterlosen Konstruktor aufweisen, von System.Attribute erben und auf einen beliebigen Typ angewendet werden können.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2995,6 +3010,21 @@
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} ist kein gültiger C#-Überfüllungsvorgang.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="ParameterRequiresTypeOrIdentifier">
+        <source>ParameterSyntax requires either a type or an identifier.</source>
+        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
@@ -11123,16 +11153,6 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       <trans-unit id="ERR_BadAwaitInQuery">
         <source>The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause</source>
         <target state="translated">Der await-Operator kann in einem Abfrageausdruck nur innerhalb des ersten Sammlungsausdrucks der ursprünglichen from-Klausel oder innerhalb des Sammlungsausdrucks einer join-Klausel verwendet werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits">
-        <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">In dieser Async-Methode fehlen die "await"-Operatoren, weshalb sie synchron ausgeführt wird. Sie sollten die Verwendung des "await"-Operators oder von "await Task.Run(...)" in Betracht ziehen, um auf nicht blockierende API-Aufrufe zu warten bzw. CPU-gebundene Aufgaben auf einem Hintergrundthread auszuführen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits_Title">
-        <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">Bei der asynchronen Methode fehlen "await"-Operatoren. Die Methode wird synchron ausgeführt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnobservedAwaitableExpression">

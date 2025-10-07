@@ -2815,6 +2815,18 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                         // Delete/insert/update edit of a member of a reloadable type (including nested types) results in Replace edit of the containing type.
                         // If a Delete edit is part of delete-insert operation (member moved to a different partial type declaration or to a different file)
                         // skip producing Replace semantic edit for this Delete edit as one will be reported by the corresponding Insert edit.
+                        //
+                        // Updates to types nested into reloadable type are handled as Replace edits of the reloadable type.
+                        //
+                        // Rationale:
+                        //   Any update to a member of a reloadable type results is a Replace edit of the type.
+                        //   Replace edit generates a new version of the entire reloadable type, including any types nested into it.
+                        //   Therefore, updating members results in new versions of all types nested in the reloadable type.
+                        //   It would be unnecessarily limiting and inconsistent to update nested types "in-place".
+                        //
+                        // Scenario:
+                        //   Razor page, which is a reloadable type, may define nested types using @functions block.
+                        //   Any changes should be allowed to be made in a Razor page, including changes to nested types defined in @functions block.
 
                         var oldContainingType = oldSymbol?.ContainingType;
                         var newContainingType = newSymbol?.ContainingType;
@@ -2826,28 +2838,27 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                             oldContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(oldModel.Compilation, cancellationToken: cancellationToken).Symbol;
                             newContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol;
 
-                            if (oldContainingType != null && newContainingType != null && IsReloadable(oldContainingType))
+                            if (AddReloadableTypeSemanticEdit(
+                                editScript,
+                                newModel,
+                                diagnostics,
+                                capabilities,
+                                processedSymbols,
+                                semanticEdits,
+                                oldTree,
+                                newTree,
+                                newDeclaration,
+                                oldContainingType,
+                                newContainingType,
+                                cancellationToken))
                             {
-                                if (processedSymbols.Add(newContainingType))
-                                {
-                                    if (capabilities.GrantNewTypeDefinition(containingType))
-                                    {
-                                        semanticEdits.Add(SemanticEditInfo.CreateReplace(containingTypeSymbolKey,
-                                            IsPartialTypeEdit(oldContainingType, newContainingType, oldTree, newTree) ? containingTypeSymbolKey : null));
-                                    }
-                                    else
-                                    {
-                                        CreateDiagnosticContext(diagnostics, oldContainingType, newContainingType, newDeclaration, newModel, editScript.Match).
-                                            Report(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, cancellationToken);
-                                    }
-                                }
-
                                 continue;
                             }
                         }
 
+                        // Handle changes to reloadable type itself (the above handles changes to its members and types).
                         // Deleting a reloadable type is a rude edit, reported the same as for non-reloadable.
-                        // Adding a reloadable type is a standard type addition (TODO: unless added to a reloadable type?).
+                        // Adding a reloadable type is a standard type addition (unless added to a reloadable type).
                         // Making reloadable attribute non-reloadable results in a new version of the type that is
                         // not reloadable but does not update the old version in-place.
                         if (syntacticEditKind != EditKind.Delete && oldSymbol is INamedTypeSymbol oldType && newSymbol is INamedTypeSymbol newType && IsReloadable(oldType))
@@ -3507,23 +3518,20 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
                     var oldContainingType = oldSymbol.ContainingType;
                     var newContainingType = newSymbol.ContainingType;
-                    if (oldContainingType != null && newContainingType != null && IsReloadable(oldContainingType))
+                    if (AddReloadableTypeSemanticEdit(
+                        editScript,
+                        newModel,
+                        diagnostics,
+                        capabilities,
+                        processedSymbols,
+                        semanticEdits,
+                        oldTree,
+                        newTree,
+                        newDeclaration,
+                        oldContainingType,
+                        newContainingType,
+                        cancellationToken))
                     {
-                        if (processedSymbols.Add(newContainingType))
-                        {
-                            if (capabilities.GrantNewTypeDefinition(newContainingType))
-                            {
-                                var oldContainingTypeKey = SymbolKey.Create(oldContainingType, cancellationToken);
-                                semanticEdits.Add(SemanticEditInfo.CreateReplace(oldContainingTypeKey,
-                                    IsPartialTypeEdit(oldContainingType, newContainingType, oldTree, newTree) ? oldContainingTypeKey : null));
-                            }
-                            else
-                            {
-                                CreateDiagnosticContext(diagnostics, oldContainingType, newContainingType, newDeclaration, newModel, editScript.Match)
-                                    .Report(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, cancellationToken);
-                            }
-                        }
-
                         continue;
                     }
 
@@ -4147,6 +4155,49 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
     private static bool IsReloadable(INamedTypeSymbol type)
         => TypeOrBaseTypeHasCompilerServicesAttribute(type, CreateNewOnMetadataUpdateAttributeName);
+
+    private static INamedTypeSymbol? TryGetOutermostReloadableType(INamedTypeSymbol type)
+        => type.GetContainingTypesAndThis().FirstOrDefault(IsReloadable);
+
+    private bool AddReloadableTypeSemanticEdit(
+        EditScript<SyntaxNode> editScript,
+        DocumentSemanticModel newModel,
+        RudeEditDiagnosticsBuilder diagnostics,
+        EditAndContinueCapabilitiesGrantor capabilities,
+        PooledHashSet<ISymbol> processedSymbols,
+        ArrayBuilder<SemanticEditInfo> semanticEdits,
+        SyntaxTree oldTree,
+        SyntaxTree newTree,
+        SyntaxNode? newDeclaration,
+        INamedTypeSymbol? oldContainingType,
+        INamedTypeSymbol? newContainingType,
+        CancellationToken cancellationToken)
+    {
+        if (oldContainingType is null ||
+            newContainingType is null ||
+            TryGetOutermostReloadableType(oldContainingType) is not { } oldOutermostReloadableType ||
+            TryGetOutermostReloadableType(newContainingType) is not { } newOutermostReloadableType)
+        {
+            return false;
+        }
+
+        if (processedSymbols.Add(newOutermostReloadableType))
+        {
+            if (capabilities.GrantNewTypeDefinition(newOutermostReloadableType))
+            {
+                var oldOutermostReloadableTypeKey = SymbolKey.Create(oldOutermostReloadableType, cancellationToken);
+                semanticEdits.Add(SemanticEditInfo.CreateReplace(oldOutermostReloadableTypeKey,
+                    IsPartialTypeEdit(oldOutermostReloadableType, newOutermostReloadableType, oldTree, newTree) ? oldOutermostReloadableTypeKey : null));
+            }
+            else
+            {
+                CreateDiagnosticContext(diagnostics, oldOutermostReloadableType, newOutermostReloadableType, newDeclaration, newModel, editScript.Match).
+                    Report(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, cancellationToken);
+            }
+        }
+
+        return true;
+    }
 
     private static bool TypeOrBaseTypeHasCompilerServicesAttribute(INamedTypeSymbol type, string attributeName)
     {

@@ -332,6 +332,11 @@
         <target state="translated">using エイリアスを 'ref' 型にすることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpreadInCatchFilter">
+        <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
+        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
         <source>'static' modifier must precede 'unsafe' modifier.</source>
         <target state="translated">'static' 修飾子は 'unsafe' 修飾子の前に指定する必要があります。</target>
@@ -705,6 +710,16 @@
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">ユーザー定義演算子 '{0}' の明示的な実装は静的として宣言する必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -2253,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">型 'Microsoft.CodeAnalysis.EmbeddedAttribute' は、非ジェネリック、内部、シールド、非静的、パラメーターなしのコンストラクターを持ち、System.Attribute から継承し、任意の型に適用できる必要があります。</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">型 'Microsoft.CodeAnalysis.EmbeddedAttribute' は、非ジェネリック、内部、シールド、非静的、パラメーターなしのコンストラクターを持ち、System.Attribute から継承し、任意の型に適用できる必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2995,6 +3010,21 @@
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} は有効な C# 分散演算ではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="ParameterRequiresTypeOrIdentifier">
+        <source>ParameterSyntax requires either a type or an identifier.</source>
+        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
@@ -11123,16 +11153,6 @@ C# では out と ref を区別しますが、CLR では同じと認識します
       <trans-unit id="ERR_BadAwaitInQuery">
         <source>The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause</source>
         <target state="translated">await' 演算子は、最初の 'from' 句の最初のコレクション式、または 'join' 句のコレクション式に含まれるクエリ式でのみ使用できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits">
-        <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">この非同期メソッドには 'await' 演算子がないため、同期的に実行されます。'await' 演算子を使用して非ブロッキング API 呼び出しを待機するか、'await Task.Run(...)' を使用してバックグラウンドのスレッドに対して CPU 主体の処理を実行することを検討してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits_Title">
-        <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">非同期メソッドは、'await' 演算子がないため、同期的に実行されます</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnobservedAwaitableExpression">

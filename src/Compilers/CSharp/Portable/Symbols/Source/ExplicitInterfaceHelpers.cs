@@ -234,10 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //do a lookup anyway
             }
 
+            // Found a matching member without checking the return type.
+            var foundMatchingMemberWithoutReturnTypeComparer = false;
             // Setting this flag to true does not imply that an interface member has been successfully implemented.
             // It just indicates that a corresponding interface member has been found (there may still be errors).
             var foundMatchingMember = false;
 
+            Symbol matchingMemberWithoutReturnTypeComparer = null;
             Symbol implementedMember = null;
 
             // Do not look in itself
@@ -265,7 +268,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
+                if (!MemberSignatureComparer.ExplicitImplementationWithoutReturnTypeComparer.Equals(implementingMember, interfaceMember))
+                {
+                    continue;
+                }
+
+                var implementingMemberTypeMap = MemberSignatureComparer.GetTypeMap(implementingMember);
+                var interfaceMemberTypeMap = MemberSignatureComparer.GetTypeMap(interfaceMember);
+                if (MemberSignatureComparer.HaveSameReturnTypes(
+                        implementingMember,
+                        implementingMemberTypeMap,
+                        interfaceMember,
+                        interfaceMemberTypeMap,
+                        TypeCompareKind.AllIgnoreOptions))
                 {
                     foundMatchingMember = true;
                     // Cannot implement accessor directly unless
@@ -291,13 +306,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
                 }
+                else
+                {
+                    foundMatchingMemberWithoutReturnTypeComparer = true;
+                    matchingMemberWithoutReturnTypeComparer = interfaceMember;
+                }
             }
 
             if (!foundMatchingMember)
             {
-                // CONSIDER: we may wish to suppress this error in the event that another error
+                // CONSIDER: we may wish to suppress these errors in the event that another error
                 // has been reported about the signature.
-                diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
+
+                if (foundMatchingMemberWithoutReturnTypeComparer)
+                {
+                    var errorType = implementingMember.Kind is SymbolKind.Method
+                        ? ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
+                        : ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch;
+                    var returnType = matchingMemberWithoutReturnTypeComparer.GetTypeOrReturnType();
+                    diagnostics.Add(errorType, memberLocation, implementingMember, returnType, matchingMemberWithoutReturnTypeComparer);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
+                }
             }
 
             // Make sure implemented member is accessible

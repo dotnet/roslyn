@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsAutoPropertyOrUsesFieldKeyword)
             {
-                if (!IsStatic && ((_propertyFlags & Flags.HasAutoPropertySet) != 0) && SetMethod is { IsInitOnly: false })
+                if (!IsStatic && HasAutoPropertySet && SetMethod is { IsInitOnly: false })
                 {
                     if (ContainingType.IsReadOnly)
                     {

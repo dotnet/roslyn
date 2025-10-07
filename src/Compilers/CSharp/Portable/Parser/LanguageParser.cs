@@ -275,8 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 //the next character is neither the brace we expect, nor a token that could follow the expected
                 //brace so we assume it's a mistake and replace it with a missing brace 
-                openBrace = this.EatTokenWithPrejudice(SyntaxKind.OpenBraceToken);
-                openBrace = this.ConvertToMissingWithTrailingTrivia(openBrace, SyntaxKind.OpenBraceToken);
+                openBrace = this.ConvertToMissingWithTrailingTrivia(
+                    this.EatTokenEvenWithIncorrectKind(SyntaxKind.OpenBraceToken), SyntaxKind.OpenBraceToken);
             }
 
             Debug.Assert(semicolon != null || openBrace != null);
@@ -699,7 +699,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
                                     {
                                         RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
-                                        attribute = this.AddError(attribute, attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst);
+
+                                        attribute = attribute.Update(
+                                            attribute.OpenBracketToken,
+                                            attribute.Target.Update(
+                                                this.AddError(attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst),
+                                                attribute.Target.ColonToken),
+                                            attribute.Attributes,
+                                            attribute.CloseBracketToken);
+
                                         this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, attribute);
                                     }
                                     else
@@ -995,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //NB: there's no way this could be true for a set of tokens that form a valid 
                 //using directive, so there's no danger in checking the error case first.
 
-                type = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
+                type = _syntaxFactory.IdentifierName(CreateMissingToken(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
                 semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
             }
             else
@@ -1835,15 +1843,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
                     }
 
-                    if (openBrace.IsMissing)
-                    {
-                        closeBrace = SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken);
-                        closeBrace = WithAdditionalDiagnostics(closeBrace, this.GetExpectedTokenError(SyntaxKind.CloseBraceToken, this.CurrentToken.Kind));
-                    }
-                    else
-                    {
-                        closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-                    }
+                    closeBrace = openBrace.IsMissing
+                        ? this.CreateMissingToken(SyntaxKind.CloseBraceToken, this.CurrentToken.Kind)
+                        : this.EatToken(SyntaxKind.CloseBraceToken);
 
                     semicolon = TryEatToken(SyntaxKind.SemicolonToken);
                 }
@@ -2963,7 +2965,10 @@ parse_member_name:;
                 var misplacedModifier = this.CurrentToken;
                 type = this.AddError(
                     type,
-                    type.FullWidth + misplacedModifier.GetLeadingTriviaWidth(),
+                    // We're attaching a diagnostic for the misplaced modifier on the 'type' node.  So the offset will
+                    // be *relative* to the *start* (not *full start*) of 'type'. That offset will then be the width of
+                    // type itself, plus any trailing trivia it has, plus the leading trivia of the modifier itself.
+                    offset: type.Width + type.GetTrailingTriviaWidth() + misplacedModifier.GetLeadingTriviaWidth(),
                     misplacedModifier.Width,
                     ErrorCode.ERR_BadModifierLocation,
                     misplacedModifier.Text);
@@ -3004,7 +3009,11 @@ parse_member_name:;
                     //the error position should indicate CurrentToken
                     result = this.AddError(
                         incompleteMember,
-                        incompleteMember.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(),
+                        // We're attaching a diagnostic for the current token on the 'incompleteMember' node.  So the
+                        // offset will be *relative* to the *start* (not *full start*) of 'incompleteMember'. That
+                        // offset will then be the width of incompleteMember itself, plus any trailing trivia it has,
+                        // plus the leading trivia of the modifier itself.
+                        offset: incompleteMember.Width + incompleteMember.GetTrailingTriviaWidth() + this.CurrentToken.GetLeadingTriviaWidth(),
                         this.CurrentToken.Width,
                         ErrorCode.ERR_InvalidMemberDecl,
                         this.CurrentToken.Text);
@@ -3892,9 +3901,9 @@ parse_member_name:;
                 if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
                 {
                     // Grab the offset and width before we consume the invalid keyword and change our position.
-                    GetDiagnosticSpanForMissingToken(out opTokenErrorOffset, out opTokenErrorWidth);
+                    (opTokenErrorOffset, opTokenErrorWidth) = (0, this.CurrentToken.Width);
                     opToken = this.ConvertToMissingWithTrailingTrivia(this.EatToken(), SyntaxKind.PlusToken);
-                    Debug.Assert(opToken.IsMissing); //Which is why we used GetDiagnosticSpanForMissingToken above.
+                    Debug.Assert(opToken.IsMissing); // ConvertToMissingWithTrailingTrivia should have converted to a missing token.
 
                     Debug.Assert(type != null); // How could it be?  The only caller got it from ParseReturnType.
 
@@ -4117,7 +4126,7 @@ parse_member_name:;
             // Error recovery: add an errant semicolon to the identifier token and keep going.
             if (this.CurrentToken.Kind is SyntaxKind.SemicolonToken)
             {
-                identifier = AddTrailingSkippedSyntax(identifier, this.EatTokenWithPrejudice(SyntaxKind.OpenBraceToken));
+                identifier = AddTrailingSkippedSyntax(identifier, this.EatTokenEvenWithIncorrectKind(SyntaxKind.OpenBraceToken));
             }
 
             // We know we are parsing a property because we have seen either an open brace or an arrow token
@@ -4432,7 +4441,7 @@ parse_member_name:;
                     break;
                 }
 
-                var token = (first && !this.CurrentToken.ContainsDiagnostics) ? this.EatTokenWithPrejudice(expected) : this.EatToken();
+                var token = (first && !this.CurrentToken.ContainsDiagnostics) ? this.EatTokenEvenWithIncorrectKind(expected) : this.EatToken();
                 first = false;
                 nodes.Add(token);
             }
@@ -5359,8 +5368,9 @@ parse_member_name:;
                     var isAfterNewLine = parentType.GetLastToken().TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia);
                     if (isAfterNewLine)
                     {
-                        int offset, width;
-                        this.GetDiagnosticSpanForMissingToken(out offset, out width);
+                        // Note: this token is free to get.  There is a cached singleton in SyntaxFactory for it.
+                        var missingIdentifier = CreateMissingIdentifierToken();
+                        var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(missingIdentifier);
 
                         this.EatToken();
                         currentTokenKind = this.CurrentToken.Kind;
@@ -5377,7 +5387,6 @@ parse_member_name:;
                             // Make sure this isn't a local function
                             if (!isPossibleLocalFunctionToken || !IsLocalFunctionAfterIdentifier())
                             {
-                                var missingIdentifier = CreateMissingIdentifierToken();
                                 missingIdentifier = this.AddError(missingIdentifier, offset, width, ErrorCode.ERR_IdentifierExpected);
 
                                 localFunction = null;
@@ -7688,11 +7697,7 @@ done:
                 for (int i = 0; i < list.Count; i++)
                 {
                     if (list[i].RawKind == (int)SyntaxKind.OmittedArraySizeExpression)
-                    {
-                        int width = list[i].Width;
-                        int offset = list[i].GetLeadingTriviaWidth();
-                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset, width, ErrorCode.ERR_ValueExpected);
-                    }
+                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset: 0, list[i].Width, ErrorCode.ERR_ValueExpected);
                 }
             }
 
@@ -7796,7 +7801,7 @@ done:
 
             if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
             {
-                var lessThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.LessThanToken), GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
+                var lessThanTokenError = CreateMissingToken(SyntaxKind.LessThanToken, SyntaxKind.None);
 
                 var missingTypes = _pool.AllocateSeparated<FunctionPointerParameterSyntax>();
                 var missingType = SyntaxFactory.FunctionPointerParameter(attributeLists: default, modifiers: default, CreateMissingIdentifierName());
@@ -9405,7 +9410,7 @@ done:
                 var skippedTokens = _pool.Allocate();
 
                 while (this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.CommaToken)
-                    skippedTokens.Add(this.EatTokenWithPrejudice(SyntaxKind.CloseParenToken));
+                    skippedTokens.Add(this.EatTokenEvenWithIncorrectKind(SyntaxKind.CloseParenToken));
 
                 var result = this.EatToken(SyntaxKind.CloseParenToken);
                 return AddLeadingSkippedSyntax(result, _pool.ToTokenListAndFree(skippedTokens).Node);
@@ -11826,7 +11831,7 @@ done:
                             else
                             {
                                 // just some random trailing :: ?
-                                expr = AddTrailingSkippedSyntax(expr, this.EatTokenWithPrejudice(SyntaxKind.DotToken));
+                                expr = AddTrailingSkippedSyntax(expr, this.EatTokenEvenWithIncorrectKind(SyntaxKind.DotToken));
                             }
 
                             continue;
@@ -12994,6 +12999,11 @@ done:
             return IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
         }
 
+        private bool IsNamedMemberInitializer()
+        {
+            return IsTrueIdentifier() && this.PeekToken(1).Kind is SyntaxKind.EqualsToken or SyntaxKind.ColonToken;
+        }
+
         private bool IsDictionaryInitializer()
         {
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
@@ -13159,7 +13169,7 @@ done:
                 // [...] = <expr>
                 return this.ParseDictionaryInitializer();
             }
-            else if (this.IsNamedAssignment())
+            else if (this.IsNamedMemberInitializer())
             {
                 // Name = { ... }
                 // Name = ref <expr>
@@ -13189,7 +13199,9 @@ done:
             return _syntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 this.ParseIdentifierName(),
-                this.EatToken(SyntaxKind.EqualsToken),
+                this.CurrentToken.Kind == SyntaxKind.ColonToken
+                    ? this.EatTokenAsKind(SyntaxKind.EqualsToken)
+                    : this.EatToken(SyntaxKind.EqualsToken),
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()
                     : this.ParsePossibleRefExpression());
@@ -14044,7 +14056,7 @@ done:
             set => _syntaxFactoryContext.IsInQuery = value;
         }
 
-        private bool IsInFieldKeywordContext
+        internal bool IsInFieldKeywordContext
         {
             get => _syntaxFactoryContext.IsInFieldKeywordContext;
             set => _syntaxFactoryContext.IsInFieldKeywordContext = value;
@@ -14143,9 +14155,14 @@ tryAgain:
 
                         if (shouldParseSeparatorOrElement())
                         {
-                            // If we got a semicolon instead of comma, consume it with error and act as if it were a comma.
+                            // If we got a semicolon instead of comma, consume it with error and act as if it were a
+                            // comma. Note: we do not change the kind of the token, so we can end up with a separated
+                            // syntax list whose separators are a mix of commas and semicolons.  That is ok and is part
+                            // of the expected contract of separated lists.  There will still be a diagnostic on the 
+                            // token letting the user know there is an error.  This allows us to recover gracefully,
+                            // especially for higher levels like the IDE.
                             nodes.AddSeparator(this.CurrentToken.Kind == SyntaxKind.SemicolonToken
-                                ? this.EatTokenWithPrejudice(separatorTokenKind)
+                                ? this.EatTokenEvenWithIncorrectKind(separatorTokenKind)
                                 : this.EatToken(separatorTokenKind));
 
                             if (allowTrailingSeparator)

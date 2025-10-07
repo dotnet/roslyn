@@ -1713,9 +1713,6 @@ class C
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return 1;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
-                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
                 // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return 4;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
@@ -1744,9 +1741,6 @@ class C
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return null;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
-                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
                 // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return null;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
@@ -1781,9 +1775,6 @@ class C
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return ref s;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
-                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M2(ref string s2)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
                 // (10,74): error CS1988: Async methods cannot have ref, in or out parameters
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M2(ref string s2)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s2").WithLocation(10, 74),
@@ -1815,9 +1806,6 @@ class C
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return default;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
-                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
                 // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return default;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
@@ -1943,9 +1931,6 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
                 // (6,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return null;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(6, 9)
@@ -2054,15 +2039,8 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
-                );
+            comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.
                 //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 74)
@@ -2086,15 +2064,8 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
-                );
+            comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
                 //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 74)
@@ -2137,15 +2108,8 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
-                );
+            comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
                 // (4,60): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
                 //     async System.Collections.Generic.IAsyncEnumerator<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 60)
@@ -2165,9 +2129,6 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS0161: 'C.M()': not all code paths return a value
                 //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 74)
@@ -2187,11 +2148,7 @@ public class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations: 2), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
-                );
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 END DISPOSAL DONE");
         }
 
@@ -2258,10 +2215,7 @@ class C
             comp.VerifyDiagnostics(
                 // (4,62): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async System.Collections.Generic.IEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 62),
-                // (4,62): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async System.Collections.Generic.IEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 62)
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 62)
                 );
         }
 
@@ -2278,9 +2232,6 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS0161: 'C.M()': not all code paths return a value
                 //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 74)
@@ -2300,11 +2251,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
-                // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async System.Collections.Generic.IAsyncEnumerator<int> M(int value)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 67)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -6618,11 +6565,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 67)
-                );
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
@@ -6646,11 +6589,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 67)
-                );
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "none");
         }
 
@@ -6666,9 +6605,6 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
                 // (4,60): error CS0161: 'C.M()': not all code paths return a value
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 60)
@@ -6694,10 +6630,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(7, 15),
                 // (6,22): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         yield return "hello";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int").WithLocation(6, 22),
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int").WithLocation(6, 22)
                 );
         }
 
@@ -8895,7 +8828,6 @@ class C
         public void LambdaWithBindingErrorInYieldReturn()
         {
             var src = """
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8916,7 +8848,6 @@ class C
             comp.VerifyDiagnostics();
 
             src = """
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8936,72 +8867,6 @@ class C
 """;
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
 
-            comp.VerifyDiagnostics(
-                // (12,13): error CS0118: 's' is a variable but is used like a type
-                //             s // 1
-                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(12, 13),
-                // (13,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(13, 13),
-                // (13,13): warning CS0168: The variable 'await' is declared but never used
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "await").WithArguments("await").WithLocation(13, 13),
-                // (13,19): error CS1002: ; expected
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(13, 19),
-                // (13,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(13, 19));
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var s = GetSyntax<IdentifierNameSyntax>(tree, "s");
-            Assert.Null(model.GetSymbolInfo(s).Symbol);
-            Assert.Equal(new[] { "System.String s" }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
-        }
-
-        [Fact]
-        public void LambdaWithBindingErrorInReturn()
-        {
-            var src = """
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
-using System;
-using System.Threading.Tasks;
-
-class C
-{
-    static async Task<Func<string, Task<string>>> BarAsync()
-    {
-        return async s =>
-        {
-            await Task.CompletedTask;
-            throw new NotImplementedException();
-        };
-    }
-}
-""";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            comp.VerifyDiagnostics();
-
-            src = """
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
-using System;
-using System.Threading.Tasks;
-
-class C
-{
-    static async Task<Func<string, Task<string>>> BarAsync()
-    {
-        return async s =>
-        {
-            s // 1
-            await Task.CompletedTask;
-            throw new NotImplementedException();
-        };
-    }
-}
-""";
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (11,13): error CS0118: 's' is a variable but is used like a type
                 //             s // 1
@@ -9017,7 +8882,73 @@ class C
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(12, 19),
                 // (12,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(12, 19));
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(12, 19)
+            );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var s = GetSyntax<IdentifierNameSyntax>(tree, "s");
+            Assert.Null(model.GetSymbolInfo(s).Symbol);
+            Assert.Equal(new[] { "System.String s" }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void LambdaWithBindingErrorInReturn()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<Func<string, Task<string>>> BarAsync()
+    {
+        return async s =>
+        {
+            await Task.CompletedTask;
+            throw new NotImplementedException();
+        };
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            src = """
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<Func<string, Task<string>>> BarAsync()
+    {
+        return async s =>
+        {
+            s // 1
+            await Task.CompletedTask;
+            throw new NotImplementedException();
+        };
+    }
+}
+""";
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS0118: 's' is a variable but is used like a type
+                //             s // 1
+                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(10, 13),
+                // (11,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(11, 13),
+                // (11,13): warning CS0168: The variable 'await' is declared but never used
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "await").WithArguments("await").WithLocation(11, 13),
+                // (11,19): error CS1002: ; expected
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(11, 19),
+                // (11,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(11, 19)
+            );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10859,6 +10790,563 @@ class Test1
         }
 
         [Fact]
+        public void CompilerLoweringPreserveAttribute_03()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test<[Preserve1][Preserve2]T>()
+    {
+        async IAsyncEnumerable<T> local(T x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test()
+    {
+        async IAsyncEnumerable<T> local<[Preserve1][Preserve2]T>(T x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            comp1 = CreateCompilation([source1, source3, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|0_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<<Test>g__local|0_0>d").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_04()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test()
+    {
+        async IAsyncEnumerable<int> local([Preserve1][Preserve2][Preserve3]int x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute", "Preserve3Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|0_0").Parameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|0_0>d.x").GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|0_0>d.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_05()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test([Preserve1][Preserve2][Preserve3]int x)
+    {
+        async IAsyncEnumerable<int> local()
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<>c__DisplayClass0_0.x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_06()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(T x)
+    {
+        async IAsyncEnumerable<T> M2()
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+static class Test1
+{
+    extension(int i)
+    {
+        async IAsyncEnumerable<T> M2<[Preserve1][Preserve2]T>(T x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            comp1 = CreateCompilation([source1, source3, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<M2>d__1").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_07()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+static class Test1
+{
+    extension([Preserve1][Preserve2][Preserve3]int x)
+    {
+        async IAsyncEnumerable<int> M2()
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+static class Test1
+{
+    extension(int i)
+    {
+        async IAsyncEnumerable<int> M2([Preserve1][Preserve2][Preserve3]int x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            comp1 = CreateCompilation(
+                [source1, source3, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__1.x").GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__1.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_08()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(int i)
+    {
+        static void Test()
+        {
+            async IAsyncEnumerable<T> local(T x)
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        static void Test<[Preserve1][Preserve2]T>()
+        {
+            async IAsyncEnumerable<T> local(T x)
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            comp1 = CreateCompilation([source1, source3, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source4 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        static void Test()
+        {
+            async IAsyncEnumerable<T> local<[Preserve1][Preserve2]T>(T x)
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            comp1 = CreateCompilation([source1, source4, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|1_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<<Test>g__local|1_0>d").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_09()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        static void Test()
+        {
+            async IAsyncEnumerable<int> local([Preserve1][Preserve2][Preserve3]int x)
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute", "Preserve3Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|1_0").Parameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|1_0>d.x").GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|1_0>d.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_10()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension([Preserve1][Preserve2][Preserve3]int x)
+    {
+        void Test()
+        {
+            async IAsyncEnumerable<int> local()
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        static void Test([Preserve1][Preserve2][Preserve3]int x)
+        {
+            async IAsyncEnumerable<int> local()
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            comp1 = CreateCompilation(
+                [source1, source3, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<>c__DisplayClass1_0.x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
         [WorkItem(78640, "https://github.com/dotnet/roslyn/issues/78640")]
         public void Repro_78640()
         {
@@ -10870,9 +11358,7 @@ class Test1
 
                 static class C
                 {
-                    #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
                     public static async IAsyncEnumerable<T> AsAsyncEnumerable<T>(this IEnumerable<T> enumerable, [EnumeratorCancellation] CancellationToken cancellationToken)
-                    #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
                     {
                         ArgumentNullException.ThrowIfNull(enumerable);
 

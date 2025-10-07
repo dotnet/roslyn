@@ -5817,7 +5817,6 @@ M
         public void ConditionalInAsyncTask()
         {
             var source = @"
-#pragma warning disable CS1998 // suppress 'no await in async' warning
 using System;
 using System.Threading.Tasks;
 

@@ -81,8 +81,7 @@ internal sealed class CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyze
         else if (discard.Parent is RecursivePatternSyntax recursivePattern)
         {
             // can't remove from `(int i) _` as `(int i)` is not a legal pattern itself.
-            if (recursivePattern.PositionalPatternClause != null &&
-                recursivePattern.PositionalPatternClause.Subpatterns.Count == 1)
+            if (recursivePattern.PositionalPatternClause is { Subpatterns.Count: 1 })
             {
                 return;
             }
