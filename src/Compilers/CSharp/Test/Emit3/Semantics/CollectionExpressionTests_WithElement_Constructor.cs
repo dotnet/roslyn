@@ -1385,10 +1385,12 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     #region Null and Default Tests
 
-    [Fact]
-    public void WithElement_NullArguments()
+    [Theory]
+    [InlineData("null")]
+    [InlineData("(string)null")]
+    public void WithElement_NullArguments(string argument)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
             
@@ -1406,7 +1408,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 static void Main()
                 {
-                    MyList<int> list = [with((string)null), 1];
+                    MyList<int> list = [with({{argument}}), 1];
                     Console.WriteLine(list.Value);
                 }
             }
@@ -1415,10 +1417,12 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("null"));
     }
 
-    [Fact]
-    public void WithElement_DefaultArguments()
+    [Theory]
+    [InlineData("default(int)")]
+    [InlineData("default")]
+    public void WithElement_DefaultArguments(string argument)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
             
@@ -1436,7 +1440,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 static void Main()
                 {
-                    MyList<int> list = [with(default(int)), 1];
+                    MyList<int> list = [with({{argument}}), 1];
                     Console.WriteLine(list.Value);
                 }
             }
