@@ -1167,6 +1167,77 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(12, 34));
     }
 
+    [Fact]
+    public void WithElement_Constructor_UserDefinedConversion1()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(string value) : base() { }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator string(C c) => "converted";
+            }
+            """;
+
+        CompileAndVerify(source).VerifyIL("C.Main", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  1
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "string C.op_Implicit(C)"
+              IL_000a:  newobj     "MyList<int>..ctor(string)"
+              IL_000f:  pop
+              IL_0010:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_Constructor_UserDefinedConversion2()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(long value) : base() { }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator int(C c) => 0;
+            }
+            """;
+
+        CompileAndVerify(source).VerifyIL("C.Main", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  1
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "int C.op_Implicit(C)"
+              IL_000a:  conv.i8
+              IL_000b:  newobj     "MyList<int>..ctor(long)"
+              IL_0010:  pop
+              IL_0011:  ret
+            }
+            """);
+    }
+
     #endregion
 
     #region Accessibility Tests
