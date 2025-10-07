@@ -729,9 +729,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Buil
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.SemanticSearch.Extensions", "src\Tools\SemanticSearch\Extensions\Microsoft.CodeAnalysis.SemanticSearch.Extensions.csproj", "{66C8265C-2C79-F259-9807-3E97CA586F1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ExternalAccess.HotReload", "src\Features\ExternalAccess\HotReload\Microsoft.CodeAnalysis.ExternalAccess.HotReload.csproj", "{FDDC4384-F466-DB42-61A7-E21DF5EB84BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.HotReload", "src\Features\ExternalAccess\HotReload\Microsoft.CodeAnalysis.ExternalAccess.HotReload.csproj", "{FDDC4384-F466-DB42-61A7-E21DF5EB84BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests", "src\Features\ExternalAccess\HotReloadTest\Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests.csproj", "{D03262C0-4AE6-1ED5-7B38-4150DACFF9D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests", "src\Features\ExternalAccess\HotReloadTest\Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests.csproj", "{D03262C0-4AE6-1ED5-7B38-4150DACFF9D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
