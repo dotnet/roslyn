@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
+using Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -25,9 +25,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBase
+public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 {
-    private static Task<SourceText> GetCommittedDocumentTextAsync(WatchHotReloadService service, DocumentId documentId)
+    private static Task<SourceText> GetCommittedDocumentTextAsync(HotReloadService service, DocumentId documentId)
         => ((EditAndContinueService)service.GetTestAccessor().EncService)
            .GetTestAccessor()
            .GetActiveDebuggingSessions()
@@ -62,7 +62,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
             loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
             filePath: sourceFileA.Path));
 
-        var hotReload = new WatchHotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -77,9 +77,9 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         // Valid update:
         solution = solution.WithDocumentText(documentIdA, CreateText(source2));
 
-        var result = await hotReload.GetUpdatesAsync(solution, runningProjects: ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
-        Assert.Empty(result.CompilationDiagnostics);
-        Assert.Empty(result.RudeEdits);
+        var result = await hotReload.GetUpdatesAsync(solution, runningProjects: ImmutableDictionary<ProjectId, HotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
+        Assert.Empty(result.PersistentDiagnostics);
+        Assert.Empty(result.TransientDiagnostics);
         Assert.Equal(1, result.ProjectUpdates.Length);
         AssertEx.Equal([0x02000002], result.ProjectUpdates[0].UpdatedTypes);
 
@@ -91,11 +91,11 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         // Insignificant change:
         solution = solution.WithDocumentText(documentIdA, CreateText(source3));
 
-        result = await hotReload.GetUpdatesAsync(solution, runningProjects: ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
-        Assert.Empty(result.CompilationDiagnostics);
-        Assert.Empty(result.RudeEdits);
+        result = await hotReload.GetUpdatesAsync(solution, runningProjects: ImmutableDictionary<ProjectId, HotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
+        Assert.Empty(result.PersistentDiagnostics);
+        Assert.Empty(result.TransientDiagnostics);
         Assert.Empty(result.ProjectUpdates);
-        Assert.Equal(WatchHotReloadService.Status.NoChangesToApply, result.Status);
+        Assert.Equal(HotReloadService.Status.NoChangesToApply, result.Status);
 
         updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
         Assert.Equal(source3, updatedText.ToString());
@@ -103,14 +103,14 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         // Rude edit:
         solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M<T>() { System.Console.WriteLine(2); } }"));
 
-        var runningProjects = ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty
-            .Add(projectId, new WatchHotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true });
+        var runningProjects = ImmutableDictionary<ProjectId, HotReloadService.RunningProjectInfo>.Empty
+            .Add(projectId, new HotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true });
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
-        Assert.Empty(result.CompilationDiagnostics);
+        Assert.Empty(result.PersistentDiagnostics);
         AssertEx.Equal(
             [$"P: {sourceFileA.Path}: (0,17)-(0,18): Error ENC0110: {string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)}"],
-            InspectDiagnostics(result.RudeEdits));
+            InspectDiagnostics(result.TransientDiagnostics));
         Assert.Empty(result.ProjectUpdates);
         AssertEx.SetEqual(["P"], result.ProjectsToRestart.Select(p => solution.GetRequiredProject(p.Key).Name));
         AssertEx.SetEqual(["P"], result.ProjectsToRebuild.Select(p => solution.GetRequiredProject(p).Name));
@@ -128,7 +128,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
         AssertEx.Equal(
             [$"{sourceFileA.Path}: (0,72)-(0,73): Error CS1002: {CSharpResources.ERR_SemicolonExpected}"],
-            InspectDiagnostics(result.CompilationDiagnostics));
+            InspectDiagnostics(result.PersistentDiagnostics));
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
@@ -144,14 +144,14 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         [
             $"{sourceFileA.Path}: (0,21)-(0,28): Error CS0103: {string.Format(CSharpResources.ERR_NameNotInContext, "Unknown")}",
             $"{sourceFileA.Path}: (0,51)-(0,52): Warning CS0219: {string.Format(CSharpResources.WRN_UnreferencedVarAssg, "x")}",
-        ], InspectDiagnostics(result.CompilationDiagnostics));
+        ], InspectDiagnostics(result.PersistentDiagnostics));
 
         // TODO: https://github.com/dotnet/roslyn/issues/79017
         //AssertEx.Equal(
         //[
         //    $"P: {sourceFileA.Path}: (0,34)-(0,44): Warning ENC0118: {string.Format(FeaturesResources.Changing_0_might_not_have_any_effect_until_the_application_is_restarted, FeaturesResources.static_constructor)}",
-        //], InspectDiagnostics(result.RudeEdits));
-        AssertEx.Empty(result.RudeEdits);
+        //], InspectDiagnostics(result.TransientDiagnostics));
+        AssertEx.Empty(result.TransientDiagnostics);
 
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
@@ -201,17 +201,17 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         var generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
         Assert.Empty(generatorDiagnostics);
 
-        var hotReload = new WatchHotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
         solution = solution.WithAdditionalDocumentText(aId, CreateText("updated text"));
 
-        var runningProjects = ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty
-            .Add(projectId, new WatchHotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false });
+        var runningProjects = ImmutableDictionary<ProjectId, HotReloadService.RunningProjectInfo>.Empty
+            .Add(projectId, new HotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false });
 
         var result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
-        var diagnostic = result.CompilationDiagnostics.Single();
+        var diagnostic = result.PersistentDiagnostics.Single();
         Assert.Equal("CS8785", diagnostic.Id);
         Assert.Contains("Source generator failed", diagnostic.GetMessage());
         hotReload.EndSession();
