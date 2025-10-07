@@ -4789,8 +4789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // expression is the scope of an invocation of the builder method with the
                     // collection expression as the span argument. That is, `R r = [x, y, z];`
                     // is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
-                    Debug.Assert(expr.CollectionBuilderInfo is { });
-                    var constructMethod = expr.CollectionBuilderInfo.Value.Method;
+                    var constructMethod = expr.CollectionBuilderInfo?.Method;
                     if (constructMethod is not { Parameters: [.., { RefKind: RefKind.None } parameter] })
                     {
                         // Unexpected construct method. Restrict the collection to local scope.
