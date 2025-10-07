@@ -346,7 +346,34 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("GetSecond called. GetFirst called. 10,20"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("GetSecond called. GetFirst called. 10,20"))
+            .VerifyIL("C.Main", """
+            {
+              // Code size       63 (0x3f)
+              .maxstack  3
+              .locals init (MyList<int> V_0, //list
+                            int V_1)
+              IL_0000:  call       "int C.GetSecond()"
+              IL_0005:  stloc.1
+              IL_0006:  call       "int C.GetFirst()"
+              IL_000b:  ldloc.1
+              IL_000c:  newobj     "MyList<int>..ctor(int, int)"
+              IL_0011:  dup
+              IL_0012:  ldc.i4.1
+              IL_0013:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_0018:  stloc.0
+              IL_0019:  ldstr      "{0},{1}"
+              IL_001e:  ldloc.0
+              IL_001f:  callvirt   "int MyList<int>.Value1.get"
+              IL_0024:  box        "int"
+              IL_0029:  ldloc.0
+              IL_002a:  callvirt   "int MyList<int>.Value2.get"
+              IL_002f:  box        "int"
+              IL_0034:  call       "string string.Format(string, object, object)"
+              IL_0039:  call       "void System.Console.WriteLine(string)"
+              IL_003e:  ret
+            }
+            """);
     }
 
     [Fact]
