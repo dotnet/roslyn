@@ -1675,12 +1675,70 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 static void Main()
                 {
                     MyList<int> list = [with(() => 42), 1];
-                    Console.WriteLine(list.DynamicInvoke());
+                    Console.WriteLine(list.ValueFunc.DynamicInvoke());
                 }
             }
             """;
 
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42"));
+    }
+
+    [Theory]
+    [InlineData("1")]
+    [InlineData("(short)1")]
+    public void WithElement_WithLambda_InferenceWithArgAndConstructor(string returnValue)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T arg) : base()
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    Goo([with(() => {{returnValue}}), () => 2]);
+                }
+
+                static void Goo<T>(MyList<T> list) { }
+            }
+            """;
+
+        CompileAndVerify(source).VerifyIL("C.Main", """
+            {
+              // Code size       79 (0x4f)
+              .maxstack  4
+              IL_0000:  ldsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_0005:  dup
+              IL_0006:  brtrue.s   IL_001f
+              IL_0008:  pop
+              IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_000e:  ldftn      "int C.<>c.<Main>b__0_0()"
+              IL_0014:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+              IL_0019:  dup
+              IL_001a:  stsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_001f:  newobj     "MyList<System.Func<int>>..ctor(System.Func<int>)"
+              IL_0024:  dup
+              IL_0025:  ldsfld     "System.Func<int> C.<>c.<>9__0_1"
+              IL_002a:  dup
+              IL_002b:  brtrue.s   IL_0044
+              IL_002d:  pop
+              IL_002e:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_0033:  ldftn      "int C.<>c.<Main>b__0_1()"
+              IL_0039:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+              IL_003e:  dup
+              IL_003f:  stsfld     "System.Func<int> C.<>c.<>9__0_1"
+              IL_0044:  callvirt   "void System.Collections.Generic.List<System.Func<int>>.Add(System.Func<int>)"
+              IL_0049:  call       "void C.Goo<System.Func<int>>(MyList<System.Func<int>>)"
+              IL_004e:  ret
+            }
+            """);
     }
 
     #endregion
