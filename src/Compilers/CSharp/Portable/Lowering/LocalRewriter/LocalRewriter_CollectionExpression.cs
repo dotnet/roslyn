@@ -505,15 +505,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type is { });
             Debug.Assert(node.CollectionCreation is null);
             Debug.Assert(node.Placeholder is null);
-            Debug.Assert(node.CollectionBuilderMethod is { });
-            //Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
-            //Debug.Assert(node.CollectionBuilderInvocationConversion is { });
+            Debug.Assert(node.CollectionBuilderInfo is { });
 
-            Debug.Assert(node.CollectionBuilderProjectionCallOrConversion is { });
+            var collectionBuilderInfo = node.CollectionBuilderInfo.Value;
+            var constructMethod = collectionBuilderInfo.Method;
 
-            var constructMethod = node.CollectionBuilderMethod;
-
-            var spanType = (NamedTypeSymbol)constructMethod.Parameters.Last().Type;
+            // All these pieces are guaranteed by the earlier binding phase.
+            var readonlySpanParameter = constructMethod.Parameters.Last();
+            var spanType = (NamedTypeSymbol)readonlySpanParameter.Type;
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
             var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
@@ -522,33 +521,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
             // and that span cannot be captured in a returned ref struct
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
-            BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
+            var span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
                 ? VisitExpression(spreadExpression)
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
-            var originalCallOrConversion = node.CollectionBuilderProjectionCallOrConversion;
-            var originalCall = originalCallOrConversion switch
-            {
-                BoundCall call => call,
-                // Guaranteed by bindCollectionBuilderProjectionCallOrConversion
-                BoundConversion { Operand: BoundCall call } conversion => call,
-                _ => throw ExceptionUtilities.UnexpectedValue(originalCallOrConversion)
-            };
-
             // Add the final 'span' to the arguments of the original call.
 
-            var arguments = originalCall.Arguments;
-            var argumentNames = originalCall.ArgumentNamesOpt;
-            var argumentRefKinds = originalCall.ArgumentRefKindsOpt;
+            var projectionCall = collectionBuilderInfo.ProjectionCall;
+            var arguments = projectionCall.Arguments;
+            var argumentNames = projectionCall.ArgumentNamesOpt;
+            var argumentRefKinds = projectionCall.ArgumentRefKindsOpt;
 
             arguments = arguments.Add(span);
             if (!argumentNames.IsDefault)
-                argumentNames = argumentNames.Add(null);
+                argumentNames = argumentNames.Add(readonlySpanParameter.Name);
 
             if (!argumentRefKinds.IsDefault)
                 argumentRefKinds = argumentRefKinds.Add(RefKind.None);
 
-            var finalInvocation = new BoundCall(
+            var nonProjectionCall = new BoundCall(
                 node.Syntax,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
@@ -560,21 +551,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default,
-                defaultArguments: originalCall.DefaultArguments,
+                defaultArguments: projectionCall.DefaultArguments,
                 resultKind: LookupResultKind.Viable,
                 type: constructMethod.ReturnType);
 
-            // var convers
+            var invocationPlaceholder = collectionBuilderInfo.CallPlaceHolder;
+            AddPlaceholderReplacement(invocationPlaceholder, nonProjectionCall);
+            var result = VisitExpression(collectionBuilderInfo.Conversion);
+            RemovePlaceholderReplacement(invocationPlaceholder);
 
-            var finalConversion = originalConversion.Update(
-                finalInvocation, originalConversion.Conversion, originalConversion.IsBaseConversion, originalConversion.Checked,
-                originalConversion.ExplicitCastInCode, originalConversion.ConstantValueOpt, originalConversion.ConversionGroupOpt, originalConversion.Type);
-
-            //var invocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
-            //AddPlaceholderReplacement(invocationPlaceholder, originalInvocation);
-            //var result = VisitExpression(node.CollectionBuilderInvocationConversion);
-            //RemovePlaceholderReplacement(invocationPlaceholder);
-            return finalConversion;
+            return result;
         }
 
         internal static bool IsAllocatingRefStructCollectionExpression(BoundCollectionExpressionBase node, CollectionExpressionTypeKind collectionKind, TypeSymbol? elementType, CSharpCompilation compilation)
