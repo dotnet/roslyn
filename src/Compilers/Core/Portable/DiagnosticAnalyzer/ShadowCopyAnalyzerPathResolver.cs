@@ -125,7 +125,19 @@ namespace Microsoft.CodeAnalysis
                             // If the deletion fails for an IOException, it may have been the result of a file being
                             // marked read-only. We catch that exception and perform an explicit clear before trying
                             // again.
-                            Directory.Delete(subDirectory, recursive: true);
+                            //
+                            // It's possible for us to race with multiple shadow copy instances trying to delete the
+                            // same directory. If that happens, we may get a DirectoryNotFoundException. We
+                            // explicitly ignore that exception as it means our work is already done.
+                            // This isn't a perfect check, as two processes could race here, but it's close enough.
+                            if (Directory.Exists(subDirectory))
+                            {
+                                Directory.Delete(subDirectory, recursive: true);
+                            }
+                        }
+                        catch (DirectoryNotFoundException)
+                        {
+                            // Another process beat us to it. Nothing to do.
                         }
                         catch (IOException)
                         {
