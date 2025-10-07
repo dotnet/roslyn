@@ -1962,5 +1962,50 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Collections.Generic.List<int>)", "C.M(System.Collections.Generic.HashSet<int>)").WithLocation(10, 9));
     }
 
+    [Fact]
+    public void WithElement_Ambiguous_WithOverloads2()
+    {
+        var source = $$"""
+            using System.Collections;
+            using System.Collections.Generic;
+            
+            class Collection1 : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+
+            class Collection2(int capacity) : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+
+            class D
+            {
+                void M(Collection1 coll) { }
+                void M(Collection2 coll) { }
+
+                void G()
+                {
+                    M([]);
+                    M([with()]);
+                    M([with(capacity: 42)]);
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,23): warning CS9113: Parameter 'capacity' is unread.
+            // class Collection2(int capacity) : IEnumerable<int>
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "capacity").WithArguments("capacity").WithLocation(10, 23),
+            // (24,9): error CS0121: The call is ambiguous between the following methods or properties: 'D.M(Collection1)' and 'D.M(Collection2)'
+            //         M([with()]);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("D.M(Collection1)", "D.M(Collection2)").WithLocation(24, 9),
+            // (25,9): error CS0121: The call is ambiguous between the following methods or properties: 'D.M(Collection1)' and 'D.M(Collection2)'
+            //         M([with(capacity: 42)]);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("D.M(Collection1)", "D.M(Collection2)").WithLocation(25, 9));
+    }
+
     #endregion
 }
