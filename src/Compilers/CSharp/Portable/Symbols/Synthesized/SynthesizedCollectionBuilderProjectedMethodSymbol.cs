@@ -35,9 +35,11 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     // i.e.  we want to remove the type parameters and the final parameter that takes the elements.  That way there is
     // no more inference done, or any confusion about needing type arguments when resolving a `with(...)` element
     // against this signature.
+    public override int Arity => 0;
     public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => [];
     public override ImmutableArray<TypeParameterSymbol> TypeParameters => [];
 
+    internal override int ParameterCount => base.ParameterCount - 1;
     public override ImmutableArray<ParameterSymbol> Parameters
     {
         get
