@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,7 +18,8 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
 
     public override MethodSymbol UnderlyingMethod => _originalCollectionBuilderMethod;
 
-    public override TypeWithAnnotations ReturnTypeWithAnnotations => throw new System.NotImplementedException();
+    public override Symbol ContainingSymbol => this.UnderlyingMethod.ContainingSymbol;
+    public override TypeWithAnnotations ReturnTypeWithAnnotations => this.UnderlyingMethod.ReturnTypeWithAnnotations;
 
     // Note: it is very intentional that we return empty arrays for Type arguments/parameters.  Consider a
     // hypothetical signature like:
@@ -36,6 +35,7 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     // no more inference done, or any confusion about needing type arguments when resolving a `with(...)` element
     // against this signature.
     public override int Arity => 0;
+    public override bool IsGenericMethod => false;
     public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => [];
     public override ImmutableArray<TypeParameterSymbol> TypeParameters => [];
 
@@ -46,8 +46,8 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
         {
             if (_lazyParameters.IsDefault)
             {
-                var parameters = _originalCollectionBuilderMethod.Parameters
-                    .Take(_originalCollectionBuilderMethod.Parameters.Length - 1)
+                var parameters = this.UnderlyingMethod.Parameters
+                    .Take(this.ParameterCount)
                     .SelectAsArray(
                         static (p, @this) => (ParameterSymbol)new SynthesizedCollectionBuilderProjectedParameterSymbol(@this, p), this);
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, parameters);
@@ -61,8 +61,6 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     public override ImmutableArray<CustomModifier> RefCustomModifiers => throw new System.NotImplementedException();
 
     public override Symbol AssociatedSymbol => throw new System.NotImplementedException();
-
-    public override Symbol ContainingSymbol => throw new System.NotImplementedException();
 
     internal override bool HasSpecialNameAttribute => throw new System.NotImplementedException();
 
