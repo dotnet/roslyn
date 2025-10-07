@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -361,6 +364,99 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             // (8,42): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<int>'.
             //         List<ReadOnlySpan<int>> list = [[with(), 1, 2, 3]];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.ReadOnlySpan<int>").WithLocation(8, 42));
+    }
+
+    [Fact]
+    public void WithElement_ReadOnlySpan_NestedInGeneric2()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    IEnumerable<ReadOnlySpan<int>> list = [[1, 2, 3], [4, 5, 6]];
+
+                    foreach (var span in list)
+                    {
+                        foreach (var item in span)
+                        {
+                            Console.Write(item + " ");
+                        }
+                    }
+                }
+            }
+            """;
+
+        // PROTOTYPE: This should be blocked.  We generate code that fails to load.
+        CompileAndVerify(source, targetFramework: TargetFramework.Net90, verify: Verification.Fails).VerifyIL("C.Main", """
+            {
+              // Code size      131 (0x83)
+              .maxstack  4
+              .locals init (System.Collections.Generic.IEnumerator<System.ReadOnlySpan<int>> V_0,
+                            System.ReadOnlySpan<int> V_1,
+                            int V_2,
+                            int V_3) //item
+              IL_0000:  ldc.i4.2
+              IL_0001:  newarr     "System.ReadOnlySpan<int>"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+              IL_000d:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+              IL_0012:  stelem     "System.ReadOnlySpan<int>"
+              IL_0017:  dup
+              IL_0018:  ldc.i4.1
+              IL_0019:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.8CA6EE1043DEFCFD05AA29DEE581CBC519E783E414A687D7C26AC6070D3F6DEE4"
+              IL_001e:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+              IL_0023:  stelem     "System.ReadOnlySpan<int>"
+              IL_0028:  newobj     "<>z__ReadOnlyArray<System.ReadOnlySpan<int>>..ctor(System.ReadOnlySpan<int>[])"
+              IL_002d:  callvirt   "System.Collections.Generic.IEnumerator<System.ReadOnlySpan<int>> System.Collections.Generic.IEnumerable<System.ReadOnlySpan<int>>.GetEnumerator()"
+              IL_0032:  stloc.0
+              .try
+              {
+                IL_0033:  br.s       IL_006e
+                IL_0035:  ldloc.0
+                IL_0036:  callvirt   "System.ReadOnlySpan<int> System.Collections.Generic.IEnumerator<System.ReadOnlySpan<int>>.Current.get"
+                IL_003b:  stloc.1
+                IL_003c:  ldc.i4.0
+                IL_003d:  stloc.2
+                IL_003e:  br.s       IL_0064
+                IL_0040:  ldloca.s   V_1
+                IL_0042:  ldloc.2
+                IL_0043:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
+                IL_0048:  ldind.i4
+                IL_0049:  stloc.3
+                IL_004a:  ldloca.s   V_3
+                IL_004c:  call       "string int.ToString()"
+                IL_0051:  ldstr      " "
+                IL_0056:  call       "string string.Concat(string, string)"
+                IL_005b:  call       "void System.Console.Write(string)"
+                IL_0060:  ldloc.2
+                IL_0061:  ldc.i4.1
+                IL_0062:  add
+                IL_0063:  stloc.2
+                IL_0064:  ldloc.2
+                IL_0065:  ldloca.s   V_1
+                IL_0067:  call       "int System.ReadOnlySpan<int>.Length.get"
+                IL_006c:  blt.s      IL_0040
+                IL_006e:  ldloc.0
+                IL_006f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                IL_0074:  brtrue.s   IL_0035
+                IL_0076:  leave.s    IL_0082
+              }
+              finally
+              {
+                IL_0078:  ldloc.0
+                IL_0079:  brfalse.s  IL_0081
+                IL_007b:  ldloc.0
+                IL_007c:  callvirt   "void System.IDisposable.Dispose()"
+                IL_0081:  endfinally
+              }
+              IL_0082:  ret
+            }
+            """);
     }
 
     [Fact]
