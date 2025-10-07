@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -219,7 +223,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     #region Argument Count Tests
 
     [Fact]
-    public void WithElement_TooManyArguments()
+    public void WithElement_NonExistentNamedParameter()
     {
         var source = """
             using System.Collections.Generic;
@@ -292,12 +296,12 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                     MyList<int> list3 = [with(name: "custom"), 3];
                     MyList<int> list4 = [with(capacity: 20, name: "both"), 4];
                     
-                    Console.WriteLine($"{list1.Name},{list2.Name},{list3.Name},{list4.Name}");
+                    Console.WriteLine($"{list1.Name}-{list1.Capacity},{list2.Name}-{list2.Capacity},{list3.Name}-{list3.Capacity},{list4.Name}-{list4.Capacity}");
                 }
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("default,default,custom,both"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("default-4,default-10,custom-4,both-20"));
     }
 
     #endregion
@@ -325,15 +329,54 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             
             class C
             {
+                static int GetSecond()
+                {
+                    Console.Write("GetSecond called. ");
+                    return 20;
+                }
+            
+                static int GetFirst()
+                {
+                    Console.Write("GetFirst called. ");
+                    return 10;
+                }
+
                 static void Main()
                 {
-                    MyList<int> list = [with(second: 20, first: 10), 1];
+                    MyList<int> list = [with(second: GetSecond(), first: GetFirst()), 1];
                     Console.WriteLine($"{list.Value1},{list.Value2}");
                 }
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10,20"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("GetSecond called. GetFirst called. 10,20"))
+            .VerifyIL("C.Main", """
+            {
+              // Code size       63 (0x3f)
+              .maxstack  3
+              .locals init (MyList<int> V_0, //list
+                            int V_1)
+              IL_0000:  call       "int C.GetSecond()"
+              IL_0005:  stloc.1
+              IL_0006:  call       "int C.GetFirst()"
+              IL_000b:  ldloc.1
+              IL_000c:  newobj     "MyList<int>..ctor(int, int)"
+              IL_0011:  dup
+              IL_0012:  ldc.i4.1
+              IL_0013:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_0018:  stloc.0
+              IL_0019:  ldstr      "{0},{1}"
+              IL_001e:  ldloc.0
+              IL_001f:  callvirt   "int MyList<int>.Value1.get"
+              IL_0024:  box        "int"
+              IL_0029:  ldloc.0
+              IL_002a:  callvirt   "int MyList<int>.Value2.get"
+              IL_002f:  box        "int"
+              IL_0034:  call       "string string.Format(string, object, object)"
+              IL_0039:  call       "void System.Console.WriteLine(string)"
+              IL_003e:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -440,6 +483,32 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CreateCompilation(source).VerifyDiagnostics();
     }
 
+    [Fact]
+    public void WithElement_NamedArgumentInWrongPosition()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(int first, int second) : base() { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with(second: 20, 10)];
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,34): error CS8323: Named argument 'second' is used out-of-position but is followed by an unnamed argument
+            //         MyList<int> list = [with(second: 20, 10)];
+            Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "second").WithArguments("second").WithLocation(12, 34));
+    }
+
     #endregion
 
     #region Ref/In/Out Parameter Tests
@@ -448,39 +517,63 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     public void WithElement_RefParameters()
     {
         var source = """
+            using System;
             using System.Collections.Generic;
             
             class MyList<T> : List<T>
             {
-                public MyList(ref int value) : base() { }
+                public MyList(ref int value) : base()
+                {
+                    value = 42;
+                }
             }
             
             class C
             {
-                void M()
+                static void Main()
                 {
                     int x = 10;
                     MyList<int> list = [with(ref x)];
+                    Console.WriteLine(x);
                 }
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42")).VerifyIL("C.Main", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.s   10
+              IL_0002:  stloc.0
+              IL_0003:  ldloca.s   V_0
+              IL_0005:  newobj     "MyList<int>..ctor(ref int)"
+              IL_000a:  pop
+              IL_000b:  ldloc.0
+              IL_000c:  call       "void System.Console.WriteLine(int)"
+              IL_0011:  ret
+            }
+            """);
     }
 
-    [Fact]
-    public void WithElement_InParameters()
+    [ConditionalTheory(typeof(CoreClrOnly))]
+    [InlineData("in ")]
+    [InlineData("")]
+    public void WithElement_InParameters(string modifier)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
             
             class MyList<T> : List<T>
             {
                 public int Value { get; }
                 public MyList(in int value) : base() 
                 { 
+                    Console.Write(value + " ");
                     Value = value;
+                    Unsafe.AsRef(value) = 10;
                 }
             }
             
@@ -489,13 +582,13 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 static void Main()
                 {
                     int x = 42;
-                    MyList<int> list = [with(in x), 1];
-                    Console.WriteLine(list.Value);
+                    MyList<int> list = [with({{modifier}}x), 1];
+                    Console.WriteLine(x);
                 }
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42"));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("42 10"));
     }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
@@ -622,9 +715,9 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
-    public void WithElement_ParamsWithNamedArguments()
+    public void WithElement_ParamsWithNamedArguments_Legal()
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
             
@@ -645,12 +738,47 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 static void Main()
                 {
                     MyList<int> list = [with(name: "test", values: new int[] { 1, 2, 3 }), 4];
-                    Console.WriteLine($"{list.Name},{list.Values.Length}");
+                    Console.WriteLine($"{list.Name},{list.Values.Length},{list[0]}");
                 }
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("test,3"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("test,3,4"));
+    }
+
+    [Fact]
+    public void WithElement_ParamsWithNamedArguments_Illegal()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public string Name { get; }
+                public int[] Values { get; }
+                
+                public MyList(string name, params int[] values) : base()
+                {
+                    Name = name;
+                    Values = values;
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(name: "test", values: 1, 2, 3), 4];
+                    Console.WriteLine($"{list.Name},{list.Values.Length},{list[0]}");
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (20,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 4 arguments
+            //         MyList<int> list = [with(name: "test", values: 1, 2, 3), 4];
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"[with(name: ""test"", values: 1, 2, 3), 4]").WithArguments("MyList<int>", "4").WithLocation(20, 28));
     }
 
     [Fact]
@@ -688,10 +816,12 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     #region Dynamic Tests
 
-    [Fact]
-    public void WithElement_DynamicArguments()
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_DynamicArguments(string parameterType)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
             
@@ -699,7 +829,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 public object Value { get; }
                 
-                public MyList(object value) : base()
+                public MyList({{parameterType}} value) : base()
                 {
                     Value = value;
                 }
@@ -720,6 +850,63 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             // (19,34): error CS9337: Collection arguments cannot be dynamic
             //         MyList<int> list = [with(d), 1];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(19, 34));
+    }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_DynamicParameters(string argumentType)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public object Value { get; }
+                
+                public MyList(dynamic value) : base()
+                {
+                    Value = value;
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    {{argumentType}} d = 42;
+                    MyList<int> list = [with(d), 1];
+                    Console.WriteLine(list.Value);
+                }
+            }
+            """;
+
+        if (argumentType == "dynamic")
+        {
+            CreateCompilation(source, references: [CSharpRef]).VerifyDiagnostics(
+                // (19,34): error CS9337: Collection arguments cannot be dynamic
+                //         MyList<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(19, 34));
+        }
+        else
+        {
+            CompileAndVerify(source, references: [CSharpRef]).VerifyIL("C.Main", """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.s   42
+                  IL_0002:  box        "int"
+                  IL_0007:  newobj     "MyList<int>..ctor(dynamic)"
+                  IL_000c:  dup
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_0013:  callvirt   "object MyList<int>.Value.get"
+                  IL_0018:  call       "void System.Console.WriteLine(object)"
+                  IL_001d:  ret
+                }
+                """);
+        }
     }
 
     [Fact]
@@ -775,30 +962,57 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     #region ArgList Tests
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
     public void WithElement_ArgList()
     {
         var source = """
+            using System;
             using System.Collections.Generic;
             
             class MyList : List<int>
             {
-                public MyList(__arglist) : base() { }
+                public MyList(__arglist) : base()
+                {
+                    ArgIterator iter = new ArgIterator(__arglist);
+
+                    while (iter.GetRemainingCount() > 0)
+                    {
+                        TypedReference tr = iter.GetNextArg();
+                        Type t = __reftype(tr);
+
+                        if (t == typeof(int))
+                            Console.Write(__refvalue(tr, int) + " ");
+                        else if (t == typeof(string))
+                            Console.WriteLine(__refvalue(tr, string) + " " );
+                        else
+                            Console.WriteLine($"Unhandled type: {t}");
+                    }
+                }
             }
             
             class C
             {
-                void M()
+                static void Main()
                 {
                     MyList list = [with(__arglist(10, "test"))];
                 }
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics();
+        CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: IncludeExpectedOutput("10 test "), verify: Verification.FailsILVerify).VerifyIL("C.Main", """
+            {
+              // Code size       14 (0xe)
+              .maxstack  2
+              IL_0000:  ldc.i4.s   10
+              IL_0002:  ldstr      "test"
+              IL_0007:  newobj     "MyList..ctor(__arglist) with __arglist( int, string)"
+              IL_000c:  pop
+              IL_000d:  ret
+            }
+            """);
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [Fact]
     public void WithElement_ArgList_Empty()
     {
         var source = """
@@ -809,7 +1023,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 public MyList(__arglist) : base() 
                 {
-                    Console.WriteLine("ArgList constructor called");
+                    Console.Write ("ArgList constructor called ");
                 }
             }
             
@@ -823,7 +1037,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("ArgList constructor called\r\n1"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("ArgList constructor called 1"));
     }
 
     #endregion
@@ -870,17 +1084,18 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     public void WithElement_OverloadResolution_Ambiguous()
     {
         var source = """
+            using System;
             using System.Collections.Generic;
             
             class MyList<T> : List<T>
             {
-                public MyList(int value) : base() { }
-                public MyList(long value) : base() { }
+                public MyList(int value) => Console.WriteLine("int chosen");
+                public MyList(long value) => Console.WriteLine("long chosen");
             }
             
             class C
             {
-                void M()
+                static void Main()
                 {
                     short s = 10;
                     MyList<int> list = [with(s)];
@@ -888,7 +1103,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("int chosen"));
     }
 
     [Fact]
@@ -952,6 +1167,77 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(12, 34));
     }
 
+    [Fact]
+    public void WithElement_Constructor_UserDefinedConversion1()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(string value) : base() { }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator string(C c) => "converted";
+            }
+            """;
+
+        CompileAndVerify(source).VerifyIL("C.Main", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  1
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "string C.op_Implicit(C)"
+              IL_000a:  newobj     "MyList<int>..ctor(string)"
+              IL_000f:  pop
+              IL_0010:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_Constructor_UserDefinedConversion2()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(long value) : base() { }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator int(C c) => 0;
+            }
+            """;
+
+        CompileAndVerify(source).VerifyIL("C.Main", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  1
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "int C.op_Implicit(C)"
+              IL_000a:  conv.i8
+              IL_000b:  newobj     "MyList<int>..ctor(long)"
+              IL_0010:  pop
+              IL_0011:  ret
+            }
+            """);
+    }
+
     #endregion
 
     #region Accessibility Tests
@@ -1006,6 +1292,75 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
             //         MyList<int> list = [with(10)];
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[with(10)]").WithArguments("MyList<int>", "0").WithLocation(12, 28));
+    }
+
+    [Fact]
+    public void WithElement_ProtectedConstructor_InSubclass()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                protected MyList(int capacity) : base(capacity) { }
+            }
+
+            class D : MyList<int>
+            {
+                D(int i) : base(i) { }
+
+                public static void Create()
+                {
+                    new MyList<int>(10);
+                    MyList<int> list = [with(10)];
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    D.Create();
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (14,13): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
+            //         new MyList<int>(10);
+            Diagnostic(ErrorCode.ERR_BadAccess, "MyList<int>").WithArguments("MyList<int>.MyList(int)").WithLocation(14, 13),
+            // (15,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
+            //         MyList<int> list = [with(10)];
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[with(10)]").WithArguments("MyList<int>", "0").WithLocation(15, 28));
+    }
+
+    [Fact]
+    public void WithElement_ProtectedConstructor_InSameClass()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                protected MyList(int capacity) : base(capacity) { }
+
+                public static void Create()
+                {
+                    new MyList<int>(10);
+                    MyList<int> list = [with(10)];
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int>.Create();
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1094,14 +1449,48 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("MyList<T>", "T", "int").WithLocation(12, 16));
     }
 
+    [Fact]
+    public void WithElement_TypeConstraints2()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T, TConstructorElementType> : List<T> where T : class
+            {
+                public MyList(TConstructorElementType item) : base() { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<string, bool> list = [with(true)];
+                }
+            }
+            """;
+
+        CompileAndVerify(source).VerifyIL("C.M", """
+            {
+              // Code size        8 (0x8)
+              .maxstack  1
+              IL_0000:  ldc.i4.1
+              IL_0001:  newobj     "MyList<string, bool>..ctor(bool)"
+              IL_0006:  pop
+              IL_0007:  ret
+            }
+            """);
+    }
+
     #endregion
 
     #region Null and Default Tests
 
-    [Fact]
-    public void WithElement_NullArguments()
+    [Theory]
+    [InlineData("null")]
+    [InlineData("(string)null")]
+    public void WithElement_NullArguments(string argument)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
             
@@ -1119,7 +1508,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 static void Main()
                 {
-                    MyList<int> list = [with((string)null), 1];
+                    MyList<int> list = [with({{argument}}), 1];
                     Console.WriteLine(list.Value);
                 }
             }
@@ -1128,10 +1517,12 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("null"));
     }
 
-    [Fact]
-    public void WithElement_DefaultArguments()
+    [Theory]
+    [InlineData("default(int)")]
+    [InlineData("default")]
+    public void WithElement_DefaultArguments(string argument)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
             
@@ -1149,7 +1540,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 static void Main()
                 {
-                    MyList<int> list = [with(default(int)), 1];
+                    MyList<int> list = [with({{argument}}), 1];
                     Console.WriteLine(list.Value);
                 }
             }
@@ -1359,6 +1750,94 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """;
 
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42"));
+    }
+
+    [Fact]
+    public void WithElement_WithLambda_ToDelegate()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public Delegate ValueFunc { get; }
+                
+                public MyList(Delegate func) : base()
+                {
+                    ValueFunc = func;
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(() => 42), 1];
+                    Console.WriteLine(list.ValueFunc.DynamicInvoke());
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42"));
+    }
+
+    [Theory]
+    [InlineData("1")]
+    [InlineData("(short)1")]
+    public void WithElement_WithLambda_InferenceWithArgAndConstructor(string returnValue)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T arg) : base()
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    Goo([with(() => {{returnValue}}), () => 2]);
+                }
+
+                static void Goo<T>(MyList<T> list) { }
+            }
+            """;
+
+        CompileAndVerify(source).VerifyIL("C.Main", """
+            {
+              // Code size       79 (0x4f)
+              .maxstack  4
+              IL_0000:  ldsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_0005:  dup
+              IL_0006:  brtrue.s   IL_001f
+              IL_0008:  pop
+              IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_000e:  ldftn      "int C.<>c.<Main>b__0_0()"
+              IL_0014:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+              IL_0019:  dup
+              IL_001a:  stsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_001f:  newobj     "MyList<System.Func<int>>..ctor(System.Func<int>)"
+              IL_0024:  dup
+              IL_0025:  ldsfld     "System.Func<int> C.<>c.<>9__0_1"
+              IL_002a:  dup
+              IL_002b:  brtrue.s   IL_0044
+              IL_002d:  pop
+              IL_002e:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_0033:  ldftn      "int C.<>c.<Main>b__0_1()"
+              IL_0039:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+              IL_003e:  dup
+              IL_003f:  stsfld     "System.Func<int> C.<>c.<>9__0_1"
+              IL_0044:  callvirt   "void System.Collections.Generic.List<System.Func<int>>.Add(System.Func<int>)"
+              IL_0049:  call       "void C.Goo<System.Func<int>>(MyList<System.Func<int>>)"
+              IL_004e:  ret
+            }
+            """);
     }
 
     #endregion
