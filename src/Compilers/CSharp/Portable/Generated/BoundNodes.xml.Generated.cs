@@ -10580,6 +10580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
+            this.Visit(node.CollectionCreation);
             this.VisitList(node.Elements);
             return null;
         }
@@ -11991,7 +11992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MethodSymbol? collectionBuilderMethod = this.VisitMethodSymbol(node.CollectionBuilderMethod);
             BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
-            BoundExpression? collectionCreation = node.CollectionCreation;
+            BoundExpression? collectionCreation = (BoundExpression?)this.Visit(node.CollectionCreation);
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
             BoundExpression? collectionBuilderInvocationConversion = node.CollectionBuilderInvocationConversion;
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
@@ -14274,7 +14275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MethodSymbol? collectionBuilderMethod = GetUpdatedSymbol(node, node.CollectionBuilderMethod);
             BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
-            BoundExpression? collectionCreation = node.CollectionCreation;
+            BoundExpression? collectionCreation = (BoundExpression?)this.Visit(node.CollectionCreation);
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
             BoundExpression? collectionBuilderInvocationConversion = node.CollectionBuilderInvocationConversion;
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
