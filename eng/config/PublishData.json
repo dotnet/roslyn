@@ -95,7 +95,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": true,
-    "insertionTitlePrefix": "[d18.1 P1]"
+    "insertionCreateDraftPR": false,
+    "insertionTitlePrefix": "[InsidersVNext]"
   }
 }

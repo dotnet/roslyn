@@ -3012,6 +3012,21 @@
         <target state="translated">{0}, geçerli bir C# yayma işlemi değil</target>
         <note />
       </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="ParameterRequiresTypeOrIdentifier">
+        <source>ParameterSyntax requires either a type or an identifier.</source>
+        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
         <target state="translated">Diğer '{0}' erişimci tarafından '{1}' için özellik erişimcisi 'field' kullanamıyor.</target>

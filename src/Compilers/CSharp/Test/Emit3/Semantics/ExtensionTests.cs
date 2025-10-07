@@ -38149,6 +38149,41 @@ public static class E
     }
 
     [Fact]
+    public void LookupSymbols_UsedImports()
+    {
+        var src = """
+// here
+
+using N;
+
+namespace N
+{
+    public static class E
+    {
+        extension(object)
+        {
+            public static void M() => throw null;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertEqualAndNoDuplicates(["void N.E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"],
+            model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        model.GetDiagnostics().Verify(
+            // (3,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(3, 1));
+    }
+
+    [Fact]
     public void GetMemberGroup_01()
     {
         var src = """
@@ -44472,9 +44507,6 @@ static class E
             Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69").WithLocation(1, 1));
 
         AssertEx.Equal("<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionGroupingName);
-
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : we should find the unspeakable nested type
-        Assert.Null(comp.GetTypeByMetadataName("E+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"));
     }
 
     [Fact]

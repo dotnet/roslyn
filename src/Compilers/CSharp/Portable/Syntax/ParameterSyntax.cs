@@ -13,5 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return this.Type == null && this.Identifier.ContextualKind() == SyntaxKind.ArgListKeyword;
             }
         }
+
+        private partial void Validate()
+        {
+            if (Type is null && Identifier.IsKind(SyntaxKind.None))
+            {
+                throw new System.ArgumentException(CSharpResources.ParameterRequiresTypeOrIdentifier);
+            }
+        }
     }
 }

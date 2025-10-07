@@ -8202,4 +8202,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitInterfaceMemberReturnTypeMismatch" xml:space="preserve">
     <value>'{0}': return type must be '{1}' to match implemented member '{2}'</value>
   </data>
+  <data name="ParameterRequiresTypeOrIdentifier" xml:space="preserve">
+    <value>ParameterSyntax requires either a type or an identifier.</value>
+  </data>
+  <data name="NodeIsNotAwaitUsingDeclaration" xml:space="preserve">
+    <value>'node' is not an 'await using' declaration</value>
+    <comment>node and await using are not localizable</comment>
+  </data>
+  <data name="NodeIsNotAwaitUsingStatement" xml:space="preserve">
+    <value>'node' is not an 'await using' statement</value>
+    <comment>node and await using are not localizable</comment>
+  </data>
 </root>
