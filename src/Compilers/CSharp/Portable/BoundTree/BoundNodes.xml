@@ -1956,17 +1956,8 @@
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <!-- Call to instantiate a collection with a constructor. -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
-    <!-- Actual method (not the projection method) to call in the collection-builder case. This will be constructed with
-         the right type arguments in the case of generic builder methods -->
-    <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
-    <!-- Bound call to the builder projection method with any 'with(...)' arguments passed along.  The lowering phase
-         will take this infromation and CollectionBuilderMethod and use it to generate the final call with all the
-         arguments being passed.-->
-    <Field Name="CollectionBuilderProjectionCall" Type="BoundCall?" SkipInVisitor="true" Null="allow"/>
-    <!-- Placeholder for collection builder method invocation. -->
-    <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Conversion from collection builder method invocation to collection type. -->
-    <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    <!-- Information needed to call a collection builder method -->
+    <Field Name="CollectionBuilderInfo" Type="CollectionBuilderInfo?" Null="allow"/>
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="HasWithElement" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
