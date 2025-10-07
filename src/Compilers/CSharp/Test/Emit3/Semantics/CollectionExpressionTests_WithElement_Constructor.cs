@@ -219,7 +219,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     #region Argument Count Tests
 
     [Fact]
-    public void WithElement_TooManyArguments()
+    public void WithElement_NonExistentNamedParameter()
     {
         var source = """
             using System.Collections.Generic;
