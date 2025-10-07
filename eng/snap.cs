@@ -16,6 +16,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using CliWrap;
@@ -85,19 +86,6 @@ var sourceRepoShort = console.Prompt(new TextPrompt<string>("Source repo in the 
 
 var sourceRepoUrl = $"https://github.com/{sourceRepoShort}";
 
-// Check subscriptions.
-var darc = new DarcHelper(console);
-var printers = await Task.WhenAll([
-    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/dotnet", "VMR"),
-    darc.ListBackflowsAsync(sourceRepoUrl),
-    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/sdk", "SDK"),
-    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/runtime", "runtime"),
-]);
-foreach (var printer in printers)
-{
-    printer();
-}
-
 // Ask for source and target branches.
 
 var sourceBranchName = console.Prompt(new TextPrompt<string>("Source branch")
@@ -114,6 +102,30 @@ var latestReleaseBranch = (await Cli.Wrap("git")
 
 var targetBranchName = console.Prompt(new TextPrompt<string>("Target branch")
     .DefaultValue(latestReleaseBranch ?? "release/insiders"));
+
+// Find which VS the branches insert to.
+var httpClient = new HttpClient();
+httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("dotnet-roslyn-snap-script");
+var sourcePublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, sourceBranchName);
+var targetPublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, targetBranchName);
+var sourcePublishData = await sourcePublishDataTask;
+var targetPublishData = await targetPublishDataTask;
+console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] inserts to VS [teal]{sourcePublishData?.BranchInfo.VsBranch ?? "N/A"}[/]");
+console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] inserts to VS [teal]{targetPublishData?.BranchInfo.VsBranch ?? "N/A"}[/]");
+
+// Check subscriptions.
+// TODO: Only for the selected branches.
+var darc = new DarcHelper(console);
+var printers = await Task.WhenAll([
+    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/dotnet", "VMR"),
+    darc.ListBackflowsAsync(sourceRepoUrl),
+    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/sdk", "SDK"),
+    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/runtime", "runtime"),
+]);
+foreach (var printer in printers)
+{
+    printer();
+}
 
 // Find last 5 PRs merged to current branch.
 
@@ -252,6 +264,35 @@ file sealed record Milestone(int Number, string Title)
 {
     public override string ToString() => Title;
 }
+
+file sealed record PublishData(
+    BranchInfo BranchInfo)
+{
+    /// <returns>
+    /// <see langword="null"/> if the repo or branch does not exist.
+    /// </returns>
+    public static async Task<PublishData?> LoadAsync(HttpClient httpClient, string repoOwnerAndName, string branchName)
+    {
+        try
+        {
+            return await httpClient.GetFromJsonAsync<PublishData>($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/eng/config/PublishData.json")
+                ?? throw new InvalidOperationException("Null PublishData.json");
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Cannot load PublishData.json from '{repoOwnerAndName}' branch '{branchName}'", ex);
+        }
+    }
+}
+
+file sealed record BranchInfo(
+    string VsBranch,
+    bool InsertionCreateDraftPR,
+    string InsertionTitlePrefix);
 
 file static class Extensions
 {
