@@ -326,15 +326,27 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             
             class C
             {
+                static int GetSecond()
+                {
+                    Console.Write("GetSecond called. ");
+                    return 20;
+                }
+            
+                static int GetFirst()
+                {
+                    Console.Write("GetFirst called. ");
+                    return 10;
+                }
+
                 static void Main()
                 {
-                    MyList<int> list = [with(second: 20, first: 10), 1];
+                    MyList<int> list = [with(second: GetSecond(), first: GetFirst()), 1];
                     Console.WriteLine($"{list.Value1},{list.Value2}");
                 }
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10,20"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("GetSecond called. GetFirst called. 10,20"));
     }
 
     [Fact]
