@@ -19,6 +19,7 @@ parameters:
   # publishing defaults
   artifacts: ''
   enableMicrobuild: false
+  enablePreviewMicrobuild: false
   enableMicrobuildForMacAndLinux: false
   microbuildUseESRP: true
   enablePublishBuildArtifacts: false
@@ -128,6 +129,7 @@ jobs:
     - template: /eng/common/core-templates/steps/install-microbuild.yml
       parameters:
         enableMicrobuild: ${{ parameters.enableMicrobuild }}
+        enablePreviewMicrobuild: ${{ parameters.enablePreviewMicrobuild }}
         enableMicrobuildForMacAndLinux: ${{ parameters.enableMicrobuildForMacAndLinux }}
         microbuildUseESRP: ${{ parameters.microbuildUseESRP }}
         continueOnError: ${{ parameters.continueOnError }}
@@ -153,6 +155,7 @@ jobs:
     - template: /eng/common/core-templates/steps/cleanup-microbuild.yml
       parameters:
         enableMicrobuild: ${{ parameters.enableMicrobuild }}
+        enablePreviewMicrobuild: ${{ parameters.enablePreviewMicrobuild }}
         enableMicrobuildForMacAndLinux: ${{ parameters.enableMicrobuildForMacAndLinux }}
         continueOnError: ${{ parameters.continueOnError }}
 
