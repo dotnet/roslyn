@@ -3869,6 +3869,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the target-typing conversion is processed, the completion continuation will be given a target-type and
             // we'll be able to process the element conversions and compute the final visit result.
 
+            // PROTOTYPE: Visit node.CollectionCreation as well?
+
             var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 
             var resultBuilder = ArrayBuilder<VisitResult>.GetInstance(node.Elements.Length);
@@ -8578,7 +8580,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    return new BoundUnconvertedCollectionExpression(collection.Syntax, elementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                    // Note: the 'with(...)' element in a collection expression does not contribute to method type
+                    // inference (just like 'new(...)' in an argument position does not.  Instead, once method type
+                    // inference is done, the final target type will be used to bind and determine what 'with(...)'
+                    // and 'new(...)' mean.
+                    //
+                    // So in this case, just pass 'null' for this as they do not contribute to inference and it's 
+                    // the same as if the user did not provide any.
+                    return new BoundUnconvertedCollectionExpression(
+                        collection.Syntax, withElement: null, elements: elementsBuilder.ToImmutableAndFree())
+                    {
+                        WasCompilerGenerated = true
+                    };
                 }
 
                 // Note: for `out` arguments, the argument result contains the declaration type (see `VisitArgumentEvaluate`)

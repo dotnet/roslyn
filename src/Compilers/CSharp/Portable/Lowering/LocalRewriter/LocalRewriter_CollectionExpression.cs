@@ -42,7 +42,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
+                        // Don't optimize if the node has an explicit `with(...)` in it.  The code is being explicit
+                        // about which constructor to use and we should respect that.
+                        //
+                        // Note this falls out from the original collection expression specification which says:
+                        //
+                        // Known length translation:
+                        //
+                        //      Having a known length allows for efficient construction of a result with the potential
+                        //      for no copying of data and no unnecessary slack space in a result.
+                        //
+                        //      For a known length literal [e1, ..s1, etc] ...
+                        //
+                        // So once we have a `with(...)` element we no longer match the pattern for a known length literal.
+                        //
+                        // PROTOTYPE: Revisit this.  We should not let construction be changed.  But we could still
+                        // have optimizations like calling .AddRange(spreadedElement) for `[.. spreadedElement]`.
+                        // Ensure that we're not giving that up.
+                        if (!node.HasWithElement &&
+                            ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {
                             if (TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
                             {

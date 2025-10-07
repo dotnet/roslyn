@@ -1934,6 +1934,18 @@
   <Node Name="BoundUnconvertedCollectionExpression" Base="BoundCollectionExpressionBase">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    
+    <!-- With-arguments support for collection expression with(...) syntax.
+         PROTOTYPE: Keep these stored separately like this, or place in the
+         BoundCollectionExpressionBase.Elements collection? -->
+    <Field Name="WithElement" Type="BoundUnconvertedWithElement?" Null="allow"/>
+  </Node>
+
+  <Node Name="BoundUnconvertedWithElement" Base="BoundNode">
+    <!-- With-arguments support for collection expression with(...) syntax -->
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
   </Node>
 
   <Node Name="BoundCollectionExpression" Base="BoundCollectionExpressionBase">
@@ -1942,8 +1954,8 @@
     <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
-    <!-- Constructor call to create the empty collection type. -->
-    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <!-- Call to instantiate a collection with a constructor. -->
+    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" />
     <!-- Construct method for collection types with [CollectionBuilder]. -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
     <!-- Placeholder for collection builder method invocation. -->
@@ -1952,6 +1964,7 @@
     <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
     <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
     <Field Name="WasTargetTyped" Type="bool" />
+    <Field Name="HasWithElement" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
   </Node>
 

@@ -891,9 +891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, diagnostics);
-                Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
-                             (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
+                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, node.WithElement, diagnostics);
+                Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
                 {
@@ -928,6 +927,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // PROTOTYPE: Add support for interfaces and Create methods.  Keep diagnostic for arrays/spans.
+                if (node.WithElement != null)
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
+                        node.WithElement.Syntax.GetFirstToken().GetLocation(),
+                        targetType);
+                }
+
                 if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
                     node.HasSpreadElements(out _, out _))
                 {
@@ -978,6 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderInvocationPlaceholder,
                 collectionBuilderInvocationConversion,
                 wasTargetTyped: true,
+                hasWithElement: node.WithElement != null,
                 node,
                 builder.ToImmutableAndFree(),
                 targetType)
@@ -1074,7 +1083,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionBuilderMethod;
         }
 
-        internal BoundExpression BindCollectionExpressionConstructor(SyntaxNode syntax, TypeSymbol targetType, MethodSymbol? constructor, BindingDiagnosticBag diagnostics)
+        internal BoundExpression BindCollectionExpressionConstructor(
+            SyntaxNode syntax,
+            TypeSymbol targetType,
+            MethodSymbol? constructor,
+            BoundUnconvertedWithElement? withElement,
+            BindingDiagnosticBag diagnostics)
         {
             //
             // !!! ATTENTION !!!
@@ -1083,8 +1097,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // this function should be kept in sync with HasCollectionExpressionApplicableConstructor.
             //
 
+            var analyzedArguments = withElement is null
+                ? AnalyzedArguments.GetInstance()
+                : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
+
             BoundExpression collectionCreation;
-            var analyzedArguments = AnalyzedArguments.GetInstance();
             if (targetType is NamedTypeSymbol namedType)
             {
                 var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructor);
@@ -1104,9 +1121,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionCreation;
         }
 
-        internal bool HasCollectionExpressionApplicableConstructor(SyntaxNode syntax, TypeSymbol targetType, out MethodSymbol? constructor, out bool isExpanded, BindingDiagnosticBag diagnostics, bool isParamsModifierValidation = false)
+        internal bool HasCollectionExpressionApplicableConstructor(
+            bool hasWithElement,
+            SyntaxNode syntax,
+            TypeSymbol targetType,
+            out MethodSymbol? constructor,
+            out bool isExpanded,
+            BindingDiagnosticBag diagnostics,
+            bool isParamsModifierValidation = false)
         {
+#if DEBUG
             Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax);
+            if (hasWithElement)
+                Debug.Assert(!isParamsModifierValidation);
+
+            if (isParamsModifierValidation)
+                Debug.Assert(!hasWithElement);
+#endif
 
             // This is what BindClassCreationExpression is doing in terms of reporting diagnostics
 
@@ -1130,21 +1161,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                // From the specification: https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#conversions
+                //
+                // A struct or class type that implements System.Collections.IEnumerable where:
+                //
+                // a. the collection expression has no `with_element` and the type has an applicable constructor
+                //    that can be invoked with no arguments, accessible at the location of the collection expression.or
+                // b. the collection expression has a `with_element` and the type has at least one constructor
+                //    accessible at the location of the collection expression.
+
+                // This is the 'b' case above. 
+                if (hasWithElement)
+                {
+                    var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    var candidateConstructors = GetAccessibleConstructorsForOverloadResolution(
+                        namedType, allowProtectedConstructorsOfBaseType: false,
+                        out var allInstanceConstructors, ref useSiteInfo);
+
+                    // As long as we have an available instance constructor, this is a type we consider applicable
+                    // to collection expressions.  It may be the case that a `with(...)` element is required.  But
+                    // that will be reported later when doing the actual conversion to a BoundCollectionExpression.
+                    if (candidateConstructors is [var firstConstructor, ..])
+                    {
+                        constructor = firstConstructor;
+                        return true;
+                    }
+
+                    // Otherwise, fall through.  If we don't have any available instance constructors, we definitely
+                    // don't have the no-arg one, and should report the below message saying there is a problem.
+                }
+
+                // This is the 'a' case, and the error recovery path for the 'b' case as well.
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 var binder = new ParamsCollectionTypeInProgressBinder(namedType, this);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
-                        namedType,
-                        analyzedArguments,
-                        namedType.Name,
-                        syntax.Location,
-                        suppressResultDiagnostics: false,
-                        diagnostics,
-                        out MemberResolutionResult<MethodSymbol> memberResolutionResult,
-                        candidateConstructors: out _,
-                        allowProtectedConstructorsOfBaseType: false,
-                        out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
-                        isParamsModifierValidation: isParamsModifierValidation);
+                    namedType,
+                    analyzedArguments,
+                    namedType.Name,
+                    syntax.Location,
+                    suppressResultDiagnostics: false,
+                    diagnostics,
+                    out MemberResolutionResult<MethodSymbol> memberResolutionResult,
+                    candidateConstructors: out _,
+                    allowProtectedConstructorsOfBaseType: false,
+                    out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
+                    isParamsModifierValidation: isParamsModifierValidation);
 
                 analyzedArguments.Free();
 
@@ -1731,6 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderInvocationPlaceholder: null,
                 collectionBuilderInvocationConversion: null,
                 wasTargetTyped: inConversion,
+                hasWithElement: node.WithElement != null,
                 node,
                 elements: builder.ToImmutableAndFree(),
                 targetType,
@@ -1774,7 +1837,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
-                    if (!HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
+                    if (!HasCollectionExpressionApplicableConstructor(
+                            hasWithElement: node.WithElement != null, node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }
