@@ -556,7 +556,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """);
     }
 
-    [ConditionalTheory(typeof(CoreClrOnly))]
+    [Theory]
     [InlineData("in ")]
     [InlineData("")]
     public void WithElement_InParameters(string modifier)
@@ -588,7 +588,8 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("42 10"));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net90,
+            expectedOutput: ExecutionConditionUtil.IsCoreClr ? IncludeExpectedOutput("42 10") : null, verify: Verification.FailsPEVerify);
     }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
@@ -1841,6 +1842,210 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
               IL_004e:  ret
             }
             """);
+    }
+
+    [Fact]
+    public void WithElement_WithLambda_InferenceWithArgAndConstructor_2()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T arg) : base()
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    Goo([with(() => 1), () => (short)2]);
+                }
+
+                static void Goo<T>(MyList<T> list) { }
+            }
+            """;
+
+        CompileAndVerify(source).VerifyIL("C.Main", """
+            {
+              // Code size       79 (0x4f)
+              .maxstack  4
+              IL_0000:  ldsfld     "System.Func<short> C.<>c.<>9__0_0"
+              IL_0005:  dup
+              IL_0006:  brtrue.s   IL_001f
+              IL_0008:  pop
+              IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_000e:  ldftn      "short C.<>c.<Main>b__0_0()"
+              IL_0014:  newobj     "System.Func<short>..ctor(object, System.IntPtr)"
+              IL_0019:  dup
+              IL_001a:  stsfld     "System.Func<short> C.<>c.<>9__0_0"
+              IL_001f:  newobj     "MyList<System.Func<short>>..ctor(System.Func<short>)"
+              IL_0024:  dup
+              IL_0025:  ldsfld     "System.Func<short> C.<>c.<>9__0_1"
+              IL_002a:  dup
+              IL_002b:  brtrue.s   IL_0044
+              IL_002d:  pop
+              IL_002e:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_0033:  ldftn      "short C.<>c.<Main>b__0_1()"
+              IL_0039:  newobj     "System.Func<short>..ctor(object, System.IntPtr)"
+              IL_003e:  dup
+              IL_003f:  stsfld     "System.Func<short> C.<>c.<>9__0_1"
+              IL_0044:  callvirt   "void System.Collections.Generic.List<System.Func<short>>.Add(System.Func<short>)"
+              IL_0049:  call       "void C.Goo<System.Func<short>>(MyList<System.Func<short>>)"
+              IL_004e:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_WithLambda_InferenceWithArgAndConstructor_3()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T arg) : base()
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main(int i)
+                {
+                    Goo([with(() => i), () => (short)2]);
+                }
+
+                static void Goo<T>(MyList<T> list) { }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using System;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+            // (15,25): error CS0266: Cannot implicitly convert type 'int' to 'short'. An explicit conversion exists (are you missing a cast?)
+            //         Goo([with(() => i), () => (short)2]);
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i").WithArguments("int", "short").WithLocation(15, 25),
+            // (15,25): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+            //         Goo([with(() => i), () => (short)2]);
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "i").WithArguments("lambda expression").WithLocation(15, 25));
+    }
+
+    [Fact]
+    public void WithElement_WithLambda_InferenceWithArgAndConstructor_4()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T arg) : base()
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    int i = 0;
+                    Goo([with(() => i), () => (short)2]);
+                }
+
+                static void Goo<T>(MyList<T> list) { }
+            }
+            """;
+
+        // PROTOTYPE: We are getting an unassigned variable warning on 'i' here, which is unexpected.
+        CreateCompilation(source).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using System;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+            // (15,13): warning CS0219: The variable 'i' is assigned but its value is never used
+            //         int i = 0;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(15, 13),
+            // (16,25): error CS0266: Cannot implicitly convert type 'int' to 'short'. An explicit conversion exists (are you missing a cast?)
+            //         Goo([with(() => i), () => (short)2]);
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i").WithArguments("int", "short").WithLocation(16, 25),
+            // (16,25): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+            //         Goo([with(() => i), () => (short)2]);
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "i").WithArguments("lambda expression").WithLocation(16, 25));
+    }
+
+    [Fact]
+    public void WithElement_Ambiguous_WithOverloads()
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M(List<int> list) { }
+                void M(HashSet<int> set) { }
+
+                void G()
+                {
+                    M([with(capacity: 10)]);
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(List<int>)' and 'C.M(HashSet<int>)'
+            //         M([with(capacity: 10)]);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Collections.Generic.List<int>)", "C.M(System.Collections.Generic.HashSet<int>)").WithLocation(10, 9));
+    }
+
+    [Fact]
+    public void WithElement_Ambiguous_WithOverloads2()
+    {
+        var source = $$"""
+            using System.Collections;
+            using System.Collections.Generic;
+            
+            class Collection1 : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+
+            class Collection2(int capacity) : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+
+            class D
+            {
+                void M(Collection1 coll) { }
+                void M(Collection2 coll) { }
+
+                void G()
+                {
+                    M([]);
+                    M([with()]);
+                    M([with(capacity: 42)]);
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,23): warning CS9113: Parameter 'capacity' is unread.
+            // class Collection2(int capacity) : IEnumerable<int>
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "capacity").WithArguments("capacity").WithLocation(10, 23),
+            // (24,9): error CS0121: The call is ambiguous between the following methods or properties: 'D.M(Collection1)' and 'D.M(Collection2)'
+            //         M([with()]);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("D.M(Collection1)", "D.M(Collection2)").WithLocation(24, 9),
+            // (25,9): error CS0121: The call is ambiguous between the following methods or properties: 'D.M(Collection1)' and 'D.M(Collection2)'
+            //         M([with(capacity: 42)]);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("D.M(Collection1)", "D.M(Collection2)").WithLocation(25, 9));
     }
 
     #endregion

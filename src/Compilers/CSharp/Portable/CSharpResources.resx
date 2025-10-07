@@ -8206,13 +8206,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>collection expression arguments</value>
   </data>
   <data name="ERR_CollectionArgumentsMustBeFirst" xml:space="preserve">
-    <value>Collection argument element must be the first element</value>
+    <value>'with(...)' element must be the first element</value>
   </data>
   <data name="ERR_CollectionArgumentsNotSupportedForType" xml:space="preserve">
-    <value>Collection arguments are not supported for type '{0}'</value>
+    <value>'with(...)' elements are not supported for type '{0}'</value>
   </data>
   <data name="ERR_CollectionArgumentsDynamicBinding" xml:space="preserve">
-    <value>Collection arguments cannot be dynamic</value>
+    <value>'with(...)' element arguments cannot be dynamic</value>
   </data>
   <data name="ERR_CollectionArgumentsMustBeEmpty" xml:space="preserve">
     <value>Collection arguments for read-only interface must be empty</value>
