@@ -1349,6 +1349,38 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("MyList<T>", "T", "int").WithLocation(12, 16));
     }
 
+    [Fact]
+    public void WithElement_TypeConstraints2()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T, TConstructorElementType> : List<T> where T : class
+            {
+                public MyList(TConstructorElementType item) : base() { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<string, bool> list = [with(true)];
+                }
+            }
+            """;
+
+        CompileAndVerify(source).VerifyIL("C.M", """
+            {
+              // Code size        8 (0x8)
+              .maxstack  1
+              IL_0000:  ldc.i4.1
+              IL_0001:  newobj     "MyList<string, bool>..ctor(bool)"
+              IL_0006:  pop
+              IL_0007:  ret
+            }
+            """);
+    }
+
     #endregion
 
     #region Null and Default Tests
