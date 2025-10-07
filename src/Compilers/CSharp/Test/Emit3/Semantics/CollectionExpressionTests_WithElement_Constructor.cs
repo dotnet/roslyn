@@ -515,27 +515,46 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     public void WithElement_RefParameters()
     {
         var source = """
+            using System;
             using System.Collections.Generic;
             
             class MyList<T> : List<T>
             {
-                public MyList(ref int value) : base() { }
+                public MyList(ref int value) : base()
+                {
+                    value = 42;
+                }
             }
             
             class C
             {
-                void M()
+                static void Main()
                 {
                     int x = 10;
                     MyList<int> list = [with(ref x)];
+                    Console.WriteLine(x);
                 }
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42")).VerifyIL("C.Main", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.s   10
+              IL_0002:  stloc.0
+              IL_0003:  ldloca.s   V_0
+              IL_0005:  newobj     "MyList<int>..ctor(ref int)"
+              IL_000a:  pop
+              IL_000b:  ldloc.0
+              IL_000c:  call       "void System.Console.WriteLine(int)"
+              IL_0011:  ret
+            }
+            """);
     }
 
-    [Theory]
+    [ConditionalTheory(typeof(CoreClrOnly))]
     [InlineData("in ")]
     [InlineData("")]
     public void WithElement_InParameters(string modifier)
