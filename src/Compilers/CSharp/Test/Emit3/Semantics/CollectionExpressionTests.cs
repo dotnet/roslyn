@@ -18968,13 +18968,15 @@ partial class Program
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+
+            // PROTOTYPE: This references the projection methods in the diagnostic messages.  Can we adjust that?
             comp.VerifyEmitDiagnostics(
-                // (6,34): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
+                // (6,34): warning CS0612: 'MyCollectionBuilder.Create()' is obsolete
                 //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(6, 34),
-                // (7,31): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[]").WithArguments("MyCollectionBuilder.Create()").WithLocation(6, 34),
+                // (7,31): warning CS0612: 'MyCollectionBuilder.Create()' is obsolete
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(7, 31));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create()").WithLocation(7, 31));
         }
 
         [CombinatorialData]
@@ -19013,14 +19015,17 @@ partial class Program
                     }
                 }
                 """;
+
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+
+            // PROTOTYPE: This references the projection methods in the diagnostic messages.  Can we adjust that?
             comp.VerifyEmitDiagnostics(
-                // (6,34): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
+                // (6,34): error CS0619: 'MyCollectionBuilder.Create()' is obsolete: 'message 4'
                 //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(6, 34),
-                // (7,31): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[]").WithArguments("MyCollectionBuilder.Create()", "message 4").WithLocation(6, 34),
+                // (7,31): error CS0619: 'MyCollectionBuilder.Create()' is obsolete: 'message 4'
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(7, 31));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create()", "message 4").WithLocation(7, 31));
         }
 
         [Fact]
@@ -19057,13 +19062,15 @@ partial class Program
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
+
+            // PROTOTYPE: This references the projection methods in the diagnostic messages.  Can we adjust that?
             comp.VerifyEmitDiagnostics(
-                // 1.cs(6,34): error CS8901: 'MyCollectionBuilder.Create<string>(ReadOnlySpan<string>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // 1.cs(6,34): error CS8901: 'MyCollectionBuilder.Create()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "[]").WithArguments("MyCollectionBuilder.Create<string>(System.ReadOnlySpan<string>)").WithLocation(6, 34),
-                // 1.cs(7,31): error CS8901: 'MyCollectionBuilder.Create<int>(ReadOnlySpan<int>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "[]").WithArguments("MyCollectionBuilder.Create()").WithLocation(6, 34),
+                // 1.cs(7,31): error CS8901: 'MyCollectionBuilder.Create()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create()").WithLocation(7, 31),
                 // 0.cs(14,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(14, 6),

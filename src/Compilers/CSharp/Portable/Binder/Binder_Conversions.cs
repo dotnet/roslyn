@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1090,7 +1091,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CollectionBuilderInfo? result;
                 if (projectionInvocationExpression is not BoundCall projectionCall ||
-                    projectionCall.Expanded)
+                    projectionCall.Expanded ||
+                    !projectionToOriginalMethod.TryGetValue(projectionCall.Method, out var collectionBuilderMethod))
                 {
                     // PROTOTYPE: give error when in expanded form.  This means we had something like `Foo(params int[]
                     // x, ReadOnlySpan<int> y)` which is already extremely strange.
@@ -1098,7 +1100,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var collectionBuilderMethod = projectionToOriginalMethod[projectionCall.Method];
+                    // Now that we've settled on the actual collection builder method to call, do a final round of
+                    // checks on it in case there are reasons it will have a problem.
+                    @this.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics, forParams: false);
+
                     var placeHolder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
                     var conversion = @this.CreateConversion(placeHolder, targetType, diagnostics);
 
@@ -1175,29 +1180,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return collectionBuilderMethods;
-
-            //ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
-
-            //var parameterType = (NamedTypeSymbol)collectionBuilderMethod.Parameters[0].Type;
-            //Debug.Assert(parameterType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
-
-            //elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-
-            //collectionBuilderMethod.CheckConstraints(
-            //    new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
-
-            //ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
-            //ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
-            //ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
-            //Debug.Assert(!collectionBuilderMethod.GetIsNewExtensionMember());
-
-            //return collectionBuilderMethod;
         }
 
         internal void CheckCollectionBuilderMethod(
             SyntaxNode syntax,
             MethodSymbol collectionBuilderMethod,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool forParams)
         {
             ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
 
@@ -1209,9 +1198,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             collectionBuilderMethod.CheckConstraints(
                 new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
 
-            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
-            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
-            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
+            // The normal method resolution done by the call to BindInvocationExpression in ConvertCollectionExpression
+            // will already report these issues. So we only need to do this extra checking when we're in the params
+            // checking case.
+            if (forParams)
+            {
+                ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
+                ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
+                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
+            }
+
             Debug.Assert(!collectionBuilderMethod.GetIsNewExtensionMember());
         }
 
