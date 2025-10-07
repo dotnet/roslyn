@@ -43,7 +43,7 @@ var logWriter = new StreamWriter(File.Open(logFilePath, FileMode.Append, FileAcc
 {
     AutoFlush = true,
 };
-console.MarkupLineInterpolated($"Logging to [gray]{logFilePath}[/]");
+console.MarkupLineInterpolated($"Logging to [grey]{logFilePath}[/]");
 logWriter.WriteLine();
 log("Starting snap script run");
 
@@ -65,7 +65,7 @@ TaskScheduler.UnobservedTaskException += (s, e) =>
 console.Pipeline.Attach(new LoggingRenderHook(logWriter));
 
 // Welcome message.
-console.MarkupLineInterpolated($"Welcome to [gray]{getFileName()}[/], an interactive script to help with snap-related infra tasks");
+console.MarkupLineInterpolated($"Welcome to [grey]{getFileName()}[/], an interactive script to help with snap-related infra tasks");
 
 var httpClient = new HttpClient();
 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("dotnet-roslyn-snap-script");
@@ -78,7 +78,7 @@ var defaultRepo = (await Cli.Wrap("gh")
     .StandardOutput
     .Trim();
 
-var sourceRepoShort = console.Prompt(new TextPrompt<string>("Source repo in the format owner/repo")
+var sourceRepoShort = console.Prompt(TextPrompt<string>.Create("Source repo in the format owner/repo")
     .DefaultValueIfNotNullOrEmpty(defaultRepo)
     .Validate(static repo =>
     {
@@ -94,7 +94,7 @@ var sourceRepoUrl = $"https://github.com/{sourceRepoShort}";
 
 // Ask for source and target branches.
 
-var sourceBranchName = console.Prompt(new TextPrompt<string>("Source branch")
+var sourceBranchName = console.Prompt(TextPrompt<string>.Create("Source branch")
     .DefaultValue("main"));
 
 // Find Roslyn version number.
@@ -120,7 +120,7 @@ suggestedTargetBranchName ??= (await Cli.Wrap("git")
     .Select(static s => s.IndexOf('/') is var slashIndex and >= 0 ? s[(slashIndex + 1)..] : s)
     .FirstOrDefault();
 
-var targetBranchName = console.Prompt(new TextPrompt<string>("Target branch")
+var targetBranchName = console.Prompt(TextPrompt<string>.Create("Target branch")
     .DefaultValue(suggestedTargetBranchName ?? "release/insiders"));
 
 // Find Roslyn version number.
@@ -143,10 +143,10 @@ var suggestedSourceVsVersionAfterSnap =
     targetPublishData is null ? inferredVsVersion?.Increase() : inferredVsVersion;
 var suggestedTargetVsVersionAfterSnap = inferredVsVersion;
 
-var sourceVsBranchAfterSnap = console.Prompt(new TextPrompt<string>($"After snap, [teal]{sourceBranchName}[/] should insert to")
+var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should insert to")
     .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsVsBranchName()));
 var sourceVsAsDraftAfterSnap = console.Prompt(new TextPrompt<bool>($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?").DefaultValue(false));
-var targetVsBranchAfterSnap = console.Prompt(new TextPrompt<string>($"After snap, [teal]{targetBranchName}[/] should insert to")
+var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to")
     .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
 var targetVsAsDraftAfterSnap = console.Prompt(new TextPrompt<bool>($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?").DefaultValue(false));
 
@@ -186,7 +186,7 @@ foreach (var pr in lastMergedPullRequests)
 {
     console.WriteLine($" - {pr}");
 }
-console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --repo {sourceRepoShort} --search '{lastMergedSearchFilter}'[/]");
+console.MarkupLineInterpolated($" - ... for more, run [grey]gh pr list --repo {sourceRepoShort} --search '{lastMergedSearchFilter}'[/]");
 
 // Find PRs in milestone Next.
 
@@ -210,7 +210,7 @@ foreach (var pr in milestonePullRequests.Take(5))
 }
 if (milestonePullRequests.Length > 6)
 {
-    console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --repo {sourceRepoShort} --search '{milestoneSearchFilter}'[/]");
+    console.MarkupLineInterpolated($" - ... for more, run [grey]gh pr list --repo {sourceRepoShort} --search '{milestoneSearchFilter}'[/]");
 }
 if (milestonePullRequests.Length > 5)
 {
@@ -220,7 +220,7 @@ console.WriteLine();
 
 // Determine last PR to include.
 
-var lastPrNumber = console.Prompt(new TextPrompt<int>($"Number of last PR to include in [teal]{targetBranchName}[/]")
+var lastPrNumber = console.Prompt(TextPrompt<int>.Create($"Number of last PR to include in [teal]{targetBranchName}[/]")
     .DefaultValueIfNotNull(lastMergedPullRequests is [var defaultLastPr, ..] ? defaultLastPr.Number : null));
 var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumber)
     ?? (await Cli.Wrap("gh")
@@ -238,7 +238,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     var lastMilestonePr = milestonePullRequests.FirstOrDefault(pr => pr.Number == lastPr.Number);
     if (lastMilestonePr is null)
     {
-        var lastMilestonePrNumber = console.Prompt(new TextPrompt<int>($"Number of last PR to include from milestone {nextMilestoneName}")
+        var lastMilestonePrNumber = console.Prompt(TextPrompt<int>.Create($"Number of last PR to include from milestone {nextMilestoneName}")
             .DefaultValue(defaultLastMilestonePr.Number)
             .Validate(prNumber => milestonePullRequests.Any(pr => pr.Number == prNumber)
                 ? ValidationResult.Success()
@@ -268,7 +268,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     {
         // Determine target milestone.
 
-        var targetMilestone = console.Prompt(new TextPrompt<string>("Target milestone")
+        var targetMilestone = console.Prompt(TextPrompt<string>.Create("Target milestone")
             .DefaultValue(newestMilestone.Title));
 
         // TODO: Schedule to move PRs to the selected milestone.
@@ -460,6 +460,16 @@ file static class Extensions
 
             return result;
         }
+    }
+
+    extension<T>(TextPrompt<T>)
+    {
+        public static TextPrompt<T> Create(string text)
+        {
+            return new TextPrompt<T>(text)
+                .DefaultValueStyle(Style.Plain.Foreground(Color.Grey));
+        }
+
     }
 
     extension<T>(TextPrompt<T> prompt) where T : struct
