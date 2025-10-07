@@ -1925,7 +1925,6 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        // PROTOTYPE: We are getting an unassigned variable warning on 'i' here, which is unexpected.
         CreateCompilation(source).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using System;
@@ -1936,6 +1935,48 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             // (15,25): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
             //         Goo([with(() => i), () => (short)2]);
             Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "i").WithArguments("lambda expression").WithLocation(15, 25));
+    }
+
+    [Fact]
+    public void WithElement_WithLambda_InferenceWithArgAndConstructor_4()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T arg) : base()
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    int i = 0;
+                    Goo([with(() => i), () => (short)2]);
+                }
+
+                static void Goo<T>(MyList<T> list) { }
+            }
+            """;
+
+        // PROTOTYPE: We are getting an unassigned variable warning on 'i' here, which is unexpected.
+        CreateCompilation(source).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using System;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+            // (15,13): warning CS0219: The variable 'i' is assigned but its value is never used
+            //         int i = 0;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(15, 13),
+            // (16,25): error CS0266: Cannot implicitly convert type 'int' to 'short'. An explicit conversion exists (are you missing a cast?)
+            //         Goo([with(() => i), () => (short)2]);
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i").WithArguments("int", "short").WithLocation(16, 25),
+            // (16,25): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+            //         Goo([with(() => i), () => (short)2]);
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "i").WithArguments("lambda expression").WithLocation(16, 25));
     }
 
     [Fact]
