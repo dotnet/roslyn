@@ -19,6 +19,7 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     public override MethodSymbol UnderlyingMethod => _originalCollectionBuilderMethod;
 
     public override Symbol ContainingSymbol => this.UnderlyingMethod.ContainingSymbol;
+    public override ImmutableArray<CustomModifier> RefCustomModifiers => this.UnderlyingMethod.RefCustomModifiers;
     public override TypeWithAnnotations ReturnTypeWithAnnotations => this.UnderlyingMethod.ReturnTypeWithAnnotations;
 
     // Note: it is very intentional that we return empty arrays for Type arguments/parameters.  Consider a
@@ -56,20 +57,16 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
         }
     }
 
-    public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => throw new System.NotImplementedException();
+    internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+        => this.UnderlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
-    public override ImmutableArray<CustomModifier> RefCustomModifiers => throw new System.NotImplementedException();
+    public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => throw new System.NotImplementedException();
 
     public override Symbol AssociatedSymbol => throw new System.NotImplementedException();
 
     internal override bool HasSpecialNameAttribute => throw new System.NotImplementedException();
 
     internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    internal override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
     {
         throw new System.NotImplementedException();
     }
