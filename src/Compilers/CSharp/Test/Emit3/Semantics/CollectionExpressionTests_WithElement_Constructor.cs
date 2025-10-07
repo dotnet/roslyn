@@ -1055,12 +1055,13 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     public void WithElement_OverloadResolution_Ambiguous()
     {
         var source = """
+            using System;
             using System.Collections.Generic;
             
             class MyList<T> : List<T>
             {
-                public MyList(int value) : base() { }
-                public MyList(long value) : base() { }
+                public MyList(int value) => Console.WriteLine("int chosen");
+                public MyList(long value) => Console.WriteLine("long chosen");
             }
             
             class C
@@ -1073,7 +1074,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("int chosen"));
     }
 
     [Fact]
