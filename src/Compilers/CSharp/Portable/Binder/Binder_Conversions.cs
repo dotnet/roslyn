@@ -835,8 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, targetType);
             }
 
-            MethodSymbol? collectionBuilderMethod = null;
-            BoundExpression? collectionBuilderProjectionCallOrConversion = null;
+            CollectionBuilderInfo? collectionBuilderInfo = null;
             //ImmutableArray<BoundExpression> collectionBuilderPrefixArguments = [];
             //BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             //BoundExpression? collectionBuilderInvocationConversion = null;
@@ -863,9 +862,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        (collectionBuilderMethod, collectionBuilderProjectionCallOrConversion) = bindCollectionBuilderProjectionCallOrConversion(
+                        collectionBuilderInfo = bindCollectionBuilderInfo(
                             this, node, targetType, collectionBuilderMethods, diagnostics);
-                        if (collectionBuilderMethod is null || collectionBuilderProjectionCallOrConversion is null)
+                        if (collectionBuilderInfo is null)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
@@ -1007,8 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation,
-                collectionBuilderMethod,
-                collectionBuilderProjectionCallOrConversion,
+                collectionBuilderInfo,
                 wasTargetTyped: true,
                 hasWithElement: node.WithElement != null,
                 node,
@@ -1043,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: element.LengthOrCount);
             }
 
-            static (MethodSymbol? collectionBuilderMethod, BoundExpression? collectionProjectionCallOrConversion) bindCollectionBuilderProjectionCallOrConversion(
+            static CollectionBuilderInfo? bindCollectionBuilderInfo(
                 Binder @this,
                 BoundUnconvertedCollectionExpression node,
                 TypeSymbol targetType,
@@ -1090,22 +1088,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, node.Syntax, methodName, methodGroup,
                     analyzedArguments, diagnostics, acceptOnlyMethods: true);
 
-                MethodSymbol? collectionBuilderMethod;
-                BoundExpression? collectionProjectionCallOrConversion;
-                if (projectionInvocationExpression is not BoundCall boundProjectionExpression ||
-                    boundProjectionExpression.Expanded)
+                CollectionBuilderInfo? result;
+                if (projectionInvocationExpression is not BoundCall projectionCall ||
+                    projectionCall.Expanded)
                 {
                     // PROTOTYPE: give error when in expanded form.  This means we had something like `Foo(params int[]
                     // x, ReadOnlySpan<int> y)` which is already extremely strange.
-                    collectionBuilderMethod = null;
-                    collectionProjectionCallOrConversion = null;
+                    result = null;
                 }
                 else
                 {
-                    collectionBuilderMethod = projectionToOriginalMethod[boundProjectionExpression.Method];
-                    collectionProjectionCallOrConversion = @this.CreateConversion(
-                        projectionInvocationExpression, targetType, diagnostics);
+                    var collectionBuilderMethod = projectionToOriginalMethod[projectionCall.Method];
+                    var placeHolder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
+                    var conversion = @this.CreateConversion(placeHolder, targetType, diagnostics);
 
+                    result = new CollectionBuilderInfo(
+                        collectionBuilderMethod, projectionCall, placeHolder, conversion);
                 }
 
                 lookupResult.Free();
@@ -1113,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Free();
                 projectionToOriginalMethod.Free();
 
-                return (collectionBuilderMethod, collectionProjectionCallOrConversion);
+                return result;
             }
         }
 
