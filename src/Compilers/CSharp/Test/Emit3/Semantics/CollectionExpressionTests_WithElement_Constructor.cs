@@ -556,7 +556,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """);
     }
 
-    [ConditionalTheory(typeof(CoreClrOnly))]
+    [Theory]
     [InlineData("in ")]
     [InlineData("")]
     public void WithElement_InParameters(string modifier)
@@ -588,7 +588,8 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("42 10"));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net90,
+            expectedOutput: ExecutionConditionUtil.IsCoreClr ? IncludeExpectedOutput("42 10") : null, verify: Verification.FailsPEVerify);
     }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
