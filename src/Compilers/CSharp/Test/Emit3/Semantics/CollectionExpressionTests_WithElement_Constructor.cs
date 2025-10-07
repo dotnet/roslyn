@@ -480,6 +480,32 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CreateCompilation(source).VerifyDiagnostics();
     }
 
+    [Fact]
+    public void WithElement_NamedArgumentInWrongPosition()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(int first, int second) : base() { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with(second: 20, 10)];
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,34): error CS8323: Named argument 'second' is used out-of-position but is followed by an unnamed argument
+            //         MyList<int> list = [with(second: 20, 10)];
+            Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "second").WithArguments("second").WithLocation(12, 34));
+    }
+
     #endregion
 
     #region Ref/In/Out Parameter Tests
