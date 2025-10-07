@@ -273,8 +273,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     }
 
     // TODO: Schedule to move PRs to the selected milestone.
-    console.MarkupLineInterpolated($"[green]Plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]");
-    console.Confirm("Add to plan?", defaultValue: true);
+    console.Confirm($"[green]Add to plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]?", defaultValue: true);
 }
 
 return 0;
