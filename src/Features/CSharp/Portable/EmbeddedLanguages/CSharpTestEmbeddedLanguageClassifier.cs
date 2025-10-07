@@ -33,24 +33,18 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
 
         var token = context.SyntaxToken;
         var semanticModel = context.SemanticModel;
-        var compilation = semanticModel.Compilation;
 
         if (token.Kind() is not (SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken))
             return;
 
         var virtualCharsWithMarkup = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-        if (virtualCharsWithMarkup.IsDefaultOrEmpty)
+        if (virtualCharsWithMarkup.IsDefaultOrEmpty())
             return;
 
         // Note: if we get here, then we know that the token is well formed (TryConvertToVirtualChars will fail if
         // the token has diagnostics).
 
         cancellationToken.ThrowIfCancellationRequested();
-
-        // Simpler to only support literals where all characters/escapes map to a single utf16 character.  That way
-        // we can build a source-text as a trivial O(1) view over the virtual char sequence.
-        if (virtualCharsWithMarkup.Any(static vc => vc.Utf16SequenceLength != 1))
-            return;
 
         using var _ = ArrayBuilder<TextSpan>.GetInstance(out var markdownSpans);
 
@@ -86,13 +80,13 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
                 }
             }
         }
-        else if (!virtualCharsWithoutMarkup.IsEmpty)
+        else if (virtualCharsWithoutMarkup.Count > 0)
         {
             context.AddClassification(
                 ClassificationTypeNames.TestCode,
                 TextSpan.FromBounds(
-                    virtualCharsWithoutMarkup.First().Span.Start,
-                    virtualCharsWithoutMarkup.Last().Span.End));
+                    virtualCharsWithoutMarkup[0].Span.Start,
+                    virtualCharsWithoutMarkup[^1].Span.End));
         }
 
         // Next, get all the embedded language classifications for the test file.  Combine these with the markdown
@@ -105,7 +99,8 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
     }
 
     private static IEnumerable<ClassifiedSpan> GetTestFileClassifiedSpans(
-        Host.SolutionServices solutionServices, SemanticModel semanticModel, VirtualCharSequence virtualCharsWithoutMarkup, CancellationToken cancellationToken)
+        Host.SolutionServices solutionServices, SemanticModel semanticModel,
+        ImmutableSegmentedList<VirtualChar> virtualCharsWithoutMarkup, CancellationToken cancellationToken)
     {
         var compilation = semanticModel.Compilation;
         var encoding = semanticModel.SyntaxTree.Encoding;
@@ -119,7 +114,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
             solutionServices,
             project: null,
             semanticModeWithTestFile,
-            new TextSpan(0, virtualCharsWithoutMarkup.Length),
+            new TextSpan(0, virtualCharsWithoutMarkup.Count),
             ClassificationOptions.Default,
             cancellationToken);
         return testFileClassifiedSpans;
@@ -133,7 +128,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
     /// positions/spans within that <see cref="SourceText"/> to actual full virtual char spans in the original
     /// document for classification.
     /// </summary>
-    private static VirtualCharSequence StripMarkupCharacters(
+    private static ImmutableSegmentedList<VirtualChar> StripMarkupCharacters(
         VirtualCharSequence virtualChars, ArrayBuilder<TextSpan> markdownSpans, CancellationToken cancellationToken)
     {
         var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
@@ -152,7 +147,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
             // TODO: this algorithm is not actually the one used in roslyn or the roslyn-sdk for parsing a
             // markup file.  for example it will get `[|]` wrong (as that depends on knowing if we're starting
             // or ending an existing span).  Fix this up to follow the actual algorithm we use.
-            switch (((char)vc1.Value, (char)vc2.Value))
+            switch ((vc1.Value, vc2.Value))
             {
                 case ('$', '$'):
                     markdownSpans.Add(FromBounds(vc1, vc2));
@@ -178,8 +173,8 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
 
                 case ('[', '|'):
                     var vc3 = i + 2 < n ? virtualChars[i + 2] : default;
-                    if ((vc3.Value == ']' && nestedAnonymousSpanCount > 0) ||
-                        (vc3.Value == '}' && nestedNamedSpanCount > 0))
+                    if ((vc3 == ']' && nestedAnonymousSpanCount > 0) ||
+                        (vc3 == '}' && nestedNamedSpanCount > 0))
                     {
                         // not the start of a span, don't classify this '[' specially.
                         break;
@@ -204,7 +199,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        return VirtualCharSequence.Create(builder.ToImmutable());
+        return builder.ToImmutable();
 
         bool TryConsumeNamedSpanStart(ref int i, int n)
         {
@@ -213,7 +208,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
             while (seekPoint < n)
             {
                 var colonChar = virtualChars[seekPoint];
-                if (colonChar.Value == ':')
+                if (colonChar == ':')
                 {
                     markdownSpans.Add(FromBounds(virtualChars[start], colonChar));
                     nestedNamedSpanCount++;
@@ -230,7 +225,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
 
     private static void AddClassifications(
         EmbeddedLanguageClassificationContext context,
-        VirtualCharSequence virtualChars,
+        ImmutableSegmentedList<VirtualChar> virtualChars,
         ClassifiedSpan classifiedSpan)
     {
         if (classifiedSpan.TextSpan.IsEmpty)
@@ -269,24 +264,19 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
     /// </summary>
     private sealed class VirtualCharSequenceSourceText : SourceText
     {
-        private readonly VirtualCharSequence _virtualChars;
+        private readonly ImmutableSegmentedList<VirtualChar> _virtualChars;
 
         public override Encoding? Encoding { get; }
 
-        public VirtualCharSequenceSourceText(VirtualCharSequence virtualChars, Encoding? encoding)
+        public VirtualCharSequenceSourceText(ImmutableSegmentedList<VirtualChar> virtualChars, Encoding? encoding)
         {
             _virtualChars = virtualChars;
             Encoding = encoding;
         }
 
-        public override int Length => _virtualChars.Length;
+        public override int Length => _virtualChars.Count;
 
-        public override char this[int position]
-        {
-            // This cast is safe because we disallowed virtual chars whose Value doesn't fit in a char in
-            // RegisterClassifications.
-            get => (char)_virtualChars[position].Value;
-        }
+        public override char this[int position] => _virtualChars[position];
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {

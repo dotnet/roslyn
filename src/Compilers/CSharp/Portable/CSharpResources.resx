@@ -5880,7 +5880,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
   <data name="ERR_EmbeddedAttributeMustFollowPattern" xml:space="preserve">
-    <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</value>
+    <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</value>
   </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
@@ -8201,6 +8201,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExplicitInterfaceMemberReturnTypeMismatch" xml:space="preserve">
     <value>'{0}': return type must be '{1}' to match implemented member '{2}'</value>
+  </data>
+  <data name="ParameterRequiresTypeOrIdentifier" xml:space="preserve">
+    <value>ParameterSyntax requires either a type or an identifier.</value>
+  </data>
+  <data name="NodeIsNotAwaitUsingDeclaration" xml:space="preserve">
+    <value>'node' is not an 'await using' declaration</value>
+    <comment>node and await using are not localizable</comment>
+  </data>
+  <data name="NodeIsNotAwaitUsingStatement" xml:space="preserve">
+    <value>'node' is not an 'await using' statement</value>
+    <comment>node and await using are not localizable</comment>
   </data>
   <data name="ERR_BadVisBaseType" xml:space="preserve">
     <value>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </value>

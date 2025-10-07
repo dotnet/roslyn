@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using var stack = new NodeIterationStack(DefaultStackCapacity);
             stack.PushNodeOrToken(root);
 
+            var fullTreeLength = syntaxTree.GetRoot().FullSpan.Length;
+
             while (stack.Any())
             {
                 var node = stack.Top.Node;
@@ -53,9 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int leadingWidthToAdd = node.IsToken ? 0 : node.GetLeadingTriviaWidth();
 
                         // don't produce locations outside of tree span
-                        var length = syntaxTree.GetRoot().FullSpan.Length;
-                        var spanStart = Math.Min(position + leadingWidthToAdd + sdi.Offset, length);
-                        var spanEnd = Math.Min(spanStart + sdi.Width, length);
+                        var spanStart = Math.Min(position + leadingWidthToAdd + sdi.Offset, fullTreeLength);
+                        var spanEnd = Math.Min(spanStart + sdi.Width, fullTreeLength);
                         yield return new CSDiagnostic(sdi, new SourceLocation(syntaxTree, TextSpan.FromBounds(spanStart, spanEnd)));
                     }
                     stack.Top.ProcessedDiagnostics = true;
