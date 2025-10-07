@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
             //Debug.Assert(node.CollectionBuilderInvocationConversion is { });
 
-            Debug.Assert(node.CollectionBuilderProjectionCall is { });
+            Debug.Assert(node.CollectionBuilderProjectionCallOrConversion is { });
 
             var constructMethod = node.CollectionBuilderMethod;
 
@@ -526,7 +526,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? VisitExpression(spreadExpression)
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
-            var originalCall = node.CollectionBuilderProjectionCall;
+            var originalCallOrConversion = node.CollectionBuilderProjectionCallOrConversion;
+            var originalCall = originalCallOrConversion switch
+            {
+                BoundCall call => call,
+                // Guaranteed by bindCollectionBuilderProjectionCallOrConversion
+                BoundConversion { Operand: BoundCall call } conversion => call,
+                _ => throw ExceptionUtilities.UnexpectedValue(originalCallOrConversion)
+            };
 
             // Add the final 'span' to the arguments of the original call.
 
@@ -557,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable,
                 type: constructMethod.ReturnType);
 
-            var conversin = new 
+            // var convers
 
             var finalConversion = originalConversion.Update(
                 finalInvocation, originalConversion.Conversion, originalConversion.IsBaseConversion, originalConversion.Checked,

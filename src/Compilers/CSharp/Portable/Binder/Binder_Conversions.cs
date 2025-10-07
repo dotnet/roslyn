@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? collectionBuilderMethod = null;
-            BoundCall? collectionBuilderProjectionCall = null;
+            BoundExpression? collectionBuilderProjectionCallOrConversion = null;
             //ImmutableArray<BoundExpression> collectionBuilderPrefixArguments = [];
             //BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             //BoundExpression? collectionBuilderInvocationConversion = null;
@@ -863,8 +863,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        (collectionBuilderMethod, collectionBuilderProjectionCall) = bindCollectionBuilderProjectionCallConversion(collectionBuilderMethods);
-                        if (collectionBuilderMethod is null || collectionBuilderProjectionCall is null)
+                        (collectionBuilderMethod, collectionBuilderProjectionCallOrConversion) = bindCollectionBuilderProjectionCallOrConversion(
+                            this, node, targetType, collectionBuilderMethods, diagnostics);
+                        if (collectionBuilderMethod is null || collectionBuilderProjectionCallOrConversion is null)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
@@ -1007,10 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderMethod,
-                collectionBuilderProjectionCall,
-                //collectionBuilderPrefixArguments,
-                //collectionBuilderInvocationPlaceholder,
-                //collectionBuilderInvocationConversion,
+                collectionBuilderProjectionCallOrConversion,
                 wasTargetTyped: true,
                 hasWithElement: node.WithElement != null,
                 node,
@@ -1045,8 +1043,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: element.LengthOrCount);
             }
 
-            (MethodSymbol? collectionBuilderMethod, BoundCall? collectionProjectionCall) bindCollectionBuilderProjectionCallConversion(
-                ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> collectionBuilderMethods)
+            static (MethodSymbol? collectionBuilderMethod, BoundExpression? collectionProjectionCallOrConversion) bindCollectionBuilderProjectionCallOrConversion(
+                Binder @this,
+                BoundUnconvertedCollectionExpression node,
+                TypeSymbol targetType,
+                ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> collectionBuilderMethods,
+                BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(collectionBuilderMethods.Length > 0);
 
@@ -1063,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? AnalyzedArguments.GetInstance()
                     : AnalyzedArguments.GetInstance(node.WithElement.Arguments, node.WithElement.ArgumentRefKindsOpt, node.WithElement.ArgumentNamesOpt);
 
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
                 // All the methods were instantiated with the same type-arguments, so we can grab what we need off of the first in the list.
@@ -1082,17 +1084,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methods: projectionMethods.ToImmutableAndFree(),
                     lookupResult,
                     BoundMethodGroupFlags.None,
-                    this).MakeCompilerGenerated();
+                    @this).MakeCompilerGenerated();
 
-                this.BindInvocationExpression(
+                var projectionInvocationExpression = @this.BindInvocationExpression(
                     syntax, node.Syntax, methodName, methodGroup,
                     analyzedArguments, diagnostics, acceptOnlyMethods: true);
 
+                MethodSymbol? collectionBuilderMethod;
+                BoundExpression? collectionProjectionCallOrConversion;
+                if (projectionInvocationExpression is not BoundCall boundProjectionExpression ||
+                    boundProjectionExpression.Expanded)
+                {
+                    // PROTOTYPE: give error when in expanded form.  This means we had something like `Foo(params int[]
+                    // x, ReadOnlySpan<int> y)` which is already extremely strange.
+                    collectionBuilderMethod = null;
+                    collectionProjectionCallOrConversion = null;
+                }
+                else
+                {
+                    collectionBuilderMethod = projectionToOriginalMethod[boundProjectionExpression.Method];
+                    collectionProjectionCallOrConversion = @this.CreateConversion(
+                        projectionInvocationExpression, targetType, diagnostics);
+
+                }
 
                 lookupResult.Free();
                 overloadResolutionResult.Free();
                 analyzedArguments.Free();
                 projectionToOriginalMethod.Free();
+
+                return (collectionBuilderMethod, collectionProjectionCallOrConversion);
             }
         }
 
@@ -1977,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderMethod: null,
-                collectionBuilderProjectionCall: null,
+                collectionBuilderProjectionCallOrConversion: null,
                 //collectionBuilderInvocationPlaceholder: null,
                 //collectionBuilderInvocationConversion: null,
                 wasTargetTyped: inConversion,

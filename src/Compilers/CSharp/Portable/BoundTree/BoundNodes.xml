@@ -1962,7 +1962,9 @@
     <!-- Call of the projected collection builder method.  This will be lowered to the final call to the original
          collection builder with these invocation arguments followed by the actual elements as the last arg.
          Note: this may be wrapped in a BoundConversion if the return of call needed to be converted -->
-    <Field Name="CollectionBuilderProjectionCallOrConversion" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <Field Name="
+           
+           " Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="HasWithElement" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
