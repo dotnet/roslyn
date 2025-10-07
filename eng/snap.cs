@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.DotNet.DarcLib;
@@ -110,11 +111,25 @@ var sourcePublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, s
 var targetPublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, targetBranchName);
 var sourcePublishData = await sourcePublishDataTask;
 var targetPublishData = await targetPublishDataTask;
-console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] inserts to VS [teal]{sourcePublishData?.BranchInfo.VsBranch ?? "N/A"}[/]");
-console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] inserts to VS [teal]{targetPublishData?.BranchInfo.VsBranch ?? "N/A"}[/]");
+console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] inserts to VS [teal]{sourcePublishData?.BranchInfo.Summarize() ?? "N/A"}[/]");
+console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] inserts to VS [teal]{targetPublishData?.BranchInfo.Summarize() ?? "N/A"}[/]");
+
+// Where should branches insert after the snap?
+
+var inferredVsVersion = VsVersion.TryParse(targetBranchName);
+var suggestedSourceVsVersionAfterSnap =
+    // When the target branch does not exist, that likely means a snap to a new minor version.
+    targetPublishData is null ? inferredVsVersion?.Increase() : inferredVsVersion;
+var suggestedTargetVsVersionAfterSnap = inferredVsVersion;
+
+var sourceVsBranchAfterSnap = console.Prompt(new TextPrompt<string>($"After snap, [teal]{sourceBranchName}[/] should insert to")
+    .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsVsBranchName()));
+var sourceVsAsDraftAfterSnap = console.Prompt(new TextPrompt<bool>($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?").DefaultValue(false));
+var targetVsBranchAfterSnap = console.Prompt(new TextPrompt<string>($"After snap, [teal]{targetBranchName}[/] should insert to")
+    .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
+var targetVsAsDraftAfterSnap = console.Prompt(new TextPrompt<bool>($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?").DefaultValue(false));
 
 // Check subscriptions.
-// TODO: Only for the selected branches.
 var darc = new DarcHelper(console);
 var printers = await Task.WhenAll([
     darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/dotnet", "VMR"),
@@ -292,7 +307,33 @@ file sealed record PublishData(
 file sealed record BranchInfo(
     string VsBranch,
     bool InsertionCreateDraftPR,
-    string InsertionTitlePrefix);
+    string InsertionTitlePrefix)
+{
+    public string Summarize() => VsBranch + (InsertionCreateDraftPR ? " (as draft)" : null);
+}
+
+file sealed record VsVersion(int Major, int Minor)
+{
+    public static VsVersion? TryParse(string s)
+    {
+        if (Patterns.VsVersion.Match(s) is { Success: true } match)
+        {
+            return new VsVersion(int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value));
+        }
+
+        return null;
+    }
+
+    public string AsVsBranchName() => $"rel/d{Major}.{Minor}";
+
+    public VsVersion Increase() => new(Major, Minor + 1);
+}
+
+static partial class Patterns
+{
+    [GeneratedRegex(@"(\d+)\.(\d+)")]
+    public static partial Regex VsVersion { get; }
+}
 
 file static class Extensions
 {
