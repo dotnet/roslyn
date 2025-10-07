@@ -1195,6 +1195,75 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
+    public void WithElement_ProtectedConstructor_InSubclass()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                protected MyList(int capacity) : base(capacity) { }
+            }
+
+            class D : MyList<int>
+            {
+                D(int i) : base(i) { }
+
+                public static void Create()
+                {
+                    new MyList<int>(10);
+                    MyList<int> list = [with(10)];
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    D.Create();
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (14,13): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
+            //         new MyList<int>(10);
+            Diagnostic(ErrorCode.ERR_BadAccess, "MyList<int>").WithArguments("MyList<int>.MyList(int)").WithLocation(14, 13),
+            // (15,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
+            //         MyList<int> list = [with(10)];
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[with(10)]").WithArguments("MyList<int>", "0").WithLocation(15, 28));
+    }
+
+    [Fact]
+    public void WithElement_ProtectedConstructor_InSameClass()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                protected MyList(int capacity) : base(capacity) { }
+
+                public static void Create()
+                {
+                    new MyList<int>(10);
+                    MyList<int> list = [with(10)];
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int>.Create();
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void WithElement_InternalConstructor_SameAssembly()
     {
         var source = """
