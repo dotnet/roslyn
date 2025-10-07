@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is
                 {
-                    CollectionBuilderMethod: { ParameterCount: 1 } builder,
+                    CollectionBuilderInfo.Method: { ParameterCount: 1 } builder,
                     Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }],
                 } &&
                 ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&
