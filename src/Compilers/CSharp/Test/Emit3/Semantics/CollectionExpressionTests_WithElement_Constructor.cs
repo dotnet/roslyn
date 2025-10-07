@@ -814,10 +814,12 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     #region Dynamic Tests
 
-    [Fact]
-    public void WithElement_DynamicArguments()
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_DynamicArguments(string parameterType)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
             
@@ -825,7 +827,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 public object Value { get; }
                 
-                public MyList(object value) : base()
+                public MyList({{parameterType}} value) : base()
                 {
                     Value = value;
                 }
@@ -846,6 +848,63 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             // (19,34): error CS9337: Collection arguments cannot be dynamic
             //         MyList<int> list = [with(d), 1];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(19, 34));
+    }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_DynamicParameters(string argumentType)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public object Value { get; }
+                
+                public MyList(dynamic value) : base()
+                {
+                    Value = value;
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    {{argumentType}} d = 42;
+                    MyList<int> list = [with(d), 1];
+                    Console.WriteLine(list.Value);
+                }
+            }
+            """;
+
+        if (argumentType == "dynamic")
+        {
+            CreateCompilation(source, references: [CSharpRef]).VerifyDiagnostics(
+                // (19,34): error CS9337: Collection arguments cannot be dynamic
+                //         MyList<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(19, 34));
+        }
+        else
+        {
+            CompileAndVerify(source, references: [CSharpRef]).VerifyIL("C.Main", """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.s   42
+                  IL_0002:  box        "int"
+                  IL_0007:  newobj     "MyList<int>..ctor(dynamic)"
+                  IL_000c:  dup
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_0013:  callvirt   "object MyList<int>.Value.get"
+                  IL_0018:  call       "void System.Console.WriteLine(object)"
+                  IL_001d:  ret
+                }
+                """);
+        }
     }
 
     [Fact]
