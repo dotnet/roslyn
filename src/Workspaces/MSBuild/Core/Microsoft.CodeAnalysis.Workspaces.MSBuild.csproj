@@ -33,7 +33,14 @@
       we are running against.
     -->
     <PackageReference Include="System.Text.Json" Condition="'$(TargetFramework)' == 'net472'" />
+
+    <!--
+      We are explicitly overriding the version of Microsoft.Build.Framework in net472 to match the version
+      of the package that is on nuget.org
+    -->
+    <PackageReference Update="Microsoft.Build.Framework" VersionOverride="17.15.0-preview-25277-114" Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
 
