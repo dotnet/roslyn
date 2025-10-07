@@ -962,7 +962,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     #region ArgList Tests
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+    [Fact]
     public void WithElement_ArgList()
     {
         var source = """
@@ -999,7 +999,9 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: IncludeExpectedOutput("10 test "), verify: Verification.FailsILVerify).VerifyIL("C.Main", """
+        CompileAndVerify(source, targetFramework: TargetFramework.NetFramework,
+            expectedOutput: ExecutionConditionUtil.IsWindows ? IncludeExpectedOutput("10 test ") : null,
+            verify: Verification.FailsILVerify).VerifyIL("C.Main", """
             {
               // Code size       14 (0xe)
               .maxstack  2
@@ -1012,7 +1014,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """);
     }
 
-    [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+    [Fact]
     public void WithElement_ArgList_Empty()
     {
         var source = """
@@ -1037,7 +1039,8 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("ArgList constructor called 1"));
+        CompileAndVerify(source,
+            expectedOutput: ExecutionConditionUtil.IsWindows ? IncludeExpectedOutput("ArgList constructor called 1") : null);
     }
 
     #endregion
