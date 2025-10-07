@@ -184,7 +184,7 @@ console.WriteLine();
 
 // Determine last PR to include.
 
-var lastPrNumber = console.Prompt(new TextPrompt<int>("Number of last PR to include")
+var lastPrNumber = console.Prompt(new TextPrompt<int>($"Number of last PR to include in [teal]{targetBranchName}[/]")
     .DefaultValueIfNotNull(lastMergedPullRequests is [var defaultLastPr, ..] ? defaultLastPr.Number : null));
 var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumber)
     ?? (await Cli.Wrap("gh")
