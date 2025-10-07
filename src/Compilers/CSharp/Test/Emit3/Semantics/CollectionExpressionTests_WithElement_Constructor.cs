@@ -713,9 +713,9 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
-    public void WithElement_ParamsWithNamedArguments()
+    public void WithElement_ParamsWithNamedArguments_Legal()
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
             
@@ -736,12 +736,47 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 static void Main()
                 {
                     MyList<int> list = [with(name: "test", values: new int[] { 1, 2, 3 }), 4];
-                    Console.WriteLine($"{list.Name},{list.Values.Length}");
+                    Console.WriteLine($"{list.Name},{list.Values.Length},{list[0]}");
                 }
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("test,3"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("test,3,4"));
+    }
+
+    [Fact]
+    public void WithElement_ParamsWithNamedArguments_Illegal()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public string Name { get; }
+                public int[] Values { get; }
+                
+                public MyList(string name, params int[] values) : base()
+                {
+                    Name = name;
+                    Values = values;
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(name: "test", values: 1, 2, 3), 4];
+                    Console.WriteLine($"{list.Name},{list.Values.Length},{list[0]}");
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (20,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 4 arguments
+            //         MyList<int> list = [with(name: "test", values: 1, 2, 3), 4];
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"[with(name: ""test"", values: 1, 2, 3), 4]").WithArguments("MyList<int>", "4").WithLocation(20, 28));
     }
 
     [Fact]
