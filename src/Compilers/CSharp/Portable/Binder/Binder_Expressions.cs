@@ -12,7 +12,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -5271,7 +5270,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (element is WithElementSyntax withElementSyntax)
                 {
-                    var (withElement, badElement) = bindWithElement(withElementSyntax);
+                    var (withElement, badElement) = bindWithElement(
+                        this, syntax, withElementSyntax, diagnostics);
                     firstWithElement ??= withElement;
                     builder.AddIfNotNull(badElement);
                 }
@@ -5356,8 +5356,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors: false);
             }
 
-            (BoundUnconvertedWithElement? withElement, BoundBadExpression? badExpression) bindWithElement(
-                WithElementSyntax withElementSyntax)
+            static (BoundUnconvertedWithElement? withElement, BoundBadExpression? badExpression) bindWithElement(
+                Binder @this,
+                CollectionExpressionSyntax syntax,
+                WithElementSyntax withElementSyntax,
+                BindingDiagnosticBag diagnostics)
             {
                 // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
                 // we still bind the arguments in those later with elements.  However, we only validate those
@@ -5369,7 +5372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: Spec says we should only allow arglist if trivial.  Circle back on this and see if
                 // this just falls out with the 'allowArgList: true' below.  If so, let LDM know it was easy and
                 // allow it.  If it requires substantial work beyond this, disallow it for this feature.
-                BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+                @this.BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
 
                 var arguments = analyzedArguments.Arguments;
                 for (int i = 0; i < arguments.Count; i++)
@@ -5377,8 +5380,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var arg = arguments[i];
                     if (arg.Type is { TypeKind: TypeKind.Dynamic })
                     {
+                        // Collection arguments cannot be dynamic
                         diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
-                        arguments[i] = new BoundBadExpression(arg.Syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [arg], type: Compilation.GetSpecialType(SpecialType.System_Object));
+                        arguments[i] = new BoundBadExpression(
+                            arg.Syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [arg], type: @this.Compilation.GetSpecialType(SpecialType.System_Object));
                     }
                 }
 
@@ -5404,7 +5409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
 
                     withElement = null;
-                    badExpression = BadExpression(withElementSyntax, BuildArgumentsForErrorRecovery(analyzedArguments));
+                    badExpression = @this.BadExpression(withElementSyntax, @this.BuildArgumentsForErrorRecovery(analyzedArguments));
                 }
 
                 analyzedArguments.Free();

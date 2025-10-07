@@ -1084,6 +1084,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
             Visit(node.CollectionCreation);
+            // PROTOTYPE: There seem to be no tests affected by this line.  See if we can produce something
+            // affected by this.
             VisitList(node.Elements);
             return null;
         }
