@@ -534,10 +534,12 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CreateCompilation(source).VerifyDiagnostics();
     }
 
-    [Fact]
-    public void WithElement_InParameters()
+    [Theory]
+    [InlineData("in ")]
+    [InlineData("")]
+    public void WithElement_InParameters(string modifier)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
             
@@ -555,7 +557,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 static void Main()
                 {
                     int x = 42;
-                    MyList<int> list = [with(in x), 1];
+                    MyList<int> list = [with({{modifier}}x), 1];
                     Console.WriteLine(list.Value);
                 }
             }
