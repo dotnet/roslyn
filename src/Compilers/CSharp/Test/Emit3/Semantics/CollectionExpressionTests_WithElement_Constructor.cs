@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -292,12 +293,12 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                     MyList<int> list3 = [with(name: "custom"), 3];
                     MyList<int> list4 = [with(capacity: 20, name: "both"), 4];
                     
-                    Console.WriteLine($"{list1.Name},{list2.Name},{list3.Name},{list4.Name}");
+                    Console.WriteLine($"{list1.Name}-{list1.Capacity},{list2.Name}-{list2.Capacity},{list3.Name}-{list3.Capacity},{list4.Name}-{list4.Capacity}");
                 }
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("default,default,custom,both"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("default-4,default-10,custom-4,both-20"));
     }
 
     #endregion
