@@ -249,7 +249,6 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     Debug.Assert(lastMilestonePrIndex >= 0);
 
     // Find all milestones.
-
     var milestones = (await Cli.Wrap("gh")
         .WithArguments(["api", $"repos/{sourceRepoShort}/milestones", "--paginate",
             "--jq", ".[] | {number:.number,title:.title}"])
@@ -260,21 +259,22 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
         .OrderByDescending(static m => m.Number)
         .ToArray();
 
-    if (milestones is not [var newestMilestone, ..])
-    {
-        console.MarkupLine("[red]error:[/] No milestones found in repo");
-    }
-    else
-    {
-        // Determine target milestone.
+    // Determine target milestone.
+    var suggestedTargetVsVersion = VsVersion.TryParse(targetVsBranchAfterSnap) ?? suggestedTargetVsVersionAfterSnap;
+    var targetMilestone = console.Prompt(TextPrompt<string>.Create("Target milestone")
+        .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersion != null
+            ? $"VS {suggestedTargetVsVersion.Major}.{suggestedTargetVsVersion.Minor}"
+            : milestones.FirstOrDefault()?.Title));
 
-        var targetMilestone = console.Prompt(TextPrompt<string>.Create("Target milestone")
-            .DefaultValue(newestMilestone.Title));
-
-        // TODO: Schedule to move PRs to the selected milestone.
-        console.MarkupLineInterpolated($"[blue]Plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]");
-        console.Confirm("Add to plan?");
+    var selectedMilestone = milestones.FirstOrDefault(m => m.Title == targetMilestone);
+    if (selectedMilestone is null)
+    {
+        console.MarkupLineInterpolated($"[green]Note:[/] Milestone [teal]{targetMilestone}[/] does not exist yet (will be created when needed)");
     }
+
+    // TODO: Schedule to move PRs to the selected milestone.
+    console.MarkupLineInterpolated($"[green]Plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]");
+    console.Confirm("Add to plan?", defaultValue: true);
 }
 
 return 0;
@@ -405,6 +405,7 @@ file static class Extensions
             {
                 DefaultValue = defaultValue,
                 DefaultValueStyle = Style.Plain.Foreground(Color.Grey),
+                ChoicesStyle = Style.Plain,
             }
             .Show(console);
         }
