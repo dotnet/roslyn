@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -961,27 +962,54 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     #region ArgList Tests
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
     public void WithElement_ArgList()
     {
         var source = """
+            using System;
             using System.Collections.Generic;
             
             class MyList : List<int>
             {
-                public MyList(__arglist) : base() { }
+                public MyList(__arglist) : base()
+                {
+                    ArgIterator iter = new ArgIterator(__arglist);
+
+                    while (iter.GetRemainingCount() > 0)
+                    {
+                        TypedReference tr = iter.GetNextArg();
+                        Type t = __reftype(tr);
+
+                        if (t == typeof(int))
+                            Console.Write(__refvalue(tr, int) + " ");
+                        else if (t == typeof(string))
+                            Console.WriteLine(__refvalue(tr, string) + " " );
+                        else
+                            Console.WriteLine($"Unhandled type: {t}");
+                    }
+                }
             }
             
             class C
             {
-                void M()
+                static void Main()
                 {
                     MyList list = [with(__arglist(10, "test"))];
                 }
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics();
+        CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: IncludeExpectedOutput("10 test "), verify: Verification.FailsILVerify).VerifyIL("C.Main", """
+            {
+              // Code size       14 (0xe)
+              .maxstack  2
+              IL_0000:  ldc.i4.s   10
+              IL_0002:  ldstr      "test"
+              IL_0007:  newobj     "MyList..ctor(__arglist) with __arglist( int, string)"
+              IL_000c:  pop
+              IL_000d:  ret
+            }
+            """);
     }
 
     [Fact]
