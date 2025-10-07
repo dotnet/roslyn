@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+<<<<<<< HEAD
+=======
+// #DEFINE ARRAY_INTERFACES
+>>>>>>> upstream/features/collection-expression-arguments
 // #DEFINE CREATE_METHODS
 // #DEFINE DICTIONARY_EXPRESSIONS
 
@@ -476,6 +480,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """);
     }
 
+<<<<<<< HEAD
+=======
+#if ARRAY_INTERFACES
+>>>>>>> upstream/features/collection-expression-arguments
     [Theory]
     [CombinatorialData]
     public void List_KnownLength_ICollection(
@@ -504,6 +512,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         string expectedIL;
         switch (argsPrefix)
         {
+<<<<<<< HEAD
             case "with(), ":
                 expectedIL = """
                     {
@@ -535,6 +544,19 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                           IL_0009:  ldloc.0
                           IL_000a:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
                           IL_000f:  ret
+=======
+            case "with(3), ":
+                expectedIL = """
+                        {
+                          // Code size       14 (0xe)
+                          .maxstack  3
+                          IL_0000:  ldc.i4.3
+                          IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                          IL_0006:  dup
+                          IL_0007:  ldarg.0
+                          IL_0008:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+                          IL_000d:  ret
+>>>>>>> upstream/features/collection-expression-arguments
                         }
                         """;
                 break;
@@ -587,6 +609,241 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         verifier.VerifyIL("Program.Create<T>", expectedIL);
     }
 
+<<<<<<< HEAD
+=======
+    [Theory]
+    [CombinatorialData]
+    public void InterfaceTarget_GenericMethod(
+        [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+    {
+        string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create<K, V>(IEqualityComparer<K> e)
+                    {
+                        return [with(e)];
+                    }
+                    static void Main()
+                    {
+                        Create<int, string>(null).Report();
+                    }
+                }
+                """;
+        var verifier = CompileAndVerify(
+            [source, s_collectionExtensions],
+            expectedOutput: "[], ");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.Create<K, V>",
+            typeName == "IDictionary" ?
+            """
+                {
+                    // Code size        7 (0x7)
+                    .maxstack  1
+                    IL_0000:  ldarg.0
+                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                    IL_0006:  ret
+                }
+                """ :
+            """
+                {
+                    // Code size       12 (0xc)
+                    .maxstack  1
+                    IL_0000:  ldarg.0
+                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                    IL_0006:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                    IL_000b:  ret
+                }
+                """);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void InterfaceTarget_FieldInitializer(
+        [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+    {
+        string source = $$"""
+                using System.Collections.Generic;
+                class C<K, V>
+                {
+                    public {{typeName}}<K, V> F =
+                        [with(GetComparer())];
+                    static IEqualityComparer<K> GetComparer() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C<int, string>();
+                        c.F.Report();
+                    }
+                }
+                """;
+        var verifier = CompileAndVerify(
+            [source, s_collectionExtensions],
+            expectedOutput: "[], ");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C<K, V>..ctor",
+            typeName == "IDictionary" ?
+            """
+                {
+                  // Code size       23 (0x17)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
+                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_000b:  stfld      "System.Collections.Generic.IDictionary<K, V> C<K, V>.F"
+                  IL_0010:  ldarg.0
+                  IL_0011:  call       "object..ctor()"
+                  IL_0016:  ret
+                }
+                """ :
+            """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
+                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_000b:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0010:  stfld      "System.Collections.Generic.IReadOnlyDictionary<K, V> C<K, V>.F"
+                  IL_0015:  ldarg.0
+                  IL_0016:  call       "object..ctor()"
+                  IL_001b:  ret
+                }
+                """);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void InterfaceTarget_Nullability(
+        [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+    {
+        string source = $$"""
+#nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create1<K, V>(bool b, IEqualityComparer<K>? c1)
+                    {
+                        if (b) return new Dictionary<K, V>(c1);
+                        return [with(c1)];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(bool b, IEqualityComparer<K?> c2) where K : class
+                    {
+                        if (b) return new Dictionary<K, V>(c2);
+                        return [with(c2)];
+                    }
+                    static {{typeName}}<K?, V> Create3<K, V>(bool b, IEqualityComparer<K> c3) where K : class
+                    {
+                        if (b) return new Dictionary<K?, V>(c3);
+                        return [with(c3)];
+                    }
+                }
+                """;
+        var comp = CreateCompilation(source);
+        // PROTOTYPE: Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
+        comp.VerifyEmitDiagnostics(
+            // (17,45): warning CS8620: Argument of type 'IEqualityComparer<K>' cannot be used for parameter 'comparer' of type 'IEqualityComparer<K?>' in 'Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)' due to differences in the nullability of reference types.
+            //         if (b) return new Dictionary<K?, V>(c3);
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c3").WithArguments("System.Collections.Generic.IEqualityComparer<K>", "System.Collections.Generic.IEqualityComparer<K?>", "comparer", "Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)").WithLocation(17, 45));
+    }
+
+    [Fact]
+    public void InterfaceTarget_ReorderedArguments()
+    {
+        string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<int, string>(EqualityComparer<int>.Default, 2, new(1, "one")).Report();
+                    }
+                    static IDictionary<K, V> Create<K, V>(IEqualityComparer<K> e, int c, KeyValuePair<K, V> x)
+                    {
+                        return [with(comparer: Identity(e), capacity: Identity(c)), Identity(x)];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+        var verifier = CompileAndVerify(
+            [source, s_collectionExtensions],
+                expectedOutput: """
+                        System.Collections.Generic.GenericEqualityComparer`1[System.Int32]
+                        2
+                        [1, one]
+                        [[1, one]],
+                        """);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.Create<K, V>", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
+                                System.Collections.Generic.IEqualityComparer<K> V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> Program.Identity<System.Collections.Generic.IEqualityComparer<K>>(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  stloc.1
+                  IL_0007:  ldarg.1
+                  IL_0008:  call       "int Program.Identity<int>(int)"
+                  IL_000d:  ldloc.1
+                  IL_000e:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0013:  ldarg.2
+                  IL_0014:  call       "System.Collections.Generic.KeyValuePair<K, V> Program.Identity<System.Collections.Generic.KeyValuePair<K, V>>(System.Collections.Generic.KeyValuePair<K, V>)"
+                  IL_0019:  stloc.0
+                  IL_001a:  dup
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0029:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_002e:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void InterfaceTarget_Dynamic()
+    {
+        string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        CreateReadOnlyDictionary(null, 1, "one");
+                        CreateDictionary(2, null, 2, "two");
+                    }
+                    static IReadOnlyDictionary<K, V> CreateReadOnlyDictionary<K, V>(dynamic d, K k, V v)
+                    {
+                        return [with(d), k:v];
+                    }
+                    static IDictionary<K, V> CreateDictionary<K, V>(dynamic x, dynamic y, K k, V v)
+                    {
+                        return [with(x, y), k:v];
+                    }
+                }
+                """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+        comp.VerifyEmitDiagnostics(
+            // (11,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+            //         return [with(d), k:v];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(11, 22),
+            // (15,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+            //         return [with(x, y), k:v];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "x").WithLocation(15, 22),
+            // (15,25): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+            //         return [with(x, y), k:v];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "y").WithLocation(15, 25));
+    }
+
+>>>>>>> upstream/features/collection-expression-arguments
     /// <summary>
     /// Implementation of List(int) uses a name other than capacity.
     /// </summary>
@@ -662,10 +919,34 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var comp = CreateEmptyCompilation(
             [sourceA, sourceB],
             parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(),
+<<<<<<< HEAD
             options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (10,22): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
                 //         return [with(capacity: 3), x, y];
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity").WithLocation(10, 22));
+=======
+            options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(
+            comp,
+            emitOptions: Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("4.0.0.0"),
+            verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.Create<T>", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_000d:  dup
+                  IL_000e:  ldarg.1
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_0014:  ret
+                }
+                """);
+>>>>>>> upstream/features/collection-expression-arguments
     }
 
     [Theory]
@@ -750,6 +1031,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("Program.Create<T>", isMutable ?
             """
+<<<<<<< HEAD
             {
                 // Code size       27 (0x1b)
                 .maxstack  3
@@ -766,6 +1048,25 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 IL_001a:  ret
             }
             """ :
+=======
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_000d:  dup
+                  IL_000e:  ldarg.1
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_0014:  dup
+                  IL_0015:  ldarg.2
+                  IL_0016:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_001b:  ret
+                }
+                """ :
+>>>>>>> upstream/features/collection-expression-arguments
             """
                 {
                   // Code size       36 (0x24)
@@ -841,12 +1142,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
+<<<<<<< HEAD
                 // (11,17): error CS9338: Collection arguments for read-only interface must be empty
                 //         return [with(c), x, y, z];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(11, 17),
                 // (15,17): error CS9338: Collection arguments for read-only interface must be empty
                 //         return [with(capacity: c), x, y, z];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(15, 17));
+=======
+                // (11,16): error CS1501: No overload for method '<signature>' takes 1 arguments
+                //         return [with(c), x, y, z];
+                Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c), x, y, z]").WithArguments("<signature>", "1").WithLocation(11, 16),
+                // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                //         return [with(capacity: c), x, y, z];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+>>>>>>> upstream/features/collection-expression-arguments
         }
 
         string sourceC = $$"""
@@ -870,13 +1180,20 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (6,22): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<T>' to 'int'
                 //         return [with(c), x, y, z];
                 Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "System.Collections.Generic.IEnumerable<T>", "int").WithLocation(6, 22),
+<<<<<<< HEAD
                 // (10,22): error CS1739: The best overload for 'List' does not have a parameter named 'collection'
                 //         return [with(collection: c), x, y, z];
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("List", "collection").WithLocation(10, 22));
+=======
+                // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+                //         return [with(collection: c), x, y, z];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+>>>>>>> upstream/features/collection-expression-arguments
         }
         else
         {
             comp.VerifyEmitDiagnostics(
+<<<<<<< HEAD
                 // (6,17): error CS9338: Collection arguments for read-only interface must be empty
                 //         return [with(c), x, y, z];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(6, 17),
@@ -886,6 +1203,18 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         }
     }
 
+=======
+                // (6,16): error CS1501: No overload for method '<signature>' takes 1 arguments
+                //         return [with(c), x, y, z];
+                Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c), x, y, z]").WithArguments("<signature>", "1").WithLocation(6, 16),
+                // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+                //         return [with(collection: c), x, y, z];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+        }
+    }
+
+
+>>>>>>> upstream/features/collection-expression-arguments
     [Theory]
     [CombinatorialData]
     public void CollectionArguments_CapacityAndComparer_01(
@@ -923,6 +1252,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             case "System.ReadOnlySpan<T>":
             case "System.Span<T>":
                 comp.VerifyEmitDiagnostics(
+<<<<<<< HEAD
                 // (8,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with()];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(8, 14),
@@ -938,11 +1268,26 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (12,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with(capacity, comparer)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(12, 14));
+=======
+                    // (9,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                    //         c = [with(default)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(9, 14),
+                    // (10,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                    //         c = [with(capacity)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(10, 14),
+                    // (11,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                    //         c = [with(comparer)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(11, 14),
+                    // (12,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                    //         c = [with(capacity, comparer)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(12, 14));
+>>>>>>> upstream/features/collection-expression-arguments
                 break;
             case "System.Collections.Generic.IEnumerable<T>":
             case "System.Collections.Generic.IReadOnlyCollection<T>":
             case "System.Collections.Generic.IReadOnlyList<T>":
                 comp.VerifyEmitDiagnostics(
+<<<<<<< HEAD
                     // (9,14): error CS9338: Collection arguments for read-only interface must be empty
                     //         c = [with(default)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(9, 14),
@@ -955,6 +1300,20 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     // (12,14): error CS9338: Collection arguments for read-only interface must be empty
                     //         c = [with(capacity, comparer)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(12, 14));
+=======
+                    // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    //         c = [with(default)];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(default)]").WithArguments("<signature>", "1").WithLocation(9, 13),
+                    // (10,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    //         c = [with(capacity)];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity)]").WithArguments("<signature>", "1").WithLocation(10, 13),
+                    // (11,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    //         c = [with(comparer)];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(comparer)]").WithArguments("<signature>", "1").WithLocation(11, 13),
+                    // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                    //         c = [with(capacity, comparer)];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+>>>>>>> upstream/features/collection-expression-arguments
                 break;
             case "System.Collections.Generic.ICollection<T>":
             case "System.Collections.Generic.IList<T>":
@@ -962,9 +1321,15 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     // (11,19): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEqualityComparer<T>' to 'int'
                     //         c = [with(comparer)];
                     Diagnostic(ErrorCode.ERR_BadArgType, "comparer").WithArguments("1", "System.Collections.Generic.IEqualityComparer<T>", "int").WithLocation(11, 19),
+<<<<<<< HEAD
                     // (12,14): error CS1729: 'List<T>' does not contain a constructor that takes 2 arguments
                     //         c = [with(capacity, comparer)];
                     Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<T>", "2").WithLocation(12, 14));
+=======
+                    // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                    //         c = [with(capacity, comparer)];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+>>>>>>> upstream/features/collection-expression-arguments
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(typeName);
@@ -1002,10 +1367,20 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
+<<<<<<< HEAD
                 // (7,14): error CS9338: Collection arguments for read-only interface must be empty
                 //         i = [with(default), t];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(7, 14),
                 // (8,17): error CS9335: Collection argument element must be the first element
+=======
+                // (7,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                //         i = [with(default), t];
+                Diagnostic(ErrorCode.ERR_BadArgCount, "[with(default), t]").WithArguments("<signature>", "1").WithLocation(7, 13),
+                // (8,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                //         i = [t, with(default)];
+                Diagnostic(ErrorCode.ERR_BadArgCount, "[t, with(default)]").WithArguments("<signature>", "1").WithLocation(8, 13),
+                // (8,17): error CS9501: Collection argument element must be the first element.
+>>>>>>> upstream/features/collection-expression-arguments
                 //         i = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17));
         }
@@ -1016,8 +1391,14 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
         Assert.Equal(2, collections.Length);
         VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: $"System.Collections.Generic.{interfaceType}<T>", ConversionKind.CollectionExpression);
+<<<<<<< HEAD
         VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: $"System.Collections.Generic.{interfaceType}<T>", ConversionKind.NoConversion);
     }
+=======
+        VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: $"System.Collections.Generic.{interfaceType}<T>", ConversionKind.CollectionExpression);
+    }
+#endif
+>>>>>>> upstream/features/collection-expression-arguments
 
     [Fact]
     public void CollectionInitializer_MultipleConstructors()
@@ -4405,6 +4786,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
 
 #if DICTIONARY_EXPRESSIONS
+<<<<<<< HEAD
 
     [Fact]
     public void InterfaceTarget_ReorderedArguments()
@@ -4638,6 +5020,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """);
     }
 
+=======
+>>>>>>> upstream/features/collection-expression-arguments
     [Theory]
     [CombinatorialData]
     public void InterfaceTarget_DictionaryInterfaces(

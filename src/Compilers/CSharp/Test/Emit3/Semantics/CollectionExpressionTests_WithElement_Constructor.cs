@@ -1266,7 +1266,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
+<<<<<<< HEAD
         // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
+=======
+>>>>>>> upstream/features/collection-expression-arguments
         CreateCompilation(source).VerifyDiagnostics(
             // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
             //         MyList<int> list = [with(10)];
@@ -1293,7 +1296,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
+<<<<<<< HEAD
         // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
+=======
+>>>>>>> upstream/features/collection-expression-arguments
         CreateCompilation(source).VerifyDiagnostics(
             // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
             //         MyList<int> list = [with(10)];
@@ -2050,6 +2056,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("D.M(Collection1)", "D.M(Collection2)").WithLocation(25, 9));
     }
 
+<<<<<<< HEAD
     [Fact]
     public void WithElement_DoesNotContributeToTypeInference1()
     {
@@ -2101,5 +2108,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(MyList<T>)").WithLocation(12, 9));
     }
 
+=======
+>>>>>>> upstream/features/collection-expression-arguments
     #endregion
 }
