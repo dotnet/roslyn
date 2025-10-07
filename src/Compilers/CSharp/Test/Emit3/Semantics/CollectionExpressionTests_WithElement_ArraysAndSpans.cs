@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-<<<<<<< HEAD
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-=======
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
->>>>>>> upstream/features/collection-expression-arguments
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -371,7 +367,6 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
     }
 
     [Fact]
-<<<<<<< HEAD
     public void WithElement_ReadOnlySpan_NestedInGeneric2()
     {
         var source = """
@@ -466,8 +461,6 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
     }
 
     [Fact]
-=======
->>>>>>> upstream/features/collection-expression-arguments
     public void WithElement_Array_AsMethodParameter()
     {
         var source = """

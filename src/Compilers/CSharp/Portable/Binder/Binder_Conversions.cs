@@ -892,11 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-<<<<<<< HEAD
                 collectionCreation = BindIEnumerableCollectionExpressionConstructor(syntax, targetType, constructor, node.WithElement, diagnostics);
-=======
-                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, node.WithElement, diagnostics);
->>>>>>> upstream/features/collection-expression-arguments
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
@@ -932,22 +928,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-<<<<<<< HEAD
                 MethodSymbol? list_T__ctor = null;
                 MethodSymbol? list_T__ctorInt32 = null;
                 if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
-=======
-                // PROTOTYPE: Add support for interfaces and Create methods.  Keep diagnostic for arrays/spans.
-                if (node.WithElement != null)
-                {
-                    diagnostics.Add(
-                        ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
-                        node.WithElement.Syntax.GetFirstToken().GetLocation(),
-                        targetType);
-                }
-
-                if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
->>>>>>> upstream/features/collection-expression-arguments
                     node.HasSpreadElements(out _, out _))
                 {
                     // Verify the existence of the List<T> members that may be used in lowering, even
@@ -1116,11 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionBuilderMethod;
         }
 
-<<<<<<< HEAD
         private BoundExpression BindIEnumerableCollectionExpressionConstructor(
-=======
-        internal BoundExpression BindCollectionExpressionConstructor(
->>>>>>> upstream/features/collection-expression-arguments
             SyntaxNode syntax,
             TypeSymbol targetType,
             MethodSymbol? constructor,
@@ -1158,7 +1137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionCreation;
         }
 
-<<<<<<< HEAD
         private BoundExpression? BindArrayInterfaceCollectionExpressionConstructor(
             SyntaxNode syntax,
             TypeSymbol targetType,
@@ -1241,17 +1219,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool isParamsModifierValidation = false)
         {
-=======
-        internal bool HasCollectionExpressionApplicableConstructor(
-            bool hasWithElement,
-            SyntaxNode syntax,
-            TypeSymbol targetType,
-            out MethodSymbol? constructor,
-            out bool isExpanded,
-            BindingDiagnosticBag diagnostics,
-            bool isParamsModifierValidation = false)
-        {
->>>>>>> upstream/features/collection-expression-arguments
 #if DEBUG
             Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax);
             if (hasWithElement)
