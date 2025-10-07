@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(list_T__ctor is not null); // Retrieved immediately above.
                         Debug.Assert(list_T__ctorInt32 is not null); // Retrieved immediately above.
                         collectionCreation = BindArrayInterfaceCollectionExpressionConstructor(
-                            syntax, targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
+                            targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
                     }
                     else
                     {
@@ -1138,7 +1138,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression? BindArrayInterfaceCollectionExpressionConstructor(
-            SyntaxNode syntax,
             TypeSymbol targetType,
             MethodSymbol list_T__ctor,
             MethodSymbol list_T__ctorInt32,
