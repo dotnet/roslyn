@@ -216,8 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(elementConversion);
             }
 
-            return Conversion.CreateCollectionExpressionConversion(
-                collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
+            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
 
             Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
