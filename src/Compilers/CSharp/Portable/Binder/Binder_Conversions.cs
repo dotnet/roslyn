@@ -1150,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType.IsReadOnlyArrayInterface(out _))
             {
                 // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
-                // the parameterless with-element is allows (`with()`).
+                // the parameterless `with()` is allowed.
                 if (withElement.Arguments.Length > 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, withSyntax.GetFirstToken().GetLocation());
