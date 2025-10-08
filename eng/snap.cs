@@ -6,8 +6,7 @@
 // Need this fix to delete the static graph disable: https://github.com/dotnet/sdk/pull/50532, 10.0.100-rc.2
 #:property RestoreUseStaticGraphEvaluation=false
 #:property PublishAot=false
-// warning CS8002: Referenced assembly 'Microsoft.DotNet.DarcLib' does not have a strong name.
-#:property NoWarn=$(NoWarn);CS8002
+#:property SignAssembly=false
 #:package CliWrap
 #:package Microsoft.DotNet.DarcLib
 #:package Spectre.Console
