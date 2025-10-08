@@ -1203,12 +1203,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             collectionBuilderMethod.CheckConstraints(
                 new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
 
+            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
+
             // The normal method resolution done by the call to BindInvocationExpression in ConvertCollectionExpression
             // will already report these issues. So we only need to do this extra checking when we're in the params
             // checking case.
             if (forParams)
             {
-                ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
                 ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
             }
