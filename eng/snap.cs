@@ -165,8 +165,9 @@ console.MarkupLine("[purple]Subscriptions[/]");
 console.WriteLine();
 
 var darc = new DarcHelper(console);
+var vmrRepoUrl = "https://github.com/dotnet/dotnet";
 var printers = await Task.WhenAll([
-    darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/dotnet", "VMR"),
+    darc.ListSubscriptionsAsync(sourceRepoUrl, vmrRepoUrl, "VMR"),
     darc.ListBackflowsAsync(sourceRepoUrl),
     darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/sdk", "SDK"),
     darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/runtime", "runtime"),
@@ -174,6 +175,61 @@ var printers = await Task.WhenAll([
 foreach (var printer in printers)
 {
     printer();
+}
+
+// Determine subscription changes.
+
+var existingSourceBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
+    flow.SourceRepoUrl == sourceRepoUrl &&
+    flow.SourceBranch == sourceBranchName &&
+    flow.TargetRepoUrl == vmrRepoUrl);
+var sourceChannelAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"After snap, [teal]{sourceBranchName}[/] should publish to darc channel")
+    .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsDarcChannelName())).Value;
+var sourceVmrBranchAfterSnap = console.Prompt(TextPrompt<RawString>.Create("And flow to VMR branch")
+    .DefaultValueIfNotNullOrEmpty(existingSourceBranchFlow?.TargetBranch)).Value;
+suggestSubscriptionChange(expectedFlow: new Flow(
+    SourceRepoUrl: sourceRepoUrl,
+    SourceBranch: sourceBranchName,
+    Channel: sourceChannelAfterSnap,
+    TargetRepoUrl: vmrRepoUrl,
+    TargetBranch: sourceVmrBranchAfterSnap));
+var existingTargetBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
+    flow.SourceRepoUrl == sourceRepoUrl &&
+    flow.SourceBranch == targetBranchName &&
+    flow.TargetRepoUrl == vmrRepoUrl);
+var targetChannelAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"After snap, [teal]{targetBranchName}[/] should publish to darc channel")
+    .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsDarcChannelName())).Value;
+var targetVmrBranchAfterSnap = console.Prompt(TextPrompt<RawString>.Create("And flow to VMR branch")
+    .DefaultValueIfNotNullOrEmpty(existingTargetBranchFlow?.TargetBranch)).Value;
+suggestSubscriptionChange(expectedFlow: new Flow(
+    SourceRepoUrl: sourceRepoUrl,
+    SourceBranch: targetBranchName,
+    Channel: targetChannelAfterSnap,
+    TargetRepoUrl: vmrRepoUrl,
+    TargetBranch: targetVmrBranchAfterSnap));
+
+void suggestSubscriptionChange(Flow expectedFlow)
+{
+    if (darc.FoundFlows.Contains(expectedFlow))
+    {
+        console.MarkupLineInterpolated($"[green]Already exists:[/] Flow {expectedFlow.ToFullString()}");
+    }
+    else
+    {
+        var existingFlow = darc.FoundFlows.FirstOrDefault(flow =>
+            flow.SourceRepoUrl == expectedFlow.SourceRepoUrl &&
+            flow.SourceBranch == expectedFlow.SourceBranch &&
+            flow.TargetRepoUrl == expectedFlow.TargetRepoUrl);
+        if (existingFlow != null && console.Confirm($"[green]Add to plan:[/] Update flow {existingFlow.ToFullString()} to have channel [teal]{expectedFlow.Channel}[/]?", defaultValue: true))
+        {
+            // TODO: Add to plan.
+        }
+        else
+        {
+            // TODO: Add to plan.
+            console.Confirm($"[green]Add to plan:[/] Add flow {expectedFlow.ToFullString()}?", defaultValue: true);
+        }
+    }
 }
 
 // Find last 5 PRs merged to current branch.
@@ -304,7 +360,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
         console.MarkupLineInterpolated($"[green]Note:[/] Milestone [teal]{targetMilestone}[/] does not exist yet (will be created when needed)");
     }
 
-    // TODO: Schedule to move PRs to the selected milestone.
+    // TODO: Add to plan.
     console.Confirm($"[green]Add to plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]?", defaultValue: true);
 }
 
@@ -419,6 +475,8 @@ file sealed record VsVersion(int Major, int Minor)
         return null;
     }
 
+    public string AsDarcChannelName() => $"VS {Major}.{Minor}";
+
     public string AsVsBranchName() => $"rel/d{Major}.{Minor}";
 
     public string AsVsInsertionTitlePrefix() => $"[d{Major}.{Minor}]";
@@ -487,6 +545,8 @@ file static class Extensions
             return null;
         }
 
+        public string GetRepoShortcut() => s.TrimPrefix("https://github.com/");
+
         public T? ParseJson<T>()
         {
             try
@@ -532,6 +592,16 @@ file static class Extensions
             }
 
             return result;
+        }
+
+        public string TrimPrefix(string prefix)
+        {
+            if (s.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                return s[prefix.Length..];
+            }
+
+            return s;
         }
     }
 
@@ -631,6 +701,8 @@ file sealed class DarcHelper(IAnsiConsole console)
 
     private readonly ConcurrentDictionary<string, Task<IEnumerable<DefaultChannel>>> _defaultChannelsCache = new();
 
+    public ConcurrentBag<Flow> FoundFlows { get; } = [];
+
     public Task<IEnumerable<DefaultChannel>> GetDefaultChannelsAsync(string repoUrl)
     {
         return _defaultChannelsCache.GetOrAdd(repoUrl, static (repoUrl, @this) => @this._barApiClient.GetDefaultChannelsAsync(repoUrl), this);
@@ -645,14 +717,24 @@ file sealed class DarcHelper(IAnsiConsole console)
             from channel in defaultChannels
             join subscription in subscriptions on channel.Channel.Id equals subscription.Channel.Id
             where subscription.Enabled
-            select $"{channel.Branch} -> {channel.Channel.Name} -> {subscription.TargetBranch}")
+            select new Flow(SourceRepoUrl: sourceRepoUrl,
+                SourceBranch: channel.Branch,
+                Channel: channel.Channel.Name,
+                TargetRepoUrl: targetRepoUrl,
+                TargetBranch: subscription.TargetBranch))
             .ToArray();
+
+        foreach (var flow in flows)
+        {
+            FoundFlows.Add(flow);
+        }
+
         return () =>
         {
             console.MarkupLineInterpolated($"Found [teal]{flows.Length}[/] {subscriptionsText} {targetRepoFriendlyName}:");
             foreach (var flow in flows)
             {
-                console.WriteLine($" - {flow}");
+                console.WriteLine($" - {flow.ToShortString()}");
             }
         };
     }
@@ -661,4 +743,13 @@ file sealed class DarcHelper(IAnsiConsole console)
     {
         return ListSubscriptionsAsync(sourceRepoUrl, targetRepoUrl, sourceRepoFriendlyName, "back flows from");
     }
+}
+
+file sealed record Flow(string SourceRepoUrl, string SourceBranch, string Channel, string TargetRepoUrl, string TargetBranch)
+{
+    public string ToShortString() => $"{SourceBranch} -> {Channel} -> {TargetBranch}";
+
+    public string ToFullString() => $"{SourceRepoUrl.GetRepoShortcut()}/{SourceBranch} -> {Channel} -> {TargetRepoUrl.GetRepoShortcut()}/{TargetBranch}";
+
+    public override string ToString() => ToFullString();
 }
