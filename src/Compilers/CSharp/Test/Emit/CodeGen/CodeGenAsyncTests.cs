@@ -549,7 +549,8 @@ class Test
                     """,
             };
 
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with
+            // The Task versions will always deadlock if executed
+            var verifier = CompileAndVerify(comp, expectedOutput: useValueTask ? RuntimeAsyncTestHelpers.ExpectedOutput("42") : null, verify: Verification.Fails with
             {
                 ILVerifyMessage = ilVerifyMessage
             }, symbolValidator: verify);
