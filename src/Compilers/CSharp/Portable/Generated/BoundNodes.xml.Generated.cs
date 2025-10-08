@@ -10576,6 +10576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
+            this.Visit(node.CollectionCreation);
             this.VisitList(node.Elements);
             return null;
         }
@@ -11986,7 +11987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
             BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
-            BoundExpression? collectionCreation = node.CollectionCreation;
+            BoundExpression? collectionCreation = (BoundExpression?)this.Visit(node.CollectionCreation);
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
@@ -14266,7 +14267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
             BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
-            BoundExpression? collectionCreation = node.CollectionCreation;
+            BoundExpression? collectionCreation = (BoundExpression?)this.Visit(node.CollectionCreation);
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             BoundCollectionExpression updatedNode;

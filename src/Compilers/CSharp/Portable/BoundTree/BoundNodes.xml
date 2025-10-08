@@ -1953,7 +1953,7 @@
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <!-- Call to instantiate a collection with a constructor. -->
-    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow"/>
     <!-- Information needed to call a collection builder method -->
     <Field Name="CollectionBuilderInfo" Type="CollectionBuilderInfo?" Null="allow"/>
     <Field Name="WasTargetTyped" Type="bool" />
