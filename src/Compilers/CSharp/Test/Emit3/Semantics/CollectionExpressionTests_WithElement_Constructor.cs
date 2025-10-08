@@ -2099,7 +2099,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
-    public void WithElement_ArgumentsAreLowered()
+    public void WithElement_ArgumentsAreLowered1()
     {
         var source = $$"""
             using System;
@@ -2135,6 +2135,50 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
               IL_0029:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
               IL_002e:  call       "void System.Console.WriteLine(int)"
               IL_0033:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_ArgumentsAreLowered2()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    List<int> list = [with(Goo([1, args.Length]))];
+                    Console.WriteLine(list.Capacity);
+                }
+
+                static int Goo(int[] values) => values.Length;
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2")).VerifyIL("C.Main", """
+            {
+              // Code size       37 (0x25)
+              .maxstack  4
+              IL_0000:  ldc.i4.2
+              IL_0001:  newarr     "int"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  stelem.i4
+              IL_000a:  dup
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldarg.0
+              IL_000d:  ldlen
+              IL_000e:  conv.i4
+              IL_000f:  stelem.i4
+              IL_0010:  call       "int C.Goo(int[])"
+              IL_0015:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_001a:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_001f:  call       "void System.Console.WriteLine(int)"
+              IL_0024:  ret
             }
             """);
     }
