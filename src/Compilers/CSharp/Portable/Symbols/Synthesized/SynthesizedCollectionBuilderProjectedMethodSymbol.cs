@@ -18,6 +18,9 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
 
     public override MethodSymbol UnderlyingMethod => _originalCollectionBuilderMethod;
 
+    public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        => this.UnderlyingMethod.GetAttributes();
+
     public override Symbol ContainingSymbol => this.UnderlyingMethod.ContainingSymbol;
     public override ImmutableArray<CustomModifier> RefCustomModifiers => this.UnderlyingMethod.RefCustomModifiers;
     public override TypeWithAnnotations ReturnTypeWithAnnotations => this.UnderlyingMethod.ReturnTypeWithAnnotations;
