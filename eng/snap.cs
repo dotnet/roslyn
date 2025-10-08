@@ -15,7 +15,6 @@
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 
 using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
@@ -35,35 +34,21 @@ const string nextMilestoneName = "Next";
 var console = AnsiConsole.Console;
 
 // Setup audit logging.
-var logFilePath = Path.Join(
-    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-    "snap-script", "log.txt");
-Directory.CreateDirectory(Path.GetDirectoryName(logFilePath)!);
-// This is disposed inside ProcessExit event, not here in Main, so it can be also used in UnhandledException handler.
-var logWriter = new StreamWriter(File.Open(logFilePath, FileMode.Append, FileAccess.Write, FileShare.Read))
-{
-    AutoFlush = true,
-};
-console.MarkupLineInterpolated($"Logging to [grey]{logFilePath}[/]");
-logWriter.WriteLine();
-log("Starting snap script run");
+var logger = new Logger();
+console.MarkupLineInterpolated($"Logging to [grey]{logger.LogFilePath}[/]");
+logger.Log("Starting snap script run");
 
 AppDomain.CurrentDomain.UnhandledException += (s, e) =>
 {
-    log($"Unhandled exception: {e.ExceptionObject}");
-};
-
-AppDomain.CurrentDomain.ProcessExit += (s, e) =>
-{
-    logWriter.Dispose();
+    logger.Log($"Unhandled exception: {e.ExceptionObject}");
 };
 
 TaskScheduler.UnobservedTaskException += (s, e) =>
 {
-    log($"Unobserved task exception: {e.Exception}");
+    logger.Log($"Unobserved task exception: {e.Exception}");
 };
 
-console.Pipeline.Attach(new LoggingRenderHook(logWriter));
+console.Pipeline.Attach(new LoggingRenderHook(logger));
 
 // Parse args.
 const string dryRunLong = "--dry-run";
@@ -153,6 +138,8 @@ var sourcePublishData = await sourcePublishDataTask;
 console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] inserts to VS [teal]{sourcePublishData?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{sourcePublishData?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
 var targetPublishData = await targetPublishDataTask;
 console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] inserts to VS [teal]{targetPublishData?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{targetPublishData?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
+
+var actions = new List<(string Name, Func<Task> Func)>();
 
 // Where should branches insert after the snap?
 
@@ -411,14 +398,56 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     console.Confirm($"[green]Add to plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]?", defaultValue: true);
 }
 
-// TODO: Merge between branches.
+// Merge between branches.
+if (console.Confirm($"[green]Add to plan:[/] Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]?", defaultValue: true))
+{
+    actions.Add((
+        $"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/]", async () =>
+        {
+            console.MarkupLine($"[yellow]Started:[/] Merging changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]...");
+
+            var repoCheckoutDir = Path.Join(Path.GetTempPath(), "snap-script", $"{sourceRepoShort.Replace('/', '_')}");
+            if (!Directory.Exists(repoCheckoutDir))
+            {
+                console.WriteLine($"Checking out repository '{sourceRepoShort}' (branch '{sourceBranchName}') to '{repoCheckoutDir}'");
+                Directory.CreateDirectory(repoCheckoutDir);
+                await Cli.Wrap("git")
+                    .WithArguments(["clone", "--branch", sourceBranchName, sourceRepoUrl, repoCheckoutDir])
+                    .ExecuteBufferedAsync(logger);
+            }
+            else
+            {
+                console.WriteLine($"Using existing checkout of repository '{sourceRepoShort}' in '{repoCheckoutDir}'");
+                await Cli.Wrap("git")
+                    .WithWorkingDirectory(repoCheckoutDir)
+                    .WithArguments(["fetch", "origin", sourceBranchName])
+                    .ExecuteBufferedAsync(logger);
+                await Cli.Wrap("git")
+                    .WithWorkingDirectory(repoCheckoutDir)
+                    .WithArguments(["reset", "--hard", $"origin/{sourceBranchName}"])
+                    .ExecuteBufferedAsync(logger);
+            }
+        }
+    ));
+}
+
+// Perform actions.
+var actionList = string.Join("\n", actions.Select(static a => $"- {a.Name}"));
+if (console.Confirm($"[red]Perform actions added to plan?[/]\n{actionList}\nContinue?", defaultValue: true))
+{
+    foreach (var action in actions)
+    {
+        await action.Func();
+    }
+
+    console.MarkupLine("[green]Done[/]");
+}
+else
+{
+    console.MarkupLine("[yellow]Aborted[/]: No changes made");
+}
 
 return 0;
-
-void log(string message)
-{
-    logWriter.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {message}");
-}
 
 static string getFileName([CallerFilePath] string filePath = "unknownFile") => Path.GetFileName(filePath);
 
@@ -541,6 +570,17 @@ static partial class Patterns
 
 file static class Extensions
 {
+    extension(Command command)
+    {
+        public async Task<BufferedCommandResult> ExecuteBufferedAsync(Logger logger)
+        {
+            logger.Log($"Executing command: {command}");
+            var result = await command.ExecuteBufferedAsync();
+            logger.Log($"Command completed ({result.ExitCode}):\nStdout:{result.StandardOutput}\nStderr:{result.StandardError}");
+            return result;
+        }
+    }
+
     extension(IAnsiConsole console)
     {
         public bool Confirm(string prompt, bool defaultValue)
@@ -689,7 +729,7 @@ file static class Extensions
     }
 }
 
-file sealed class LoggingRenderHook(StreamWriter logWriter) : IRenderHook
+file sealed class LoggingRenderHook(Logger logger) : IRenderHook
 {
     private long _lastOffset;
 
@@ -697,9 +737,9 @@ file sealed class LoggingRenderHook(StreamWriter logWriter) : IRenderHook
     {
         // Timestamp will be added on each intercepted newline,
         // but not if someone from the outside wrote to the log in the meantime.
-        if (_lastOffset != logWriter.BaseStream.Position)
+        if (_lastOffset != logger.Writer.BaseStream.Position)
         {
-            logWriter.Write($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] ");
+            logger.Writer.Write($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] ");
         }
 
         foreach (var renderable in renderables)
@@ -707,10 +747,10 @@ file sealed class LoggingRenderHook(StreamWriter logWriter) : IRenderHook
             var segments = renderable.Render(options, int.MaxValue).ToArray();
             var text = string.Concat(segments.Select(static s => s.Text));
             text = text.ReplaceLineEndings($"\n[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] ");
-            logWriter.Write(text);
+            logger.Writer.Write(text);
         }
 
-        _lastOffset = logWriter.BaseStream.Position;
+        _lastOffset = logger.Writer.BaseStream.Position;
 
         return renderables;
     }
@@ -810,4 +850,35 @@ file sealed record Flow(string SourceRepoUrl, string SourceBranch, string Channe
     public string ToFullString() => $"{SourceRepoUrl.GetRepoShortcut()}/{SourceBranch} -> {Channel} -> {TargetRepoUrl.GetRepoShortcut()}/{TargetBranch}";
 
     public override string ToString() => ToFullString();
+}
+
+file sealed class Logger
+{
+    public Logger()
+    {
+        LogFilePath = Path.Join(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "snap-script", "log.txt");
+        Directory.CreateDirectory(Path.GetDirectoryName(LogFilePath)!);
+        // This is disposed inside ProcessExit event, not here in Main, so it can be also used in UnhandledException handler.
+        Writer = new StreamWriter(File.Open(LogFilePath, FileMode.Append, FileAccess.Write, FileShare.Read))
+        {
+            AutoFlush = true,
+        };
+        Writer.WriteLine();
+        Writer.WriteLine();
+
+        AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+        {
+            Writer.Dispose();
+        };
+    }
+
+    public StreamWriter Writer { get; }
+    public string LogFilePath { get; }
+
+    public void Log(string message)
+    {
+        Writer.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {message}");
+    }
 }
