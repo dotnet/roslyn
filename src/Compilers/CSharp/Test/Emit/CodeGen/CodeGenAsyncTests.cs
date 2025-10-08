@@ -9057,7 +9057,7 @@ static class Test1
 
                     static async Task<int> Fib(int i)
                     {
-                        if (i <= 1)
+                        if (i <= 2)
                         {
                             if (doYields)
                             {
@@ -9092,7 +9092,7 @@ static class Test1
                                 System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
                                 System.Runtime.CompilerServices.YieldAwaitable V_2)
                   IL_0000:  ldarg.0
-                  IL_0001:  ldc.i4.1
+                  IL_0001:  ldc.i4.2
                   IL_0002:  bgt.s      IL_0031
                   IL_0004:  ldsfld     "bool C.doYields"
                   IL_0009:  brfalse.s  IL_002f
