@@ -486,7 +486,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // list to be what we add elements to.  In the case where we failed, it doesn't matter and we can just
                 // fall back to the optimal emit path (since an error was already reported).
                 Debug.Assert(node.CollectionCreation is null or BoundObjectCreationExpression);
-                arrayOrList = CreateAndPopulateList(node, elementType, elements, receiver: node.CollectionCreation as BoundObjectCreationExpression);
+
+                arrayOrList = CreateAndPopulateList(
+                    node, elementType, elements,
+                    // Ensure we recurse into the receiver (if passed one), so any arguments passed to to the collection
+                    // construction are properly lowered as well.
+                    receiver: VisitExpression(node.CollectionCreation));
             }
 
             return _factory.Convert(collectionType, arrayOrList);
@@ -1050,9 +1055,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Create and populate an list from a collection expression.
-        /// The collection may or may not have a known length.
+        /// Create and populate an list from a collection expression. The collection may or may not have a known length.
         /// </summary>
+        /// <remarks>
+        /// <paramref name="receiver"/> should already be visited prior to calling this helper.
+        /// </remarks>
         private BoundExpression CreateAndPopulateList(
             BoundCollectionExpression node,
             TypeWithAnnotations elementType,
@@ -1060,10 +1067,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? receiver)
         {
             Debug.Assert(!_inExpressionLambda);
-
-            // Ensure we process the receiver (if passed one), so any arguments passed to to the collection construction
-            // are properly lowered as well.
-            receiver = VisitExpression(receiver);
 
             var typeArguments = ImmutableArray.Create(elementType);
             var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArguments);
