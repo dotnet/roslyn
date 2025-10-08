@@ -827,6 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: false, diagnostics);
             }
 
+            Debug.Assert(elementType is { });
             var syntax = node.Syntax;
             if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, Compilation))
             {
@@ -851,10 +852,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics, syntax: syntax);
                     break;
 
+                case CollectionExpressionTypeKind.ArrayInterface:
+                    {
+                        if (elementType.IsRefLikeOrAllowsRefLikeType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, syntax);
+                        }
+                    }
+                    break;
+
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
-                        Debug.Assert(elementType is { });
-
                         var namedType = (NamedTypeSymbol)targetType;
 
                         var collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, forParams: false);
@@ -959,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(list_T__ctor is not null); // Retrieved immediately above.
                         Debug.Assert(list_T__ctorInt32 is not null); // Retrieved immediately above.
                         collectionCreation = BindArrayInterfaceCollectionExpressionConstructor(
-                            syntax, targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
+                            targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
                     }
                     else
                     {
@@ -975,7 +983,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var elementConversions = conversion.UnderlyingConversions;
 
-                Debug.Assert(elementType is { });
                 Debug.Assert(elements.Length == elementConversions.Length);
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
@@ -1250,7 +1257,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression? BindArrayInterfaceCollectionExpressionConstructor(
-            SyntaxNode syntax,
             TypeSymbol targetType,
             MethodSymbol list_T__ctor,
             MethodSymbol list_T__ctorInt32,
@@ -1263,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType.IsReadOnlyArrayInterface(out _))
             {
                 // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
-                // the parameterless with-element is allows (`with()`).
+                // the parameterless `with()` is allowed.
                 if (withElement.Arguments.Length > 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, withSyntax.GetFirstToken().GetLocation());
@@ -2091,7 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return;
         }
 
-        private ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> GetCollectionBuilderMethods(
+        private ImmutableArray<MethodSymbol> GetCollectionBuilderMethods(
             NamedTypeSymbol targetType,
             bool forParams,
             TypeSymbol elementTypeOriginalDefinition,
@@ -2116,7 +2122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var readOnlySpanType = Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
 
-            var result = ArrayBuilder<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)>.GetInstance();
+            var result = ArrayBuilder<MethodSymbol>.GetInstance();
             foreach (var candidate in builderType.GetMembers(methodName))
             {
                 if (candidate is not MethodSymbol { IsStatic: true } method)
@@ -2179,7 +2185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 useSiteInfo.AddDiagnostics(candidateUseSiteInfo.Diagnostics);
 
-                result.Add((method, elementType, conversion));
+                result.Add(method);
                 if (forParams)
                     break;
             }
