@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentRefKinds = argumentRefKinds.Add(RefKind.None);
 
                     var builderCall = new BoundCall(
-                        node.WithElement?.Syntax ?? node.Syntax,
+                        syntax,
                         receiverOpt: null,
                         // No receiver.  So no concern about cloning.
                         initialBindingReceiverIsSubjectToCloning: ThreeState.False,
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: default,
                         defaultArguments: projectionCall.DefaultArguments,
                         resultKind: LookupResultKind.Viable,
-                        type: collectionBuilderMethod.ReturnType);
+                        type: collectionBuilderMethod.ReturnType).MakeCompilerGenerated();
 
                     // Wrap in a conversion if necessary.  Note that GetAndValidateCollectionBuilderMethods guarantees
                     // that this conversion exists and is valid for a collection builder method.
