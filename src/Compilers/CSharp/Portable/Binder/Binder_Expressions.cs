@@ -7268,7 +7268,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Equivalent to <see cref="TryPerformConstructorOverloadResolution"/>
+        /// Core implementation for <see cref="TryPerformConstructorOverloadResolution"/>, just with the ability for the
+        /// caller to specify the candidate constructors instead of computing them from <paramref
+        /// name="typeContainingConstructors"/>.
         /// </summary>
         private bool TryPerformOverloadResolutionWithConstructorSubset(
             NamedTypeSymbol typeContainingConstructors,
