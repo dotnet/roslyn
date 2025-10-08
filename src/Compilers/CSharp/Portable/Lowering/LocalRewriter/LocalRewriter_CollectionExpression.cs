@@ -268,9 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol collectionType, TypeWithAnnotations elementType)
         {
+            // Note: this can be called when we have an actual array/span collection expression target, or when we're
+            // making an array/span as a temporary for some other sort of collection expression (for example, the
+            // element span passed to a collection builder method).
+
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(_additionalLocals is { });
-            Debug.Assert(node.CollectionCreation is null); // shouldn't have generated a constructor call
             Debug.Assert(node.Placeholder is null);
 
             var syntax = node.Syntax;

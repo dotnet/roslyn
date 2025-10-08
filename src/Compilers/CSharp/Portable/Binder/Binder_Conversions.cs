@@ -967,11 +967,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         collectionCreation = BindArrayInterfaceCollectionExpressionConstructor(
                             targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
                     }
-                    else
+                    else if (collectionTypeKind is not CollectionExpressionTypeKind.CollectionBuilder)
                     {
-                        // PROTOTYPE: Implement support for CollectionBuilder.  For now, error on it.
-
-                        // Array, Span, ReadOnlySpan, CollectionBuilder,
+                        // Array, Span, ReadOnlySpan
                         diagnostics.Add(
                             ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
                             node.WithElement.Syntax.GetFirstToken().GetLocation(),
@@ -1063,6 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var builderMethod in collectionBuilderMethods)
                 {
                     var projection = new SynthesizedCollectionBuilderProjectedMethodSymbol(builderMethod);
+                    Debug.Assert(projection.Arity == 0);
                     projectionMethods.Add(projection);
                     projectionToOriginalMethod.Add(projection, builderMethod);
                 }
@@ -1082,6 +1081,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var methodGroup = new BoundMethodGroup(
                     syntax,
+                    // Intentionally no type arguments here.  Projection methods are guaranteed to not be generic so we
+                    // do not want any sort of generic shenanigans to occur here.
                     typeArgumentsOpt: default,
                     name: methodName,
                     methods: projectionMethods.ToImmutableAndFree(),
@@ -1140,9 +1141,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentRefKinds = argumentRefKinds.Add(RefKind.None);
 
                     var builderCall = new BoundCall(
-                        node.Syntax,
+                        node.WithElement?.Syntax ?? node.Syntax,
                         receiverOpt: null,
-                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                        // No receiver.  So no concern about cloning.
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                         method: collectionBuilderMethod,
                         arguments: arguments,
                         argumentNamesOpt: argumentNames,

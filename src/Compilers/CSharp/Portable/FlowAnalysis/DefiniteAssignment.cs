@@ -2770,6 +2770,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            return node;
+        }
+
         #endregion Visitors
 
         protected override string Dump(LocalState state)

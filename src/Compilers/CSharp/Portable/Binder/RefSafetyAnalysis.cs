@@ -1291,6 +1291,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
+        {
+            if (node.CollectionCreation is { } collectionCreation)
+            {
+                if (node.CollectionBuilderElementsPlaceholder is { } spanPlaceholder)
+                {
+                    var elementType = ((NamedTypeSymbol)spanPlaceholder.Type!).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                    var safeContext = LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type) ? SafeContext.ReturnOnly : _localScopeDepth;
+                    var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
+                    placeholders.Add((spanPlaceholder, SafeContextAndLocation.Create(safeContext)));
+                    using var _ = new PlaceholderRegion(this, placeholders);
+                    Visit(collectionCreation);
+                }
+                else
+                {
+                    Visit(collectionCreation);
+                }
+            }
+            VisitList(node.Elements);
+            return null;
+        }
+
         private static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
         {
             var location = syntax.GetLocation();
