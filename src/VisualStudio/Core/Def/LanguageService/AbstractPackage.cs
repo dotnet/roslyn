@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
@@ -69,6 +70,17 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected virtual void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
     {
+    }
+
+    /// <summary>
+    /// Registers an editor factory. This is the same as <see cref="Microsoft.VisualStudio.Shell.Package.RegisterEditorFactory(IVsEditorFactory)"/> except it fetches the service async.
+    /// </summary>
+    protected async Task RegisterEditorFactoryAsync(IVsEditorFactory editorFactory, CancellationToken cancellationToken)
+    {
+        var registerEditors = await GetServiceAsync<SVsRegisterEditors, IVsRegisterEditors>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
+        Assumes.Present(registerEditors);
+
+        ErrorHandler.ThrowOnFailure(registerEditors.RegisterEditor(editorFactory.GetType().GUID, editorFactory, out _));
     }
 
     protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)

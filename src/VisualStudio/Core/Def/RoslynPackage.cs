@@ -68,21 +68,13 @@ internal sealed class RoslynPackage : AbstractPackage
         base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
-        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
 
         return;
 
-        Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+        async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
-            return ProfferServiceBrokerServicesAsync(cancellationToken);
-        }
-
-        Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
-        {
-            var settingsEditorFactory = SettingsEditorFactory.GetInstance();
-            RegisterEditorFactory(settingsEditorFactory);
-
-            return Task.CompletedTask;
+            await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
+            await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
         }
     }
 
