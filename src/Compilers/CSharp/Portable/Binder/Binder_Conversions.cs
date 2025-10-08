@@ -1096,14 +1096,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, node.Syntax, methodName, methodGroup,
                     analyzedArguments, diagnostics, acceptOnlyMethods: true);
 
-                CollectionBuilderInfo? result;
+                BoundExpression? collectionCreation;
+                MethodSymbol? collectionBuilderMethod;
+                BoundValuePlaceholder? collectionBuilderElementsPlaceholder;
+
                 if (projectionInvocationExpression is not BoundCall projectionCall ||
                     projectionCall.Expanded ||
-                    !projectionToOriginalMethod.TryGetValue(projectionCall.Method, out var collectionBuilderMethod))
+                    !projectionToOriginalMethod.TryGetValue(projectionCall.Method, out collectionBuilderMethod))
                 {
                     // PROTOTYPE: give error when in expanded form.  This means we had something like `Foo(params int[]
                     // x, ReadOnlySpan<int> y)` which is already extremely strange.
-                    result = null;
+                    collectionCreation = null;
+                    collectionBuilderMethod = null;
+                    collectionBuilderElementsPlaceholder = null;
                 }
                 else
                 {
@@ -1111,18 +1116,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // checks on it in case there are reasons it will have a problem.
                     @this.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics, forParams: false);
 
-                    var placeHolder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
-                    var conversion = @this.CreateConversion(placeHolder, targetType, diagnostics);
+                    // Take our successful call to the projection method and rewrite it to call the actual call to the
+                    // real collection builder.  Because we don't know how the actual elements will be converted to the
+                    // final ReadOnlySpan (that happens in LocalRewriter.VisitCollectionBuilderCollectionExpression), we
+                    // create a placeholder to stand in for them.
+                    //
+                    // In other words, given `[with(a, b, c), x, y, z]` wew will first have figured out how to call
+                    // CollectionBuilder.ProjectedCreate(a, b, c).  From that, we will then want to actually call
+                    // CollectionBuilder.Create<T1, T2, ..>(a, b, c, <placeholder for [x, y, z]>).
 
-                    result = new CollectionBuilderInfo(
-                        collectionBuilderMethod, projectionCall, placeHolder, conversion);
+                    var readonlySpanParameter = collectionBuilderMethod.Parameters.Last();
+                    collectionBuilderElementsPlaceholder = new BoundValuePlaceholder(syntax, readonlySpanParameter.Type) { WasCompilerGenerated = true };
+
+                    var arguments = projectionCall.Arguments;
+                    var argumentNames = projectionCall.ArgumentNamesOpt;
+                    var argumentRefKinds = projectionCall.ArgumentRefKindsOpt;
+
+                    arguments = arguments.Add(collectionBuilderElementsPlaceholder);
+                    if (!argumentNames.IsDefault)
+                        argumentNames = argumentNames.Add(readonlySpanParameter.Name);
+
+                    if (!argumentRefKinds.IsDefault)
+                        argumentRefKinds = argumentRefKinds.Add(RefKind.None);
+
+                    var builderCall = new BoundCall(
+                        node.Syntax,
+                        receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                        method: collectionBuilderMethod,
+                        arguments: arguments,
+                        argumentNamesOpt: argumentNames,
+                        argumentRefKindsOpt: argumentRefKinds,
+                        isDelegateCall: false,
+                        expanded: false,
+                        invokedAsExtensionMethod: false,
+                        argsToParamsOpt: default,
+                        defaultArguments: projectionCall.DefaultArguments,
+                        resultKind: LookupResultKind.Viable,
+                        type: collectionBuilderMethod.ReturnType);
+
+                    // Wrap in a conversion if necessary.  Note that GetAndValidateCollectionBuilderMethods guarantees
+                    // that this conversion exists and is valid for a collection builder method.
+                    collectionCreation = @this.CreateConversion(builderCall, targetType, diagnostics);
                 }
 
                 overloadResolutionResult.Free();
                 analyzedArguments.Free();
                 projectionToOriginalMethod.Free();
 
-                return result;
+                return (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder);
             }
         }
 
