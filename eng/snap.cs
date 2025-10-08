@@ -15,6 +15,7 @@
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
@@ -78,17 +79,18 @@ var defaultRepo = (await Cli.Wrap("gh")
     .StandardOutput
     .Trim();
 
-var sourceRepoShort = console.Prompt(TextPrompt<string>.Create("Source repo in the format owner/repo")
+var sourceRepoShort = console.Prompt(TextPrompt<RawString>.Create("Source repo in the format owner/repo")
     .DefaultValueIfNotNullOrEmpty(defaultRepo)
     .Validate(static repo =>
     {
-        if (repo.Count(c => c == '/') != 1)
+        if (repo.Value.Count(c => c == '/') != 1)
         {
             return ValidationResult.Error("Repo must be in the format owner/repo");
         }
 
         return ValidationResult.Success();
-    }));
+    }))
+    .Value;
 
 var sourceRepoUrl = $"https://github.com/{sourceRepoShort}";
 
@@ -131,9 +133,9 @@ console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] has version 
 var sourcePublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, sourceBranchName);
 var targetPublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, targetBranchName);
 var sourcePublishData = await sourcePublishDataTask;
-console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] inserts to VS [teal]{sourcePublishData?.BranchInfo.Summarize() ?? "N/A"}[/]");
+console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] inserts to VS [teal]{sourcePublishData?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{sourcePublishData?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
 var targetPublishData = await targetPublishDataTask;
-console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] inserts to VS [teal]{targetPublishData?.BranchInfo.Summarize() ?? "N/A"}[/]");
+console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] inserts to VS [teal]{targetPublishData?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{targetPublishData?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
 
 // Where should branches insert after the snap?
 
@@ -143,12 +145,16 @@ var suggestedSourceVsVersionAfterSnap =
     targetPublishData is null ? inferredVsVersion?.Increase() : inferredVsVersion;
 var suggestedTargetVsVersionAfterSnap = inferredVsVersion;
 
-var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should insert to")
-    .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsVsBranchName()));
+var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"After snap, [teal]{sourceBranchName}[/] should insert to")
+    .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsVsBranchName())).Value;
 var sourceVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
-var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to")
-    .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
+var sourceVsPrefixAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"What prefix should insertion PR titles have for [teal]{sourceBranchName}[/]?")
+    .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData?.BranchInfo.InsertionTitlePrefix)).Value;
+var targetVsBranchAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"After snap, [teal]{targetBranchName}[/] should insert to")
+    .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsVsBranchName())).Value;
 var targetVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
+var targetVsPrefixAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"What prefix should insertion PR titles have for [teal]{targetBranchName}[/]?")
+    .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData?.BranchInfo.InsertionTitlePrefix)).Value;
 
 // Check subscriptions.
 var darc = new DarcHelper(console);
@@ -275,10 +281,11 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
 
     // Determine target milestone.
     var suggestedTargetVsVersion = VsVersion.TryParse(targetVsBranchAfterSnap) ?? suggestedTargetVsVersionAfterSnap;
-    var targetMilestone = console.Prompt(TextPrompt<string>.Create("Target milestone")
+    var targetMilestone = console.Prompt(TextPrompt<RawString>.Create("Target milestone")
         .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersion != null
             ? $"VS {suggestedTargetVsVersion.Major}.{suggestedTargetVsVersion.Minor}"
-            : milestones.FirstOrDefault()?.Title));
+            : milestones.FirstOrDefault()?.Title))
+        .Value;
 
     var selectedMilestone = milestones.FirstOrDefault(m => m.Title == targetMilestone);
     if (selectedMilestone is null)
@@ -402,6 +409,8 @@ file sealed record VsVersion(int Major, int Minor)
     }
 
     public string AsVsBranchName() => $"rel/d{Major}.{Minor}";
+
+    public string AsVsInsertionTitlePrefix() => $"[d{Major}.{Minor}]";
 
     public VsVersion Increase() => new(Major, Minor + 1);
 }
@@ -533,12 +542,45 @@ file static class Extensions
         }
     }
 
-    extension(TextPrompt<string> prompt)
+    extension(TextPrompt<RawString> prompt)
     {
-        public TextPrompt<string> DefaultValueIfNotNullOrEmpty(string? value)
+        public TextPrompt<RawString> DefaultValueIfNotNullOrEmpty(string? value)
         {
             return !string.IsNullOrEmpty(value) ? prompt.DefaultValue(value) : prompt;
         }
+    }
+}
+
+/// <summary>
+/// Workaround for <see href="https://github.com/spectreconsole/spectre.console/issues/1181"/>.
+/// When displaying the default value, <see cref="RawStringConverter"/> is used which escapes it.
+/// When obtaining the default value, one can access the original <see cref="Value"/> which is not escaped.
+/// Unfortunately when the default value is echoed, it's still escaped, but that's just an UI issue.
+/// </summary>
+[TypeConverter(typeof(RawStringConverter))]
+file sealed record RawString(string Value)
+{
+    public static implicit operator RawString(string value) => new(value);
+}
+
+/// <summary>
+/// Can convert <see cref="RawString"/> to <see cref="string"/>.
+/// </summary>
+file sealed class RawStringConverter : TypeConverter
+{
+    public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
+    {
+        return destinationType == typeof(string);
+    }
+
+    public override object? ConvertTo(ITypeDescriptorContext? context, System.Globalization.CultureInfo? culture, object? value, Type destinationType)
+    {
+        if (value is RawString rawString && destinationType == typeof(string))
+        {
+            return Markup.Escape(rawString.Value);
+        }
+
+        return base.ConvertTo(context, culture, value, destinationType);
     }
 }
 
