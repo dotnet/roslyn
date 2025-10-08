@@ -945,8 +945,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Verify the existence of the List<T> members that may be used in lowering, even
                     // though not all will be used for any particular collection expression. Checking all
                     // gives a consistent behavior, regardless of collection expression elements.
-                    list_T__ctor = (MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
-                    list_T__ctorInt32 = (MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                    list_T__ctor = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
+                    list_T__ctorInt32 = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                 }
@@ -956,8 +956,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface)
                     {
                         Debug.Assert(constructor is null, "Only initialized in ImplementsIEnumerable case in Conversions.GetCollectionExpressionConversion.");
-                        Debug.Assert(list_T__ctor is not null); // Retrieved immediately above.
-                        Debug.Assert(list_T__ctorInt32 is not null); // Retrieved immediately above.
                         collectionCreation = BindArrayInterfaceCollectionExpressionConstructor(
                             targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
                     }
@@ -1147,8 +1145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression? BindArrayInterfaceCollectionExpressionConstructor(
             TypeSymbol targetType,
-            MethodSymbol list_T__ctor,
-            MethodSymbol list_T__ctorInt32,
+            MethodSymbol? list_T__ctor,
+            MethodSymbol? list_T__ctorInt32,
             BoundUnconvertedWithElement withElement,
             BindingDiagnosticBag diagnostics)
         {
@@ -1185,14 +1183,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constructedListType =
                     this.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo)
                         .Construct([typeArgument]);
-                var constructedListCtor = constructedListType.InstanceConstructors.Single(
+                var constructedListCtor = constructedListType.InstanceConstructors.FirstOrDefault(
                     static (c, list_T__ctor) => Equals(c.OriginalDefinition, list_T__ctor), list_T__ctor);
-                var constructedListCtorInt32 = constructedListType.InstanceConstructors.Single(
+                var constructedListCtorInt32 = constructedListType.InstanceConstructors.FirstOrDefault(
                     static (c, list_T__ctorInt32) => Equals(c.OriginalDefinition, list_T__ctorInt32), list_T__ctorInt32);
 
                 var analyzedArguments = AnalyzedArguments.GetInstance(
                     withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
-                ImmutableArray<MethodSymbol> candidateConstructors = [constructedListCtor, constructedListCtorInt32];
+                var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
+                candidateConstructorsBuilder.AddIfNotNull(constructedListCtor);
+                candidateConstructorsBuilder.AddIfNotNull(constructedListCtorInt32);
+                var candidateConstructors = candidateConstructorsBuilder.ToImmutableAndFree();
 
                 // Now perform overload resolution given only those two constructors and no others.
                 if (TryPerformOverloadResolutionWithConstructorSubset(
