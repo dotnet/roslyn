@@ -35,8 +35,9 @@
     <PackageReference Include="System.Text.Json" Condition="'$(TargetFramework)' == 'net472'" />
 
     <!--
-      We are explicitly overriding the version of Microsoft.Build.Framework in net472 to match the version
-      of the package that is on nuget.org
+      We use the MSBuild Framework dependency to allow MSBuild ILoggers to be passed when loading projects
+      and solutions. We do not need to be on the latest and instead want to reference an older version that
+      is already available on nuget.org.
     -->
     <PackageReference Update="Microsoft.Build.Framework" VersionOverride="17.15.0-preview-25277-114" Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'" />
   </ItemGroup>
