@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray)
                 {
                     // T[] array = [elems];
-                    // ImmutableArray<T> value = ImmutableCollectionsMarshal.AsImmutableArray(array);
+                    // ImmutableArray<T> value = ImmutableCollectionsMarshal.AsImmutableArray<T>(array);
                     var arrayType = getBackingArrayType(immutableArrayType);
                     var arrayValue = createArray(node, arrayType, targetsReadOnlyCollection: true);
                     return _factory.StaticCall(asImmutableArray.Construct([arrayType.ElementTypeWithAnnotations]), [arrayValue]);
