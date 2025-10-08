@@ -922,6 +922,75 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal(expectedVersion, compilerApiVersion);
         }
 
+        [Theory]
+        [InlineData(".NETCoreApp", true)]
+        [InlineData(".NETFramework", false)]
+        [InlineData(".NETStandard", false)]
+        public void CS8002SuppressedForNetCoreAppInCSharp(string targetFrameworkIdentifier, bool shouldSuppressCS8002)
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <PropertyGroup>
+        <TargetFrameworkIdentifier>{targetFrameworkIdentifier}</TargetFrameworkIdentifier>
+        <_TargetFrameworkVersionWithoutV>5.0</_TargetFrameworkVersionWithoutV>
+        <SkipCompilerExecution>true</SkipCompilerExecution>
+        <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
+    </PropertyGroup>
+    <Import Project=""Microsoft.CSharp.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+            bool buildResult = instance.Build(target: "CoreCompile", GetTestLoggers());
+            Assert.True(buildResult);
+
+            var commandLineArgs = instance.GetItems("CscCommandLineArgs");
+            var allArgs = string.Join(" ", commandLineArgs.Select(item => item.EvaluatedInclude));
+            
+            if (shouldSuppressCS8002)
+            {
+                Assert.Contains("/nowarn:8002", allArgs, StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                Assert.DoesNotContain("/nowarn:8002", allArgs, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        [Theory]
+        [InlineData(".NETCoreApp", true)]
+        [InlineData(".NETFramework", false)]
+        [InlineData(".NETStandard", false)]
+        public void CS8002SuppressedForNetCoreAppInVisualBasic(string targetFrameworkIdentifier, bool shouldSuppressCS8002)
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <PropertyGroup>
+        <TargetFrameworkIdentifier>{targetFrameworkIdentifier}</TargetFrameworkIdentifier>
+        <SkipCompilerExecution>true</SkipCompilerExecution>
+        <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
+    </PropertyGroup>
+    <Import Project=""Microsoft.VisualBasic.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+            bool buildResult = instance.Build(target: "CoreCompile", GetTestLoggers());
+            Assert.True(buildResult);
+
+            var commandLineArgs = instance.GetItems("VbcCommandLineArgs");
+            var allArgs = string.Join(" ", commandLineArgs.Select(item => item.EvaluatedInclude));
+            
+            if (shouldSuppressCS8002)
+            {
+                Assert.Contains("/nowarn:8002", allArgs, StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                Assert.DoesNotContain("/nowarn:8002", allArgs, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
         private static ProjectInstance CreateProjectInstance(XmlReader reader)
         {
             Project proj = new Project(reader);
