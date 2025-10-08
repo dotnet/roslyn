@@ -1057,9 +1057,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCollectionExpression node,
             TypeWithAnnotations elementType,
             ImmutableArray<BoundNode> elements,
-            BoundObjectCreationExpression? receiver)
+            BoundExpression? receiver)
         {
             Debug.Assert(!_inExpressionLambda);
+
+            // Ensure we process the receiver (if passed one), so any arguments passed to to the collection construction
+            // are properly lowered as well.
+            receiver = VisitExpression(receiver);
 
             var typeArguments = ImmutableArray.Create(elementType);
             var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArguments);
