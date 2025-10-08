@@ -186,7 +186,7 @@ var sourceChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After sn
     defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsDarcChannelName()));
 var sourceVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
     defaultValueIfNotNullOrEmpty: existingSourceBranchFlow?.TargetBranch));
-suggestSubscriptionChange(expectedFlow: new Flow(
+suggestSubscriptionChange(existingFlow: existingSourceBranchFlow, expectedFlow: new Flow(
     SourceRepoUrl: sourceRepoUrl,
     SourceBranch: sourceBranchName,
     Channel: sourceChannelAfterSnap,
@@ -195,19 +195,21 @@ suggestSubscriptionChange(expectedFlow: new Flow(
 var existingTargetBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
     flow.SourceRepoUrl == sourceRepoUrl &&
     flow.SourceBranch == targetBranchName &&
+    flow.TargetRepoUrl == vmrRepoUrl) ?? darc.FoundFlows.FirstOrDefault(flow =>
+    flow.SourceRepoUrl == sourceRepoUrl &&
     flow.TargetRepoUrl == vmrRepoUrl);
 var targetChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should publish to darc channel",
     defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsDarcChannelName()));
 var targetVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
     defaultValueIfNotNullOrEmpty: existingTargetBranchFlow?.TargetBranch));
-suggestSubscriptionChange(expectedFlow: new Flow(
+suggestSubscriptionChange(existingFlow: existingTargetBranchFlow, expectedFlow: new Flow(
     SourceRepoUrl: sourceRepoUrl,
     SourceBranch: targetBranchName,
     Channel: targetChannelAfterSnap,
     TargetRepoUrl: vmrRepoUrl,
     TargetBranch: targetVmrBranchAfterSnap));
 
-void suggestSubscriptionChange(Flow expectedFlow)
+void suggestSubscriptionChange(Flow? existingFlow, Flow expectedFlow)
 {
     if (darc.FoundFlows.Contains(expectedFlow))
     {
@@ -215,11 +217,7 @@ void suggestSubscriptionChange(Flow expectedFlow)
     }
     else
     {
-        var existingFlow = darc.FoundFlows.FirstOrDefault(flow =>
-            flow.SourceRepoUrl == expectedFlow.SourceRepoUrl &&
-            flow.SourceBranch == expectedFlow.SourceBranch &&
-            flow.TargetRepoUrl == expectedFlow.TargetRepoUrl);
-        if (existingFlow != null && console.Confirm($"[green]Add to plan:[/] Update flow {existingFlow.ToFullString()} to have channel [teal]{expectedFlow.Channel}[/]?", defaultValue: true))
+        if (existingFlow != null && console.Confirm($"[green]Add to plan:[/] Update flow {existingFlow.ToFullString()} to be from source branch [teal]{expectedFlow.SourceBranch}[/] and have channel [teal]{expectedFlow.Channel}[/]?", defaultValue: true))
         {
             // TODO: Add to plan.
         }
