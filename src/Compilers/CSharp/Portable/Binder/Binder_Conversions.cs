@@ -852,15 +852,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics, syntax: syntax);
                     break;
 
-                case CollectionExpressionTypeKind.ArrayInterface:
-                    {
-                        if (elementType.IsRefLikeOrAllowsRefLikeType())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, syntax);
-                        }
-                    }
-                    break;
-
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
                         var namedType = (NamedTypeSymbol)targetType;
@@ -909,7 +900,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                collectionCreation = BindIEnumerableCollectionExpressionConstructor(syntax, targetType, constructor, node.WithElement, diagnostics);
+
+                collectionCreation = BindCollectionConstructionConstruction(syntax, targetType, constructor, node.WithElement, diagnostics);
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
@@ -945,6 +937,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // If we're not in the collection-construction case, we do not allow ref-structs.  First, for the
+                // array/interface case, we can't make the storage to store the ref structs in.  Second, for the span
+                // case, spans are not 'allows ref struct' for their T element.  So they don' allow them either.  Finally,
+                // collection builders need to take in a ReadOnlySpan<T> so they are restricted for the same reason.
+                if (elementType.IsRefLikeOrAllowsRefLikeType())
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, syntax);
+                }
+
                 MethodSymbol? list_T__ctor = null;
                 MethodSymbol? list_T__ctorInt32 = null;
                 if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
@@ -953,8 +954,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Verify the existence of the List<T> members that may be used in lowering, even
                     // though not all will be used for any particular collection expression. Checking all
                     // gives a consistent behavior, regardless of collection expression elements.
-                    list_T__ctor = (MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
-                    list_T__ctorInt32 = (MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                    list_T__ctor = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
+                    list_T__ctorInt32 = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                 }
@@ -964,9 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface)
                     {
                         Debug.Assert(constructor is null, "Only initialized in ImplementsIEnumerable case in Conversions.GetCollectionExpressionConversion.");
-                        Debug.Assert(list_T__ctor is not null); // Retrieved immediately above.
-                        Debug.Assert(list_T__ctorInt32 is not null); // Retrieved immediately above.
-                        collectionCreation = BindArrayInterfaceCollectionExpressionConstructor(
+                        collectionCreation = BindCollectionArrayInterfaceConstruction(
                             targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
                     }
                     else
@@ -1217,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!collectionBuilderMethod.GetIsNewExtensionMember());
         }
 
-        private BoundExpression BindIEnumerableCollectionExpressionConstructor(
+        private BoundExpression BindCollectionConstructionConstruction(
             SyntaxNode syntax,
             TypeSymbol targetType,
             MethodSymbol? constructor,
@@ -1255,10 +1254,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionCreation;
         }
 
-        private BoundExpression? BindArrayInterfaceCollectionExpressionConstructor(
+        private BoundExpression? BindCollectionArrayInterfaceConstruction(
             TypeSymbol targetType,
-            MethodSymbol list_T__ctor,
-            MethodSymbol list_T__ctorInt32,
+            MethodSymbol? list_T__ctor,
+            MethodSymbol? list_T__ctorInt32,
             BoundUnconvertedWithElement withElement,
             BindingDiagnosticBag diagnostics)
         {
@@ -1279,52 +1278,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // interface instance.
                 return null;
             }
-            else
+
+            var isMutableArray = targetType.IsMutableArrayInterface(out var typeArgument);
+            Debug.Assert(isMutableArray);
+
+            // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg `with()` and
+            // single int arg for the `List(int capacity)` case.
+            //
+            // This is from
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/collection-expressions.md#mutable-interface-translation
+            // which dictates that IList<E> and ICollection<E> map to List<E>. and from
+            // https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#interface-target-type
+            // which dictates the two constructors we allow from that.
+
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+            // Map to the corresponding List<E>() and List<E>(int) constructors in the constructed List<E> target.
+
+            var constructedListType =
+                this.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo)
+                    .Construct([typeArgument]);
+
+            var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
+            candidateConstructorsBuilder.AddIfNotNull(list_T__ctor?.AsMember(constructedListType));
+            candidateConstructorsBuilder.AddIfNotNull(list_T__ctorInt32?.AsMember(constructedListType));
+            var candidateConstructors = candidateConstructorsBuilder.ToImmutableAndFree();
+
+            var analyzedArguments = AnalyzedArguments.GetInstance(
+                withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
+
+            // Now perform overload resolution given only those two constructors and no others.
+            if (TryPerformOverloadResolutionWithConstructorSubset(
+                    constructedListType,
+                    ref candidateConstructors,
+                    candidateConstructors,
+                    analyzedArguments,
+                    constructedListType.Name,
+                    withSyntax.GetFirstToken().GetLocation(),
+                    suppressResultDiagnostics: false,
+                    diagnostics,
+                    out var memberResolutionResult,
+                    ref useSiteInfo,
+                    isParamsModifierValidation: false))
             {
-                var isMutableArray = targetType.IsMutableArrayInterface(out var typeArgument);
-                Debug.Assert(isMutableArray);
-
-                // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg `with()` and
-                // single int arg for the `List(int capacity)` case.
-
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-
-                // Find the corresponding List<E> type for this IList<E> or ICollection<E>, as well as the corresponding
-                // List<E>() and List<E>(int) constructors.
-
-                var constructedListType =
-                    this.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo)
-                        .Construct([typeArgument]);
-                var constructedListCtor = constructedListType.InstanceConstructors.Single(
-                    static (c, list_T__ctor) => Equals(c.OriginalDefinition, list_T__ctor), list_T__ctor);
-                var constructedListCtorInt32 = constructedListType.InstanceConstructors.Single(
-                    static (c, list_T__ctorInt32) => Equals(c.OriginalDefinition, list_T__ctorInt32), list_T__ctorInt32);
-
-                var analyzedArguments = AnalyzedArguments.GetInstance(
-                    withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
-                ImmutableArray<MethodSymbol> candidateConstructors = [constructedListCtor, constructedListCtorInt32];
-
-                // Now perform overload resolution given only those two constructors and no others.
-                if (TryPerformOverloadResolutionWithConstructorSubset(
-                        constructedListType,
-                        ref candidateConstructors,
-                        candidateConstructors,
-                        analyzedArguments,
-                        constructedListType.Name,
-                        withSyntax.GetFirstToken().GetLocation(),
-                        suppressResultDiagnostics: false,
-                        diagnostics,
-                        out var memberResolutionResult,
-                        ref useSiteInfo,
-                        isParamsModifierValidation: false))
-                {
-                    return BindClassCreationExpressionContinued(
-                        withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
-                }
-
-                return CreateBadClassCreationExpression(
-                    withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
+                return BindClassCreationExpressionContinued(
+                    withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
             }
+
+            return CreateBadClassCreationExpression(
+                withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
         }
 
         internal bool HasCollectionExpressionApplicableConstructor(

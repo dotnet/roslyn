@@ -8218,6 +8218,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'with(...)' element for read-only interface must be empty</value>
   </data>
   <data name="ERR_CollectionRefLikeElementType" xml:space="preserve">
-    <value>Element type of an interface collection may not be a ref struct or a type parameter allowing ref structs</value>
+    <value>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</value>
   </data>
 </root>
