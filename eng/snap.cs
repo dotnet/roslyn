@@ -63,6 +63,7 @@ if (!dryRun && args is not [])
 
 // Welcome message.
 console.MarkupLineInterpolated($"Welcome to [grey]{getFileName()}[/], an interactive script to help with snap-related infra tasks");
+static string getFileName([CallerFilePath] string filePath = "unknownFile") => Path.GetFileName(filePath);
 
 console.MarkupLine(dryRun
     ? "[yellow]Note:[/] Running in [green]dry run[/] mode, no changes will be made"
@@ -449,8 +450,6 @@ else
 }
 
 return 0;
-
-static string getFileName([CallerFilePath] string filePath = "unknownFile") => Path.GetFileName(filePath);
 
 file sealed record PullRequest(int Number, string Title, DateTimeOffset MergedAt, Commit MergeCommit)
 {
