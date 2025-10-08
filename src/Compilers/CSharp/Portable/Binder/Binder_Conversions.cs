@@ -837,10 +837,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, targetType);
             }
 
-            CollectionBuilderInfo? collectionBuilderInfo = null;
-            //ImmutableArray<BoundExpression> collectionBuilderPrefixArguments = [];
-            //BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
-            //BoundExpression? collectionBuilderInvocationConversion = null;
+            BoundExpression? collectionCreation = null;
+            MethodSymbol? collectionBuilderMethod = null;
+            BoundValuePlaceholder? collectionBuilderElementsPlaceholder = null;
 
             switch (collectionTypeKind)
             {
@@ -871,14 +870,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        collectionBuilderInfo = bindCollectionBuilderInfo(
+                        (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(
                             this, node, targetType, collectionBuilderMethods, diagnostics);
-                        if (collectionBuilderInfo is null)
+                        if (collectionCreation is null || collectionBuilderMethod is null || collectionBuilderElementsPlaceholder is null)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        var lastParameterType = collectionBuilderInfo.Value.Method.Parameters.Last().Type;
+                        var lastParameterType = collectionBuilderMethod.Parameters.Last().Type;
                         Debug.Assert(lastParameterType.IsReadOnlySpan());
                         elementType = ((NamedTypeSymbol)lastParameterType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                     }
@@ -895,7 +894,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var elements = node.Elements;
             var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
-            BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
 
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
@@ -1014,7 +1012,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation,
-                collectionBuilderInfo,
+                collectionBuilderMethod,
+                collectionBuilderElementsPlaceholder,
                 wasTargetTyped: true,
                 hasWithElement: node.WithElement != null,
                 node,
@@ -1049,12 +1048,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: element.LengthOrCount);
             }
 
-            static CollectionBuilderInfo? bindCollectionBuilderInfo(
-                Binder @this,
-                BoundUnconvertedCollectionExpression node,
-                TypeSymbol targetType,
-                ImmutableArray<MethodSymbol> collectionBuilderMethods,
-                BindingDiagnosticBag diagnostics)
+            static (BoundExpression? collectionCreate, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholde)
+                bindCollectionBuilderInfo(
+                    Binder @this,
+                    BoundUnconvertedCollectionExpression node,
+                    TypeSymbol targetType,
+                    ImmutableArray<MethodSymbol> collectionBuilderMethods,
+                    BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(collectionBuilderMethods.Length > 0);
 
@@ -1995,7 +1995,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
-                collectionBuilderInfo: null,
+                collectionBuilderMethod: null,
+                collectionBuilderElementsPlaceholder: null,
                 wasTargetTyped: inConversion,
                 hasWithElement: node.WithElement != null,
                 node,

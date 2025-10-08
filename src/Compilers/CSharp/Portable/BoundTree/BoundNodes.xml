@@ -1952,10 +1952,14 @@
     <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
-    <!-- Call to instantiate a collection with a constructor. -->
+    <!-- Call to instantiate a collection with a constructor or through a builder method.
+         In former case this should be a BoundObjectCreationExpression.  In the latter
+         this should be a BoundCall (possibly wrapped in a conversion). -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow"/>
-    <!-- Information needed to call a collection builder method -->
-    <Field Name="CollectionBuilderInfo" Type="CollectionBuilderInfo?" Null="allow"/>
+    <!-- Collection builder method being invoked. If generic, this will be the constructed form -->
+    <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
+    <!-- Placeholder location where the builder elements will be placed -->
+    <Field Name="CollectionBuilderElementsPlaceholder" Type="BoundValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="HasWithElement" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>

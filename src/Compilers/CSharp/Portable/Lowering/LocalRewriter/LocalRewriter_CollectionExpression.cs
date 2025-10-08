@@ -243,11 +243,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is
                 {
-                    CollectionBuilderInfo.Method: { ParameterCount: 1 } builder,
+                    CollectionBuilderMethod: { Parameters: [var parameter] } builder,
                     Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }],
                 } &&
-                ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&
-                (!builder.ReturnType.IsRefLikeType || builder.Parameters[0].EffectiveScope == ScopedKind.ScopedValue))
+                ConversionsBase.HasIdentityConversion(parameter.Type, spreadType) &&
+                (!builder.ReturnType.IsRefLikeType || parameter.EffectiveScope == ScopedKind.ScopedValue))
             {
                 spreadExpression = expr;
             }
@@ -507,12 +507,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
-            Debug.Assert(node.CollectionCreation is null);
+            Debug.Assert(node.CollectionCreation is { });
             Debug.Assert(node.Placeholder is null);
-            Debug.Assert(node.CollectionBuilderInfo is { });
+            Debug.Assert(node.CollectionBuilderMethod is { });
+            Debug.Assert(node.CollectionBuilderElementsPlaceholder is { });
 
-            var collectionBuilderInfo = node.CollectionBuilderInfo.Value;
-            var constructMethod = collectionBuilderInfo.Method;
+            var constructMethod = node.CollectionBuilderMethod;
 
             // All these pieces are guaranteed by the earlier binding phase.
             var readonlySpanParameter = constructMethod.Parameters.Last();
@@ -529,40 +529,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? VisitExpression(spreadExpression)
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
-            // Add the final 'span' to the arguments of the original call.
-
-            var projectionCall = collectionBuilderInfo.ProjectionCall;
-            var arguments = projectionCall.Arguments;
-            var argumentNames = projectionCall.ArgumentNamesOpt;
-            var argumentRefKinds = projectionCall.ArgumentRefKindsOpt;
-
-            arguments = arguments.Add(span);
-            if (!argumentNames.IsDefault)
-                argumentNames = argumentNames.Add(readonlySpanParameter.Name);
-
-            if (!argumentRefKinds.IsDefault)
-                argumentRefKinds = argumentRefKinds.Add(RefKind.None);
-
-            var nonProjectionCall = new BoundCall(
-                node.Syntax,
-                receiverOpt: null,
-                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                method: constructMethod,
-                arguments: arguments,
-                argumentNamesOpt: argumentNames,
-                argumentRefKindsOpt: argumentRefKinds,
-                isDelegateCall: false,
-                expanded: false,
-                invokedAsExtensionMethod: false,
-                argsToParamsOpt: default,
-                defaultArguments: projectionCall.DefaultArguments,
-                resultKind: LookupResultKind.Viable,
-                type: constructMethod.ReturnType);
-
-            var invocationPlaceholder = collectionBuilderInfo.CallPlaceHolder;
-            AddPlaceholderReplacement(invocationPlaceholder, nonProjectionCall);
-            var result = VisitExpression(collectionBuilderInfo.Conversion);
-            RemovePlaceholderReplacement(invocationPlaceholder);
+            // Replace the placeholder with the span value and rewrite the collection creation.
+            var elementsPlaceholder = node.CollectionBuilderElementsPlaceholder;
+            AddPlaceholderReplacement(elementsPlaceholder, span);
+            var result = VisitExpression(node.CollectionCreation);
+            RemovePlaceholderReplacement(elementsPlaceholder);
 
             return result;
         }
