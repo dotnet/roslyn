@@ -841,10 +841,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (11,17): error CS9338: Collection arguments for read-only interface must be empty
+                // (11,17): error CS9338: 'with(...)' element for read-only interface must be empty
                 //         return [with(c), x, y, z];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(11, 17),
-                // (15,17): error CS9338: Collection arguments for read-only interface must be empty
+                // (15,17): error CS9338: 'with(...)' element for read-only interface must be empty
                 //         return [with(capacity: c), x, y, z];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(15, 17));
         }
@@ -877,10 +877,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (6,17): error CS9338: Collection arguments for read-only interface must be empty
+                // (6,17): error CS9338: 'with(...)' element for read-only interface must be empty
                 //         return [with(c), x, y, z];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(6, 17),
-                // (10,17): error CS9338: Collection arguments for read-only interface must be empty
+                // (10,17): error CS9338: 'with(...)' element for read-only interface must be empty
                 //         return [with(collection: c), x, y, z];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(10, 17));
         }
@@ -943,16 +943,16 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             case "System.Collections.Generic.IReadOnlyCollection<T>":
             case "System.Collections.Generic.IReadOnlyList<T>":
                 comp.VerifyEmitDiagnostics(
-                    // (9,14): error CS9338: Collection arguments for read-only interface must be empty
+                    // (9,14): error CS9338: 'with(...)' element for read-only interface must be empty
                     //         c = [with(default)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(9, 14),
-                    // (10,14): error CS9338: Collection arguments for read-only interface must be empty
+                    // (10,14): error CS9338: 'with(...)' element for read-only interface must be empty
                     //         c = [with(capacity)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(10, 14),
-                    // (11,14): error CS9338: Collection arguments for read-only interface must be empty
+                    // (11,14): error CS9338: 'with(...)' element for read-only interface must be empty
                     //         c = [with(comparer)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(11, 14),
-                    // (12,14): error CS9338: Collection arguments for read-only interface must be empty
+                    // (12,14): error CS9338: 'with(...)' element for read-only interface must be empty
                     //         c = [with(capacity, comparer)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(12, 14));
                 break;
@@ -1002,7 +1002,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9338: Collection arguments for read-only interface must be empty
+                // (7,14): error CS9338: 'with(...)' element for read-only interface must be empty
                 //         i = [with(default), t];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(7, 14),
                 // (8,17): error CS9335: Collection argument element must be the first element
