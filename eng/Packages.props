@@ -336,7 +336,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
 
     <!-- <Metalama> -->
-    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
+    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="9.0.0" />
     <!-- </Metalama> -->
   <!--
       The version of Roslyn used in the RoslynAnalyzers varies. These are defaults that
