@@ -198,8 +198,8 @@ internal readonly struct NameDeclarationInfo(
         return result.Type != null;
     }
 
-    private static bool IsMethodDeclaration(SyntaxToken token, SemanticModel semanticModel,
-        CancellationToken cancellationToken, out NameDeclarationInfo result)
+    private static bool IsMethodDeclaration(
+        SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out NameDeclarationInfo result)
     {
         result = IsLastTokenOfType<MethodDeclarationSyntax>(
             token,
@@ -220,45 +220,30 @@ internal readonly struct NameDeclarationInfo(
         Func<DeclarationModifiers, ImmutableArray<SymbolKindOrTypeKind>> possibleDeclarationComputer,
         CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
-        if (!IsPossibleTypeToken(token) && !token.IsKind(SyntaxKind.CommaToken))
-        {
+        var afterComma = token.IsKind(SyntaxKind.CommaToken);
+        if (!IsPossibleTypeToken(token) && !afterComma)
             return default;
-        }
 
         var target = token.GetAncestor<TSyntaxNode>();
         if (target == null)
-        {
             return default;
-        }
 
-        if (token.IsKind(SyntaxKind.CommaToken) && token.Parent != target)
-        {
+        if (afterComma && token.Parent != target)
             return default;
-        }
 
         var typeSyntax = typeSyntaxGetter(target);
         if (typeSyntax == null)
-        {
             return default;
-        }
 
-        if (!token.IsKind(SyntaxKind.CommaToken) && token != typeSyntax.GetLastToken())
-        {
+        if (!afterComma && token != typeSyntax.GetLastToken())
             return default;
-        }
 
         var modifiers = modifierGetter(target);
         if (modifiers == null)
-        {
             return default;
-        }
 
-        return new NameDeclarationInfo(
-            possibleDeclarationComputer(GetDeclarationModifiers(modifiers.Value)),
-            GetAccessibility(modifiers.Value),
-            GetDeclarationModifiers(modifiers.Value),
-            semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type,
-            semanticModel.GetAliasInfo(typeSyntax, cancellationToken));
+        return ComputeInfo(
+            semanticModel, possibleDeclarationComputer, typeSyntax, modifiers.Value, tryInferAsync: !afterComma, cancellationToken);
     }
 
     private static NameDeclarationInfo IsLastTokenOfType<TSyntaxNode>(
@@ -295,11 +280,36 @@ internal readonly struct NameDeclarationInfo(
 
         var modifiers = modifierGetter(target);
 
+        return ComputeInfo(semanticModel, possibleDeclarationComputer, typeSyntax, modifiers, tryInferAsync: true, cancellationToken);
+    }
+
+    private static NameDeclarationInfo ComputeInfo(
+        SemanticModel semanticModel,
+        Func<DeclarationModifiers, ImmutableArray<SymbolKindOrTypeKind>> possibleDeclarationComputer,
+        SyntaxNode typeSyntax,
+        SyntaxTokenList modifiers,
+        bool tryInferAsync,
+        CancellationToken cancellationToken)
+    {
+        var declarationModifiers = GetDeclarationModifiers(modifiers);
+        var possibleDeclarations = possibleDeclarationComputer(declarationModifiers);
+
+        // Treat a declaration as async if if it is explicitly marked as 'async' or if it is a method that returns a
+        // Task-like type. The latter ensures that even if the user didn't have an explicit 'async' modifier, we still
+        // name the member in an appropriate fashion (e.g. `GetCustomerAsync` for `public Task<Customer> $$`).
+        var type = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
+        if (!declarationModifiers.IsAsync && tryInferAsync)
+        {
+            var knownTaskTypes = new KnownTaskTypes(semanticModel.Compilation);
+            if (knownTaskTypes.IsTaskLike(type))
+                declarationModifiers = declarationModifiers.WithAsync(true);
+        }
+
         return new NameDeclarationInfo(
-            possibleDeclarationComputer(GetDeclarationModifiers(modifiers)),
+            possibleDeclarations,
             GetAccessibility(modifiers),
-            GetDeclarationModifiers(modifiers),
-            semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type,
+            declarationModifiers,
+            type,
             semanticModel.GetAliasInfo(typeSyntax, cancellationToken));
     }
 

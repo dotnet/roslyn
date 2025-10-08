@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,22 +17,20 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class AddDocCommentNodesCodesFixProviderTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private static readonly CSharpParseOptions Regular = new(kind: SourceCodeKind.Regular);
-
-    public AddDocCommentNodesCodesFixProviderTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
 
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpAddDocCommentNodesCodeFixProvider());
 
-    private async Task TestAsync(string initial, string expected)
+    private async Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initial,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected)
     {
         var parseOptions = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-        await TestAsync(initial, expected, parseOptions: parseOptions);
+        await TestAsync(initial, expected, new(parseOptions: parseOptions));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]

@@ -261,8 +261,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var xGroupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(x.OriginalDefinition.ContainingType);
-                var yGroupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(y.OriginalDefinition.ContainingType);
+                var xExtension = x.OriginalDefinition.ContainingType;
+                var xGroupingKey = ((SourceNamedTypeSymbol)xExtension).ExtensionGroupingName;
+                Debug.Assert(xGroupingKey is not null);
+                var yExtension = y.OriginalDefinition.ContainingType;
+                var yGroupingKey = ((SourceNamedTypeSymbol)yExtension).ExtensionGroupingName;
 
                 if (!xGroupingKey.Equals(yGroupingKey))
                 {
@@ -270,8 +273,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SourceMemberContainerTypeSymbol.DoOperatorsPair(
-                           x.OriginalDefinition.AsMember(xGroupingKey.NormalizedExtension),
-                           y.OriginalDefinition.AsMember(yGroupingKey.NormalizedExtension));
+                           x.OriginalDefinition.AsMember(Normalize(xExtension)),
+                           y.OriginalDefinition.AsMember(Normalize(yExtension)));
+            }
+
+            private static NamedTypeSymbol Normalize(NamedTypeSymbol extension)
+            {
+                if (extension.Arity != 0)
+                {
+                    extension = extension.Construct(IndexedTypeParameterSymbol.Take(extension.Arity));
+                }
+
+                return extension;
             }
 
             public int GetHashCode(MethodSymbol op)
@@ -280,10 +293,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 int result = typeComparer.GetHashCode(op.OriginalDefinition.ContainingType.ContainingType);
 
-                var groupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(op.OriginalDefinition.ContainingType);
+                var extension = op.OriginalDefinition.ContainingType;
+                var groupingKey = ((SourceNamedTypeSymbol)extension).ExtensionGroupingName;
+                Debug.Assert(groupingKey is not null);
                 result = Hash.Combine(result, groupingKey.GetHashCode());
 
-                foreach (var parameter in op.OriginalDefinition.AsMember(groupingKey.NormalizedExtension).Parameters)
+                foreach (var parameter in op.OriginalDefinition.AsMember(Normalize(extension)).Parameters)
                 {
                     result = Hash.Combine(result, typeComparer.GetHashCode(parameter.Type));
                 }

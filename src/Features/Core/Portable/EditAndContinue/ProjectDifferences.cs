@@ -10,10 +10,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// <summary>
 /// Differences between documents of old and new projects.
 /// </summary>
-internal readonly struct ProjectDifferences() : IDisposable
+internal sealed class ProjectDifferences() : IDisposable
 {
     public readonly ArrayBuilder<Document> ChangedOrAddedDocuments = ArrayBuilder<Document>.GetInstance();
     public readonly ArrayBuilder<Document> DeletedDocuments = ArrayBuilder<Document>.GetInstance();
+
+    /// <summary>
+    /// Projects differ in compilation options, parse options, or other project attributes.
+    /// </summary>
+    public bool HasSettingChange { get; set; }
+
+    /// <summary>
+    /// Projects differ in project or metadata references.
+    /// </summary>
+    public bool HasReferenceChange { get; set; }
 
     public void Dispose()
     {
@@ -25,7 +35,7 @@ internal readonly struct ProjectDifferences() : IDisposable
         => !ChangedOrAddedDocuments.IsEmpty || !DeletedDocuments.IsEmpty;
 
     public bool Any()
-        => HasDocumentChanges;
+        => HasDocumentChanges || HasSettingChange || HasReferenceChange;
 
     public bool IsEmpty
         => !Any();
@@ -34,5 +44,23 @@ internal readonly struct ProjectDifferences() : IDisposable
     {
         ChangedOrAddedDocuments.Clear();
         DeletedDocuments.Clear();
+    }
+
+    public void Log(TraceLog log, Project newProject)
+    {
+        if (HasDocumentChanges)
+        {
+            log.Write($"Found {ChangedOrAddedDocuments.Count} potentially changed, {DeletedDocuments.Count} deleted document(s) in project {newProject.GetLogDisplay()}");
+        }
+
+        if (HasReferenceChange)
+        {
+            log.Write($"References of project {newProject.GetLogDisplay()} changed");
+        }
+
+        if (HasSettingChange)
+        {
+            log.Write($"Settings of project {newProject.GetLogDisplay()} changed");
+        }
     }
 }

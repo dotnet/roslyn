@@ -220,14 +220,14 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         DebuggingSessionId sessionId,
         Solution solution,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
         {
-            return ValueTaskFactory.FromResult(EmitSolutionUpdateResults.Empty);
+            return ValueTask.FromResult(EmitSolutionUpdateResults.Empty);
         }
 
         return debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider, cancellationToken);
@@ -249,14 +249,6 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         debuggingSession.DiscardSolutionUpdate();
     }
 
-    public void UpdateBaselines(DebuggingSessionId sessionId, Solution solution, ImmutableArray<ProjectId> rebuiltProjects)
-    {
-        var debuggingSession = TryGetDebuggingSession(sessionId);
-        Contract.ThrowIfNull(debuggingSession);
-
-        debuggingSession.UpdateBaselines(solution, rebuiltProjects);
-    }
-
     public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         var debuggingSession = TryGetDebuggingSession(sessionId);
@@ -273,7 +265,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
         {
-            return ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+            return ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
         }
 
         return debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken);

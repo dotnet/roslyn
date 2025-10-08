@@ -151,7 +151,7 @@ internal abstract partial class AbstractFindUsagesService
         // of an override, including the abstract as well isn't helpful.
 
         // Make a copy of this list as we mutating it as we proceed.
-        var overrides = result.Where(s => s.IsOverride).ToImmutableArray();
+        var overrides = result.WhereAsArray(s => s.IsOverride);
         foreach (var ov in overrides)
         {
             for (var overridden = ov.GetOverriddenMember(allowLooseMatch: true);

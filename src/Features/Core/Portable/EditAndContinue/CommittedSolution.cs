@@ -66,15 +66,17 @@ internal sealed class CommittedSolution
 
     /// <summary>
     /// Tracks stale projects. Changes in these projects are ignored and their representation in the <see cref="_solution"/> does not match the binaries on disk.
+    /// The value is the MVID of the module at the time it was determined to be stale (source code content did not match the PDB).
+    /// A build that updates the binary to new content (that presumably matches the source code) will update the MVID. When that happens we unstale the project.
     /// 
     /// Build of a multi-targeted project that sets <c>SingleTargetBuildForStartupProjects</c> msbuild property (e.g. MAUI) only 
     /// builds TFM that's active. Other TFMs of the projects remain unbuilt or stale (from previous build).
     /// 
     /// A project is removed from this set if it's rebuilt.
     /// 
-    /// Lock <see cref="_guard"/> to access.
+    /// Lock <see cref="_guard"/> to update.
     /// </summary>
-    private readonly HashSet<ProjectId> _staleProjects = [];
+    private ImmutableDictionary<ProjectId, Guid> _staleProjects = ImmutableDictionary<ProjectId, Guid>.Empty;
 
     /// <summary>
     /// Implements workaround for https://github.com/dotnet/project-system/issues/5457.
@@ -142,13 +144,8 @@ internal sealed class CommittedSolution
     public Project GetRequiredProject(ProjectId id)
         => _solution.GetRequiredProject(id);
 
-    public bool IsStaleProject(ProjectId id)
-    {
-        lock (_guard)
-        {
-            return _staleProjects.Contains(id);
-        }
-    }
+    public ImmutableDictionary<ProjectId, Guid> StaleProjects
+        => _staleProjects;
 
     public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string path)
         => _solution.GetDocumentIdsWithFilePath(path);
@@ -458,16 +455,18 @@ internal sealed class CommittedSolution
         }
     }
 
-    public void CommitChanges(Solution solution, ImmutableArray<ProjectId> projectsToStale, IReadOnlyCollection<ProjectId> projectsToUnstale)
+    public void CommitChanges(Solution solution, ImmutableDictionary<ProjectId, Guid> staleProjects)
     {
-        Debug.Assert(projectsToStale.Intersect(projectsToUnstale).IsEmpty());
-
         lock (_guard)
         {
             _solution = solution;
-            _staleProjects.AddRange(projectsToStale);
-            _staleProjects.RemoveRange(projectsToUnstale);
-            _documentState.RemoveAll(static (documentId, _, projectsToUnstale) => projectsToUnstale.Contains(documentId.ProjectId), projectsToUnstale);
+
+            var oldStaleProjects = _staleProjects;
+            _staleProjects = staleProjects;
+
+            _documentState.RemoveAll(
+                static (documentId, _, args) => args.oldStaleProjects.ContainsKey(documentId.ProjectId) && !args.staleProjects.ContainsKey(documentId.ProjectId),
+                (oldStaleProjects, staleProjects));
         }
     }
 

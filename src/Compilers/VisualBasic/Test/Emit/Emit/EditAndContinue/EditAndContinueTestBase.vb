@@ -8,9 +8,11 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,6 +22,15 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EditAndContinueTestBase
         Inherits BasicTestBase
+
+        Public Shared ReadOnly MetadataUpdateDeletedAttributeSource As String = "
+            Namespace System.Runtime.CompilerServices
+                <AttributeUsage(AttributeTargets.All, AllowMultiple:=False, Inherited:=False)>
+                Public Class MetadataUpdateDeletedAttribute
+                    Inherits Attribute
+                End Class
+            End Namespace
+        "
 
         ' PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
         Friend Shared ReadOnly ComSafeDebugDll As VisualBasicCompilationOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
@@ -307,11 +318,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared Function CreateMatcher(fromCompilation As VisualBasicCompilation, toCompilation As VisualBasicCompilation) As VisualBasicSymbolMatcher
             Return New VisualBasicSymbolMatcher(
-                fromCompilation.SourceAssembly,
-                toCompilation.SourceAssembly,
-                synthesizedTypes:=SynthesizedTypeMaps.Empty,
-                otherSynthesizedMembersOpt:=Nothing,
-                otherDeletedMembersOpt:=Nothing)
+                sourceAssembly:=fromCompilation.SourceAssembly,
+                otherAssembly:=toCompilation.SourceAssembly,
+                otherSynthesizedTypes:=SynthesizedTypeMaps.Empty,
+                otherSynthesizedMembers:=SpecializedCollections.EmptyReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                otherDeletedMembers:=SpecializedCollections.EmptyReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
         End Function
     End Class
 

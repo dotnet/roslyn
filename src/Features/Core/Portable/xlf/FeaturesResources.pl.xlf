@@ -1130,11 +1130,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">{0} musi zwrócić strumień, który obsługuje operacje odczytu i wyszukiwania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Method_0_must_be_static_and_non_generic">
-        <source>Method '{0}' must be static and non-generic</source>
-        <target state="translated">Metoda „{0}” musi być statyczna i nieogólna</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
         <target state="translated">Różne pliki</target>
@@ -1282,7 +1277,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier '{0}'</source>
-        <target state="needs-review-translation">Zagnieżdżony kwantyfikator {0}</target>
+        <target state="new">Nested quantifier '{0}'</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1345,11 +1340,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Operatory</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_type_0_is_not_among_supported_types_1">
-        <source>Parameter type '{0}' is not among supported types: {1}</source>
-        <target state="new">Parameter type '{0}' is not among supported types: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
         <target state="translated">Przed zmianą nazwy tego elementu napraw problemy występujące w kodzie.</target>
@@ -1410,19 +1400,14 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="new">Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
-      <trans-unit id="Query">
-        <source>Query</source>
-        <target state="translated">Zapytanie</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name '{0}'</source>
-        <target state="needs-review-translation">Odwołanie do niezdefiniowanej nazwy grupy {0}</target>
+        <target state="new">Reference to undefined group name '{0}'</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="new">Reference to undefined group number {0}</target>
+        <target state="translated">Odwołanie do niezdefiniowanego numeru grupy {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
@@ -2620,11 +2605,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Rozpoznaj moduł: „{0}” z „{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Return_type_0_is_not_among_supported_types_1">
-        <source>Return type '{0}' is not among supported types: {1}</source>
-        <target state="new">Return type '{0}' is not among supported types: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Edycja reguły</target>
@@ -2658,16 +2638,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
         <target state="translated">Wyszukiwanie semantyczne jest obsługiwane tylko wtedy, gdy analiza kodu jest uruchamiana w osobnym procesie na najnowszej platformie .NET (zobacz Narzędzia &gt; Opcje &gt; Edytor tekstów &gt; C# &gt; Zaawansowane).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Semantic_search_query_failed_to_compile">
-        <source>Semantic search query failed to compile</source>
-        <target state="translated">Nie można skompilować zapytania wyszukiwania semantycznego</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Semantic_search_query_terminated_with_exception">
-        <source>Semantic search query terminated with exception</source>
-        <target state="translated">Zapytanie wyszukiwania semantycznego zostało zakończone z wyjątkiem</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2762,17 +2732,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">Zestaw analizatora „{0}” odwołuje się do wersji „{1}” kompilatora, która jest nowsza niż obecnie uruchomiona wersja „{2}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_query_does_not_specify_0_top_level_function">
-        <source>The query does not specify '{0}' top-level function</source>
-        <target state="new">The query does not specify '{0}' top-level function</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_query_specifies_multiple_top_level_functions_1">
-        <source>The query specifies multiple top-level functions '{1}'</source>
-        <target state="new">The query specifies multiple top-level functions '{1}'</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2815,11 +2775,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Zbyt wiele znaków )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
-      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
-        <source>Top-level function '{0}' must have a single parameter</source>
-        <target state="new">Top-level function '{0}' must have a single parameter</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Końcowy przecinek jest niedozwolony.</target>
@@ -2843,11 +2798,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Unable_to_get_the_directory_name_for_0">
         <source>Unable to get the directory name for {0}.</source>
         <target state="new">Unable to get the directory name for {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_load_type_0_1">
-        <source>Unable to load type '{0}': '{1}'</source>
-        <target state="translated">Nie można załadować typu „{0}”: „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -3663,6 +3613,11 @@ Jeśli specyfikator formatu „d” zostanie użyty bez innych indywidualnych sp
         <target state="translated">osadzone</target>
         <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
       </trans-unit>
+      <trans-unit id="extension_block">
+        <source>extension block</source>
+        <target state="new">extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="external">
         <source>external</source>
         <target state="translated">zewnętrzny</target>
@@ -4242,7 +4197,7 @@ Czy chcesz kontynuować?</target>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>{0} - {1}</source>
-        <target state="needs-review-translation">    {0} - {1}</target>
+        <target state="new">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">

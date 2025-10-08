@@ -31,7 +31,7 @@ public sealed class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDia
     private async Task TestAsync(string initial, string expected)
     {
         var parseOptions = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-        await TestAsync(initial, expected, parseOptions: parseOptions);
+        await TestAsync(initial, expected, new(parseOptions: parseOptions));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]

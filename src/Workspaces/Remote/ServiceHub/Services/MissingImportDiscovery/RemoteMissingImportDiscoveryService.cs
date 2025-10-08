@@ -39,7 +39,7 @@ internal sealed class RemoteMissingImportDiscoveryService(
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var document = solution.GetDocument(documentId);
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document is null)
                 return [];
 
@@ -68,7 +68,7 @@ internal sealed class RemoteMissingImportDiscoveryService(
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var document = solution.GetDocument(documentId);
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document is null)
                 return [];
 

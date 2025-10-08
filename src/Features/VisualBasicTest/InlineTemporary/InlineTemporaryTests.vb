@@ -4381,7 +4381,7 @@ End Class
 
         <Fact>
         Public Async Function TestWithLinkedFile() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "<Workspace>
     <Project Language='Visual Basic' CommonReferences='true' AssemblyName='LinkedProj' Name='VBProj.1'>
         <Document FilePath='C.vb'>

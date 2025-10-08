@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Protected MustOverride ReadOnly Property Kind As SyntaxKind
 
         Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As T, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
-            Return ValueTaskFactory.FromResult(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New BinaryConditionalExpressionDocumentation(), New TernaryConditionalExpressionDocumentation()})
+            Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New BinaryConditionalExpressionDocumentation(), New TernaryConditionalExpressionDocumentation()})
         End Function
 
         Protected Overrides Function IsTriggerToken(token As SyntaxToken) As Boolean

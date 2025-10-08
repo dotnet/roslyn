@@ -77,7 +77,7 @@ internal sealed class RelatedDocumentsHandler
                     FilePaths = [.. relatedDocumentIds.Select(id => solution.GetRequiredDocument(id).FilePath).WhereNotNull()],
                 });
 
-                return ValueTaskFactory.CompletedTask;
+                return ValueTask.CompletedTask;
             },
             cancellationToken).ConfigureAwait(false);
 

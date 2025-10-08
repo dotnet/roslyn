@@ -38,7 +38,7 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         LanguageVersion languageVersion = LanguageVersion.CSharp7,
         OptionsCollection? options = null)
-        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion), options: options);
+        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion), options: options));
 
     [Theory]
     [InlineData("v[||]ar name = disposable;")]

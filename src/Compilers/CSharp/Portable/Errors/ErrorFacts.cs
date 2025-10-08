@@ -411,7 +411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
-                case ErrorCode.WRN_AsyncLacksAwaits:
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
@@ -638,6 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
+                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -1484,7 +1484,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadAwaitInQuery
                 or ErrorCode.ERR_BadAwaitInLock
                 or ErrorCode.ERR_TaskRetNoObjectRequired
-                or ErrorCode.WRN_AsyncLacksAwaits
                 or ErrorCode.ERR_FileNotFound
                 or ErrorCode.WRN_FileAlreadyIncluded
                 or ErrorCode.ERR_NoFileSpec
@@ -2074,7 +2073,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement
                 or ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements
                 or ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType
-                or ErrorCode.ERR_SimpleProgramDisallowsMainType
                 or ErrorCode.ERR_SimpleProgramNotAnExecutable
                 or ErrorCode.ERR_UnsupportedCallingConvention
                 or ErrorCode.ERR_InvalidFunctionPointerCallingConvention
@@ -2532,6 +2530,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType
                 or ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator
                 or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
+                or ErrorCode.ERR_MemberNameSameAsExtendedType
+                or ErrorCode.ERR_FeatureNotAvailableInVersion14
+                or ErrorCode.ERR_ExtensionBlockCollision
+                or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
+                or ErrorCode.ERR_AttributeCannotBeAppliedManually
+                or ErrorCode.ERR_BadSpreadInCatchFilter
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

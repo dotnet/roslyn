@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -271,7 +269,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                     <Document>
             namespace ConsoleApplication1
             {
@@ -292,7 +290,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                     <Document>
@@ -425,7 +423,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                     <Document>
             namespace ConsoleApplication1
             {
@@ -450,7 +448,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                     <Document>
@@ -477,7 +475,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);

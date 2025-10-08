@@ -1836,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
-                NamespaceSymbol.AddExtensionContainersInType(signature.Method.OriginalDefinition.ContainingType.ContainingType, extensions);
+                signature.Method.OriginalDefinition.ContainingType.ContainingType.GetExtensionContainers(extensions);
 
                 UnaryOperatorAnalysisResult? bestTrue = unaryOperatorOverloadResolution(syntax, extensions, result, UnaryOperatorKind.True, leftPlaceholder, ref useSiteInfo);
                 UnaryOperatorAnalysisResult? bestFalse = null;

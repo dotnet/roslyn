@@ -326,6 +326,71 @@ public sealed class ActiveStatementTests : EditingTestBase
         edits.VerifySemanticDiagnostics(active);
     }
 
+    [Fact]
+    public void Update_TopLevel()
+    {
+        var src1 = """
+            <AS:0>F();</AS:0>
+            Map(1, () => 1);
+            """;
+
+        var src2 = """
+            <AS:0>F();</AS:0>
+            Map(2, () => 1);
+            """;
+
+        var active = GetActiveStatements(src1, src2);
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics(active);
+    }
+
+    [Fact]
+    public void Update_TopLevel_ActiveStatementInLambda()
+    {
+        var src1 = """
+            Map(1, () => <AS:0>1</AS:0>);
+            """;
+
+        var src2 = """
+            Map(2, () => <AS:0>1</AS:0>);
+            """;
+
+        var active = GetActiveStatements(src1, src2);
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics(active,
+            Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "2", GetResource("top-level code")));
+    }
+
+    [Fact]
+    public void Update_RestartRequiredAttribute()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                [RestartRequiredOnMetadataUpdateAttribute]
+                public int F()
+                    => <AS:0>1</AS:0>;
+            }
+        
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                [RestartRequiredOnMetadataUpdateAttribute]
+                public int F()
+                    => <AS:0>2</AS:0>;
+            }
+            """;
+
+        var active = GetActiveStatements(src1, src2);
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics(active);
+    }
+
     #endregion
 
     #region Delete in Method Body

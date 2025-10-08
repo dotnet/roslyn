@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             //slow part of EatToken(SyntaxKind kind)
-            return CreateMissingToken(kind, this.CurrentToken.Kind, reportError: true);
+            return CreateMissingToken(kind, this.CurrentToken.Kind);
         }
 
         // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
@@ -545,18 +545,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return ct;
             }
 
-            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind);
             return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
-        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
+        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual)
         {
             // should we eat the current ParseToken's leading trivia?
             var token = SyntaxFactory.MissingToken(expected);
-            if (reportError)
-            {
-                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
-            }
+            token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
 
             return token;
         }
@@ -639,14 +636,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected SyntaxToken EatContextualToken(SyntaxKind kind, bool reportError = true)
+        protected SyntaxToken EatContextualToken(SyntaxKind kind)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
 
             var contextualKind = this.CurrentToken.ContextualKind;
             if (contextualKind != kind)
             {
-                return CreateMissingToken(kind, contextualKind, reportError);
+                return CreateMissingToken(kind, contextualKind);
             }
             else
             {
@@ -821,14 +818,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, MakeError(offset, length, code, args));
         }
 
-        protected TNode AddError<TNode>(TNode node, CSharpSyntaxNode location, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
-        {
-            // assumes non-terminals will at most appear once in sub-tree
-            int offset;
-            FindOffset(node, location, out offset);
-            return WithAdditionalDiagnostics(node, MakeError(offset, location.Width, code, args));
-        }
-
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
         {
             var firstToken = node.GetFirstToken();
@@ -847,14 +836,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int width;
             GetOffsetAndWidthForLastToken(node, out offset, out width);
             return WithAdditionalDiagnostics(node, MakeError(offset, width, code));
-        }
-
-        protected TNode AddErrorToLastToken<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
-        {
-            int offset;
-            int width;
-            GetOffsetAndWidthForLastToken(node, out offset, out width);
-            return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
         }
 
         private static void GetOffsetAndWidthForLastToken<TNode>(TNode node, out int offset, out int width) where TNode : CSharpSyntaxNode
@@ -1036,61 +1017,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return target;
-        }
-
-        /// <summary>
-        /// This function searches for the given location node within the subtree rooted at root node. 
-        /// If it finds it, the function computes the offset span of that child node within the root and returns true, 
-        /// otherwise it returns false.
-        /// </summary>
-        /// <param name="root">Root node</param>
-        /// <param name="location">Node to search in the subtree rooted at root node</param>
-        /// <param name="offset">Offset of the location node within the subtree rooted at child</param>
-        /// <returns></returns>
-        private bool FindOffset(GreenNode root, CSharpSyntaxNode location, out int offset)
-        {
-            int currentOffset = 0;
-            offset = 0;
-            if (root != null)
-            {
-                for (int i = 0, n = root.SlotCount; i < n; i++)
-                {
-                    var child = root.GetSlot(i);
-                    if (child == null)
-                    {
-                        // ignore null slots
-                        continue;
-                    }
-
-                    // check if the child node is the location node
-                    if (child == location)
-                    {
-                        // Found the location node in the subtree
-                        // Initialize offset with the offset of the location node within its parent
-                        // and walk up the stack of recursive calls adding the offset of each node
-                        // within its parent
-                        offset = currentOffset;
-                        return true;
-                    }
-
-                    // search for the location node in the subtree rooted at child node
-                    if (this.FindOffset(child, location, out offset))
-                    {
-                        // Found the location node in child's subtree
-                        // Add the offset of child node within its parent to offset
-                        // and continue walking up the stack
-                        offset += child.GetLeadingTriviaWidth() + currentOffset;
-                        return true;
-                    }
-
-                    // We didn't find the location node in the subtree rooted at child
-                    // Move on to the next child
-                    currentOffset += child.FullWidth;
-                }
-            }
-
-            // We didn't find the location node within the subtree rooted at root node
-            return false;
         }
 
         protected static SyntaxToken ConvertToKeyword(SyntaxToken token)

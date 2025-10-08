@@ -47,6 +47,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ShowMessageForImplicitlySkipAnalyzers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TaskCompilerServerLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateBootstrap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vbc.cs" />

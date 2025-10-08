@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
 public sealed partial class AddUsingTests
 {
     [Fact]
@@ -395,7 +395,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod2()
@@ -447,7 +447,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod3()
@@ -499,7 +499,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod4()
@@ -551,7 +551,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod5()
@@ -603,7 +603,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod6()
@@ -655,7 +655,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod7()
@@ -707,7 +707,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod8()
@@ -759,7 +759,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod9()
@@ -811,7 +811,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod10()
@@ -883,7 +883,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod11()
@@ -955,8 +955,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            index: 1,
-            parseOptions: null);
+            new TestParameters(index: 1, parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
     public Task InExtensionMethodUnderConditionalAccessExpression()
@@ -1113,7 +1112,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/16547")]
@@ -1388,7 +1387,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            parseOptions: null);
+            new TestParameters(parseOptions: null));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55117")]
     public Task TestMethodConflictWithGenericExtension()
@@ -1506,6 +1505,267 @@ public sealed partial class AddUsingTests
                 {
                     public static T Bar<T>( this Goo @this )
                         => (T)@this.Bar( typeof( T ) );
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_Method(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        [|o.M1();|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        o.M1();
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_StaticMethod(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        [|{{sourceType}}.M1();|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}}.M1();
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_Property(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        var v = [|o.M1;|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public int M1 => 0;
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        var v = o.M1;
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public int M1 => 0;
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_StaticProperty(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        [|{{sourceType}}.M1;|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static int M1 => 0;
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}}.M1;
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static int M1 => 0;
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_TypeParameter(string sourceType)
+        // Will work once we get an API from https://github.com/dotnet/roslyn/issues/80273
+        => TestMissingAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        [|o.M1();|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension<T>(T t)
+                    {
+                        public void M1()
+                        {
+                        }
+                    }
                 }
             }
             """);

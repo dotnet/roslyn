@@ -13,7 +13,7 @@ internal sealed class ConflictingIdentifierTracker(SyntaxToken tokenBeingRenamed
     /// current identifier tokens that are declaring variables. This should only ever be updated
     /// via the AddIdentifier and RemoveIdentifier helpers.
     /// </summary>
-    private readonly Dictionary<string, List<SyntaxToken>> _currentIdentifiersInScope = new Dictionary<string, List<SyntaxToken>>(identifierComparer);
+    private readonly Dictionary<string, List<SyntaxToken>> _currentIdentifiersInScope = new(identifierComparer);
     private readonly HashSet<SyntaxToken> _conflictingTokensToReport = [];
 
     public IEnumerable<SyntaxToken> ConflictingTokens => _conflictingTokensToReport;

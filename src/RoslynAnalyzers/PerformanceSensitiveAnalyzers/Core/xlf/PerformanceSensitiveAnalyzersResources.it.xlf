@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="AnonymousNewObjectRuleTitleAndMessage">
         <source>Explicit new anonymous object allocation</source>
-        <target state="translated">Allocazione esplicita di nuovi oggetti anonimi</target>
+        <target state="new">Explicit new anonymous object allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="LetCauseRuleTitleAndMessage">
         <source>Let clause induced allocation</source>
-        <target state="translated">La clausola Let ha indotto l'allocazione</target>
+        <target state="new">Let clause induced allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="NewArrayRuleTitleAndMessage">
         <source>Explicit new array type allocation</source>
-        <target state="translated">Allocazione esplicita di nuovi tipi matrice</target>
+        <target state="new">Explicit new array type allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="NewObjectRuleTitleAndMessage">
         <source>Explicit new reference type allocation</source>
-        <target state="translated">Allocazione esplicita di nuovi tipi riferimento</target>
+        <target state="new">Explicit new reference type allocation</target>
         <note />
       </trans-unit>
     </body>

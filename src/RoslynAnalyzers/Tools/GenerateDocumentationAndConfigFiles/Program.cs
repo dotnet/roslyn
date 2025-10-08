@@ -257,7 +257,7 @@ namespace GenerateDocumentationAndConfigFiles
                 return HandleAsync(commandLineArgs, cancellationToken);
             });
 
-            return rootCommand.Parse(args).InvokeAsync(CancellationToken.None);
+            return rootCommand.Parse(args).InvokeAsync(null, CancellationToken.None);
         }
 
         private static async Task<int> HandleAsync(CommandLineArgs args, CancellationToken cancellationToken)
@@ -992,12 +992,12 @@ namespace GenerateDocumentationAndConfigFiles
 
                     foreach (var warnAsError in new[] { true, false })
                     {
-                        foreach (var analysisMode in Enum.GetValues(typeof(AnalysisMode)))
+                        foreach (var analysisMode in Enum.GetValues<AnalysisMode>())
                         {
-                            CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, (AnalysisMode)analysisMode!, warnAsError, releaseTrackingData, category: null);
+                            CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, analysisMode, warnAsError, releaseTrackingData, category: null);
                             foreach (var category in categories!)
                             {
-                                CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, (AnalysisMode)analysisMode!, warnAsError, releaseTrackingData, category);
+                                CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, analysisMode, warnAsError, releaseTrackingData, category);
                             }
                         }
                     }

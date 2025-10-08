@@ -4,77 +4,77 @@
     <body>
       <trans-unit id="Building_Project">
         <source>Building Project</source>
-        <target state="translated">正在生成项目</target>
+        <target state="new">Building Project</target>
         <note />
       </trans-unit>
       <trans-unit id="Copying_selection_to_Interactive_Window">
         <source>Copying selection to Interactive Window.</source>
-        <target state="translated">将所选内容复制到交互窗口。</target>
+        <target state="new">Copying selection to Interactive Window.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_to_rename_shift_enter_to_preview">
         <source>Enter to rename, Shift+Enter to preview</source>
-        <target state="translated">Enter 重命名，Shift+Enter 预览</target>
+        <target state="new">Enter to rename, Shift+Enter to preview</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion">
         <source>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</source>
-        <target state="translated">按 Enter 可重命名，按 Shift+Enter 可预览，按 Ctrl+空格键可获取重命名建议</target>
+        <target state="new">Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_performing_rename_0">
         <source>Error performing rename: '{0}'</source>
-        <target state="translated">执行重命名时出错:“{0}”</target>
+        <target state="new">Error performing rename: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Executing_selection_in_Interactive_Window">
         <source>Executing selection in Interactive Window.</source>
-        <target state="translated">在交互窗口中执行所选内容。</target>
+        <target state="new">Executing selection in Interactive Window.</target>
         <note />
       </trans-unit>
       <trans-unit id="Generating_suggestions">
         <source>Generating suggestions...</source>
-        <target state="translated">正在生成建议...</target>
+        <target state="new">Generating suggestions...</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
-        <target state="translated">获取 AI 支持的重命名建议(Ctrl+空格键)</target>
+        <target state="new">Get AI-powered rename suggestions (Ctrl+Space)</target>
         <note />
       </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
         <source>Interactive host process platform</source>
-        <target state="translated">交互式主机进程平台</target>
+        <target state="new">Interactive host process platform</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process">
         <source>Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</source>
-        <target state="translated">通过选择切换主机进程的运行时，将执行环境重置为初始状态并保留历史记录。</target>
+        <target state="new">Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">
         <source>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</source>
-        <target state="translated">重置为干净环境(仅引用 mscorlib)，不要运行初始化脚本。</target>
+        <target state="new">Reset to a clean environment (only mscorlib referenced), do not run initialization script.</target>
         <note />
       </trans-unit>
       <trans-unit id="Resetting_Interactive">
         <source>Resetting Interactive</source>
-        <target state="translated">正在重置交互</target>
+        <target state="new">Resetting Interactive</target>
         <note />
       </trans-unit>
       <trans-unit id="Resetting_execution_engine">
         <source>Resetting execution engine.</source>
-        <target state="translated">正在重置执行引擎。</target>
+        <target state="new">Resetting execution engine.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
         <source>The CurrentWindow property may only be assigned once.</source>
-        <target state="translated">只能对 CurrentWindow 属性进行一次赋值。</target>
+        <target state="new">The CurrentWindow property may only be assigned once.</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggle_AI_suggestions">
         <source>Toggle rename suggestions (Ctrl+Space)</source>
-        <target state="translated">切换重命名建议(Ctrl+空格)</target>
+        <target state="new">Toggle rename suggestions (Ctrl+Space)</target>
         <note />
       </trans-unit>
     </body>

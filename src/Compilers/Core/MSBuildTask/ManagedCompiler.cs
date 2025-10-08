@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         private CancellationTokenSource? _sharedCompileCts;
-        internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         internal abstract RequestLanguage Language { get; }
 
@@ -510,7 +509,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            var logger = new TaskCompilerServerLogger(Log, innerLogger);
             return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
 
@@ -822,7 +822,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             else
             {
                 logger.Log(message);
-                Log.LogMessage(message);
             }
         }
 

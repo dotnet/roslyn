@@ -4,137 +4,137 @@
     <body>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
         <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
-        <target state="translated">Wyliczenie publiczne ma atrybut System.FlagsAttribute, lecz jego nazwa nie kończy się literą „s”. Nazwy typów oznaczonych atrybutem FlagsAttribute mają nazwy w liczbie mnogiej, ponieważ ten atrybut wskazuje, że można określić więcej niż jedną wartość.</target>
+        <target state="new">A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
         <source>Flags enums should have plural names</source>
-        <target state="translated">Wyliczenia z flagami powinny mieć nazwy w liczbie mnogiej</target>
+        <target state="new">Flags enums should have plural names</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
         <source>Flags enums should have plural names</source>
-        <target state="translated">Wyliczenia z flagami powinny mieć nazwy w liczbie mnogiej</target>
+        <target state="new">Flags enums should have plural names</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyFileParse">
         <source>Error parsing dictionary '{0}': {1}</source>
-        <target state="translated">Wystąpił błąd podczas analizowania słownika „{0}”: {1}</target>
+        <target state="new">Error parsing dictionary '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageVariable">
         <source>Correct the spelling of '{0}' in variable name '{1}'</source>
-        <target state="translated">Popraw pisownię wyrazu „{0}” w nazwie zmiennej „{1}”</target>
+        <target state="new">Correct the spelling of '{0}' in variable name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyTitle">
         <source>Identifiers should be spelled correctly</source>
-        <target state="translated">Pisownia identyfikatorów powinna być poprawna</target>
+        <target state="new">Identifiers should be spelled correctly</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyDescription">
         <source>The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.</source>
-        <target state="translated">Nazwa identyfikatora widocznego zewnętrznie zawiera co najmniej jeden wyraz, który nie został rozpoznany przez bibliotekę sprawdzania pisowni Microsoft.</target>
+        <target state="new">The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssembly">
         <source>Correct the spelling of '{0}' in assembly name '{1}'</source>
-        <target state="translated">Popraw pisownię wyrazu „{0}” w nazwie zestawu „{1}”</target>
+        <target state="new">Correct the spelling of '{0}' in assembly name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespace">
         <source>Correct the spelling of '{0}' in namespace name '{1}'</source>
-        <target state="translated">Popraw pisownię wyrazu „{0}” w nazwie przestrzeni nazw „{1}”</target>
+        <target state="new">Correct the spelling of '{0}' in namespace name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageType">
         <source>Correct the spelling of '{0}' in type name '{1}'</source>
-        <target state="translated">Popraw pisownię wyrazu „{0}” w nazwie typu „{1}”</target>
+        <target state="new">Correct the spelling of '{0}' in type name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMember">
         <source>Correct the spelling of '{0}' in member name '{1}' or remove it entirely if it represents any sort of Hungarian notation</source>
-        <target state="translated">Popraw pisownię wyrazu „{0}” w nazwie składowej „{1}” lub usuń go całkowicie, jeśli reprezentuje dowolny rodzaj notacji węgierskiej</target>
+        <target state="new">Correct the spelling of '{0}' in member name '{1}' or remove it entirely if it represents any sort of Hungarian notation</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameter">
         <source>In method '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
-        <target state="translated">W metodzie „{0}” popraw pisownię wyrazu „{1}” w nazwie parametru „{2}” lub usuń go całkowicie, jeśli reprezentuje dowolny rodzaj notacji węgierskiej</target>
+        <target state="new">In method '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameter">
         <source>In delegate '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
-        <target state="translated">W delegacie „{0}” popraw pisownię wyrazu „{1}” w nazwie parametru „{2}” lub usuń go całkowicie, jeśli reprezentuje dowolny rodzaj notacji węgierskiej</target>
+        <target state="new">In delegate '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameter">
         <source>On type '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
-        <target state="translated">W typie „{0}” popraw pisownię wyrazu „{1}” w nazwie parametru typu ogólnego „{2}”</target>
+        <target state="new">On type '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameter">
         <source>On method '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
-        <target state="translated">W metodzie {0} popraw pisownię wyrazu „{1}” w nazwie parametru typu ogólnego „{2}”</target>
+        <target state="new">On method '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssemblyMoreMeaningfulName">
         <source>Consider providing a more meaningful name than assembly name '{0}'</source>
-        <target state="translated">Rozważ podanie bardziej zrozumiałej nazwy niż nazwa zestawu „{0}”</target>
+        <target state="new">Consider providing a more meaningful name than assembly name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespaceMoreMeaningfulName">
         <source>Consider providing a more meaningful name than namespace name '{0}'</source>
-        <target state="translated">Rozważ podanie bardziej zrozumiałej nazwy niż nazwa przestrzeni nazw „{0}”</target>
+        <target state="new">Consider providing a more meaningful name than namespace name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeMoreMeaningfulName">
         <source>Consider providing a more meaningful name than type name '{0}'</source>
-        <target state="translated">Rozważ podanie bardziej zrozumiałej nazwy niż nazwa typu „{0}”</target>
+        <target state="new">Consider providing a more meaningful name than type name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberMoreMeaningfulName">
         <source>Consider providing a more meaningful name than member name '{0}'</source>
-        <target state="translated">Rozważ podanie bardziej zrozumiałej nazwy niż nazwa składowej „{0}”</target>
+        <target state="new">Consider providing a more meaningful name than member name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameterMoreMeaningfulName">
         <source>In method '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
-        <target state="translated">W metodzie „{0}” rozważ podanie bardziej zrozumiałej nazwy niż nazwa parametru „{1}”</target>
+        <target state="new">In method '{0}', consider providing a more meaningful name than parameter name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameterMoreMeaningfulName">
         <source>In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
-        <target state="translated">W delegacie „{0}” rozważ podanie bardziej zrozumiałej nazwy niż nazwa parametru „{1}”</target>
+        <target state="new">In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameterMoreMeaningfulName">
         <source>On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
-        <target state="translated">W typie „{0}” rozważ podanie bardziej zrozumiałej nazwy niż nazwa parametru typu ogólnego „{1}”</target>
+        <target state="new">On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName">
         <source>On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
-        <target state="translated">W metodzie „{0}” rozważ podanie bardziej zrozumiałej nazwy niż nazwa parametru typu ogólnego „{1}”</target>
+        <target state="new">On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryNaming">
         <source>Naming</source>
-        <target state="translated">Nazewnictwo</target>
+        <target state="new">Naming</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
         <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
-        <target state="translated">Konwencje nazewnictwa określają, że nazwa wyliczenia w liczbie mnogiej wskazuje, iż jednocześnie można określić wiele wartości wyliczenia.</target>
+        <target state="new">Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="translated">Tylko wyliczenia z atrybutem FlagsAttribute powinny mieć nazwy w liczbie mnogiej</target>
+        <target state="new">Only FlagsAttribute enums should have plural names</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="translated">Tylko wyliczenia z atrybutem FlagsAttribute powinny mieć nazwy w liczbie mnogiej</target>
+        <target state="new">Only FlagsAttribute enums should have plural names</target>
         <note />
       </trans-unit>
     </body>

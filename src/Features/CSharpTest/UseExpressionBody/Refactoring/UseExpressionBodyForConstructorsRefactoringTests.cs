@@ -51,7 +51,7 @@ public sealed class UseExpressionBodyForConstructorsRefactoringTests : AbstractC
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -71,7 +71,7 @@ public sealed class UseExpressionBodyForConstructorsRefactoringTests : AbstractC
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -116,7 +116,7 @@ public sealed class UseExpressionBodyForConstructorsRefactoringTests : AbstractC
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -136,7 +136,7 @@ public sealed class UseExpressionBodyForConstructorsRefactoringTests : AbstractC
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -156,7 +156,7 @@ public sealed class UseExpressionBodyForConstructorsRefactoringTests : AbstractC
 
     [Fact]
     public Task TestOfferedWithSelectionInsideExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -190,7 +190,7 @@ public sealed class UseExpressionBodyForConstructorsRefactoringTests : AbstractC
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
     public Task TestCommentAfterConstructorName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Calling a static method defined on the current class via its simple name.
                         Debug.Assert(_factory.CurrentType is { });
-                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Follow up (_factory.CompilationState.Type?)
+                        Debug.Assert(!_factory.CurrentType.IsExtension); // When binding a simple name for a call, you cannot get a member inside an extension type
+                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType);
                     }
                     else
                     {
@@ -212,8 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the original call is to an instance method, and the interceptor is an extension method,
             // we need to take special care to intercept with the extension method as though it is being called in reduced form.
             Debug.Assert(receiverOpt is not BoundTypeExpression || method.IsStatic);
-            var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod; // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
-            var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation, out _) : interceptor; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test interceptors
+            var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod;
+            var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation, out _) : interceptor;
 
             if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
             {
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod)
             {
                 // Special case when intercepting an extension method call in reduced form with a non-extension.
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, method.Parameters[0], method);
@@ -394,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<LocalSymbol>? temps = null;
                 var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
-                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    forceReceiverCapturing: false,
                     arguments,
                     method,
                     argsToParamsOpt,
@@ -712,35 +713,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                    primaryCtor.GetCapturedParameters().ContainsKey(parameter);
         }
 
-        private enum ReceiverCaptureMode
-        {
-            /// <summary>
-            /// No special capture of the receiver, unless arguments need to refer to it.
-            /// For example, in case of a string interpolation handler.
-            /// </summary>
-            Default = 0,
-
-            /// <summary>
-            /// Used for a regular indexer compound assignment rewrite.
-            /// Everything is going to be in a single setter call with a getter call inside its value argument.
-            /// Only receiver and the indexes can be evaluated prior to evaluating the setter call. 
-            /// </summary>
-            CompoundAssignment,
-
-            /// <summary>
-            /// Used for situations when additional arbitrary side-effects are possibly involved.
-            /// Think about deconstruction, etc.
-            /// </summary>
-            UseTwiceComplex
-        }
-
         /// <summary>
         /// Visits all arguments of a method, doing any necessary rewriting for interpolated string handler conversions that
         /// might be present in the arguments and creating temps for any discard parameters.
+        /// 
+        /// When <paramref name="forceReceiverCapturing"/> is true (which means the receiver must be captured regardless of
+        /// interpolated string handler conversions needs), <paramref name="storesOpt"/> must be not null.
+        /// 
+        /// If receiver is captured by this method:
+        /// - If <paramref name="storesOpt"/> is not null, the side effect of capturing is added to <paramref name="storesOpt"/>
+        ///   and <paramref name="rewrittenReceiver"/> is changed to the captured value;
+        /// - Otherwise, <paramref name="rewrittenReceiver"/> is changed to a <see cref="BoundSequence"/> node with no locals,
+        ///   the side effects of capturing are the side effects of the sequence and its result is the captured value.
+        ///   
+        /// All temps introduced by this function for capturing purposes (including the temp capturing the receiver) are appended
+        /// to <paramref name="tempsOpt"/>, which is allocated if 'null' on input.
         /// </summary>
         private ImmutableArray<BoundExpression> VisitArgumentsAndCaptureReceiverIfNeeded(
             [NotNullIfNotNull(nameof(rewrittenReceiver))] ref BoundExpression? rewrittenReceiver,
-            ReceiverCaptureMode captureReceiverMode,
+            bool forceReceiverCapturing,
             ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
             ImmutableArray<int> argsToParamsOpt,
@@ -752,12 +743,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == arguments.Length);
             var requiresInstanceReceiver = methodOrIndexer.RequiresInstanceReceiver() && methodOrIndexer is not MethodSymbol { MethodKind: MethodKind.Constructor } and not FunctionPointerMethodSymbol;
             Debug.Assert(!requiresInstanceReceiver || rewrittenReceiver != null || _inExpressionLambda);
-            Debug.Assert(captureReceiverMode == ReceiverCaptureMode.Default || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
+            Debug.Assert(!forceReceiverCapturing || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
+            Debug.Assert(!forceReceiverCapturing || methodOrIndexer is PropertySymbol);
 
             BoundLocal? receiverTemp = null;
             BoundAssignmentOperator? assignmentToTemp = null;
 
-            if (captureReceiverMode != ReceiverCaptureMode.Default ||
+            if (forceReceiverCapturing ||
                 (requiresInstanceReceiver && arguments.Any(a => usesReceiver(a))))
             {
                 Debug.Assert(!_inExpressionLambda);
@@ -766,41 +758,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 RefKind refKind;
 
-                if (captureReceiverMode != ReceiverCaptureMode.Default)
+                if (methodOrIndexer.GetIsNewExtensionMember())
                 {
-                    // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
-                    // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
-                    // SPEC VIOLATION: To not depend on that, the right thing to do here is to store the value of the variable 
-                    // SPEC VIOLATION: when variable has reference type (regular temp), and store variable's location when it has a value type. (ref temp)
-                    // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
-                    // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
-                    // SPEC VIOLATION: as value types.
-
-                    refKind = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter ? RefKind.Ref : RefKind.None;
+                    refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
                 }
                 else
                 {
-                    if (rewrittenReceiver.Type.IsReferenceType)
+                    if (forceReceiverCapturing)
                     {
-                        refKind = RefKind.None;
+                        // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
+                        // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
+                        // SPEC VIOLATION: To not depend on that, the right thing to do here is to store the value of the variable 
+                        // SPEC VIOLATION: when variable has reference type (regular temp), and store variable's location when it has a value type. (ref temp)
+                        // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
+                        // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
+                        // SPEC VIOLATION: as value types.
+
+                        refKind = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter ? RefKind.Ref : RefKind.None;
                     }
                     else
                     {
-                        refKind = rewrittenReceiver.GetRefKind();
-
-                        if (refKind == RefKind.None &&
-                            CodeGenerator.HasHome(rewrittenReceiver,
-                                           CodeGenerator.AddressKind.Constrained,
-                                           _factory.CurrentFunction,
-                                           peVerifyCompatEnabled: false,
-                                           stackLocalsOpt: null))
+                        if (rewrittenReceiver.Type.IsReferenceType)
                         {
-                            refKind = RefKind.Ref;
+                            refKind = RefKind.None;
+                        }
+                        else
+                        {
+                            refKind = rewrittenReceiver.GetRefKind();
+
+                            if (refKind == RefKind.None &&
+                                CodeGenerator.HasHome(rewrittenReceiver,
+                                               CodeGenerator.AddressKind.Constrained,
+                                               _factory.CurrentFunction,
+                                               peVerifyCompatEnabled: false,
+                                               stackLocalsOpt: null))
+                            {
+                                refKind = RefKind.Ref;
+                            }
                         }
                     }
                 }
 
-                receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind);
+                receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind is RefKind.RefReadOnlyParameter ? RefKind.In : refKind);
 
                 tempsOpt ??= ArrayBuilder<LocalSymbol>.GetInstance();
                 tempsOpt.Add(receiverTemp.LocalSymbol);
@@ -871,9 +870,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator? extraRefInitialization = null;
 
                 if (receiverTemp.LocalSymbol.IsRef &&
-                    CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp) &&
+                   (methodOrIndexer.GetIsNewExtensionMember() ?
+                     !receiverTemp.Type.IsValueType :
+                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
-                    (captureReceiverMode == ReceiverCaptureMode.UseTwiceComplex ||
+                    (forceReceiverCapturing ||
                      !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(rewrittenArguments)))
                 {
                     ReferToTempIfReferenceTypeReceiver(receiverTemp, ref assignmentToTemp, out extraRefInitialization, tempsOpt);
@@ -1016,6 +1017,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private RefKind GetNewExtensionMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
+        {
+            Debug.Assert(rewrittenReceiver.Type is { });
+            Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is { });
+
+            RefKind receiverRefKind = methodOrIndexer.ContainingType.ExtensionParameter.RefKind;
+            bool isReceiverTakenByValue = receiverRefKind == RefKind.None;
+
+            if (rewrittenReceiver.Type.IsReferenceType ||
+                (isReceiverTakenByValue && methodOrIndexer is MethodSymbol)) // Extension methods with by-value receivers capture by value as classic extension methods do.
+            {
+                return RefKind.None;
+            }
+
+            if (isReceiverTakenByValue)
+            {
+                if (CodeGenerator.HasHome(rewrittenReceiver,
+                                    CodeGenerator.AddressKind.ReadOnlyStrict,
+                                    _factory.CurrentFunction,
+                                    peVerifyCompatEnabled: false,
+                                    stackLocalsOpt: null))
+                {
+                    return RefKindExtensions.StrictIn;
+                }
+
+                return RefKind.None;
+            }
+
+            RefKind refKind = ExtensionMethodReferenceRewriter.ReceiverArgumentRefKindFromReceiverRefKind(receiverRefKind);
+
+            if (CodeGenerator.HasHome(rewrittenReceiver,
+                                CodeGenerator.GetArgumentAddressKind(refKind),
+                                _factory.CurrentFunction,
+                                peVerifyCompatEnabled: false,
+                                stackLocalsOpt: null))
+            {
+                return refKind;
+            }
+
+            return RefKind.None;
+        }
+
         private void ReferToTempIfReferenceTypeReceiver(BoundLocal receiverTemp, ref BoundAssignmentOperator assignmentToTemp, out BoundAssignmentOperator? extraRefInitialization, ArrayBuilder<LocalSymbol> temps)
         {
             Debug.Assert(assignmentToTemp.IsRef);
@@ -1037,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!receiverType.IsReferenceType)
             {
                 // Store receiver ref to a different ref local - intermediate ref
-                var intermediateRef = _factory.Local(_factory.SynthesizedLocal(receiverType, refKind: RefKind.Ref));
+                var intermediateRef = _factory.Local(_factory.SynthesizedLocal(receiverType, refKind: receiverTemp.LocalSymbol.RefKind));
                 temps.Add(intermediateRef.LocalSymbol);
                 extraRefInitialization = assignmentToTemp.Update(intermediateRef, assignmentToTemp.Right, assignmentToTemp.IsRef, assignmentToTemp.Type);
 
@@ -1247,23 +1290,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < parameters.Length; i++)
             {
                 var paramRefKind = parameters[i].RefKind;
-                if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
-                {
-                    var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
-                    fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
-                    refKindsBuilder[i] = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
-                }
-                else if (paramRefKind == RefKind.Ref)
-                {
-                    var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
-                    if (argRefKind == RefKind.None)
-                    {
-                        // Interpolated strings used as interpolated string handlers are allowed to match ref parameters without `ref`
-                        Debug.Assert(parameters[i].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true });
+                var currentArgRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
+                var effectiveArgRefKind = GetEffectiveRefKind(paramRefKind, currentArgRefKind, parameters[i].Type, comRefKindMismatchPossible: false);
 
-                        fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
-                        refKindsBuilder[i] = RefKind.Ref;
-                    }
+                if (currentArgRefKind != effectiveArgRefKind)
+                {
+                    fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
+                    refKindsBuilder[i] = effectiveArgRefKind;
                 }
             }
 
@@ -1292,6 +1325,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        internal static RefKind GetEffectiveRefKind(RefKind paramRefKind, RefKind initialArgRefKind, TypeSymbol paramType, bool comRefKindMismatchPossible)
+        {
+            // Patch refKinds for arguments that match 'in' or 'ref readonly' parameters to have effective RefKind
+            // For the purpose of further analysis we will mark the arguments as -
+            // - In                    if was originally passed as None and matches an 'in' or 'ref readonly' parameter
+            // - StrictIn              if was originally passed as In or Ref and matches an 'in' or 'ref readonly' parameter
+            // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
+            // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
+            if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
+            {
+                Debug.Assert(initialArgRefKind is RefKind.None or RefKind.In or RefKind.Ref);
+                return initialArgRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
+            }
+            else if (paramRefKind == RefKind.Ref && initialArgRefKind == RefKind.None)
+            {
+                // For interpolated string handlers, we allow struct handlers to be passed as ref without a `ref`
+                // keyword
+                if (paramType is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true })
+                {
+                    return RefKind.Ref;
+                }
+                else
+                {
+                    // For complex call locations, it's possible that there's a com parameter that allows passing by ref without an explicit ref keyword. This
+                    // is not handled at the local rewriter.
+                    Debug.Assert(comRefKindMismatchPossible);
+                }
+            }
+
+            return initialArgRefKind;
         }
 
         // temporariesBuilder will be null when factory is null.
@@ -1456,20 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 arguments[p] = StoreArgumentToTempIfNecessary(forceLambdaSpilling, storesToTemps, argument, argRefKind, paramRefKind);
-
-                // Patch refKinds for arguments that match 'in' or 'ref readonly' parameters to have effective RefKind
-                // For the purpose of further analysis we will mark the arguments as -
-                // - In                    if was originally passed as None and matches an 'in' or 'ref readonly' parameter
-                // - StrictIn              if was originally passed as In or Ref and matches an 'in' or 'ref readonly' parameter
-                // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
-                // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
-                if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
-                {
-                    Debug.Assert(argRefKind is RefKind.None or RefKind.In or RefKind.Ref);
-                    argRefKind = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
-                }
-
-                refKinds[p] = argRefKind;
+                refKinds[p] = GetEffectiveRefKind(paramRefKind, argRefKind, parameters[p].Type, comRefKindMismatchPossible: true);
             }
 
             return;

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -432,11 +433,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(string clientDir, string pipeName)
         {
-            var processFilePath = Path.Combine(clientDir, "VBCSCompiler.exe");
+            var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.ExeExtension}");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
+
             if (!File.Exists(processFilePath))
             {
-                // This is a .NET Core deployment
+                // Fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example).
                 commandLineArgs = RuntimeHostInfo.GetDotNetExecCommandLine(Path.ChangeExtension(processFilePath, ".dll"), commandLineArgs);
                 processFilePath = RuntimeHostInfo.GetDotNetPathOrDefault();
             }
@@ -460,80 +462,109 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
-            if (PlatformInformation.IsWindows)
+            logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
+
+            // Set DOTNET_ROOT so that the apphost executable launches properly.
+            System.Collections.DictionaryEntry[] dotnetRootEnvVars = [];
+            if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
             {
-                // As far as I can tell, there isn't a way to use the Process class to
-                // create a process with no stdin/stdout/stderr, so we use P/Invoke.
-                // This code was taken from MSBuild task starting code.
-
-                STARTUPINFO startInfo = new STARTUPINFO();
-                startInfo.cb = Marshal.SizeOf(startInfo);
-                startInfo.hStdError = InvalidIntPtr;
-                startInfo.hStdInput = InvalidIntPtr;
-                startInfo.hStdOutput = InvalidIntPtr;
-                startInfo.dwFlags = STARTF_USESTDHANDLES;
-                uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
-
-                PROCESS_INFORMATION processInfo;
-
-                logger.Log("Attempting to create process '{0}'", serverInfo.processFilePath);
-
-                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
-
-                bool success = CreateProcess(
-                    lpApplicationName: null,
-                    lpCommandLine: builder,
-                    lpProcessAttributes: NullPtr,
-                    lpThreadAttributes: NullPtr,
-                    bInheritHandles: false,
-                    dwCreationFlags: dwCreationFlags,
-                    lpEnvironment: NullPtr, // Inherit environment
-                    lpCurrentDirectory: clientDirectory,
-                    lpStartupInfo: ref startInfo,
-                    lpProcessInformation: out processInfo);
-
-                if (success)
+                // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
+                dotnetRootEnvVars = Environment.GetEnvironmentVariables()
+                    .Cast<System.Collections.DictionaryEntry>()
+                    .Where(static e => ((string)e.Key).StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+                foreach (var envVar in dotnetRootEnvVars)
                 {
-                    logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
-                    CloseHandle(processInfo.hProcess);
-                    CloseHandle(processInfo.hThread);
-                    processId = processInfo.dwProcessId;
+                    Environment.SetEnvironmentVariable((string)envVar.Key, string.Empty);
+                }
+
+                logger.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+                Environment.SetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+            }
+
+            try
+            {
+                if (PlatformInformation.IsWindows)
+                {
+                    // As far as I can tell, there isn't a way to use the Process class to
+                    // create a process with no stdin/stdout/stderr, so we use P/Invoke.
+                    // This code was taken from MSBuild task starting code.
+
+                    STARTUPINFO startInfo = new STARTUPINFO();
+                    startInfo.cb = Marshal.SizeOf(startInfo);
+                    startInfo.hStdError = InvalidIntPtr;
+                    startInfo.hStdInput = InvalidIntPtr;
+                    startInfo.hStdOutput = InvalidIntPtr;
+                    startInfo.dwFlags = STARTF_USESTDHANDLES;
+                    uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
+
+                    PROCESS_INFORMATION processInfo;
+
+                    var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
+
+                    bool success = CreateProcess(
+                        lpApplicationName: null,
+                        lpCommandLine: builder,
+                        lpProcessAttributes: NullPtr,
+                        lpThreadAttributes: NullPtr,
+                        bInheritHandles: false,
+                        dwCreationFlags: dwCreationFlags,
+                        lpEnvironment: NullPtr, // Inherit environment
+                        lpCurrentDirectory: clientDirectory,
+                        lpStartupInfo: ref startInfo,
+                        lpProcessInformation: out processInfo);
+
+                    if (success)
+                    {
+                        logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                        CloseHandle(processInfo.hProcess);
+                        CloseHandle(processInfo.hThread);
+                        processId = processInfo.dwProcessId;
+                    }
+                    else
+                    {
+                        logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                    }
+                    return success;
                 }
                 else
                 {
-                    logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
-                }
-                return success;
-            }
-            else
-            {
-                try
-                {
-                    var startInfo = new ProcessStartInfo()
+                    try
                     {
-                        FileName = serverInfo.processFilePath,
-                        Arguments = serverInfo.commandLineArguments,
-                        UseShellExecute = false,
-                        WorkingDirectory = clientDirectory,
-                        RedirectStandardInput = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
+                        var startInfo = new ProcessStartInfo()
+                        {
+                            FileName = serverInfo.processFilePath,
+                            Arguments = serverInfo.commandLineArguments,
+                            UseShellExecute = false,
+                            WorkingDirectory = clientDirectory,
+                            RedirectStandardInput = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            CreateNoWindow = true
+                        };
 
-                    if (Process.Start(startInfo) is { } process)
-                    {
-                        processId = process.Id;
-                        return true;
+                        if (Process.Start(startInfo) is { } process)
+                        {
+                            processId = process.Id;
+                            logger.Log("Successfully created process with process id {0}", processId);
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
-                    else
+                    catch
                     {
                         return false;
                     }
                 }
-                catch
+            }
+            finally
+            {
+                foreach (var envVar in dotnetRootEnvVars)
                 {
-                    return false;
+                    Environment.SetEnvironmentVariable((string)envVar.Key, (string?)envVar.Value);
                 }
             }
         }

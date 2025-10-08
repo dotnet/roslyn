@@ -25,8 +25,7 @@ public class RoslynLSPSnippetConvertTests
 
     [Fact]
     public Task TestExtendSnippetTextChangeForwardsForCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             [|if ({|placeholder:true|})
             {
             }|] $$
@@ -35,12 +34,10 @@ public class RoslynLSPSnippetConvertTests
             {
             } $0
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             $$ [|if ({|placeholder:true|})
             {
             }|]
@@ -49,12 +46,10 @@ public class RoslynLSPSnippetConvertTests
             {
             }
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeForwardsForPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             [|if (true)
             {$$
             }|] {|placeholder:test|}
@@ -63,12 +58,10 @@ public class RoslynLSPSnippetConvertTests
             {$0
             } ${1:test}
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             {|placeholder:test|} [|if (true)
             {$$
             }|]
@@ -77,12 +70,10 @@ public class RoslynLSPSnippetConvertTests
             {$0
             }
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeForwardsForPlaceholderThenCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             [|if (true)
             {
             }|] {|placeholder:test|} $$
@@ -91,12 +82,10 @@ public class RoslynLSPSnippetConvertTests
             {
             } ${1:test} $0
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeForwardsForCaretThenPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             [|if (true)
             {
             }|] $$ {|placeholder:test|}
@@ -105,12 +94,10 @@ public class RoslynLSPSnippetConvertTests
             {
             } $0 ${1:test}
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForPlaceholderThenCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             {|placeholder:test|} $$ [|if (true)
             {
             }|]
@@ -119,12 +106,10 @@ public class RoslynLSPSnippetConvertTests
             {
             }
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForCaretThenPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             $$ {|placeholder:test|} [|if (true)
             {
             }|]
@@ -133,12 +118,10 @@ public class RoslynLSPSnippetConvertTests
             {
             }
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForCaretForwardsForPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             $$ [|if (true)
             {
             }|] {|placeholder:test|}
@@ -147,12 +130,10 @@ public class RoslynLSPSnippetConvertTests
             {
             } ${1:test}
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeBackwardsForPlaceholderForwardsForCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             {|placeholder:test|} [|if (true)
             {
             }|] $$
@@ -161,12 +142,10 @@ public class RoslynLSPSnippetConvertTests
             {
             } $0
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodForwardsForCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 [|if ({|placeholder:true|})
@@ -178,12 +157,10 @@ public class RoslynLSPSnippetConvertTests
                 {
                 } $0
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 $$ [|if ({|placeholder:true|})
@@ -195,12 +172,10 @@ public class RoslynLSPSnippetConvertTests
                 {
                 }
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodForwardsForPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 [|if (true)
@@ -212,12 +187,10 @@ public class RoslynLSPSnippetConvertTests
                  {$0
                  } ${1:test}
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 {|placeholder:test|} [|if (true)
@@ -228,12 +201,10 @@ public class RoslynLSPSnippetConvertTests
                 {$0
                 }
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodForwardsForPlaceholderThenCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 [|if (true)
@@ -245,12 +216,10 @@ public class RoslynLSPSnippetConvertTests
                 {
                 } ${1:test} $0
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodForwardsForCaretThenPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 [|if (true)
@@ -262,12 +231,10 @@ public class RoslynLSPSnippetConvertTests
                 {
                 } $0 ${1:test}
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderThenCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 {|placeholder:test|} $$ [|if (true)
@@ -279,12 +246,10 @@ public class RoslynLSPSnippetConvertTests
                 {
                 }
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForCaretThenPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 $$ {|placeholder:test|} [|if (true)
@@ -296,12 +261,10 @@ public class RoslynLSPSnippetConvertTests
                 {
                 }
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForCaretForwardsForPlaceholder()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 $$ [|if (true)
@@ -313,12 +276,10 @@ public class RoslynLSPSnippetConvertTests
                 {
                 } ${1:test}
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderForwardsForCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 {|placeholder:test|} [|if (true)
@@ -330,12 +291,10 @@ public class RoslynLSPSnippetConvertTests
                 {
                 } $0
             """);
-    }
 
     [Fact]
     public Task TestExtendSnippetTextChangeInMethodWithCodeBeforeAndAfterBackwardsForPlaceholderForwardsForCaret()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 var x = 5;
@@ -350,7 +309,6 @@ public class RoslynLSPSnippetConvertTests
                 {
                 } $0
             """);
-    }
 
     [Fact]
     public void TestExtendTextChangeInsertion()
@@ -380,8 +338,7 @@ public class RoslynLSPSnippetConvertTests
 
     [Fact]
     public Task TestForLoopSnippet()
-    {
-        return TestAsync("""
+        => TestAsync("""
             [|for (var {|placeholder1:i|} = 0; {|placeholder1:i|} < {|placeholder2:length|}; {|placeholder1:i|}++)
             {$$
             }|]
@@ -390,12 +347,10 @@ public class RoslynLSPSnippetConvertTests
             {$0
             }
             """);
-    }
 
     [Fact]
     public Task TestIfSnippetSamePlaceholderCursorLocation()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 var x = 5;
@@ -410,12 +365,10 @@ public class RoslynLSPSnippetConvertTests
                 {
                 }
             """);
-    }
 
     [Fact]
     public Task TestIfSnippetSameCursorPlaceholderLocation()
-    {
-        return TestAsync("""
+        => TestAsync("""
             public void Method()
             {
                 var x = 5;
@@ -430,7 +383,6 @@ public class RoslynLSPSnippetConvertTests
                 {
                 }
             """);
-    }
 
     #endregion
 
@@ -459,7 +411,7 @@ public class RoslynLSPSnippetConvertTests
             {
                 var spans = kvp.Value;
                 var placeholderText = text.Substring(spans[0].Start, spans[0].Length);
-                var placeholders = spans.Select(span => span.Start).ToImmutableArray();
+                var placeholders = spans.SelectAsArray(span => span.Start);
                 arrayBuilder.Add(new SnippetPlaceholder(placeholderText, placeholders));
             }
         }

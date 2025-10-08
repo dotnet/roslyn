@@ -25,24 +25,19 @@ public sealed class NamingStylePreferencesTests
 
     [Fact]
     public void Equality()
-    {
-        Assert.True(
+        => Assert.True(
             NamingStylePreferences.FromXElement(XElement.Parse(NamingStylePreferences.DefaultNamingPreferencesString)).Equals(
             NamingStylePreferences.FromXElement(XElement.Parse(NamingStylePreferences.DefaultNamingPreferencesString))));
-    }
 
     [Fact]
     public void TestPreserveDefaultPreferences()
-    {
-        AssertTrimmedEqual(
+        => AssertTrimmedEqual(
             NamingStylePreferences.DefaultNamingPreferencesString,
             ReserializePreferences(NamingStylePreferences.DefaultNamingPreferencesString));
-    }
 
     [Fact]
     public void TestCannotUpgrade3To5()
-    {
-        AssertTrimmedEqual(
+        => AssertTrimmedEqual(
             NamingStylePreferences.DefaultNamingPreferencesString,
             ReserializePreferences("""
                 <NamingPreferencesInfo SerializationVersion="3">
@@ -72,7 +67,6 @@ public sealed class NamingStylePreferencesTests
                   </NamingRules>
                 </NamingPreferencesInfo>
                 """));
-    }
 
     [Fact]
     public void TestUpgrade4To5()
@@ -156,8 +150,7 @@ public sealed class NamingStylePreferencesTests
 
     [Fact]
     public void TestCannotDowngradeHigherThanLatestVersion5()
-    {
-        AssertTrimmedEqual(
+        => AssertTrimmedEqual(
             NamingStylePreferences.DefaultNamingPreferencesString,
             ReserializePreferences("""
                 <NamingPreferencesInfo SerializationVersion="6">
@@ -187,7 +180,6 @@ public sealed class NamingStylePreferencesTests
                   </NamingRules>
                 </NamingPreferencesInfo>
                 """));
-    }
 
     /// <summary>
     /// Having duplicates in enums like this means that calling Enum.ToString() will potentially be unstable.

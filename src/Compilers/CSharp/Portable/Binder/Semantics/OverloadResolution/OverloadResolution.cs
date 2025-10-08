@@ -2085,28 +2085,6 @@ outerDefault:
         }
 
 #nullable enable
-        /// <summary>
-        /// Returns the parameter corresponding to the given argument index.
-        /// </summary>
-        private static ParameterSymbol GetParameterOrExtensionParameter<TMember>(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, TMember member)
-            where TMember : Symbol
-        {
-            if (member.GetIsNewExtensionMember())
-            {
-                if (argIndex == 0)
-                {
-                    ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
-                    Debug.Assert(extensionParameter is not null);
-                    return extensionParameter;
-                }
-
-                argIndex--;
-            }
-
-            int paramIndex = result.ParameterFromArgument(argIndex);
-            return parameters[paramIndex];
-        }
-
         private BetterResult BetterFunctionMember<TMember>(
             MemberResolutionResult<TMember> m1,
             MemberResolutionResult<TMember> m2,
@@ -2404,7 +2382,7 @@ outerDefault:
                     }
                 }
 
-                return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
+                return preferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
@@ -2543,7 +2521,7 @@ outerDefault:
             }
 
             // Otherwise, prefer methods with 'val' parameters over 'in' parameters and over 'ref' parameters when the argument is an interpolated string handler.
-            result = PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
+            result = preferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
 
             if (result != BetterResult.Neither)
             {
@@ -2558,8 +2536,8 @@ outerDefault:
 
                 for (i = 0; i < arguments.Count; ++i)
                 {
-                    var parameter1 = GetParameterOrExtensionParameter(i, m1.Result, m1LeastOverriddenParameters, m1.LeastOverriddenMember);
-                    var parameter2 = GetParameterOrExtensionParameter(i, m2.Result, m2LeastOverriddenParameters, m2.LeastOverriddenMember);
+                    var parameter1 = getParameterOrExtensionParameter(i, m1.Result, m1LeastOverriddenParameters, m1.LeastOverriddenMember);
+                    var parameter2 = getParameterOrExtensionParameter(i, m2.Result, m2LeastOverriddenParameters, m2.LeastOverriddenMember);
 
                     if ((parameter1.Ordinal == m1ParamsOrdinal) != (parameter2.Ordinal == m2ParamsOrdinal))
                     {
@@ -2588,11 +2566,11 @@ outerDefault:
 
             // Returns the parameter type (considering params).
             static TypeSymbol getParameterTypeAndRefKind(int i, MemberAnalysisResult memberResolutionResult, ImmutableArray<ParameterSymbol> parameters,
-                TypeWithAnnotations paramsElementTypeOpt, TMember member, out RefKind parameter1RefKind)
+                TypeWithAnnotations paramsElementTypeOpt, TMember member, out RefKind parameterRefKind)
             {
-                ParameterSymbol parameter = GetParameterOrExtensionParameter(i, memberResolutionResult, parameters, member);
+                ParameterSymbol parameter = getParameterOrExtensionParameter(i, memberResolutionResult, parameters, member);
 
-                parameter1RefKind = parameter.RefKind;
+                parameterRefKind = GetParameterBetternessRefKind(parameter, member);
 
                 var type = parameter.Type;
                 if (memberResolutionResult.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
@@ -2607,6 +2585,102 @@ outerDefault:
                     return type;
                 }
             }
+
+            static ParameterSymbol getParameterOrExtensionParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, TMember member)
+            {
+                int paramIndex = result.ParameterFromArgument(argIndex);
+                if (member.GetIsNewExtensionMember())
+                {
+                    if (paramIndex == 0)
+                    {
+                        ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
+                        Debug.Assert(extensionParameter is not null);
+                        return extensionParameter;
+                    }
+
+                    paramIndex--;
+                }
+
+                return parameters[paramIndex];
+            }
+
+            static BetterResult preferValOverInOrRefInterpolatedHandlerParameters(
+                ArrayBuilder<BoundExpression> arguments,
+                MemberResolutionResult<TMember> m1,
+                ImmutableArray<ParameterSymbol> parameters1,
+                MemberResolutionResult<TMember> m2,
+                ImmutableArray<ParameterSymbol> parameters2)
+            {
+                BetterResult valOverInOrRefInterpolatedHandlerPreference = BetterResult.Neither;
+
+                for (int i = 0; i < arguments.Count; ++i)
+                {
+                    if (arguments[i].Kind != BoundKind.ArgListOperator)
+                    {
+                        var p1 = getParameterOrExtensionParameter(i, m1.Result, parameters1, m1.Member);
+                        var p2 = getParameterOrExtensionParameter(i, m2.Result, parameters2, m2.Member);
+
+                        bool isInterpolatedStringHandlerConversion = false;
+
+                        if (m1.IsValid && m2.IsValid)
+                        {
+                            var c1 = m1.Result.ConversionForArg(i);
+                            var c2 = m2.Result.ConversionForArg(i);
+
+                            isInterpolatedStringHandlerConversion = c1.IsInterpolatedStringHandler && c2.IsInterpolatedStringHandler;
+                            Debug.Assert(!isInterpolatedStringHandlerConversion || arguments[i] is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
+                        }
+
+                        RefKind refKind1 = GetParameterBetternessRefKind(p1, m1.Member);
+                        RefKind refKind2 = GetParameterBetternessRefKind(p2, m2.Member);
+
+                        if (refKind1 == RefKind.None && isAcceptableRefMismatch(refKind2, isInterpolatedStringHandlerConversion))
+                        {
+                            if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Right)
+                            {
+                                return BetterResult.Neither;
+                            }
+                            else
+                            {
+                                valOverInOrRefInterpolatedHandlerPreference = BetterResult.Left;
+                            }
+                        }
+                        else if (refKind2 == RefKind.None && isAcceptableRefMismatch(refKind1, isInterpolatedStringHandlerConversion))
+                        {
+                            if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Left)
+                            {
+                                return BetterResult.Neither;
+                            }
+                            else
+                            {
+                                valOverInOrRefInterpolatedHandlerPreference = BetterResult.Right;
+                            }
+                        }
+                    }
+                }
+
+                return valOverInOrRefInterpolatedHandlerPreference;
+            }
+
+            static bool isAcceptableRefMismatch(RefKind refKind, bool isInterpolatedStringHandlerConversion)
+            {
+                return refKind switch
+                {
+                    RefKind.In or RefKind.RefReadOnlyParameter => true,
+                    RefKind.Ref when isInterpolatedStringHandlerConversion => true,
+                    _ => false
+                };
+            }
+        }
+
+        private static RefKind GetParameterBetternessRefKind<TMember>(ParameterSymbol parameter, TMember member) where TMember : Symbol
+        {
+            // For static extension members, the ref kind of the extension parameter shouldn't affect betterness.
+            bool isExtensionParameterOfStaticExtensionMember = parameter is { ContainingSymbol: NamedTypeSymbol { IsExtension: true, ExtensionParameter: var extensionParameter } }
+                && member.IsStatic
+                && object.ReferenceEquals(parameter, extensionParameter);
+
+            return isExtensionParameterOfStaticExtensionMember ? RefKind.None : parameter.RefKind;
         }
 
         /// <summary>
@@ -2630,70 +2704,6 @@ outerDefault:
             }
 
             return conversionsOpt.Any(static c => c.Kind == ConversionKind.FunctionType);
-        }
-
-        private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
-            ArrayBuilder<BoundExpression> arguments,
-            MemberResolutionResult<TMember> m1,
-            ImmutableArray<ParameterSymbol> parameters1,
-            MemberResolutionResult<TMember> m2,
-            ImmutableArray<ParameterSymbol> parameters2)
-            where TMember : Symbol
-        {
-            BetterResult valOverInOrRefInterpolatedHandlerPreference = BetterResult.Neither;
-
-            for (int i = 0; i < arguments.Count; ++i)
-            {
-                if (arguments[i].Kind != BoundKind.ArgListOperator)
-                {
-                    var p1 = GetParameterOrExtensionParameter(i, m1.Result, parameters1, m1.Member);
-                    var p2 = GetParameterOrExtensionParameter(i, m2.Result, parameters2, m2.Member);
-
-                    bool isInterpolatedStringHandlerConversion = false;
-
-                    if (m1.IsValid && m2.IsValid)
-                    {
-                        var c1 = m1.Result.ConversionForArg(i);
-                        var c2 = m2.Result.ConversionForArg(i);
-
-                        isInterpolatedStringHandlerConversion = c1.IsInterpolatedStringHandler && c2.IsInterpolatedStringHandler;
-                        Debug.Assert(!isInterpolatedStringHandlerConversion || arguments[i] is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
-                    }
-
-                    if (p1.RefKind == RefKind.None && isAcceptableRefMismatch(p2.RefKind, isInterpolatedStringHandlerConversion))
-                    {
-                        if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Right)
-                        {
-                            return BetterResult.Neither;
-                        }
-                        else
-                        {
-                            valOverInOrRefInterpolatedHandlerPreference = BetterResult.Left;
-                        }
-                    }
-                    else if (p2.RefKind == RefKind.None && isAcceptableRefMismatch(p1.RefKind, isInterpolatedStringHandlerConversion))
-                    {
-                        if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Left)
-                        {
-                            return BetterResult.Neither;
-                        }
-                        else
-                        {
-                            valOverInOrRefInterpolatedHandlerPreference = BetterResult.Right;
-                        }
-                    }
-                }
-            }
-
-            return valOverInOrRefInterpolatedHandlerPreference;
-
-            static bool isAcceptableRefMismatch(RefKind refKind, bool isInterpolatedStringHandlerConversion)
-                => refKind switch
-                {
-                    RefKind.In or RefKind.RefReadOnlyParameter => true,
-                    RefKind.Ref when isInterpolatedStringHandlerConversion => true,
-                    _ => false
-                };
         }
 #nullable disable
 
@@ -4607,7 +4617,7 @@ outerDefault:
                     Debug.Assert(
                         !forExtensionMethodThisArg ||
                         (!conversion.IsDynamic ||
-                            (ignoreOpenTypes && parameters.ParameterTypes[argumentPosition].Type.ContainsTypeParameter(parameterContainer: (MethodSymbol)candidate))));
+                            (ignoreOpenTypes && TypeContainsTypeParameterFromContainer(candidate, parameters.ParameterTypes[argumentPosition].Type))));
 
                     if (forExtensionMethodThisArg && !conversion.IsDynamic && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
                     {
@@ -4705,7 +4715,7 @@ outerDefault:
             // - Then, any parameter whose type is open (i.e. contains a type parameter; see §4.4.2) is elided, along with its corresponding parameter(s).
             // and
             // - The modified parameter list for F is applicable to the modified argument list in terms of section §7.5.3.1
-            if (ignoreOpenTypes && parameterType.ContainsTypeParameter(parameterContainer: (MethodSymbol)candidate))
+            if (ignoreOpenTypes && TypeContainsTypeParameterFromContainer(candidate, parameterType))
             {
                 // defer applicability check to runtime:
                 return Conversion.ImplicitDynamic;
@@ -4749,6 +4759,16 @@ outerDefault:
             {
                 return Conversion.NoConversion;
             }
+        }
+
+        private static bool TypeContainsTypeParameterFromContainer(Symbol container, TypeSymbol parameterType)
+        {
+            if (parameterType.ContainsTypeParameter(typeParameterContainer: container))
+            {
+                return true;
+            }
+
+            return container.GetIsNewExtensionMember() && parameterType.ContainsTypeParameter(typeParameterContainer: container.ContainingType);
         }
 
         private static TMember GetConstructedFrom<TMember>(TMember member) where TMember : Symbol

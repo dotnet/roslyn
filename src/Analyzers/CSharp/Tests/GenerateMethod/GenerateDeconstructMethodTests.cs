@@ -156,7 +156,7 @@ public sealed class GenerateDeconstructMethodTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestDeconstructionDeclaration_UndeterminedType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -185,7 +185,7 @@ public sealed class GenerateDeconstructMethodTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestDeconstructionDeclaration_UndeterminedType2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {

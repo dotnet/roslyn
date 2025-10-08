@@ -14,9 +14,8 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
@@ -69,17 +68,8 @@ public abstract partial class CodeAction
         s_cleanupSyntaxPass,
     ];
 
-    internal static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfFalse(document.SupportsSyntaxTree);
-
-        // format any node with explicit formatter annotation
-        var document1 = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
-
-        // format any elastic whitespace
-        var document2 = await Formatter.FormatAsync(document1, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
-        return document2;
-    }
+    internal static Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+        => CodeCleanupHelpers.CleanupSyntaxAsync(document, options, cancellationToken);
 
     internal static ImmutableArray<DocumentId> GetAllChangedOrAddedDocumentIds(
         Solution originalSolution,

@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Parameter_cannot_be_null_empty_or_contain_whitespace">
         <source>Parameter cannot be null, empty, or contain whitespace.</source>
-        <target state="translated">参数不能为 null、空或包含空格。</target>
+        <target state="new">Parameter cannot be null, empty, or contain whitespace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_contain_0_target">
         <source>Project does not contain '{0}' target.</source>
-        <target state="translated">项目不包含“{0}”目标。</target>
+        <target state="new">Project does not contain '{0}' target.</target>
         <note />
       </trans-unit>
     </body>

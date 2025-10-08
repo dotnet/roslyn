@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 [UseExportProvider]
 public sealed class SymbolEquivalenceComparerTests
 {
-    public static readonly CS.CSharpCompilationOptions CSharpDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+    public static readonly CS.CSharpCompilationOptions CSharpDllOptions = new(OutputKind.DynamicallyLinkedLibrary);
     public static readonly CS.CSharpCompilationOptions CSharpSignedDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
         WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
         WithStrongNameProvider(DefaultDesktopStrongNameProvider);
@@ -1896,7 +1896,8 @@ public sealed class SymbolEquivalenceComparerTests
     [Fact]
     public void CustomModifiers_Methods1()
     {
-        const string ilSource = """
+        MetadataReference r1, r2;
+        using (var tempAssembly = IlasmUtilities.CreateTempAssembly("""
             .class public C
             {
               .method public instance int32 [] modopt([mscorlib]System.Int64) F(         // 0
@@ -1931,9 +1932,7 @@ public sealed class SymbolEquivalenceComparerTests
                   throw
               }
             }
-            """;
-        MetadataReference r1, r2;
-        using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
+            """))
         {
             var bytes = File.ReadAllBytes(tempAssembly.Path);
             r1 = MetadataReference.CreateFromImage(bytes);

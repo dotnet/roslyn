@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -50,8 +51,10 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         {
             if (!this.filters.TryGetValue(textView, out var filter))
             {
+                var editorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
                 filter = new DebuggerIntelliSenseFilter(
-                    this.EditorAdaptersFactoryService.GetWpfTextView(textView),
+                    editorAdaptersFactoryService.GetWpfTextView(textView),
                     this.Package.ComponentModel,
                     this.Package.ComponentModel.GetService<IFeatureServiceFactory>());
                 this.filters[textView] = filter;
@@ -83,13 +86,14 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         // commit, so we need to drag the IVsTextLines around, too.
         Marshal.ThrowExceptionForHR(textView.GetBuffer(out var debuggerBuffer));
 
-        var view = EditorAdaptersFactoryService.GetWpfTextView(textView);
+        var editorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+        var view = editorAdaptersFactoryService.GetWpfTextView(textView);
 
         // Sometimes, they give us a null context buffer. In that case, there's probably not any
         // work to do.
         if (buffer != null)
         {
-            var contextBuffer = EditorAdaptersFactoryService.GetDataBuffer(buffer);
+            var contextBuffer = editorAdaptersFactoryService.GetDataBuffer(buffer);
 
             if (!contextBuffer.ContentType.IsOfType(this.ContentTypeName))
             {

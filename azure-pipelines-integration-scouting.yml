@@ -10,6 +10,7 @@ schedules:
     include:
     - main
     - main-vs-deps
+    - community
 
 variables:
 - name: Codeql.Enabled

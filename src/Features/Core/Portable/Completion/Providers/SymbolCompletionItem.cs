@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Tags;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -24,7 +23,7 @@ internal static class SymbolCompletionItem
 
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
-    private const char ProjectSeperatorChar = ';';
+    private const char ProjectSeparatorChar = ';';
 
     private static CompletionItem CreateWorker(
         string displayText,
@@ -252,7 +251,7 @@ internal static class SymbolCompletionItem
 
         while (current < projectIds.Length)
         {
-            if (projectIds[current] == ProjectSeperatorChar)
+            if (projectIds[current] == ProjectSeparatorChar)
             {
                 if (start != current)
                 {

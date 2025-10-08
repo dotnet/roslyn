@@ -854,13 +854,13 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         SemanticModel model, SyntaxGenerator generator,
         INamedTypeSymbol tupleType, IMethodSymbol constructor)
     {
-        var assignments = tupleType.TupleElements.Select(
+        var assignments = tupleType.TupleElements.SelectAsArray(
             (field, index) => generator.ExpressionStatement(
                 generator.AssignmentStatement(
                     generator.IdentifierName(constructor.Parameters[index].Name),
                     generator.MemberAccessExpression(
                         generator.ThisExpression(),
-                        field.Name)))).ToImmutableArray();
+                        field.Name))));
 
         return CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default,

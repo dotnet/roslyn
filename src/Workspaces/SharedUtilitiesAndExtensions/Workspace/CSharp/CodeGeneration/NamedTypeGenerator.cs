@@ -81,8 +81,7 @@ internal static class NamedTypeGenerator
         // the getter and setter to get generated instead. Since the list of members is going to include
         // the method symbols for the getter and setter, we don't want to generate them twice.
 
-        var members = GetMembers(namedType).Where(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s))
-                                           .ToImmutableArray();
+        var members = GetMembers(namedType).WhereAsArray(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s));
         if (namedType.IsRecord)
         {
             declaration = GenerateRecordMembers(service, info, (RecordDeclarationSyntax)declaration, members, cancellationToken);

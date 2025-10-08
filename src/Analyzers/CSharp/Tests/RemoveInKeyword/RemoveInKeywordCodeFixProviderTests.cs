@@ -26,7 +26,7 @@ public sealed class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnost
 
     [Fact]
     public Task TestRemoveInKeyword()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -50,7 +50,7 @@ public sealed class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnost
 
     [Fact]
     public Task TestRemoveInKeywordMultipleArguments1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -74,7 +74,7 @@ public sealed class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnost
 
     [Fact]
     public Task TestRemoveInKeywordMultipleArguments2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -98,7 +98,7 @@ public sealed class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnost
 
     [Fact]
     public Task TestRemoveInKeywordMultipleArgumentsWithDifferentRefKinds()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -152,7 +152,7 @@ public sealed class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnost
         "/* start */in /* middle */ [|i|] /* end */",
         "/* start */i /* end */")]
     public Task TestRemoveInKeywordWithTrivia(string original, string expected)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             $$"""
             class App
             {
@@ -178,7 +178,7 @@ public sealed class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnost
 
     [Fact]
     public Task TestRemoveInKeywordFixAllInDocument1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -228,7 +228,7 @@ public sealed class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnost
 
     [Fact]
     public Task TestRemoveInKeywordFixAllInDocument2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {

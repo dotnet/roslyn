@@ -50,9 +50,6 @@ internal sealed class StackTraceExplorerViewModel : ViewModelBase
         _threadingContext = threadingContext;
         _workspace = workspace;
 
-        // Main thread dependency as Workspace_WorkspaceChanged modifies an ObservableCollection
-        _ = workspace.RegisterWorkspaceChangedHandler(Workspace_WorkspaceChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
-
         _classificationTypeMap = classificationTypeMap;
         _formatMap = formatMap;
 
@@ -101,15 +98,6 @@ internal sealed class StackTraceExplorerViewModel : ViewModelBase
     {
         NotifyPropertyChanged(nameof(IsListVisible));
         NotifyPropertyChanged(nameof(IsInstructionTextVisible));
-    }
-
-    private void Workspace_WorkspaceChanged(WorkspaceChangeEventArgs e)
-    {
-        if (e.Kind == WorkspaceChangeKind.SolutionChanged)
-        {
-            Selection = null;
-            Frames.Clear();
-        }
     }
 
     private FrameViewModel GetViewModel(ParsedFrame frame)

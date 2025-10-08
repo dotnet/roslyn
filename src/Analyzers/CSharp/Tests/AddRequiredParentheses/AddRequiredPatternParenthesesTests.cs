@@ -26,7 +26,7 @@ public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper
         => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
 
     private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
-        => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
+        => TestInRegularAndScriptAsync(initialMarkup, expected, parameters: new TestParameters(options: options));
 
     [Fact]
     public Task TestLogicalPrecedence()

@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
-            if (IsKeyword(token.Kind()))
+            if (IsKeyword(token.Kind()) && !token.IsKind(SyntaxKind.ExtensionKeyword))
             {
                 if (!next.IsKind(SyntaxKind.ColonToken) &&
                     !next.IsKind(SyntaxKind.DotToken) &&

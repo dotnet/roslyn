@@ -140,5 +140,5 @@ public sealed partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagn
             """,
             """
 
-            """, TestOptions.Regular);
+            """, new(TestOptions.Regular));
 }

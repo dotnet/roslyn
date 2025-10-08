@@ -38,6 +38,6 @@ internal sealed class SimpleAssetSource(ISerializerService serializerService, IR
             callback(checksum, (T)asset, arg);
         }
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

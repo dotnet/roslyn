@@ -27,7 +27,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -48,7 +48,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -71,7 +71,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -94,7 +94,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -115,7 +115,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<int> Program.Goo<T>()", methodDocumentation: string.Empty, string.Empty, currentParameterIndex: 0)
+            new($"({CSharpFeaturesResources.awaitable}) Task<int> Program.Goo<T>()", methodDocumentation: string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         // TODO: Enable the script case when we have support for extension methods in scripts
@@ -159,7 +159,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -194,7 +194,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -229,7 +229,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -276,13 +276,13 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
             """;
         var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void C.Goo<T, U>(T x, U y)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("void C.Goo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0),
+            new("void C.Goo<T, U>(T x, U y)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -298,8 +298,8 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("void IGoo.Bar<T>()", currentParameterIndex: 0),
-            new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void IGoo.Bar<T1, T2>()", currentParameterIndex: 0),
+            new("void IGoo.Bar<T>()", currentParameterIndex: 0),
+            new($"({CSharpFeaturesResources.extension}) void IGoo.Bar<T1, T2>()", currentParameterIndex: 0),
         };
 
         // Extension methods are supported in Interactive/Script (yet).
@@ -330,7 +330,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("void C.Goo<T>()",
+            new("void C.Goo<T>()",
                 "Method Goo", "Method type parameter", currentParameterIndex: 0)
         };
 
@@ -356,7 +356,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -377,7 +377,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 1)
+            new("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         await TestAsync("""

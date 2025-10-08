@@ -22,9 +22,7 @@ public sealed partial class FormattingTests : TestBase
 {
     [Fact]
     public void TestCSharpFormatting()
-    {
-        AssertFormatCSharp(@"public class C { public int X; }", @"public class C{public int X;}");
-    }
+        => AssertFormatCSharp(@"public class C { public int X; }", @"public class C{public int X;}");
 
     [Fact]
     public void TestCSharpDefaultRules()
@@ -39,8 +37,7 @@ public sealed partial class FormattingTests : TestBase
 
     [Fact]
     public void TestVisualBasicFormatting()
-    {
-        AssertFormatVB("""
+        => AssertFormatVB("""
             Public Class C
                 Public X As Integer
             End Class
@@ -49,7 +46,6 @@ public sealed partial class FormattingTests : TestBase
             Public X As Integer
             End Class
             """);
-    }
 
     [Fact]
     public void TestVisualBasicDefaultFormattingRules()

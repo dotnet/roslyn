@@ -29,7 +29,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestOnLeft_Equals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -55,7 +55,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestOnLeft_NotEquals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -81,7 +81,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestOnRight_Equals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -107,7 +107,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestOnRight_NotEquals()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -133,7 +133,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestComplexExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -159,7 +159,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestParens1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -185,7 +185,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestParens2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -211,7 +211,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestParens3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -237,7 +237,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestParens4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -263,7 +263,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestFixAll1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -291,7 +291,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestFixAll2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -317,7 +317,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestFixAll3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -343,7 +343,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16025")]
     public Task TestTrivia1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -373,7 +373,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17028")]
     public Task TestInExpressionOfT()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -427,7 +427,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestClassConstrainedTypeParameter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C<T> where T : class
             {
@@ -462,7 +462,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestOnArray()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -484,7 +484,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestOnInterface()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -506,7 +506,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact]
     public Task TestOnDynamic()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -528,7 +528,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38066")]
     public Task TestSemicolonPlacement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -552,7 +552,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38066")]
     public Task TestParenthesisPlacement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -576,7 +576,7 @@ public sealed class UseCoalesceExpressionForTernaryConditionalCheckTests : Abstr
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38066")]
     public Task TestAnotherConditionalPlacement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -68,26 +69,6 @@ internal static partial class Extensions
 
         void LogReason(string message)
             => log?.Write($"Project '{project.GetLogDisplay()}' doesn't support EnC: {message}");
-
-        return true;
-    }
-
-    /// <summary>
-    /// True if project settings are compatible with Edit and Continue.
-    /// </summary>
-    public static bool ProjectSettingsSupportEditAndContinue(this Project project, TraceLog? log = null)
-    {
-        Contract.ThrowIfFalse(project.SupportsEditAndContinue());
-        Contract.ThrowIfNull(project.CompilationOptions);
-
-        if (project.CompilationOptions.OptimizationLevel != OptimizationLevel.Debug)
-        {
-            LogReason(nameof(ProjectSettingKind.OptimizationLevel), project.CompilationOptions.OptimizationLevel.ToString());
-            return false;
-        }
-
-        void LogReason(string settingName, string value)
-            => log?.Write($"Project '{project.GetLogDisplay()}' setting '{settingName}' value '{value}' is not compatible with EnC");
 
         return true;
     }
@@ -263,4 +244,48 @@ internal static partial class Extensions
     /// </summary>
     public static bool HasExplicitlyImplementedInterfaceMember(this INamedTypeSymbol type)
         => type.GetMembers().Any(static member => member.ExplicitInterfaceImplementations().Any());
+
+    /// <summary>
+    /// Finds a node that corresponds to the given <paramref name="node"/> in the tree rooted at <paramref name="otherRoot"/>.
+    /// The trees must be identical except for trivia.
+    /// </summary>
+    public static SyntaxNode FindCorrespondingNodeInEquivalentTree(this SyntaxNode otherRoot, SyntaxNode node)
+    {
+        Contract.ThrowIfFalse(otherRoot.Parent == null);
+
+        using var _ = ArrayBuilder<int>.GetInstance(out var childIndices);
+
+        var parent = node.Parent;
+        while (parent != null)
+        {
+            childIndices.Add(GetChildIndex(parent, node));
+            node = parent;
+            parent = parent.Parent;
+        }
+
+        var otherNode = otherRoot;
+        for (var i = childIndices.Count - 1; i >= 0; i--)
+        {
+            otherNode = otherNode.ChildNodesAndTokens()[childIndices[i]].AsNode();
+            Contract.ThrowIfNull(otherNode);
+        }
+
+        return otherNode;
+
+        static int GetChildIndex(SyntaxNode parent, SyntaxNode node)
+        {
+            var i = 0;
+            foreach (var child in parent.ChildNodesAndTokens())
+            {
+                if (child == node)
+                {
+                    return i;
+                }
+
+                i++;
+            }
+
+            throw ExceptionUtilities.Unreachable();
+        }
+    }
 }

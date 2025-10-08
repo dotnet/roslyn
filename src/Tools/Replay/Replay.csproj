@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>

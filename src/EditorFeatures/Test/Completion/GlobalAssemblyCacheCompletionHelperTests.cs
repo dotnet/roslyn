@@ -21,15 +21,11 @@ public sealed class GlobalAssemblyCacheCompletionHelperTests
 {
     [ConditionalFact(typeof(WindowsOnly))]
     public void ExistingReference()
-    {
-        VerifyPresence("System.Windows", "System.Windows.Forms");
-    }
+        => VerifyPresence("System.Windows", "System.Windows.Forms");
 
     [ConditionalFact(typeof(WindowsOnly))]
     public void FullReferenceIdentity()
-    {
-        VerifyPresence("System,", typeof(System.Diagnostics.Process).Assembly.FullName);
-    }
+        => VerifyPresence("System,", typeof(System.Diagnostics.Process).Assembly.FullName);
 
     private static void VerifyPresence(string pathSoFar, string completionItem)
     {

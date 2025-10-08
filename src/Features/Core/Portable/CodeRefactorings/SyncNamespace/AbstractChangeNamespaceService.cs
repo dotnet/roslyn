@@ -25,9 +25,9 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeNamespace;
@@ -471,8 +471,7 @@ internal abstract partial class AbstractChangeNamespaceService<
         var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
         var refLocationsInSolution = refLocationsInOtherDocuments
-            .Where(loc => solutionWithChangedNamespace.ContainsDocument(loc.Document.Id))
-            .ToImmutableArray();
+            .WhereAsArray(loc => solutionWithChangedNamespace.ContainsDocument(loc.Document.Id));
 
         if (refLocationsInSolution.Length != refLocationsInOtherDocuments.Count)
         {

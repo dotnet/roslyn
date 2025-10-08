@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Telemetry;
-using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -47,7 +46,7 @@ internal partial class RemoteProcessTelemetryService
         private ValueTask ProcessWorkAsync(CancellationToken cancellationToken)
         {
             if (!_telemetrySession.IsOptedIn)
-                return ValueTaskFactory.CompletedTask;
+                return ValueTask.CompletedTask;
 
             using (RoslynLogger.LogBlock(FunctionId.Diagnostics_GeneratePerformaceReport, cancellationToken))
             {
@@ -72,7 +71,7 @@ internal partial class RemoteProcessTelemetryService
                 }
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
     }
 }

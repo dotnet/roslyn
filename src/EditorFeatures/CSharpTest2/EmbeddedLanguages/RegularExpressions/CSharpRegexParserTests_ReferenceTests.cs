@@ -15,8 +15,7 @@ public sealed partial class CSharpRegexParserTests
 {
     [Fact]
     public void ReferenceTest0()
-    {
-        Test("""
+        => Test("""
             @"[aeiou]"
             """, """
             <Tree>
@@ -39,12 +38,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest1()
-    {
-        Test("""
+        => Test("""
             @"(?<duplicateWord>\w+)\s\k<duplicateWord>\W(?<nextWord>\w+)"
             """, """
             <Tree>
@@ -111,12 +108,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest2()
-    {
-        Test("""
+        => Test("""
             @"((?<One>abc)\d+)?(?<Two>xyz)(.*)"
             """, """
             <Tree>
@@ -190,12 +185,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest3()
-    {
-        Test("""
+        => Test("""
             @"(\w+)\s(\1)"
             """, """
             <Tree>
@@ -238,12 +231,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest4()
-    {
-        Test("""
+        => Test("""
             @"\Bqu\w+"
             """, """
             <Tree>
@@ -271,12 +262,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest5()
-    {
-        Test("""
+        => Test("""
             @"\bare\w*\b"
             """, """
             <Tree>
@@ -308,12 +297,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest6()
-    {
-        Test("""
+        => Test("""
             @"\G(\w+\s?\w*),?"
             """, """
             <Tree>
@@ -365,12 +352,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest7()
-    {
-        Test("""
+        => Test("""
             @"\D+(?<digit>\d+)\D+(?<digit>\d+)?"
             """, """
             <Tree>
@@ -437,12 +422,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest8()
-    {
-        Test("""
+        => Test("""
             @"(\s\d{4}(-(\d{4}&#124;present))?,?)+"
             """, """
             <Tree>
@@ -517,12 +500,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest9()
-    {
-        Test("""
+        => Test("""
             @"^((\w+(\s?)){2,}),\s(\w+\s\w+),(\s\d{4}(-(\d{4}|present))?,?)+"
             """, """
             <Tree>
@@ -681,12 +662,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest10()
-    {
-        Test("""
+        => Test("""
             @"^[0-9-[2468]]+$"
             """, """
             <Tree>
@@ -736,12 +715,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest11()
-    {
-        Test("""
+        => Test("""
             @"[a-z-[0-9]]"
             """, """
             <Tree>
@@ -788,12 +765,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest12()
-    {
-        Test("""
+        => Test("""
             @"[\p{IsBasicLatin}-[\x00-\x7F]]"
             """, """
             <Tree>
@@ -842,12 +817,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest13()
-    {
-        Test("""
+        => Test("""
             @"[\u0000-\uFFFF-[\s\p{P}\p{IsGreek}\x85]]"
             """, """
             <Tree>
@@ -912,12 +885,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest14()
-    {
-        Test("""
+        => Test("""
             @"[a-z-[d-w-[m-o]]]"
             """, """
             <Tree>
@@ -982,12 +953,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest15()
-    {
-        Test("""
+        => Test("""
             @"((\w+(\s?)){2,}"
             """, $$"""
             <Tree>
@@ -1045,12 +1014,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest16()
-    {
-        Test("""
+        => Test("""
             @"[a-z-[djp]]"
             """, """
             <Tree>
@@ -1091,12 +1058,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest17()
-    {
-        Test("""
+        => Test("""
             @"^[^<>]*(((?'Open'<)[^<>]*)+((?'Close-Open'>)[^<>]*)+)*(?(Open)(?!))$"
             """, """
             <Tree>
@@ -1234,12 +1199,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest18()
-    {
-        Test("""
+        => Test("""
             @"((?'Close-Open'>)[^<>]*)+"
             """, $"""
             <Tree>
@@ -1296,12 +1259,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest19()
-    {
-        Test("""
+        => Test("""
             @"(\w)\1+.\b"
             """, """
             <Tree>
@@ -1340,12 +1301,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest20()
-    {
-        Test("""
+        => Test("""
             @"\d{4}\b"
             """, """
             <Tree>
@@ -1372,12 +1331,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest21()
-    {
-        Test("""
+        => Test("""
             @"\d{1,2},"
             """, """
             <Tree>
@@ -1405,12 +1362,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest22()
-    {
-        Test("""
+        => Test("""
             @"(?<!(Saturday|Sunday) )\b\w+ \d{1,2}, \d{4}\b"
             """, """
             <Tree>
@@ -1495,12 +1450,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest23()
-    {
-        Test("""
+        => Test("""
             @"(?<=\b20)\d{2}\b"
             """, """
             <Tree>
@@ -1543,12 +1496,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest24()
-    {
-        Test("""
+        => Test("""
             @"\b\w+\b(?!\p{P})"
             """, """
             <Tree>
@@ -1592,12 +1543,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest25()
-    {
-        Test("""
+        => Test("""
             @"(((?'Open'<)[^<>]*)+((?'Close-Open'>)[^<>]*)+)*"
             """, """
             <Tree>
@@ -1699,12 +1648,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest26()
-    {
-        Test("""
+        => Test("""
             @"\b(?!un)\w+\b"
             """, """
             <Tree>
@@ -1744,12 +1691,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest27()
-    {
-        Test("""
+        => Test("""
             @"\b(?ix: d \w+)\s"
             """, """
             <Tree>
@@ -1796,12 +1741,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest28()
-    {
-        Test("""
+        => Test("""
             @"(?:\w+)"
             """, """
             <Tree>
@@ -1830,12 +1773,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest29()
-    {
-        Test("""
+        => Test("""
             @"(?:\b(?:\w+)\W*)+"
             """, """
             <Tree>
@@ -1886,12 +1827,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest30()
-    {
-        Test("""
+        => Test("""
             @"(?:\b(?:\w+)\W*)+\."
             """, """
             <Tree>
@@ -1946,12 +1885,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest31()
-    {
-        Test("""
+        => Test("""
             @"(?'Close-Open'>)"
             """, $"""
             <Tree>
@@ -1985,12 +1922,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest32()
-    {
-        Test("""
+        => Test("""
             @"[^<>]*"
             """, """
             <Tree>
@@ -2017,12 +1952,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest33()
-    {
-        Test("""
+        => Test("""
             @"\b\w+(?=\sis\b)"
             """, """
             <Tree>
@@ -2066,12 +1999,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest34()
-    {
-        Test("""
+        => Test("""
             @"[a-z-[m]]"
             """, """
             <Tree>
@@ -2112,12 +2043,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest35()
-    {
-        Test("""
+        => Test("""
             @"^\D\d{1,5}\D*$"
             """, """
             <Tree>
@@ -2159,12 +2088,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest36()
-    {
-        Test("""
+        => Test("""
             @"[^0-9]"
             """, """
             <Tree>
@@ -2194,12 +2121,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest37()
-    {
-        Test("""
+        => Test("""
             @"(\p{IsGreek}+(\s)?)+"
             """, """
             <Tree>
@@ -2247,12 +2172,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest38()
-    {
-        Test("""
+        => Test("""
             @"\b(\p{IsGreek}+(\s)?)+\p{Pd}\s(\p{IsBasicLatin}+(\s)?)+"
             """, """
             <Tree>
@@ -2349,12 +2272,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest39()
-    {
-        Test("""
+        => Test("""
             @"\b.*[.?!;:](\s|\z)"
             """, """
             <Tree>
@@ -2407,12 +2328,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest40()
-    {
-        Test("""
+        => Test("""
             @"^.+"
             """, """
             <Tree>
@@ -2435,12 +2354,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest41()
-    {
-        Test("""
+        => Test("""
             @"[^o]"
             """, """
             <Tree>
@@ -2464,12 +2381,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest42()
-    {
-        Test("""
+        => Test("""
             @"\bth[^o]\w+\b"
             """, """
             <Tree>
@@ -2511,12 +2426,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest43()
-    {
-        Test("""
+        => Test("""
             @"(\P{Sc})+"
             """, """
             <Tree>
@@ -2547,12 +2460,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest44()
-    {
-        Test("""
+        => Test("""
             @"[^\p{P}\d]"
             """, """
             <Tree>
@@ -2584,12 +2495,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest45()
-    {
-        Test("""
+        => Test("""
             @"\b[A-Z]\w*\b"
             """, """
             <Tree>
@@ -2633,12 +2542,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest46()
-    {
-        Test("""
+        => Test("""
             @"\S+?"
             """, """
             <Tree>
@@ -2662,12 +2569,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest47()
-    {
-        Test("""
+        => Test("""
             @"y\s"
             """, """
             <Tree>
@@ -2688,12 +2593,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest48()
-    {
-        Test("""
+        => Test("""
             @"gr[ae]y\s\S+?[\s\p{P}]"
             """, """
             <Tree>
@@ -2753,12 +2656,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest49()
-    {
-        Test("""
+        => Test("""
             @"[\s\p{P}]"
             """, """
             <Tree>
@@ -2789,12 +2690,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest50()
-    {
-        Test("""
+        => Test("""
             @"[\p{P}\d]"
             """, """
             <Tree>
@@ -2825,12 +2724,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest51()
-    {
-        Test("""
+        => Test("""
             @"[^aeiou]"
             """, """
             <Tree>
@@ -2854,12 +2751,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest52()
-    {
-        Test("""
+        => Test("""
             @"(\w)\1"
             """, """
             <Tree>
@@ -2888,12 +2783,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest53()
-    {
-        Test("""
+        => Test("""
             @"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Pc}\p{Lm}] "
             """, """
             <Tree>
@@ -2966,12 +2859,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest54()
-    {
-        Test("""
+        => Test("""
             @"[^a-zA-Z_0-9]"
             """, """
             <Tree>
@@ -3022,12 +2913,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest55()
-    {
-        Test("""
+        => Test("""
             @"\P{Nd}"
             """, """
             <Tree>
@@ -3048,12 +2937,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest56()
-    {
-        Test("""
+        => Test("""
             @"(\(?\d{3}\)?[\s-])?"
             """, """
             <Tree>
@@ -3113,12 +3000,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest57()
-    {
-        Test("""
+        => Test("""
             @"^(\(?\d{3}\)?[\s-])?\d{3}-\d{4}$"
             """, """
             <Tree>
@@ -3205,12 +3090,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest58()
-    {
-        Test("""
+        => Test("""
             @"[0-9]"
             """, """
             <Tree>
@@ -3239,12 +3122,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest59()
-    {
-        Test("""
+        => Test("""
             @"\p{Nd}"
             """, """
             <Tree>
@@ -3265,12 +3146,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest60()
-    {
-        Test("""
+        => Test("""
             @"\b(\S+)\s?"
             """, """
             <Tree>
@@ -3309,12 +3188,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest61()
-    {
-        Test("""
+        => Test("""
             @"[^ \f\n\r\t\v]"
             """, """
             <Tree>
@@ -3358,12 +3235,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest62()
-    {
-        Test("""
+        => Test("""
             @"[^\f\n\r\t\v\x85\p{Z}]"
             """, """
             <Tree>
@@ -3416,12 +3291,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest63()
-    {
-        Test("""
+        => Test("""
             @"(\s|$)"
             """, """
             <Tree>
@@ -3454,12 +3327,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest64()
-    {
-        Test("""
+        => Test("""
             @"\b\w+(e)?s(\s|$)"
             """, """
             <Tree>
@@ -3519,12 +3390,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest65()
-    {
-        Test("""
+        => Test("""
             @"[ \f\n\r\t\v]"
             """, """
             <Tree>
@@ -3567,12 +3436,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest66()
-    {
-        Test("""
+        => Test("""
             @"(\W){1,2}"
             """, """
             <Tree>
@@ -3604,12 +3471,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest67()
-    {
-        Test("""
+        => Test("""
             @"(\w+)"
             """, """
             <Tree>
@@ -3637,12 +3502,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest68()
-    {
-        Test("""
+        => Test("""
             @"\b"
             """, """
             <Tree>
@@ -3660,12 +3523,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest69()
-    {
-        Test("""
+        => Test("""
             @"\b(\w+)(\W){1,2}"
             """, """
             <Tree>
@@ -3715,12 +3576,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest70()
-    {
-        Test("""
+        => Test("""
             @"(?>(\w)\1+).\b"
             """, """
             <Tree>
@@ -3767,12 +3626,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest71()
-    {
-        Test("""
+        => Test("""
             @"(\b(\w+)\W+)+"
             """, """
             <Tree>
@@ -3821,12 +3678,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest72()
-    {
-        Test("""
+        => Test("""
             @"(\w)\1+.\b"
             """, """
             <Tree>
@@ -3865,12 +3720,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest73()
-    {
-        Test("""
+        => Test("""
             @"\p{Sc}*(\s?\d+[.,]?\d*)\p{Sc}*"
             """, """
             <Tree>
@@ -3944,12 +3797,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest74()
-    {
-        Test("""
+        => Test("""
             @"p{Sc}*(?<amount>\s?\d+[.,]?\d*)\p{Sc}*"
             """, """
             <Tree>
@@ -4027,12 +3878,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest75()
-    {
-        Test("""
+        => Test("""
             @"^(\w+\s?)+$"
             """, """
             <Tree>
@@ -4076,12 +3925,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest76()
-    {
-        Test("""
+        => Test("""
             @"(?ix) d \w+ \s"
             """, """
             <Tree>
@@ -4124,12 +3971,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest77()
-    {
-        Test("""
+        => Test("""
             @"\b(?ix: d \w+)\s"
             """, """
             <Tree>
@@ -4176,12 +4021,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest78()
-    {
-        Test("""
+        => Test("""
             @"\bthe\w*\b"
             """, """
             <Tree>
@@ -4213,12 +4056,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest79()
-    {
-        Test("""
+        => Test("""
             @"\b(?i:t)he\w*\b"
             """, """
             <Tree>
@@ -4262,12 +4103,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest80()
-    {
-        Test("""
+        => Test("""
             @"^(\w+)\s(\d+)$"
             """, """
             <Tree>
@@ -4319,12 +4158,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest81()
-    {
-        Test("""
+        => Test("""
             @"^(\w+)\s(\d+)\r*$"
             """, """
             <Tree>
@@ -4383,12 +4220,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.Multiline);
-    }
 
     [Fact]
     public void ReferenceTest82()
-    {
-        Test("""
+        => Test("""
             @"(?m)^(\w+)\s(\d+)\r*$"
             """, """
             <Tree>
@@ -4453,12 +4288,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.Multiline);
-    }
 
     [Fact]
     public void ReferenceTest83()
-    {
-        Test("""
+        => Test("""
             @"(?s)^.+"
             """, """
             <Tree>
@@ -4487,12 +4320,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest84()
-    {
-        Test("""
+        => Test("""
             @"\b(\d{2}-)*(?(1)\d{7}|\d{3}-\d{2}-\d{4})\b"
             """, """
             <Tree>
@@ -4593,12 +4424,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest85()
-    {
-        Test("""
+        => Test("""
             @"\b\(?((\w+),?\s?)+[\.!?]\)?"
             """, """
             <Tree>
@@ -4680,12 +4509,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest86()
-    {
-        Test("""
+        => Test("""
             @"(?n)\b\(?((?>\w+),?\s?)+[\.!?]\)?"
             """, """
             <Tree>
@@ -4773,12 +4600,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest87()
-    {
-        Test("""
+        => Test("""
             @"\b\(?(?n:(?>\w+),?\s?)+[\.!?]\)?"
             """, """
             <Tree>
@@ -4863,12 +4688,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest88()
-    {
-        Test("""
+        => Test("""
             @"\b\(?((?>\w+),?\s?)+[\.!?]\)?"
             """, """
             <Tree>
@@ -4951,12 +4774,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void ReferenceTest89()
-    {
-        Test("""
+        => Test("""
             @"(?x)\b \(? ( (?>\w+) ,?\s? )+  [\.!?] \)? # Matches an entire sentence."
             """, """
             <Tree>
@@ -5071,12 +4892,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest90()
-    {
-        Test("""
+        => Test("""
             @"\bb\w+\s"
             """, """
             <Tree>
@@ -5108,12 +4927,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.RightToLeft);
-    }
 
     [Fact]
     public void ReferenceTest91()
-    {
-        Test("""
+        => Test("""
             @"(?<=\d{1,2}\s)\w+,?\s\d{4}"
             """, """
             <Tree>
@@ -5177,12 +4994,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.RightToLeft);
-    }
 
     [Fact]
     public void ReferenceTest92()
-    {
-        Test("""
+        => Test("""
             @"\b(\w+\s*)+"
             """, """
             <Tree>
@@ -5224,12 +5039,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void ReferenceTest93()
-    {
-        Test("""
+        => Test("""
             @"((a+)(\1) ?)+"
             """, """
             <Tree>
@@ -5283,12 +5096,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void ReferenceTest94()
-    {
-        Test("""
+        => Test("""
             @"\b(D\w+)\s(d\w+)\b"
             """, """
             <Tree>
@@ -5348,12 +5159,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest95()
-    {
-        Test("""
+        => Test("""
             @"\b(D\w+)(?ixn) \s (d\w+) \b"
             """, """
             <Tree>
@@ -5427,12 +5236,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest96()
-    {
-        Test("""
+        => Test("""
             @"\b((?# case-sensitive comparison)D\w+)\s((?#case-insensitive comparison)d\w+)\b"
             """, """
             <Tree>
@@ -5498,12 +5305,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest97()
-    {
-        Test("""
+        => Test("""
             @"\b\(?((?>\w+),?\s?)+[\.!?]\)?"
             """, """
             <Tree>
@@ -5586,12 +5391,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest98()
-    {
-        Test("""
+        => Test("""
             @"\b(?<n2>\d{2}-)*(?(n2)\d{7}|\d{3}-\d{2}-\d{4})\b"
             """, """
             <Tree>
@@ -5697,12 +5500,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest99()
-    {
-        Test("""
+        => Test("""
             @"\b(\d{2}-\d{7}|\d{3}-\d{2}-\d{4})\b"
             """, """
             <Tree>
@@ -5790,12 +5591,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest100()
-    {
-        Test("""
+        => Test("""
             @"\bgr(a|e)y\b"
             """, """
             <Tree>
@@ -5841,12 +5640,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest101()
-    {
-        Test("""
+        => Test("""
             @"(?>(\w)\1+).\b"
             """, """
             <Tree>
@@ -5893,12 +5690,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest102()
-    {
-        Test("""
+        => Test("""
             @"(\b(\w+)\W+)+"
             """, """
             <Tree>
@@ -5947,12 +5742,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest103()
-    {
-        Test("""
+        => Test("""
             @"\b91*9*\b"
             """, """
             <Tree>
@@ -5989,12 +5782,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest104()
-    {
-        Test("""
+        => Test("""
             @"\ban+\w*?\b"
             """, """
             <Tree>
@@ -6035,12 +5826,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest105()
-    {
-        Test("""
+        => Test("""
             @"\ban?\b"
             """, """
             <Tree>
@@ -6071,12 +5860,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest106()
-    {
-        Test("""
+        => Test("""
             @"\b\d+\,\d{3}\b"
             """, """
             <Tree>
@@ -6118,12 +5905,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest107()
-    {
-        Test("""
+        => Test("""
             @"\b\d{2,}\b\D+"
             """, """
             <Tree>
@@ -6162,12 +5947,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest108()
-    {
-        Test("""
+        => Test("""
             @"(00\s){2,4}"
             """, """
             <Tree>
@@ -6202,12 +5985,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest109()
-    {
-        Test("""
+        => Test("""
             @"\b\w*?oo\w*?\b"
             """, """
             <Tree>
@@ -6252,12 +6033,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest110()
-    {
-        Test("""
+        => Test("""
             @"\b\w+?\b"
             """, """
             <Tree>
@@ -6289,12 +6068,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest111()
-    {
-        Test("""
+        => Test("""
             @"^\s*(System.)??Console.Write(Line)??\(??"
             """, """
             <Tree>
@@ -6372,12 +6149,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest112()
-    {
-        Test("""
+        => Test("""
             @"(System.)??"
             """, """
             <Tree>
@@ -6410,12 +6185,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest113()
-    {
-        Test("""
+        => Test("""
             @"\b(\w{3,}?\.){2}?\w{3,}?\b"
             """, """
             <Tree>
@@ -6482,12 +6255,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest114()
-    {
-        Test("""
+        => Test("""
             @"\b[A-Z](\w*?\s*?){1,10}[.!?]"
             """, """
             <Tree>
@@ -6563,12 +6334,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest115()
-    {
-        Test("""
+        => Test("""
             @"b.*([0-9]{4})\b"
             """, """
             <Tree>
@@ -6622,12 +6391,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest116()
-    {
-        Test("""
+        => Test("""
             @"\b.*?([0-9]{4})\b"
             """, """
             <Tree>
@@ -6685,12 +6452,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest117()
-    {
-        Test("""
+        => Test("""
             @"(a?)*"
             """, """
             <Tree>
@@ -6720,12 +6485,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest118()
-    {
-        Test("""
+        => Test("""
             @"(a\1|(?(1)\1)){0,2}"
             """, """
             <Tree>
@@ -6779,12 +6542,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest119()
-    {
-        Test("""
+        => Test("""
             @"(a\1|(?(1)\1)){2}"
             """, """
             <Tree>
@@ -6836,12 +6597,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest120()
-    {
-        Test("""
+        => Test("""
             @"(\w)\1"
             """, """
             <Tree>
@@ -6870,12 +6629,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest121()
-    {
-        Test("""
+        => Test("""
             @"(?<char>\w)\k<char>"
             """, """
             <Tree>
@@ -6912,12 +6669,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest122()
-    {
-        Test("""
+        => Test("""
             @"(?<2>\w)\k<2>"
             """, """
             <Tree>
@@ -6953,12 +6708,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest123()
-    {
-        Test("""
+        => Test("""
             @"(?<1>a)(?<1>\1b)*"
             """, """
             <Tree>
@@ -7006,12 +6759,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest124()
-    {
-        Test("""
+        => Test("""
             @"\b(\p{Lu}{2})(\d{2})?(\p{Lu}{2})\b"
             """, """
             <Tree>
@@ -7090,12 +6841,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest125()
-    {
-        Test("""
+        => Test("""
             @"\bgr[ae]y\b"
             """, """
             <Tree>
@@ -7132,12 +6881,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest126()
-    {
-        Test("""
+        => Test("""
             @"\b((?# case sensitive comparison)D\w+)\s(?ixn)((?#case insensitive comparison)d\w+)\b"
             """, """
             <Tree>
@@ -7208,12 +6955,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void ReferenceTest127()
-    {
-        Test("""
+        => Test("""
             @"\{\d+(,-*\d+)*(\:\w{1,4}?)*\}(?x) # Looks for a composite format item."
             """, """
             <Tree>
@@ -7307,5 +7052,4 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 }

@@ -801,7 +801,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.RecordDeclaration:
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                         {
                             var typeDecl = (TypeDeclarationSyntax)memberDecl;
 
@@ -872,7 +871,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.RecordDeclaration:
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                         {
                             var typeDecl = (TypeDeclarationSyntax)memberDecl;
                             return typeDecl.ParameterList is object &&
@@ -1091,7 +1089,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                     {
                         SynthesizedPrimaryConstructor symbol = TryGetSynthesizedPrimaryConstructor((TypeDeclarationSyntax)node);
 
@@ -1402,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declarationSpan = extensionDeclaration.Span;
             foreach (var symbol in collection)
             {
-                if (symbol is TypeSymbol { IsExtension: true } && symbol.HasLocationContainedWithin(this.SyntaxTree, declarationSpan, out var wasZeroWidthMatch))
+                if (symbol is NamedTypeSymbol { IsExtension: true } && symbol.HasLocationContainedWithin(this.SyntaxTree, declarationSpan, out var wasZeroWidthMatch))
                 {
                     if (!wasZeroWidthMatch)
                         return (NamedTypeSymbol)symbol;

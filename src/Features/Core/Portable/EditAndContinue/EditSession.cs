@@ -343,6 +343,11 @@ internal sealed class EditSession
             return false;
         }
 
+        if (HasProjectLevelDifferences(oldProject, newProject, differences) && differences == null)
+        {
+            return true;
+        }
+
         foreach (var documentId in newProject.State.DocumentStates.GetChangedStateIds(oldProject.State.DocumentStates, ignoreUnchangedContent: true))
         {
             var document = newProject.GetRequiredDocument(documentId);
@@ -361,7 +366,7 @@ internal sealed class EditSession
                 return true;
             }
 
-            differences.Value.ChangedOrAddedDocuments.Add(document);
+            differences.ChangedOrAddedDocuments.Add(document);
         }
 
         foreach (var documentId in newProject.State.DocumentStates.GetAddedStateIds(oldProject.State.DocumentStates))
@@ -377,7 +382,7 @@ internal sealed class EditSession
                 return true;
             }
 
-            differences.Value.ChangedOrAddedDocuments.Add(document);
+            differences.ChangedOrAddedDocuments.Add(document);
         }
 
         foreach (var documentId in newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates))
@@ -393,7 +398,7 @@ internal sealed class EditSession
                 return true;
             }
 
-            differences.Value.DeletedDocuments.Add(document);
+            differences.DeletedDocuments.Add(document);
         }
 
         // The following will check for any changes in non-generated document content (editorconfig, additional docs).
@@ -436,9 +441,63 @@ internal sealed class EditSession
         return false;
     }
 
-    internal static async Task GetProjectDifferencesAsync(TraceLog log, Project oldProject, Project newProject, ProjectDifferences documentDifferences, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
+    /// <summary>
+    /// Return true if projects might have differences in state other than document content that migth affect EnC.
+    /// The checks need to be fast. May return true even if the changes don't actually affect the behavior.
+    /// </summary>
+    internal static bool HasProjectLevelDifferences(Project oldProject, Project newProject, ProjectDifferences? differences)
+    {
+        Debug.Assert(oldProject.CompilationOptions != null);
+        Debug.Assert(newProject.CompilationOptions != null);
+
+        if (oldProject.ParseOptions != newProject.ParseOptions ||
+            HasDifferences(oldProject.CompilationOptions, newProject.CompilationOptions) ||
+            oldProject.AssemblyName != newProject.AssemblyName)
+        {
+            if (differences != null)
+            {
+                differences.HasSettingChange = true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        if (!oldProject.MetadataReferences.SequenceEqual(newProject.MetadataReferences) ||
+            !oldProject.ProjectReferences.SequenceEqual(newProject.ProjectReferences))
+        {
+            if (differences != null)
+            {
+                differences.HasReferenceChange = true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// True if given compilation options differ in a way that might affect EnC.
+    /// </summary>
+    internal static bool HasDifferences(CompilationOptions oldOptions, CompilationOptions newOptions)
+        => !oldOptions
+            .WithSyntaxTreeOptionsProvider(newOptions.SyntaxTreeOptionsProvider)
+            .WithStrongNameProvider(newOptions.StrongNameProvider)
+            .WithXmlReferenceResolver(newOptions.XmlReferenceResolver)
+            .Equals(newOptions);
+
+    internal static async Task GetProjectDifferencesAsync(TraceLog log, Project? oldProject, Project newProject, ProjectDifferences documentDifferences, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         documentDifferences.Clear();
+
+        if (oldProject == null)
+        {
+            return;
+        }
 
         if (!await HasDifferencesAsync(oldProject, newProject, documentDifferences, cancellationToken).ConfigureAwait(false))
         {
@@ -697,6 +756,16 @@ internal sealed class EditSession
         return hasRudeEdit;
     }
 
+    private static bool HasAddedReference(Compilation oldCompilation, Compilation newCompilation)
+    {
+        using var pooledOldNames = SharedPools.StringIgnoreCaseHashSet.GetPooledObject();
+        var oldNames = pooledOldNames.Object;
+        Debug.Assert(oldNames.Comparer == AssemblyIdentityComparer.SimpleNameComparer);
+
+        oldNames.AddRange(oldCompilation.ReferencedAssemblyNames.Select(static r => r.Name));
+        return newCompilation.ReferencedAssemblyNames.Any(static (newReference, oldNames) => !oldNames.Contains(newReference.Name), oldNames);
+    }
+
     internal static async ValueTask<ProjectChanges> GetProjectChangesAsync(
         ActiveStatementsMap baseActiveStatements,
         Compilation oldCompilation,
@@ -740,7 +809,7 @@ internal sealed class EditSession
                 }
             }
 
-            MergePartialEdits(oldCompilation, newCompilation, allEdits, out var mergedEdits, out var addedSymbols, cancellationToken);
+            var (mergedEdits, addedSymbols) = await MergePartialEditsAsync(oldCompilation, newCompilation, oldProject, newProject, allEdits, cancellationToken).ConfigureAwait(false);
 
             return new ProjectChanges(
                 mergedEdits,
@@ -755,50 +824,19 @@ internal sealed class EditSession
         }
     }
 
-    internal static void MergePartialEdits(
+    internal static async ValueTask<(ImmutableArray<SemanticEdit> mergedEdits, ImmutableHashSet<ISymbol> addedSymbols)> MergePartialEditsAsync(
         Compilation oldCompilation,
         Compilation newCompilation,
+        Project oldProject,
+        Project newProject,
         IReadOnlyList<SemanticEditInfo> edits,
-        out ImmutableArray<SemanticEdit> mergedEdits,
-        out ImmutableHashSet<ISymbol> addedSymbols,
         CancellationToken cancellationToken)
     {
         using var _0 = ArrayBuilder<SemanticEdit>.GetInstance(edits.Count, out var mergedEditsBuilder);
         using var _1 = PooledHashSet<ISymbol>.GetInstance(out var addedSymbolsBuilder);
         using var _2 = ArrayBuilder<(ISymbol? oldSymbol, ISymbol? newSymbol)>.GetInstance(edits.Count, out var resolvedSymbols);
 
-        foreach (var edit in edits)
-        {
-            SymbolKeyResolution oldResolution;
-            if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Delete)
-            {
-                oldResolution = edit.Symbol.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken);
-                Contract.ThrowIfNull(oldResolution.Symbol);
-            }
-            else
-            {
-                oldResolution = default;
-            }
-
-            SymbolKeyResolution newResolution;
-            if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Insert or SemanticEditKind.Replace)
-            {
-                newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
-                Contract.ThrowIfNull(newResolution.Symbol);
-            }
-            else if (edit.Kind == SemanticEditKind.Delete && edit.DeletedSymbolContainer is not null)
-            {
-                // For deletes, we use NewSymbol to reference the containing type of the deleted member
-                newResolution = edit.DeletedSymbolContainer.Value.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
-                Contract.ThrowIfNull(newResolution.Symbol);
-            }
-            else
-            {
-                newResolution = default;
-            }
-
-            resolvedSymbols.Add((oldResolution.Symbol, newResolution.Symbol));
-        }
+        ResolveSymbols(edits, oldCompilation, newCompilation, resolvedSymbols, cancellationToken);
 
         for (var i = 0; i < edits.Count; i++)
         {
@@ -826,9 +864,7 @@ internal sealed class EditSession
         // no partial type merging needed:
         if (edits.Count == mergedEditsBuilder.Count)
         {
-            mergedEdits = mergedEditsBuilder.ToImmutable();
-            addedSymbols = [.. addedSymbolsBuilder];
-            return;
+            return (mergedEdits: mergedEditsBuilder.ToImmutable(), addedSymbols: [.. addedSymbolsBuilder]);
         }
 
         // Calculate merged syntax map for each partial type symbol:
@@ -837,8 +873,8 @@ internal sealed class EditSession
         var mergedUpdateEditSyntaxMaps = new Dictionary<SymbolKey, (Func<SyntaxNode, SyntaxNode?>? matchingNodes, Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdits)>(symbolKeyComparer);
 
         var updatesByPartialType = edits
-            .Where(edit => edit is { PartialType: not null, Kind: SemanticEditKind.Update })
-            .GroupBy(edit => edit.PartialType!.Value, symbolKeyComparer);
+            .Where(static edit => edit is { PartialType: not null, Kind: SemanticEditKind.Update })
+            .GroupBy(keySelector: static edit => edit.PartialType!.Value, symbolKeyComparer);
 
         foreach (var partialTypeEdits in updatesByPartialType)
         {
@@ -847,10 +883,48 @@ internal sealed class EditSession
 
             if (partialTypeEdits.Any(static e => e.SyntaxMaps.HasMap))
             {
-                var newMaps = partialTypeEdits.Where(static edit => edit.SyntaxMaps.HasMap).SelectAsArray(static edit => edit.SyntaxMaps);
+                var newMaps = partialTypeEdits.SelectAsArray(
+                    predicate: static edit => edit.SyntaxMaps.HasMap,
+                    selector: static edit => edit.SyntaxMaps);
+#if DEBUG
+                // All edits of constructors of the same partial class share the same syntax mapping function
+                // that aggregates all syntax maps of member bodies (changed or unchanged) comprising the constructor's emitted body
+                // (the constructor and any contributing member initializers) in the analyzed document (tree).
+                // See AbstractEditAndContinueAnalyzer.AddConstructorEdits.
+                foreach (var g in newMaps.GroupBy(m => m.NewTree))
+                {
+                    var first = g.First();
+                    foreach (var m in g)
+                    {
+                        Debug.Assert(m.MatchingNodes == first.MatchingNodes);
+                        Debug.Assert(m.RuntimeRudeEdits == first.RuntimeRudeEdits);
+                    }
+                }
+#endif
+                var treeMap = await GetPartialTypeDeclarationTreeMapAsync(
+                    partialTypeEdits.Key,
+                    newCompilation,
+                    oldProject,
+                    newProject,
+                    cancellationToken).ConfigureAwait(false);
 
-                mergedMatchingNodes = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].MatchingNodes!(node);
-                mergedRuntimeRudeEdits = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].RuntimeRudeEdits?.Invoke(node);
+                mergedMatchingNodes = newNode =>
+                {
+                    var syntaxMapsForTree = newMaps.FirstOrDefault(static (m, newNode) => m.NewTree == newNode.SyntaxTree, newNode);
+                    if (syntaxMapsForTree.NewTree != null)
+                    {
+                        Contract.ThrowIfNull(syntaxMapsForTree.MatchingNodes);
+                        return syntaxMapsForTree.MatchingNodes(newNode);
+                    }
+
+                    // The node is in a syntax tree that may only differ in trivia that do not affect active statements.
+                    // Otherwise, it would already be mapped via a syntax map above correspondign to the changed syntax tree.
+                    return treeMap.TryGetValue(newNode.SyntaxTree, out var oldRoot)
+                        ? oldRoot.FindCorrespondingNodeInEquivalentTree(newNode)
+                        : null;
+                };
+
+                mergedRuntimeRudeEdits = node => newMaps.FirstOrDefault(static (m, node) => m.NewTree == node.SyntaxTree, node).RuntimeRudeEdits?.Invoke(node);
             }
             else
             {
@@ -880,15 +954,95 @@ internal sealed class EditSession
             }
         }
 
-        mergedEdits = mergedEditsBuilder.ToImmutable();
-        addedSymbols = [.. addedSymbolsBuilder];
+        return (mergedEdits: mergedEditsBuilder.ToImmutable(), addedSymbols: [.. addedSymbolsBuilder]);
+    }
+
+    private static void ResolveSymbols(
+        IReadOnlyList<SemanticEditInfo> edits,
+        Compilation oldCompilation,
+        Compilation newCompilation,
+        ArrayBuilder<(ISymbol? oldSymbol, ISymbol? newSymbol)> resolvedSymbols,
+        CancellationToken cancellationToken)
+    {
+        foreach (var edit in edits)
+        {
+            SymbolKeyResolution oldResolution;
+            if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Delete)
+            {
+                oldResolution = edit.Symbol.Resolve(oldCompilation, cancellationToken: cancellationToken);
+                Contract.ThrowIfNull(oldResolution.Symbol);
+            }
+            else
+            {
+                oldResolution = default;
+            }
+
+            SymbolKeyResolution newResolution;
+            if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Insert or SemanticEditKind.Replace)
+            {
+                newResolution = edit.Symbol.Resolve(newCompilation, cancellationToken: cancellationToken);
+                Contract.ThrowIfNull(newResolution.Symbol);
+            }
+            else if (edit.Kind == SemanticEditKind.Delete && edit.DeletedSymbolContainer is not null)
+            {
+                // For deletes, we use NewSymbol to reference the containing type of the deleted member
+                newResolution = edit.DeletedSymbolContainer.Value.Resolve(newCompilation, cancellationToken: cancellationToken);
+                Contract.ThrowIfNull(newResolution.Symbol);
+            }
+            else
+            {
+                newResolution = default;
+            }
+
+            resolvedSymbols.Add((oldResolution.Symbol, newResolution.Symbol));
+        }
+    }
+
+    /// <summary>
+    /// Maps all syntax trees containing partial declarations of the specified type in the new compilation
+    /// to the corresponding syntax roots in the old compilation.
+    /// </summary>
+    private static async ValueTask<ImmutableDictionary<SyntaxTree, SyntaxNode>> GetPartialTypeDeclarationTreeMapAsync(
+        SymbolKey typeKey,
+        Compilation newCompilation,
+        Project oldProject,
+        Project newProject,
+        CancellationToken cancellationToken)
+    {
+        var newType = typeKey.Resolve(newCompilation, cancellationToken: cancellationToken).Symbol;
+        Contract.ThrowIfNull(newType);
+
+        var map = ImmutableDictionary.CreateBuilder<SyntaxTree, SyntaxNode>();
+        foreach (var newSyntaxRef in newType.DeclaringSyntaxReferences)
+        {
+            if (map.ContainsKey(newSyntaxRef.SyntaxTree))
+            {
+                continue;
+            }
+
+            var documentId = newProject.GetRequiredDocument(newSyntaxRef.SyntaxTree).Id;
+
+            var oldDocument = await oldProject.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            if (oldDocument == null)
+            {
+                // The document didn't exist in the old project. This can happen if the document was added
+                // and contains a partial declaration of an existing type.
+                continue;
+            }
+
+            var oldRoot = await oldDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            map.Add(newSyntaxRef.SyntaxTree, oldRoot);
+        }
+
+        return map.ToImmutable();
     }
 
     public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(
         Solution solution,
         ActiveStatementSpanProvider solutionActiveStatementSpanProvider,
         UpdateId updateId,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         CancellationToken cancellationToken)
     {
         var projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
@@ -900,8 +1054,11 @@ internal sealed class EditSession
             using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
             using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
             using var _3 = ArrayBuilder<ProjectBaseline>.GetInstance(out var newProjectBaselines);
-            using var _4 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToStale);
-            using var _5 = PooledDictionary<ProjectId, ArrayBuilder<Diagnostic>>.GetInstance(out var diagnosticBuilders);
+            using var _4 = ArrayBuilder<ProjectId>.GetInstance(out var addedUnbuiltProjects);
+            using var _5 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRedeploy);
+            using var _6 = PooledDictionary<ProjectId, ArrayBuilder<Diagnostic>>.GetInstance(out var diagnosticBuilders);
+
+            // Project differences for currently analyzed project. Reused and cleared.
             using var projectDifferences = new ProjectDifferences();
 
             // After all projects have been analyzed "true" value indicates changed document that is only included in stale projects.
@@ -931,6 +1088,7 @@ internal sealed class EditSession
             ProjectAnalysisSummary? projectSummaryToReport = null;
 
             var oldSolution = DebuggingSession.LastCommittedSolution;
+            var staleProjects = oldSolution.StaleProjects;
 
             var hasPersistentErrors = false;
             foreach (var newProject in solution.Projects)
@@ -943,66 +1101,63 @@ internal sealed class EditSession
                     }
 
                     var oldProject = oldSolution.GetProject(newProject.Id);
-                    if (oldProject == null)
-                    {
-                        Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project not loaded");
-
-                        // TODO (https://github.com/dotnet/roslyn/issues/1204):
-                        //
-                        // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
-                        // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
-                        // and will result in source mismatch when the user steps into them.
-                        //
-                        // We can allow project to be added by including all its documents here.
-                        // When we analyze these documents later on we'll check if they match the PDB.
-                        // If so we can add them to the committed solution and detect further changes.
-                        // It might be more efficient though to track added projects separately.
-
-                        continue;
-                    }
-
-                    Debug.Assert(oldProject.SupportsEditAndContinue());
-
-                    if (!oldProject.ProjectSettingsSupportEditAndContinue(Log))
-                    {
-                        // reason alrady reported
-                        continue;
-                    }
-
-                    projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
+                    Debug.Assert(oldProject == null || oldProject.SupportsEditAndContinue());
 
                     await GetProjectDifferencesAsync(Log, oldProject, newProject, projectDifferences, projectDiagnostics, cancellationToken).ConfigureAwait(false);
+                    projectDifferences.Log(Log, newProject);
 
-                    if (projectDifferences.HasDocumentChanges)
+                    if (projectDifferences.IsEmpty)
                     {
-                        Log.Write($"Found {projectDifferences.ChangedOrAddedDocuments.Count} potentially changed, {projectDifferences.DeletedDocuments.Count} deleted document(s) in project {newProject.GetLogDisplay()}");
-                    }
-
-                    var isStaleProject = oldSolution.IsStaleProject(newProject.Id);
-
-                    // We don't consider document changes in stale projects until they are rebuilt (removed from stale set).
-                    if (isStaleProject)
-                    {
-                        Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project is stale");
-                        UpdateChangedDocumentsStaleness(isStale: true);
                         continue;
                     }
 
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
+
+                    // We don't consider document changes in stale projects until they are rebuilt (removed from stale set).
+                    if (staleProjects.TryGetValue(newProject.Id, out var staleModuleId))
+                    {
+                        // The module hasn't been rebuilt or we are unable to read the MVID -- keep treating the project as stale.
+                        if (mvid == staleModuleId || mvidReadError != null)
+                        {
+                            Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project is stale");
+
+                            // Track changed documents that are only included in stale or unbuilt projects:
+                            UpdateChangedDocumentsStaleness(isStale: true);
+                            continue;
+                        }
+
+                        staleProjects = staleProjects.Remove(newProject.Id);
+                    }
+
                     if (mvidReadError != null)
                     {
                         // The error hasn't been reported by GetDocumentDiagnosticsAsync since it might have been intermittent.
                         // The MVID is required for emit so we consider the error permanent and report it here.
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
                         projectDiagnostics.Add(mvidReadError);
-                        projectSummaryToReport = ProjectAnalysisSummary.ValidChanges;
                         continue;
                     }
 
                     if (mvid == Guid.Empty)
                     {
-                        Log.Write($"Changes not applied to {newProject.GetLogDisplay()}: project not built");
+                        // If the project has been added to the solution, ask the project system to build it.
+                        if (oldProject == null)
+                        {
+                            Log.Write($"Project build requested for {newProject.GetLogDisplay()}");
+                            addedUnbuiltProjects.Add(newProject.Id);
+                        }
+                        else
+                        {
+                            Log.Write($"Changes not applied to {newProject.GetLogDisplay()}: project not built");
+                        }
+
+                        // Track changed documents that are only included in stale or unbuilt projects:
                         UpdateChangedDocumentsStaleness(isStale: true);
+                        continue;
+                    }
+
+                    if (oldProject == null)
+                    {
                         continue;
                     }
 
@@ -1030,7 +1185,7 @@ internal sealed class EditSession
                         // Treat the project the same as if it hasn't been built. We won't produce delta for it until it gets rebuilt.
                         Log.Write($"Changes not applied to {newProject.GetLogDisplay()}: binaries not up-to-date");
 
-                        projectsToStale.Add(newProject.Id);
+                        staleProjects = staleProjects.Add(newProject.Id, mvid);
                         UpdateChangedDocumentsStaleness(isStale: true);
 
                         continue;
@@ -1071,8 +1226,7 @@ internal sealed class EditSession
 
                     // Unsupported changes in referenced assemblies will be reported below.
                     if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges &&
-                        oldProject.MetadataReferences.SequenceEqual(newProject.MetadataReferences) &&
-                        oldProject.ProjectReferences.SequenceEqual(newProject.ProjectReferences))
+                        !projectDifferences.HasReferenceChange)
                     {
                         continue;
                     }
@@ -1130,6 +1284,14 @@ internal sealed class EditSession
                     if (projectBaselines.Any(baseline => HasReferenceRudeEdits(baseline.InitiallyReferencedAssemblies, newCompilation, projectDiagnostics)))
                     {
                         continue;
+                    }
+
+                    // If the project references new dependencies, the host needs to invoke ReferenceCopyLocalPathsOutputGroup target on this project
+                    // to deploy these dependencies to the projects output directory. The deployment shouldn't overwrite existing files.
+                    // It should only happen if the project has no rude edits (especially not rude edits related to references) -- we bailed above if so.
+                    if (HasAddedReference(oldCompilation, newCompilation))
+                    {
+                        projectsToRedeploy.Add(newProject.Id);
                     }
 
                     if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges)
@@ -1278,9 +1440,9 @@ internal sealed class EditSession
                 }
                 finally
                 {
-                    if (projectSummaryToReport.HasValue)
+                    if (projectSummaryToReport.HasValue || !projectDiagnostics.IsEmpty)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummaryToReport.Value, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
+                        Telemetry.LogProjectAnalysisSummary(projectSummaryToReport, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
                     }
 
                     if (!projectDiagnostics.IsEmpty)
@@ -1318,7 +1480,7 @@ internal sealed class EditSession
 
             if (hasPersistentErrors)
             {
-                return SolutionUpdate.Empty(diagnostics, syntaxError, ModuleUpdateStatus.Blocked);
+                return SolutionUpdate.Empty(diagnostics, syntaxError, staleProjects, ModuleUpdateStatus.Blocked);
             }
 
             // syntax error is a persistent error
@@ -1330,6 +1492,7 @@ internal sealed class EditSession
                 solution,
                 updates,
                 diagnostics,
+                addedUnbuiltProjects,
                 runningProjects,
                 out var projectsToRestart,
                 out var projectsToRebuild);
@@ -1338,13 +1501,14 @@ internal sealed class EditSession
 
             return new SolutionUpdate(
                 moduleUpdates,
-                projectsToStale.ToImmutable(),
+                staleProjects,
                 nonRemappableRegions.ToImmutable(),
                 newProjectBaselines.ToImmutable(),
                 diagnostics,
                 syntaxError: null,
                 projectsToRestart,
-                projectsToRebuild);
+                projectsToRebuild,
+                projectsToRedeploy.ToImmutable());
         }
         catch (Exception e) when (LogException(e) && FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {

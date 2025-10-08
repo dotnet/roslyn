@@ -554,5 +554,16 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
 
             TaskTestUtil.AssertCommandLine(vbc, engine, "/optionstrict:custom", "/out:test.dll", "/target:library", "test.vb", "blah.vb");
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+        public void StdLib()
+        {
+            var vbc = new Vbc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.vb"),
+            };
+
+            AssertEx.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
     }
 }

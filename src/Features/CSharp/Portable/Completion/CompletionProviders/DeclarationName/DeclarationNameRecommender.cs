@@ -29,13 +29,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 
 [ExportDeclarationNameRecommender(nameof(DeclarationNameRecommender)), Shared]
-internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecommender
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRecommender
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DeclarationNameRecommender()
-    { }
-
     public async Task<ImmutableArray<(string name, Glyph glyph)>> ProvideRecommendedNamesAsync(
         CompletionContext completionContext,
         Document document,
@@ -218,22 +215,14 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
 
         foreach (var kind in declarationInfo.PossibleSymbolKinds)
         {
-            ProcessRules(rules, firstMatchOnly: true, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
-            ProcessRules(supplementaryRules, firstMatchOnly: false, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
+            ProcessRules(rules, firstMatchOnly: true, kind);
+            ProcessRules(supplementaryRules, firstMatchOnly: false, kind);
         }
 
-        static void ProcessRules(
+        void ProcessRules(
             ImmutableArray<NamingRule> rules,
             bool firstMatchOnly,
-            SymbolSpecification.SymbolKindOrTypeKind kind,
-            ImmutableArray<ImmutableArray<string>> baseNames,
-            NameDeclarationInfo declarationInfo,
-            CSharpSyntaxContext context,
-            ArrayBuilder<(string, Glyph)> result,
-            ISemanticFactsService semanticFactsService,
-            PooledHashSet<string> seenBaseNames,
-            PooledHashSet<string> seenUniqueNames,
-            CancellationToken cancellationToken)
+            SymbolSpecification.SymbolKindOrTypeKind kind)
         {
             var modifiers = declarationInfo.Modifiers;
             foreach (var rule in rules)
@@ -255,9 +244,9 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
                                 context.TargetToken.GetRequiredParent(),
                                 container: null,
                                 baseName: name,
-                                filter: s => IsRelevantSymbolKind(s),
+                                filter: IsRelevantSymbolKind,
                                 usedNames: [],
-                                cancellationToken: cancellationToken);
+                                cancellationToken);
 
                             if (seenUniqueNames.Add(uniqueName.Text))
                             {
@@ -331,9 +320,5 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
     /// Only relevant if symbol could cause a conflict with a local variable.
     /// </summary>
     private static bool IsRelevantSymbolKind(ISymbol symbol)
-    {
-        return symbol.Kind is SymbolKind.Local or
-            SymbolKind.Parameter or
-            SymbolKind.RangeVariable;
-    }
+        => symbol.Kind is SymbolKind.Local or SymbolKind.Parameter or SymbolKind.RangeVariable;
 }

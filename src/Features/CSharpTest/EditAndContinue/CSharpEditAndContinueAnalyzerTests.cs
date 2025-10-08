@@ -87,7 +87,7 @@ public sealed class CSharpEditAndContinueAnalyzerTests
     private static void TestErrorSpansAllKinds(Func<SyntaxKind, bool> hasLabel)
     {
         var unhandledKinds = new List<SyntaxKind>();
-        foreach (var kind in Enum.GetValues(typeof(SyntaxKind)).Cast<SyntaxKind>().Where(hasLabel))
+        foreach (var kind in Enum.GetValues<SyntaxKind>().Where(hasLabel))
         {
             TextSpan? span;
             try
@@ -128,8 +128,7 @@ public sealed class CSharpEditAndContinueAnalyzerTests
 
     [Fact]
     public void ErrorSpans_TopLevel()
-    {
-        TestSpans("""
+        => TestSpans("""
             /*<span>*/extern alias A;/*</span>*/
             /*<span>*/using Z = Goo.Bar;/*</span>*/
 
@@ -202,7 +201,6 @@ public sealed class CSharpEditAndContinueAnalyzerTests
 
             }
             """, SyntaxComparer.TopLevel.HasLabel);
-    }
 
     [Fact]
     public void ErrorSpans_StatementLevel_Update()

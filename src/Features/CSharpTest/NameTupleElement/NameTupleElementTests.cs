@@ -22,13 +22,13 @@ public sealed class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEdito
 
     [Fact]
     public Task TestInCall_FirstElement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { void M((int arg1, int arg2) x) => M(([||]1, 2)); }",
 @"class C { void M((int arg1, int arg2) x) => M((arg1: 1, 2)); }");
 
     [Fact]
     public Task TestInCall_Deep()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -46,7 +46,7 @@ public sealed class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEdito
 
     [Fact]
     public Task TestInCall_Deep2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -64,7 +64,7 @@ public sealed class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEdito
 
     [Fact]
     public Task TestInCall_Deep3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -82,7 +82,7 @@ public sealed class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEdito
 
     [Fact]
     public Task TestInCall_FirstElement_EscapedNamed()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { void M((int @int, int arg2) x) => M(([||]1, 2)); }",
 @"class C { void M((int @int, int arg2) x) => M((@int: 1, 2)); }");
 
@@ -118,7 +118,7 @@ public sealed class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEdito
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public Task TestWithSelection()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { void M((int arg1, int arg2) x) => M(([|1|], 2)); }",
 @"class C { void M((int arg1, int arg2) x) => M((arg1: 1, 2)); }");
 
@@ -135,13 +135,13 @@ public sealed class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEdito
 
     [Fact]
     public Task TestInCall_FirstElement_WithTrivia()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { void M((int arg1, int arg2) x) => M((/*before*/ [||]1 /*after*/, 2)); }",
 @"class C { void M((int arg1, int arg2) x) => M((/*before*/ arg1: 1 /*after*/, 2)); }");
 
     [Fact]
     public Task TestInCall_FirstElement_Nested()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -159,25 +159,25 @@ public sealed class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEdito
 
     [Fact]
     public Task TestInCall_FirstComma()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { void M((int arg1, int arg2) x) => M((1[||], 2)); }",
 @"class C { void M((int arg1, int arg2) x) => M((arg1: 1, 2)); }");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public Task TestInCall_FirstComma2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { void M((int arg1, int arg2) x) => M((1,[||] 2)); }",
 @"class C { void M((int arg1, int arg2) x) => M((1, arg2: 2)); }");
 
     [Fact]
     public Task TestInCall_SecondElement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { void M((int arg1, int arg2) x) => M((1, [||]2)); }",
 @"class C { void M((int arg1, int arg2) x) => M((1, arg2: 2)); }");
 
     [Fact]
     public Task TestInCall_CloseParen()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { void M((int arg1, int arg2) x) => M((1, 2[||])); }",
 @"class C { void M((int arg1, int arg2) x) => M((1, arg2: 2)); }");
 
@@ -187,13 +187,13 @@ public sealed class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEdito
 
     [Fact]
     public Task TestArrowReturnedTuple()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { (int arg1, int arg2, int arg3) M() => ([||]1, 2); }",
 @"class C { (int arg1, int arg2, int arg3) M() => (arg1: 1, 2); }");
 
     [Fact]
     public Task TestArrowReturnedTuple_LocalFunction()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -215,7 +215,7 @@ public sealed class NameTupleElementTests : AbstractCSharpCodeActionTest_NoEdito
 
     [Fact]
     public Task TestReturnedTuple()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"class C { (int arg1, int arg2, int arg3) M() { return ([||]1, 2); } }",
 @"class C { (int arg1, int arg2, int arg3) M() { return (arg1: 1, 2); } }");
 

@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -26,7 +26,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         IProgress<CodeAnalysisProgress> progressTracker,
         string progressTrackerDescription,
         Func<TFixAllContext, Func<Document, Document?, ValueTask>, Task> getFixedDocumentsAsync)
-        where TFixAllContext : IFixAllContext
+        where TFixAllContext : IRefactorOrFixAllContext
     {
         var cancellationToken = originalFixAllContext.CancellationToken;
 

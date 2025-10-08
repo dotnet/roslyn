@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if CODEANALYSIS_V3_OR_BETTER
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -26,7 +24,7 @@ namespace Analyzer.Utilities
     {
         private static readonly ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions> s_cachedOptions = new();
         private static readonly ImmutableHashSet<OutputKind> s_defaultOutputKinds =
-            ImmutableHashSet.CreateRange(Enum.GetValues(typeof(OutputKind)).Cast<OutputKind>());
+            ImmutableHashSet.CreateRange(Enum.GetValues<OutputKind>());
 
         private static bool TryGetSyntaxTreeForOption(ISymbol symbol, [NotNullWhen(returnValue: true)] out SyntaxTree? tree)
         {
@@ -643,4 +641,3 @@ namespace Analyzer.Utilities
         }
     }
 }
-#endif

@@ -36,7 +36,7 @@ internal sealed class RemoteLanguageServiceWorkspaceHost : ICollaborationService
     // A collection of loaded Roslyn Project IDs, indexed by project path.
     private ImmutableDictionary<string, ProjectId> _loadedProjects = ImmutableDictionary.Create<string, ProjectId>(StringComparer.OrdinalIgnoreCase);
     private ImmutableDictionary<string, ProjectInfo> _loadedProjectInfo = ImmutableDictionary.Create<string, ProjectInfo>(StringComparer.OrdinalIgnoreCase);
-    private TaskCompletionSource<bool> _projectsLoadedTaskCompletionSource = new TaskCompletionSource<bool>();
+    private TaskCompletionSource<bool> _projectsLoadedTaskCompletionSource = new();
     private readonly RemoteProjectInfoProvider _remoteProjectInfoProvider;
 
     private readonly SVsServiceProvider _serviceProvider;

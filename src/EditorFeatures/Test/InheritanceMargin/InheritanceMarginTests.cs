@@ -367,14 +367,12 @@ public sealed class InheritanceMarginTests
 
     [Theory, CombinatorialData]
     public Task TestCSharpClassWithErrorBaseType(TestHost testHost)
-    {
-        return VerifyNoItemForDocumentAsync("""
+        => VerifyNoItemForDocumentAsync("""
 
             public class Bar : SomethingUnknown
             {
             }
             """, LanguageNames.CSharp, testHost);
-    }
 
     [Theory, CombinatorialData]
     public Task TestCSharpReferencingMetadata(TestHost testHost)
@@ -515,14 +513,12 @@ public sealed class InheritanceMarginTests
     [InlineData("interface", TestHost.InProcess)]
     [InlineData("interface", TestHost.OutOfProcess)]
     public Task TestCSharpTypeWithoutBaseType(string typeName, TestHost testHost)
-    {
-        return VerifyNoItemForDocumentAsync($$"""
+        => VerifyNoItemForDocumentAsync($$"""
 
                     public {{typeName}} Bar
                     {
                     }
             """, LanguageNames.CSharp, testHost);
-    }
 
     [Theory]
     [InlineData("public Bar() { }", TestHost.InProcess)]
@@ -534,8 +530,7 @@ public sealed class InheritanceMarginTests
     [InlineData("public static Bar operator +(Bar a, Bar b) => new Bar();", TestHost.InProcess)]
     [InlineData("public static Bar operator +(Bar a, Bar b) => new Bar();", TestHost.OutOfProcess)]
     public Task TestCSharpSpecialMember(string memberDeclaration, TestHost testHost)
-    {
-        return VerifyInSingleDocumentAsync(
+        => VerifyInSingleDocumentAsync(
             $$"""
 
                     public abstract class {|target1:Bar1|}
@@ -554,7 +549,6 @@ public sealed class InheritanceMarginTests
                         targetSymbolDisplayName: "Bar1",
                         locationTag: "target1",
                         relationship: InheritanceRelationship.BaseType)]));
-    }
 
     [Theory, CombinatorialData]
     public Task TestCSharpEventDeclaration(TestHost testHost)
@@ -1455,8 +1449,7 @@ public sealed class InheritanceMarginTests
 
     [Theory, CombinatorialData]
     public Task TestEmptyFileSingleGlobalImportInOtherFile(TestHost testHost)
-    {
-        return VerifyInMultipleDocumentsAsync(
+        => VerifyInMultipleDocumentsAsync(
             @"", @"{|target1:global using System;|}", LanguageNames.CSharp,
             testHost,
             new TestInheritanceMemberItem(
@@ -1465,12 +1458,10 @@ public sealed class InheritanceMarginTests
             targets: [new TargetInfo(
                 targetSymbolDisplayName: "System",
                 relationship: InheritanceRelationship.InheritedImport, "target1")]));
-    }
 
     [Theory, CombinatorialData]
     public Task TestEmptyFileMultipleGlobalImportInOtherFile(TestHost testHost)
-    {
-        return VerifyInMultipleDocumentsAsync(
+        => VerifyInMultipleDocumentsAsync(
             @"", """
 
             {|target1:global using System;|}
@@ -1489,12 +1480,10 @@ public sealed class InheritanceMarginTests
                     targetSymbolDisplayName: "System.Collections",
                     relationship: InheritanceRelationship.InheritedImport, "target2"),
             ]));
-    }
 
     [Theory, CombinatorialData]
     public Task TestFileWithUsing_SingleGlobalImportInOtherFile(TestHost testHost)
-    {
-        return VerifyInMultipleDocumentsAsync(
+        => VerifyInMultipleDocumentsAsync(
             """
 
             using System.Collections;
@@ -1506,12 +1495,10 @@ public sealed class InheritanceMarginTests
             targets: [new TargetInfo(
                 targetSymbolDisplayName: "System",
                 relationship: InheritanceRelationship.InheritedImport, "target1")]));
-    }
 
     [Theory, CombinatorialData]
     public Task TestIgnoreGlobalImportFromSameFile(TestHost testHost)
-    {
-        return VerifyInMultipleDocumentsAsync(
+        => VerifyInMultipleDocumentsAsync(
             """
 
             global using System.Collections.Generic;
@@ -1524,7 +1511,6 @@ public sealed class InheritanceMarginTests
             targets: [new TargetInfo(
                 targetSymbolDisplayName: "System",
                 relationship: InheritanceRelationship.InheritedImport, "target1")]));
-    }
 
     #endregion
 
@@ -1532,8 +1518,7 @@ public sealed class InheritanceMarginTests
 
     [Theory, CombinatorialData]
     public Task TestVisualBasicWithErrorBaseType(TestHost testHost)
-    {
-        return VerifyNoItemForDocumentAsync("""
+        => VerifyNoItemForDocumentAsync("""
 
                     Namespace MyNamespace
                         Public Class Bar
@@ -1541,7 +1526,6 @@ public sealed class InheritanceMarginTests
                         End Class
                     End Namespace
             """, LanguageNames.VisualBasic, testHost);
-    }
 
     [Theory, CombinatorialData]
     public Task TestVisualBasicReferencingMetadata(TestHost testHost)
@@ -1675,18 +1659,15 @@ public sealed class InheritanceMarginTests
     [InlineData("Interface", TestHost.InProcess)]
     [InlineData("Interface", TestHost.OutOfProcess)]
     public Task TestVisualBasicTypeWithoutBaseType(string typeName, TestHost testHost)
-    {
-        return VerifyNoItemForDocumentAsync($"""
+        => VerifyNoItemForDocumentAsync($"""
 
                     {typeName} Bar
                     End {typeName}
             """, LanguageNames.VisualBasic, testHost);
-    }
 
     [Theory, CombinatorialData]
     public Task TestVisualBasicMetadataInterface(TestHost testHost)
-    {
-        return VerifyInSingleDocumentAsync(
+        => VerifyInSingleDocumentAsync(
             """
 
                     Imports System.Collections
@@ -1712,7 +1693,6 @@ public sealed class InheritanceMarginTests
                         targetSymbolDisplayName: "IEnumerable",
                         relationship: InheritanceRelationship.ImplementedInterface,
                         inMetadata: true)]));
-    }
 
     [Theory, CombinatorialData]
     public Task TestVisualBasicEventStatement(TestHost testHost)

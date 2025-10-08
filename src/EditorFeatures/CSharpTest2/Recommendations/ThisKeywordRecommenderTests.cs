@@ -15,7 +15,7 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestNotAtRoot_Interactive()
         => VerifyAbsenceAsync(SourceCodeKind.Script,
-@"$$");
+            @"$$");
 
     [Fact]
     public Task TestNotAfterClass_Interactive()
@@ -44,52 +44,52 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestNotInUsingAlias()
         => VerifyAbsenceAsync(
-@"using Goo = $$");
+            @"using Goo = $$");
 
     [Fact]
     public Task TestNotInGlobalUsingAlias()
         => VerifyAbsenceAsync(
-@"global using Goo = $$");
+            @"global using Goo = $$");
 
     [Fact]
     public Task TestNotAfterAngle()
         => VerifyAbsenceAsync(
-@"interface IGoo<$$");
+            @"interface IGoo<$$");
 
     [Fact]
     public Task TestInterfaceTypeVarianceNotAfterIn()
         => VerifyAbsenceAsync(
-@"interface IGoo<in $$");
+            @"interface IGoo<in $$");
 
     [Fact]
     public Task TestInterfaceTypeVarianceNotAfterComma()
         => VerifyAbsenceAsync(
-@"interface IGoo<Goo, $$");
+            @"interface IGoo<Goo, $$");
 
     [Fact]
     public Task TestInterfaceTypeVarianceNotAfterAttribute()
         => VerifyAbsenceAsync(
-@"interface IGoo<[Goo]$$");
+            @"interface IGoo<[Goo]$$");
 
     [Fact]
     public Task TestDelegateTypeVarianceNotAfterAngle()
         => VerifyAbsenceAsync(
-@"delegate void D<$$");
+            @"delegate void D<$$");
 
     [Fact]
     public Task TestDelegateTypeVarianceNotAfterComma()
         => VerifyAbsenceAsync(
-@"delegate void D<Goo, $$");
+            @"delegate void D<Goo, $$");
 
     [Fact]
     public Task TestDelegateTypeVarianceNotAfterAttribute()
         => VerifyAbsenceAsync(
-@"delegate void D<[Goo]$$");
+            @"delegate void D<[Goo]$$");
 
     [Fact]
     public Task TestNotThisBaseListAfterAngle()
         => VerifyAbsenceAsync(
-@"interface IGoo : Bar<$$");
+            @"interface IGoo : Bar<$$");
 
     [Fact]
     public Task TestNotInGenericMethod()
@@ -181,17 +181,17 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestNotAfterDelegateOpenParen()
         => VerifyAbsenceAsync(
-@"delegate void D($$");
+            @"delegate void D($$");
 
     [Fact]
     public Task TestNotAfterDelegateComma()
         => VerifyAbsenceAsync(
-@"delegate void D(int i, $$");
+            @"delegate void D(int i, $$");
 
     [Fact]
     public Task TestNotAfterDelegateAttribute()
         => VerifyAbsenceAsync(
-@"delegate void D(int i, [Goo]$$");
+            @"delegate void D(int i, [Goo]$$");
 
     [Fact]
     public Task TestNotAfterOperator()
@@ -712,27 +712,27 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestInEmptyStatement()
         => VerifyKeywordAsync(AddInsideMethod(
-@"$$"));
+            @"$$"));
 
     [Fact]
     public Task TestAfterCast()
         => VerifyKeywordAsync(AddInsideMethod(
-@"stack.Push(((IEnumerable<Segment>)((TreeSegment)$$"));
+            @"stack.Push(((IEnumerable<Segment>)((TreeSegment)$$"));
 
     [Fact]
     public Task TestAfterReturn()
         => VerifyKeywordAsync(AddInsideMethod(
-@"return $$"));
+            @"return $$"));
 
     [Fact]
     public Task TestAfterIndexer()
         => VerifyKeywordAsync(AddInsideMethod(
-@"return this.items[$$"));
+            @"return this.items[$$"));
 
     [Fact]
     public Task TestAfterSimpleCast()
         => VerifyKeywordAsync(AddInsideMethod(
-@"return ((IEnumerable<T>)$$"));
+            @"return ((IEnumerable<T>)$$"));
 
     [Fact]
     public Task TestNotInClass()
@@ -1215,7 +1215,21 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestAfterRefExpression()
         => VerifyKeywordAsync(AddInsideMethod(
-@"ref int x = ref $$"));
+            @"ref int x = ref $$"));
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78979")]
+    public Task TestInsideNameofInAttribute(bool isStatic)
+        => VerifyKeywordAsync($$"""
+            public class Example
+            {
+                private string _field;
+
+                [MemberNotNull(nameof($$))]
+                public {{(isStatic ? "static " : " ")}}void Method()
+                {
+                }
+            }
+            """);
 
     #region Collection expressions
 

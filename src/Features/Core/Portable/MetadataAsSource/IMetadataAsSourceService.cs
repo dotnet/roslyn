@@ -22,6 +22,5 @@ internal interface IMetadataAsSourceService : ILanguageService
     /// <param name="formattingOptions">Options to use to format the generated document, or null to use the <paramref name="document"/>'s options.</param>
     /// 
     /// <returns>The updated document</returns>
-    /// <param name="cancellationToken">To cancel document operations</param>
     Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken);
 }

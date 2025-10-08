@@ -444,8 +444,8 @@ public sealed partial class MergeNestedIfStatementsTests
                 }
             }
             """;
-        const string Expected =
-            """
+        await TestActionCountAsync(Initial, 1);
+        await TestInRegularAndScriptAsync(Initial, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -461,10 +461,7 @@ public sealed partial class MergeNestedIfStatementsTests
                     }
                 }
             }
-            """;
-
-        await TestActionCountAsync(Initial, 1);
-        await TestInRegularAndScriptAsync(Initial, Expected);
+            """);
     }
 
     [Fact]
@@ -491,8 +488,8 @@ public sealed partial class MergeNestedIfStatementsTests
                 }
             }
             """;
-        const string Expected =
-            """
+        await TestActionCountAsync(Initial, 1);
+        await TestInRegularAndScriptAsync(Initial, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -508,10 +505,7 @@ public sealed partial class MergeNestedIfStatementsTests
                     }
                 }
             }
-            """;
-
-        await TestActionCountAsync(Initial, 1);
-        await TestInRegularAndScriptAsync(Initial, Expected);
+            """);
     }
 
     [Fact]
@@ -536,8 +530,8 @@ public sealed partial class MergeNestedIfStatementsTests
                 }
             }
             """;
-        const string Expected1 =
-            """
+        await TestActionCountAsync(Initial, 2);
+        await TestInRegularAndScriptAsync(Initial, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -551,9 +545,8 @@ public sealed partial class MergeNestedIfStatementsTests
                     }
                 }
             }
-            """;
-        const string Expected2 =
-            """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(Initial, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -567,10 +560,6 @@ public sealed partial class MergeNestedIfStatementsTests
                     }
                 }
             }
-            """;
-
-        await TestActionCountAsync(Initial, 2);
-        await TestInRegularAndScriptAsync(Initial, Expected1, index: 0);
-        await TestInRegularAndScriptAsync(Initial, Expected2, index: 1);
+            """, index: 1);
     }
 }

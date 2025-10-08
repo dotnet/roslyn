@@ -48,7 +48,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         return exportProvider.GetExportedValue<VirtualProjectXmlProvider>();
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/79464")]
     public async Task GetProjectXml_FileBasedProgram_SdkTooOld_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();

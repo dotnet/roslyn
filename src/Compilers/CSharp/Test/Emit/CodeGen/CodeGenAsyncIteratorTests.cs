@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         YieldBreak
     }
 
-    [CompilerTrait(CompilerFeature.AsyncStreams)]
+    [CompilerTrait(CompilerFeature.AsyncStreams, CompilerFeature.Async)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
         internal static string ExpectedOutput(string output)
@@ -500,7 +500,7 @@ class C
             CompileAndVerify(comp);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait1()
         {
@@ -529,7 +529,7 @@ class C
 8");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait2()
         {
@@ -1713,9 +1713,6 @@ class C
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return 1;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
-                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
                 // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return 4;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
@@ -1744,9 +1741,6 @@ class C
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return null;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
-                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
                 // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return null;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
@@ -1781,9 +1775,6 @@ class C
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return ref s;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
-                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M2(ref string s2)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
                 // (10,74): error CS1988: Async methods cannot have ref, in or out parameters
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M2(ref string s2)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s2").WithLocation(10, 74),
@@ -1815,9 +1806,6 @@ class C
                 // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return default;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
-                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
                 // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return default;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
@@ -1943,9 +1931,6 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
                 // (6,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return null;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(6, 9)
@@ -2054,15 +2039,8 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
-                );
+            comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.
                 //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 74)
@@ -2086,15 +2064,8 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
-                );
+            comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
                 //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 74)
@@ -2137,15 +2108,8 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
-                );
+            comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
                 // (4,60): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
                 //     async System.Collections.Generic.IAsyncEnumerator<int> M()
                 Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 60)
@@ -2165,9 +2129,6 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS0161: 'C.M()': not all code paths return a value
                 //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 74)
@@ -2187,11 +2148,7 @@ public class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations: 2), source }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
-                );
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 END DISPOSAL DONE");
         }
 
@@ -2258,10 +2215,7 @@ class C
             comp.VerifyDiagnostics(
                 // (4,62): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async System.Collections.Generic.IEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 62),
-                // (4,62): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async System.Collections.Generic.IEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 62)
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 62)
                 );
         }
 
@@ -2278,9 +2232,6 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS0161: 'C.M()': not all code paths return a value
                 //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 74)
@@ -2300,11 +2251,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
-                // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async System.Collections.Generic.IAsyncEnumerator<int> M(int value)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 67)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2620,7 +2567,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Stream1:1 Finally Stream2:1 Stream2:2 Finally Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYield()
         {
             string source = @"
@@ -3189,7 +3136,7 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation()
         {
             string source = @"
@@ -3454,7 +3401,7 @@ class C
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Theory]
         [InlineData("[EnumeratorCancellation] ", "")]
         [InlineData("", "[EnumeratorCancellation] ")]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_ExtendedPartialMethod(string definitionAttributes, string implementationAttributes)
@@ -3722,7 +3669,7 @@ partial class C
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_LocalFunction()
         {
             string source = @"
@@ -3991,7 +3938,7 @@ class C
 }", sequencePoints: "C+<<M>g__local|0_0>d.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_NoUsage()
         {
             string source = @"
@@ -4459,7 +4406,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 2 END DISPOSAL DONE")]
         [InlineData(10, "1 2 END DISPOSAL DONE")]
@@ -4661,7 +4608,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "0 DISPOSAL DONE")]
         [InlineData(2, "0 1 DISPOSAL Finally DONE")]
         [InlineData(3, "0 1 Finally 2 DISPOSAL DONE")]
@@ -4696,7 +4643,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(2, "1 Break Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_DisposeIAsyncEnumeratorMethod(int iterations, string expectedOutput)
         {
@@ -4744,7 +4691,7 @@ public class C : System.Collections.Generic.IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(2, "1 Break Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInDisposeMode(int iterations, string expectedOutput)
         {
@@ -4782,10 +4729,219 @@ public class C
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput,
+                verify: Verification.FailsILVerify with
+                {
+                    ILVerifyMessage = "[MoveNext]: Leave into try block. { Offset = 0x11a }"
+                });
+
+            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+                {
+                  // Code size      414 (0x19e)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                                C.<M>d__0 V_2,
+                                System.Exception V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+                  IL_0006:  stloc.0
+                  .try
+                  {
+                    IL_0007:  ldloc.0
+                    IL_0008:  ldc.i4.s   -4
+                    IL_000a:  sub
+                    IL_000b:  switch    (
+                        IL_0026,
+                        IL_0028,
+                        IL_002c,
+                        IL_002c,
+                        IL_002a)
+                    IL_0024:  br.s       IL_002c
+                    IL_0026:  br.s       IL_0059
+                    IL_0028:  br.s       IL_002c
+                    IL_002a:  br.s       IL_00aa
+                    IL_002c:  ldarg.0
+                    IL_002d:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+                    IL_0032:  brfalse.s  IL_0039
+                    IL_0034:  leave      IL_0167
+                    IL_0039:  ldarg.0
+                    IL_003a:  ldc.i4.m1
+                    IL_003b:  dup
+                    IL_003c:  stloc.0
+                    IL_003d:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_0042:  nop
+                    IL_0043:  ldarg.0
+                    IL_0044:  ldc.i4.1
+                    IL_0045:  stfld      "int C.<M>d__0.<>2__current"
+                    IL_004a:  ldarg.0
+                    IL_004b:  ldc.i4.s   -4
+                    IL_004d:  dup
+                    IL_004e:  stloc.0
+                    IL_004f:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_0054:  leave      IL_0190
+                    IL_0059:  ldarg.0
+                    IL_005a:  ldc.i4.m1
+                    IL_005b:  dup
+                    IL_005c:  stloc.0
+                    IL_005d:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_0062:  ldarg.0
+                    IL_0063:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+                    IL_0068:  brfalse.s  IL_006f
+                    IL_006a:  leave      IL_0167
+                    IL_006f:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                    IL_0074:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                    IL_0079:  stloc.1
+                    IL_007a:  ldloca.s   V_1
+                    IL_007c:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+                    IL_0081:  brtrue.s   IL_00c6
+                    IL_0083:  ldarg.0
+                    IL_0084:  ldc.i4.0
+                    IL_0085:  dup
+                    IL_0086:  stloc.0
+                    IL_0087:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_008c:  ldarg.0
+                    IL_008d:  ldloc.1
+                    IL_008e:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1"
+                    IL_0093:  ldarg.0
+                    IL_0094:  stloc.2
+                    IL_0095:  ldarg.0
+                    IL_0096:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+                    IL_009b:  ldloca.s   V_1
+                    IL_009d:  ldloca.s   V_2
+                    IL_009f:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)"
+                    IL_00a4:  nop
+                    IL_00a5:  leave      IL_019d
+                    IL_00aa:  ldarg.0
+                    IL_00ab:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1"
+                    IL_00b0:  stloc.1
+                    IL_00b1:  ldarg.0
+                    IL_00b2:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1"
+                    IL_00b7:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+                    IL_00bd:  ldarg.0
+                    IL_00be:  ldc.i4.m1
+                    IL_00bf:  dup
+                    IL_00c0:  stloc.0
+                    IL_00c1:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_00c6:  ldloca.s   V_1
+                    IL_00c8:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                    IL_00cd:  nop
+                    .try
+                    {
+                      .try
+                      {
+                        IL_00ce:  nop
+                        .try
+                        {
+                          IL_00cf:  nop
+                          IL_00d0:  ldstr      "Break "
+                          IL_00d5:  call       "void System.Console.Write(string)"
+                          IL_00da:  nop
+                          IL_00db:  ldarg.0
+                          IL_00dc:  ldc.i4.1
+                          IL_00dd:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+                          IL_00e2:  br.s       IL_00e4
+                          IL_00e4:  leave.s    IL_00f9
+                        }
+                        finally
+                        {
+                          IL_00e6:  ldloc.0
+                          IL_00e7:  ldc.i4.m1
+                          IL_00e8:  bne.un.s   IL_00f8
+                          IL_00ea:  nop
+                          IL_00eb:  ldstr      "Throw "
+                          IL_00f0:  call       "void System.Console.Write(string)"
+                          IL_00f5:  nop
+                          IL_00f6:  ldnull
+                          IL_00f7:  throw
+                          IL_00f8:  endfinally
+                        }
+                        IL_00f9:  ldarg.0
+                        IL_00fa:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+                        IL_00ff:  brfalse.s  IL_0103
+                        IL_0101:  br.s       IL_0104
+                        IL_0103:  nop
+                        IL_0104:  leave.s    IL_011c
+                      }
+                      catch object
+                      {
+                        IL_0106:  pop
+                        IL_0107:  nop
+                        IL_0108:  ldstr      "Caught "
+                        IL_010d:  call       "void System.Console.Write(string)"
+                        IL_0112:  nop
+                        IL_0113:  ldarg.0
+                        IL_0114:  ldc.i4.1
+                        IL_0115:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+                        IL_011a:  leave.s    IL_0104
+                      }
+                      IL_011c:  leave.s    IL_0130
+                    }
+                    finally
+                    {
+                      IL_011e:  ldloc.0
+                      IL_011f:  ldc.i4.m1
+                      IL_0120:  bne.un.s   IL_012f
+                      IL_0122:  nop
+                      IL_0123:  ldstr      "Finally "
+                      IL_0128:  call       "void System.Console.Write(string)"
+                      IL_012d:  nop
+                      IL_012e:  nop
+                      IL_012f:  endfinally
+                    }
+                    IL_0130:  ldarg.0
+                    IL_0131:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+                    IL_0136:  brfalse.s  IL_013a
+                    IL_0138:  leave.s    IL_0167
+                    IL_013a:  leave.s    IL_0167
+                  }
+                  catch System.Exception
+                  {
+                    IL_013c:  stloc.3
+                    IL_013d:  ldarg.0
+                    IL_013e:  ldc.i4.s   -2
+                    IL_0140:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_0145:  ldarg.0
+                    IL_0146:  ldc.i4.0
+                    IL_0147:  stfld      "int C.<M>d__0.<>2__current"
+                    IL_014c:  ldarg.0
+                    IL_014d:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+                    IL_0152:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                    IL_0157:  nop
+                    IL_0158:  ldarg.0
+                    IL_0159:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+                    IL_015e:  ldloc.3
+                    IL_015f:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+                    IL_0164:  nop
+                    IL_0165:  leave.s    IL_019d
+                  }
+                  IL_0167:  ldarg.0
+                  IL_0168:  ldc.i4.s   -2
+                  IL_016a:  stfld      "int C.<M>d__0.<>1__state"
+                  IL_016f:  ldarg.0
+                  IL_0170:  ldc.i4.0
+                  IL_0171:  stfld      "int C.<M>d__0.<>2__current"
+                  IL_0176:  ldarg.0
+                  IL_0177:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+                  IL_017c:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                  IL_0181:  nop
+                  IL_0182:  ldarg.0
+                  IL_0183:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+                  IL_0188:  ldc.i4.0
+                  IL_0189:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+                  IL_018e:  nop
+                  IL_018f:  ret
+                  IL_0190:  ldarg.0
+                  IL_0191:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+                  IL_0196:  ldc.i4.1
+                  IL_0197:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+                  IL_019c:  nop
+                  IL_019d:  ret
+                }
+                """);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 2 DISPOSAL Dispose Finally Throw Dispose CAUGHT2 DONE")]
         [InlineData(3, "1 2 Try Dispose Finally Throw Dispose CAUGHT DISPOSAL DONE")]
@@ -4831,7 +4987,7 @@ public class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "Try 1 DISPOSAL Finally Item1 Item2 Throw CAUGHT2 DONE")]
         [InlineData(2, "Try 1 2 DISPOSAL Finally Item1 Item2 Throw CAUGHT2 DONE")]
         [InlineData(3, "Try 1 2 Finally Item1 Item2 Throw CAUGHT DISPOSAL DONE")]
@@ -4880,7 +5036,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(2, "1 Throw Caught Throw2 Dispose CAUGHT DISPOSAL DONE")]
         public void TryFinally_AwaitUsingInCatch(int iterations, string expectedOutput)
         {
@@ -4924,7 +5080,7 @@ public class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "Try Item1 Item2 Throw1 Finally Item1 Item2 Throw2 CAUGHT DISPOSAL DONE")]
         public void TryFinally_AwaitForeachInCatch(int iterations, string expectedOutput)
         {
@@ -4978,7 +5134,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInCatch(int iterations, string expectedOutput)
@@ -5022,7 +5178,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInCatch_WithAwaits(int iterations, string expectedOutput)
@@ -5068,7 +5224,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL Finally2 DONE")]
         [InlineData(2, "1 Throw Caught Break Finally Finally2 END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInCatch_Nested(int iterations, string expectedOutput)
@@ -5121,7 +5277,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 Break Finally END DISPOSAL DONE")]
@@ -5154,7 +5310,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 2 DISPOSAL Finally DONE")]
@@ -5185,7 +5341,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally1 Finally2 Finally5 Finally6 DONE")]
         [InlineData(2, "1 2 DISPOSAL Finally1 Finally2 Finally5 Finally6 DONE")]
@@ -5250,7 +5406,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 Throw Finally CAUGHT DISPOSAL DONE")]
@@ -5284,7 +5440,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 2 DISPOSAL Finally DONE")]
@@ -5315,7 +5471,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(10, "1 Throw Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithYieldsOnly_WithThrow(int iterations, string expectedOutput)
@@ -5347,7 +5503,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Try Finally 2 DISPOSAL DONE")]
         [InlineData(3, "1 Try Finally 2 END DISPOSAL DONE")]
@@ -5382,7 +5538,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithAwaitsOnly_WithThrow(int iterations, string expectedOutput)
@@ -5416,7 +5572,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw1 Throw2 Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithAwaitsOnly_WithSlowThrowInAwait(int iterations, string expectedOutput)
@@ -5455,7 +5611,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithAwaitsOnly_WithFastThrowInAwait(int iterations, string expectedOutput)
@@ -5495,7 +5651,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 Throw Finally1 Caught")]
         [InlineData(2, "1 2 Throw Finally2 Finally1 Caught")]
         [InlineData(3, "1 2 Finally2 3 Throw Finally3 Finally1 Caught")]
@@ -5573,7 +5729,7 @@ class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "100 1 Throw Finally1 Caught")]
         [InlineData(2, "100 1 Throw Finally1 Caught")]
         [InlineData(3, "100 1 2 Throw Finally2 Finally1 Caught")]
@@ -5666,7 +5822,7 @@ class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Try Caught1 Caught2 After END DISPOSAL DONE")]
         public void TryFinally_AwaitAndCatch(int iterations, string expectedOutput)
@@ -5701,7 +5857,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught END DISPOSAL DONE")]
         public void TryFinally_AwaitInCatch(int iterations, string expectedOutput)
@@ -5731,7 +5887,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught END DISPOSAL DONE")]
         public void TryFinally_AwaitAndYieldBreakInCatch(int iterations, string expectedOutput)
@@ -5762,7 +5918,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 Try 2 DISPOSAL Finally DONE")]
@@ -6147,7 +6303,7 @@ class C
                 );
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "0 DISPOSAL Finally1 DONE")]
         [InlineData(2, "0 Finally1 Again 2 DISPOSAL Finally3 DONE")]
@@ -6187,7 +6343,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally CAUGHT2 DONE")]
         [InlineData(2, "1 Finally CAUGHT DISPOSAL DONE")]
@@ -6221,7 +6377,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally1 Finally2 CAUGHT2 DONE")]
         [InlineData(2, "1 Finally1 Finally2 CAUGHT DISPOSAL DONE")]
@@ -6262,7 +6418,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Try1 Try2 Caught Finally1 Finally2 END DISPOSAL DONE")]
@@ -6301,7 +6457,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "Try1 1 DISPOSAL Finally1 Finally2 DONE")]
         [InlineData(2, "Try1 1 Throw Finally1 Finally2 CAUGHT DISPOSAL DONE")]
         [InlineData(10, "Try1 1 Throw Finally1 Finally2 CAUGHT DISPOSAL DONE")]
@@ -6337,7 +6493,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "Try1 1 DISPOSAL Finally1 Finally2 DONE")]
         [InlineData(2, "Try1 1 Try2 Finally1 Finally2 END DISPOSAL DONE")]
@@ -6409,11 +6565,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 67)
-                );
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
@@ -6437,11 +6589,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (4,67): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 67)
-                );
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "none");
         }
 
@@ -6457,9 +6605,6 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
                 // (4,60): error CS0161: 'C.M()': not all code paths return a value
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 60)
@@ -6485,10 +6630,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(7, 15),
                 // (6,22): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         yield return "hello";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int").WithLocation(6, 22),
-                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int").WithLocation(6, 22)
                 );
         }
 
@@ -8686,7 +8828,6 @@ class C
         public void LambdaWithBindingErrorInYieldReturn()
         {
             var src = """
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8707,7 +8848,6 @@ class C
             comp.VerifyDiagnostics();
 
             src = """
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8727,72 +8867,6 @@ class C
 """;
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
 
-            comp.VerifyDiagnostics(
-                // (12,13): error CS0118: 's' is a variable but is used like a type
-                //             s // 1
-                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(12, 13),
-                // (13,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(13, 13),
-                // (13,13): warning CS0168: The variable 'await' is declared but never used
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "await").WithArguments("await").WithLocation(13, 13),
-                // (13,19): error CS1002: ; expected
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(13, 19),
-                // (13,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(13, 19));
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var s = GetSyntax<IdentifierNameSyntax>(tree, "s");
-            Assert.Null(model.GetSymbolInfo(s).Symbol);
-            Assert.Equal(new[] { "System.String s" }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
-        }
-
-        [Fact]
-        public void LambdaWithBindingErrorInReturn()
-        {
-            var src = """
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
-using System;
-using System.Threading.Tasks;
-
-class C
-{
-    static async Task<Func<string, Task<string>>> BarAsync()
-    {
-        return async s =>
-        {
-            await Task.CompletedTask;
-            throw new NotImplementedException();
-        };
-    }
-}
-""";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            comp.VerifyDiagnostics();
-
-            src = """
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
-using System;
-using System.Threading.Tasks;
-
-class C
-{
-    static async Task<Func<string, Task<string>>> BarAsync()
-    {
-        return async s =>
-        {
-            s // 1
-            await Task.CompletedTask;
-            throw new NotImplementedException();
-        };
-    }
-}
-""";
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
                 // (11,13): error CS0118: 's' is a variable but is used like a type
                 //             s // 1
@@ -8808,7 +8882,73 @@ class C
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(12, 19),
                 // (12,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(12, 19));
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(12, 19)
+            );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var s = GetSyntax<IdentifierNameSyntax>(tree, "s");
+            Assert.Null(model.GetSymbolInfo(s).Symbol);
+            Assert.Equal(new[] { "System.String s" }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void LambdaWithBindingErrorInReturn()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<Func<string, Task<string>>> BarAsync()
+    {
+        return async s =>
+        {
+            await Task.CompletedTask;
+            throw new NotImplementedException();
+        };
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            src = """
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<Func<string, Task<string>>> BarAsync()
+    {
+        return async s =>
+        {
+            s // 1
+            await Task.CompletedTask;
+            throw new NotImplementedException();
+        };
+    }
+}
+""";
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS0118: 's' is a variable but is used like a type
+                //             s // 1
+                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(10, 13),
+                // (11,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(11, 13),
+                // (11,13): warning CS0168: The variable 'await' is declared but never used
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "await").WithArguments("await").WithLocation(11, 13),
+                // (11,19): error CS1002: ; expected
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(11, 19),
+                // (11,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(11, 19)
+            );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10650,6 +10790,113 @@ class Test1
         }
 
         [Fact]
+        public void CompilerLoweringPreserveAttribute_03()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test()
+    {
+        async IAsyncEnumerable<T> local<[Preserve1][Preserve2]T>(T x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|0_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<<Test>g__local|0_0>d").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_04()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test()
+    {
+        async IAsyncEnumerable<int> local([Preserve1][Preserve2][Preserve3]int x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute", "Preserve3Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|0_0").Parameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|0_0>d.x").GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|0_0>d.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
         [WorkItem(78640, "https://github.com/dotnet/roslyn/issues/78640")]
         public void Repro_78640()
         {
@@ -10661,9 +10908,7 @@ class Test1
 
                 static class C
                 {
-                    #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
                     public static async IAsyncEnumerable<T> AsAsyncEnumerable<T>(this IEnumerable<T> enumerable, [EnumeratorCancellation] CancellationToken cancellationToken)
-                    #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
                     {
                         ArgumentNullException.ThrowIfNull(enumerable);
 

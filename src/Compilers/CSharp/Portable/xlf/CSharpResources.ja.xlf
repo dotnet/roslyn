@@ -127,6 +127,11 @@
         <target state="translated">'{0}': 属性の型引数では型パラメーターを使用することができません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">属性 '{0}' はイベント アクセサーでは無効です。'{1}' 宣言でのみ有効です。</target>
@@ -327,6 +332,11 @@
         <target state="translated">using エイリアスを 'ref' 型にすることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpreadInCatchFilter">
+        <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
+        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
         <source>'static' modifier must precede 'unsafe' modifier.</source>
         <target state="translated">'static' 修飾子は 'unsafe' 修飾子の前に指定する必要があります。</target>
@@ -399,7 +409,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="needs-review-translation">'INumberBase&lt;T&gt;' を継承または拡張しているため、'{0}' で数値定数またはリレーショナル パターンを使用することはできません。指定された数値型に絞り込むために、型パターンを使用することを検討してください。</target>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -812,6 +822,11 @@
         <target state="translated">式ツリーは、with 式を含むことはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionBlockCollision">
+        <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
+        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
         <source>This member is not allowed in an extension block</source>
         <target state="new">This member is not allowed in an extension block</target>
@@ -870,6 +885,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion13">
         <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
         <target state="translated">機能 '{0}' は C# 13.0 では使用できません。{1} 以上の言語バージョンを使用してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion14">
+        <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1242,11 +1262,6 @@
         <target state="translated">インターセプトできません。コンパイルにパス '{0}' のファイルが含まれていません。パス '{1}' を使うつもりでしたか?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
-        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
-        <target state="translated">インターセプトできません。パス '{0}' がマップされていません。マップされたパス '{1}' が必要です。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
         <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
         <target state="translated">指定された行番号と文字番号は、インターセプト可能なメソッド名ではなく、トークン '{0}' を参照しています。</target>
@@ -1507,10 +1522,20 @@
         <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberNameSameAsExtendedType">
+        <source>'{0}': extension member names cannot be the same as their extended type</source>
+        <target state="new">'{0}': extension member names cannot be the same as their extended type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">関数ポインター '{1}' に一致する '{0}' のオーバーロードはありません</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
+        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
+        <note>'MethodImplAttribute.Async' and 'async' are not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MisplacedExtension">
         <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
@@ -1694,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
-        <target state="translated">'{0}' はインスタンス メソッドではありません。レシーバーを、補間された文字列ハンドラー引数にすることはできません。</target>
+        <target state="new">'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -2327,11 +2352,6 @@
         <target state="translated">レコード メンバー '{0}' は '{1}' を返す必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">トップレベルのステートメントを含むコンパイル ユニットがある場合、/main を指定することはできません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">少なくとも 1 つの最上位のステートメントを空以外にする必要があります。</target>
@@ -2560,6 +2580,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
         <target state="translated">'{0}' にはコンパイラ機能 '{1}' が必要ですが、このバージョンのC## コンパイラではサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
+        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="new">Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2932,15 +2957,6 @@
         <target state="translated">定数文字列の ReadOnly/Span&lt;char&gt; に一致するパターン</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_LogoLine3">
-        <source>Based on the Microsoft (R) Visual C# Compiler.
-Copyright (C) Microsoft Corporation. All rights reserved.
-See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</source>
-        <target state="new">Based on the Microsoft (R) Visual C# Compiler.
-Copyright (C) Microsoft Corporation. All rights reserved.
-See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
@@ -3044,16 +3060,6 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
         <target state="translated">引数は 'ref' キーワードまたは 'in' キーワードと共に渡す必要があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
-        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">型 '{0}' は、メタデータで表現できないため、このコンテキストでは使用できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
-        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">型は、メタデータで表現できないため、このコンテキストで使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
@@ -3973,6 +3979,7 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
                               each error
 -preferreduilang              Specify the preferred output language name.
 -nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for
@@ -3991,164 +3998,165 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
-                            Visual C# Compiler のオプション
+        <target state="new">
+                             Visual C# Compiler Options
 
-                      - 出力ファイル -
--out:&lt;file&gt;                   出力ファイル名を指定します (既定値: main クラスを含むファイルの
-                             ベース名また最初のファイル)
--target:exe                   コンソール アプリケーションをビルドします (既定) (短い
-                             形式: -t:exe)
--target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
-                             -t:winexe)
--target:library               ライブラリをビルドします (短い形式: -t:library)
--target:module                別のアセンブリに追加できるモジュールを
-                             ビルドします (短い形式: -t:module)
--target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
-                             -t:appcontainerexe)
--target:winmdobj              WinMDExp が使用する、Windows ランタイムの
-                             中間ファイルをビルドします (短い形式: -t:winmdobj)
--doc:&lt;file&gt;                   生成する XML ドキュメント ファイルです
--refout:&lt;file&gt;                    生成する参照アセンブリ出力です
--platform:&lt;string&gt;                このコードを実行できるプラットフォームを限定します。x86、
-                             Itanium、x64、arm、arm64、anycpu32bitpreferred、
-                             anycpu のいずれかです。既定値は anycpu です。
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
+                              -t:winexe)
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
+                              -t:appcontainerexe)
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                      - 入力ファイル -
--recurse:&lt;wildcard&gt;               ワイルドカードの仕様に従って、
-                             現在のディレクトリとサブディレクトリ内のすべてのファイルを
-                             含めます
--reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定されたアセンブリ ファイルからの
-                             メタデータを参照します (短い形式: -r)
--reference:&lt;file list&gt;        指定されたアセンブリ ファイルからのメタデータを
-                             参照します (短い形式: -r)
--addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
--link:&lt;file list&gt;             指定された相互運用アセンブリからのメタデータを
-                             埋め込みます (短い形式: -l)
--analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
-                             (短い形式: -a)
--additionalfile:&lt;file list&gt;   コードの生成に直接影響しないものの、エラーまたは警告を
-                             生成するためにアナライザーが使用する可能性がある
-                             追加ファイルです。
--embed                        PDB ファイル内にすべてのソース ファイルを埋め込みます。
--embed:&lt;file list&gt;            PDB に特定のファイルを埋め込みます。
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                      - リソース -
--win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
--win32icon:&lt;file&gt;             出力にこのアイコンを使用します
--win32manifest:&lt;file&gt;         Win32 マニフェスト ファイル (.xml) を指定します
--nowin32manifest              既定の Win32 マニフェストを含めません
--resource:&lt;resinfo&gt;           指定されたリソースを埋め込みます (短い形式: -res)
--linkresource:&lt;resinfo&gt;       このアセンブリに指定されたリソースをリンクします
-                             (短い形式: -linkres) resinfo の形式: 
-                             &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                      - コード生成 -
--debug[+|-]                       デバッグ情報を出力します
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                             デバッグの種類を指定します ('full' は既定、
-                             'portable' はクロスプラットフォーム形式、
-                             'embedded' はターゲットの .dll または .exe に埋め込まれる
-                             クロスプラットフォーム形式です)
--optimize[+|-]                最適化を有効にします (短い形式: -o)
--deterministic                   決定論的アセンブリを生成します
-                             (モジュール バージョン GUID とタイムスタンプを含む)
--refonly                          メイン出力の代わりに参照アセンブリを生成します
--instrument:TestCoverage          カバレッジ情報を収集するようにインストルメント化されたアセンブリを
-                             生成します
--sourcelink:&lt;file&gt;                PDB に埋め込むソース リンク情報。
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                      - エラーと警告 -
--warnaserror[+|-]                 すべての警告をエラーとして報告します
--warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
-                             (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
--warn:&lt;n&gt;                     警告レベル (0 以上) を設定します (短い形式: -w)
--nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
-                             (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
--ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
-                             指定します。
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                             すべてのコンパイラとアナライザーの診断をログに記録するファイルを
-                             指定します。
-                             sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は
-                             両方とも SARIF バージョン 2.1.0 を意味します。
--reportanalyzer               実行時間などの追加のアナライザー情報を
-                             報告します。
--skipanalyzers[+|-]               診断アナライザーの実行をスキップします。
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                      - 言語 -
--checked[+|-]                 オーバーフロー チェックを生成します
--unsafe[+|-]                  'unsafe' コードの使用を許可します
--define:&lt;symbol list&gt;             条件付きコンパイル シンボルを定義します (短い
-                             形式: -d)
--langversion:?              言語バージョンに指定できる値を表示します
--langversion:&lt;string&gt;             次のような言語バージョンを指定します。
-                             'latest' (マイナー バージョンを含む最新バージョン)、
-                             'default' ('latest' と同じ)、
-                             'latestmajor' (マイナー バージョンを含まない最新バージョン)、
-                             'preview' (サポートされていないプレビューの機能を含む最新バージョン)、
-                             '6' や '7.1' などの特定のバージョン
--nullable[+|-]                Null 許容コンテキスト オプションの有効または無効を指定します。
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                             Null 許容コンテキスト オプションの enable|disable|warnings|annotations を指定します。
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                      - セキュリティ -
--delaysign[+|-]                   厳密な名前キーの公開部分のみを使用して
-                             アセンブリに遅延署名します
--publicsign[+|-]                  厳密な名前キーの公開部分のみを使用して
-                             アセンブリに公開署名します
--keyfile:&lt;file&gt;                   厳密な名前のキー ファイルを指定します
--keycontainer:&lt;string&gt;            厳密な名前のキー コンテナーを指定します
--highentropyva[+|-]               高エントロピ ASLR を有効にします
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                      - その他 -
-@&lt;file&gt;                       その他のオプションを、応答ファイルから読み取ります
--help                       この使用法メッセージを表示します (短い形式: -?)
--nologo                       コンパイラの著作権メッセージを表示しません
--noconfig                     CSC.RSP ファイルを自動的に含めません
--parallel[+|-]                同時にビルドします。
--version                      コンパイラのバージョン番号を表示して終了します。
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                      - 詳細設定 -
--baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレス
--checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイル チェックサムを計算するための
-                             アルゴリズムを指定します。サポートされている値:
-                             SHA1 または SHA256 (既定値)。
--codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコードページを
-                             指定します
--utf8output                   UTF-8 エンコードでコンパイラのメッセージを出力します
--main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
-                             (他のすべてのエントリ ポイントを無視します) (短い
-                             形式: -m)
--fullpaths                    コンパイラは完全修飾パスを生成します
--filealign:&lt;n&gt;                出力ファイルのセクションに使用する配置を
-                             指定します
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                             コンパイラが出力するソース パス名のマッピングを
-                             指定します。
--pdb:&lt;file&gt;                   デバッグ情報のファイル名を指定します (既定値:
-                             出力ファイル名と .pdb 拡張子)
--errorendlocation             各エラーの終了位置の出力行と
-                             出力列です
--preferreduilang                  優先する出力言語名を指定します。
--nosdkpath                    標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
--nostdlib[+|-]                標準ライブラリ (mscorlib.dll) を参照しません
--subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
--lib:&lt;file list&gt;              参照を検索する追加のディレクトリを
-                             指定します
--errorreport:&lt;string&gt;         内部コンパイラ エラーを処理する方法を指定します。
-                             prompt、send、queue、none のいずれかです。既定値は 
-                             queue です。
--appconfig:&lt;file&gt;             アセンブリ バインド設定を含むアプリケーション
-                             構成ファイルを指定します
--moduleassemblyname:&lt;string&gt;  このモジュールが属することになるアセンブリの
-                             名前です
--modulename:&lt;string&gt;          ソース モジュールの名前を指定します
--generatedfilesout:&lt;dir&gt;      コンパイル中に生成されたファイルを指定したディレクトリに
-                             配置します。
--reportivts[+|-]                  すべての依存関係によってこのアセンブリに
-                             付与されたすべての IVT に関する情報を出力し、外部アセンブリの
-                             アクセシビリティ エラーに、発生元のアセンブリに関する注釈をつけます。
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -6074,7 +6082,7 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
-        <target state="needs-review-translation">アクセシビリティに一貫性がありません。パラメーター型 '{1}' のアクセシビリティはインデクサー '{0}' よりも低く設定されています</target>
+        <target state="new">Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -6455,11 +6463,6 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="ERR_V6SwitchGoverningTypeValueExpected">
         <source>A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.</source>
         <target state="translated">C# 6 以前のものにおいて、switch 式または case ラベルには、bool、char、string、integral、enum、または対応する null 許容型を使用する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_IntegralTypeValueExpected">
-        <source>A value of an integral type expected</source>
-        <target state="translated">整数型の値が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateCaseLabel">
@@ -7663,7 +7666,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">定義済みの型 '{0}' が複数の参照先アセンブリで宣言されています: '{1}' と '{2}'</target>
+        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
@@ -7978,7 +7981,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
-        <target state="needs-review-translation">static または extern に指定されているメソッドでは、DllImport 属性を指定する必要があります</target>
+        <target state="new">The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9077,7 +9080,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The receiver parameter of an extension cannot be of type '{0}'</source>
-        <target state="needs-review-translation">拡張メソッドの最初のパラメーターを型 '{0}' にすることはできません</target>
+        <target state="new">The receiver parameter of an extension cannot be of type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -9328,11 +9331,6 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       <trans-unit id="ERR_NoMainInClass">
         <source>'{0}' does not have a suitable static 'Main' method</source>
         <target state="translated">'{0}' は適切な静的 Main メソッドを含んでいません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MainClassIsImport">
-        <source>Cannot use '{0}' for Main method because it is imported</source>
-        <target state="translated">'{0}' はインポートされているため、Main メソッドに対して使うことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
@@ -10065,21 +10063,6 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <target state="translated">この警告は、MarshalByRefObject から派生したクラスのメンバーにあるメソッド、プロパティ、またはインデクサーを呼び出し、かつメンバーが値の型である場合に発生します。MarshalByRefObject から継承するオブジェクトは、通常はアプリケーション ドメイン間の参照渡しによってマーシャリングされることになっています。コードがこのようなアプリケーション ドメイン間のオブジェクトの値の型のメンバーに直接アクセスすると、ランタイム例外が発生します。警告を解決するには、まずメンバーをローカル変数にコピーしてから、その変数でメソッドを呼び出します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber">
-        <source>'{0}' is not a valid warning number</source>
-        <target state="translated">'{0}' は有効な警告番号ではありません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Title">
-        <source>Not a valid warning number</source>
-        <target state="translated">無効な警告番号です</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Description">
-        <source>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</source>
-        <target state="translated">#pragma 警告のプリプロセッサ ディレクティブに渡された番号は無効な警告番号です。番号がエラー番号ではなく警告番号を表していることを確認してください。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_InvalidNumber">
         <source>Invalid number</source>
         <target state="translated">無効な数字です</target>
@@ -10088,16 +10071,6 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       <trans-unit id="WRN_InvalidNumber_Title">
         <source>Invalid number</source>
         <target state="translated">無効な数字です</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong">
-        <source>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</source>
-        <target state="translated">プリプロセッサ ディレクティブに対して無効なファイル名が指定されました。ファイル名は長すぎるか、または有効なファイル名ではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong_Title">
-        <source>Invalid filename specified for preprocessor directive</source>
-        <target state="translated">プリプロセッサ ディレクティブに対して無効なファイル名が指定されました</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPChecksum">
@@ -10538,11 +10511,6 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       <trans-unit id="ERR_VarArgsInExpressionTree">
         <source>An expression tree lambda may not contain a method with variable arguments</source>
         <target state="translated">式ツリーのラムダは、可変引数があるメソッドを含むことはできません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MemGroupInExpressionTree">
-        <source>An expression tree lambda may not contain a method group</source>
-        <target state="translated">式ツリーのラムダには、メソッド グループを含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
@@ -11161,16 +11129,6 @@ C# では out と ref を区別しますが、CLR では同じと認識します
       <trans-unit id="ERR_BadAwaitInQuery">
         <source>The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause</source>
         <target state="translated">await' 演算子は、最初の 'from' 句の最初のコレクション式、または 'join' 句のコレクション式に含まれるクエリ式でのみ使用できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits">
-        <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">この非同期メソッドには 'await' 演算子がないため、同期的に実行されます。'await' 演算子を使用して非ブロッキング API 呼び出しを待機するか、'await Task.Run(...)' を使用してバックグラウンドのスレッドに対して CPU 主体の処理を実行することを検討してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits_Title">
-        <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">非同期メソッドは、'await' 演算子がないため、同期的に実行されます</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnobservedAwaitableExpression">
@@ -12439,8 +12397,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="IDS_ToolName">
-        <source>Metalama Compiler</source>
-        <target state="needs-review-translation">Microsoft (R) Visual C# Compiler</target>
+        <source>Microsoft (R) Visual C# Compiler</source>
+        <target state="translated">Microsoft (R) Visual C# Compiler</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine1">
@@ -12449,8 +12407,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine2">
-        <source>Copyright (c) SharpCrafters s.r.o. All rights reserved.</source>
-        <target state="needs-review-translation">Copyright (C) Microsoft Corporation. All rights reserved.</target>
+        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
+        <target state="translated">Copyright (C) Microsoft Corporation. All rights reserved.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_LangVersions">
@@ -12611,11 +12569,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_UnclosedExpressionHole">
         <source>Missing close delimiter '}' for interpolated expression started with '{'.</source>
         <target state="translated">{' で始まる挿入式の終了区切り文字 '}' がありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleLineCommentInExpressionHole">
-        <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">補間された文字列の中で単一行コメントを使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">

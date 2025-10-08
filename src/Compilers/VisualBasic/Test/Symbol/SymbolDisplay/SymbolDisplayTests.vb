@@ -6066,20 +6066,22 @@ static class E
             End If
 
             Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
-            Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
+            Dim extension = e.GetMembers().OfType(Of INamedTypeSymbol).Single()
 
             Assert.True(extension.IsExtension)
-            Assert.Equal("E.<>E__0", SymbolDisplay.ToDisplayString(extension, format))
+            AssertEx.Equal("E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$119AA281C143547563250CAF89B48A76", SymbolDisplay.ToDisplayString(extension, format))
 
             Dim parts = SymbolDisplay.ToDisplayParts(extension, format)
             Verify(parts,
-                   "E.<>E__0",
+                   "E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$119AA281C143547563250CAF89B48A76",
+                   SymbolDisplayPartKind.ClassName,
+                   SymbolDisplayPartKind.Operator,
                    SymbolDisplayPartKind.ClassName,
                    SymbolDisplayPartKind.Operator,
                    SymbolDisplayPartKind.ClassName)
 
             Dim skeletonM = extension.GetMembers("M").Single()
-            Assert.Equal("Public Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+            AssertEx.Equal("Public Sub E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
         End Sub
 
         <Theory, CombinatorialData>
@@ -6121,15 +6123,14 @@ static class E
             End If
 
             Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
-            Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
+            Dim extension = e.GetMembers().OfType(Of INamedTypeSymbol).Single()
 
-            ' Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, the arity should not be included in the extension type name
             Assert.True(extension.IsExtension)
-            Assert.Equal("E.<>E__0`1(Of T)", SymbolDisplay.ToDisplayString(extension, format))
+            AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB(Of T).<M>$D1693D81A12E8DED4ED68FE22D9E856F", SymbolDisplay.ToDisplayString(extension, format))
 
             Dim parts = SymbolDisplay.ToDisplayParts(extension, format)
             Verify(parts,
-               "E.<>E__0`1(Of T)",
+               "E.<G>$8048A6C8BE30A622530249B904B537EB(Of T).<M>$D1693D81A12E8DED4ED68FE22D9E856F",
                SymbolDisplayPartKind.ClassName,
                SymbolDisplayPartKind.Operator,
                SymbolDisplayPartKind.ClassName,
@@ -6137,10 +6138,12 @@ static class E
                SymbolDisplayPartKind.Keyword,
                SymbolDisplayPartKind.Space,
                SymbolDisplayPartKind.TypeParameterName,
-               SymbolDisplayPartKind.Punctuation)
+               SymbolDisplayPartKind.Punctuation,
+               SymbolDisplayPartKind.Operator,
+               SymbolDisplayPartKind.ClassName)
 
             Dim skeletonM = extension.GetMembers("M").Single()
-            Assert.Equal("Public Sub E.<>E__0`1(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+            AssertEx.Equal("Public Sub E.<G>$8048A6C8BE30A622530249B904B537EB(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
         End Sub
 
 #Region "Helpers"

@@ -1797,9 +1797,9 @@ class C
                 // (14,21): error CS0106: The modifier 'sealed' is not valid for this item
                 //     int P4 { sealed get { return 0; } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("sealed").WithLocation(14, 21),
-                // (15,31): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,31): error CS8107: Feature 'field keyword' is not available in C# 7.0. Please use language version 14.0 or greater.
                 //     protected internal object P5 { get { return null; } extern set; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P5").WithArguments("field keyword").WithLocation(15, 31),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "P5").WithArguments("field keyword", "14.0").WithLocation(15, 31),
                 // (15,64): error CS0106: The modifier 'extern' is not valid for this item
                 //     protected internal object P5 { get { return null; } extern set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(15, 64),
@@ -8130,15 +8130,26 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (3,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //     public int P { get; set { } }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("field keyword").WithLocation(3, 16),
-                // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P").WithArguments("field keyword", "14.0").WithLocation(3, 16),
+                // (4,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //     public int Q { get { return 0; } set; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q").WithArguments("field keyword").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q").WithArguments("field keyword", "14.0").WithLocation(4, 16),
                 // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     public extern object R { get; } // no error
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                    // (3,25): warning CS9266: The 'set' accessor of property 'C.P' should use 'field' because the other accessor is using it.
+                    //     public int P { get; set { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P").WithLocation(3, 25),
+                    // (4,20): warning CS9266: The 'get' accessor of property 'C.Q' should use 'field' because the other accessor is using it.
+                    //     public int Q { get { return 0; } set; }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.Q").WithLocation(4, 20),
+                    // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                    //     public extern object R { get; } // no error
+                    Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
 
             CreateCompilation(text).VerifyDiagnostics(
                     // (3,25): warning CS9266: The 'set' accessor of property 'C.P' should use 'field' because the other accessor is using it.

@@ -21,7 +21,7 @@ public sealed class CSharpLspBuildOnlyDiagnosticsTests : AbstractLspBuildOnlyDia
     {
         get
         {
-            var errorCodes = Enum.GetValues(typeof(ErrorCode));
+            var errorCodes = Enum.GetValues<ErrorCode>();
             var supported = new CSharpCompilerDiagnosticAnalyzer().GetSupportedErrorCodes();
             var builder = ImmutableArray.CreateBuilder<string>();
             foreach (int errorCode in errorCodes)

@@ -18,7 +18,7 @@ internal sealed class OnTheFlyDocsInfo(string symbolSignature, ImmutableArray<On
     public string SymbolSignature { get; } = symbolSignature;
     public ImmutableArray<OnTheFlyDocsRelevantFileInfo?> DeclarationCode { get; } = declarationCode;
     public string Language { get; } = language;
-    public bool IsContentExcluded { get; set; } = isContentExcluded;
+    public bool IsContentExcluded { get; } = isContentExcluded;
     public ImmutableArray<OnTheFlyDocsRelevantFileInfo?> AdditionalContext { get; } = additionalContext;
 
     // Added for telemetry collection purposes.

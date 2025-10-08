@@ -537,7 +537,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
 
         var token = location.FindToken(cancellationToken);
 
-        var block = token.Parent.GetAncestorsOrThis<BlockSyntax>().FirstOrDefault();
+        var block = token.Parent.GetAncestorOrThis<BlockSyntax>();
         if (block != null)
         {
             var blockStatements = block.Statements.ToSet();

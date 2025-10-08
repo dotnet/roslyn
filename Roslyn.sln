@@ -727,6 +727,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Build.Tasks.CodeA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.BuildClient.Package", "src\NuGet\Microsoft.CodeAnalysis.BuildClient.Package\Microsoft.CodeAnalysis.BuildClient.Package.csproj", "{5E4F7448-B00B-4F5B-859F-6ED0354253D5}"
 EndProject
+Project("{9a19103f-16f7-4668-be54-9a1e7a4f7556}") = "Microsoft.CodeAnalysis.SemanticSearch.Extensions", "src\Tools\SemanticSearch\Extensions\Microsoft.CodeAnalysis.SemanticSearch.Extensions.csproj", "{66C8265C-2C79-F259-9807-3E97CA586F1E}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metalama", "Metalama", "{FA7B53B4-F90B-415F-8D64-13F5523EF8A7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Metalama.Compiler.Interface.TypeForwards", "src\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj", "{C832D674-0A77-4839-9667-5DFA47F2A2DB}"
@@ -1833,6 +1835,10 @@ Global
 		{1889CC80-188A-43CD-8180-8B9800E04108}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1889CC80-188A-43CD-8180-8B9800E04108}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1889CC80-188A-43CD-8180-8B9800E04108}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66C8265C-2C79-F259-9807-3E97CA586F1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66C8265C-2C79-F259-9807-3E97CA586F1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66C8265C-2C79-F259-9807-3E97CA586F1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66C8265C-2C79-F259-9807-3E97CA586F1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2178,6 +2184,7 @@ Global
 		{DC32E27E-EBF3-4259-985B-F56D3325C34B} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
 		{29ACDB4F-6D3A-4EAF-A3CF-EC21BDB854D2} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
 		{1889CC80-188A-43CD-8180-8B9800E04108} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
+		{66C8265C-2C79-F259-9807-3E97CA586F1E} = {52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

@@ -2575,7 +2575,6 @@ public sealed class ConvertPrimaryToRegularConstructorTests
                     {
                     }
                 }
-
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
@@ -2593,7 +2592,7 @@ public sealed class ConvertPrimaryToRegularConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76981")]
@@ -2636,7 +2635,7 @@ public sealed class ConvertPrimaryToRegularConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]

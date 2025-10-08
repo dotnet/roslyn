@@ -24,7 +24,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestBinaryExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -62,7 +62,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -83,7 +83,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -106,7 +106,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestLambdaBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -136,7 +136,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestDefiniteAssignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -178,7 +178,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestDefiniteAssignment2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -252,7 +252,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestComplexMatch()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -277,7 +277,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestTrivia()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -302,7 +302,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestFixOnlyAfterIsCheck()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -327,7 +327,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestArrayNaming()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -352,7 +352,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestNamingConflict1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -379,7 +379,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestNamingConflict2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -411,7 +411,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestNamingNoConflict1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -443,7 +443,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestNamingNoConflict2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class TestFile
             {
@@ -475,7 +475,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestNamingNoConflict3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class X { public int file; }
 
@@ -511,7 +511,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
 
     [Fact]
     public Task TestNamingNoConflict4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class X { public int file; }
 

@@ -27,7 +27,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestClass()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             [|static|] internal class C
             {
@@ -41,7 +41,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestStruct()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             [|unsafe|] public struct C
             {
@@ -55,7 +55,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestInterface()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             [|unsafe|] public interface C
             {
@@ -69,7 +69,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestEnum()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             [|internal|] protected enum C
             {
@@ -83,13 +83,13 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestDelegate()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             @"[|unsafe|] public delegate void D();",
             @"public unsafe delegate void D();");
 
     [Fact]
     public Task TestMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -105,7 +105,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -121,7 +121,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -137,7 +137,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -153,7 +153,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestAccessor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -169,7 +169,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestPropertyEvent()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -185,7 +185,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestFieldEvent()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -201,7 +201,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestOperator()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -217,7 +217,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestConversionOperator()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -233,7 +233,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestFixAll1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             {|FixAllInDocument:static|} internal class C
             {
@@ -249,7 +249,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestFixAll2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             static internal class C
             {
@@ -265,7 +265,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestTrivia1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             /// Doc comment
             [|static|] internal class C
@@ -281,7 +281,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestTrivia2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             /* start */ [|static|] /* middle */ internal /* end */ class C
             {
@@ -295,7 +295,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestTrivia3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             #if true
             [|static|] internal class C
@@ -313,55 +313,55 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task PartialAtTheEndClass1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"[|partial|] public class C { }",
 @"public partial class C { }");
 
     [Fact]
     public Task PartialAtTheEndClass2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             @"[|partial|] abstract class C { }",
             @"abstract partial class C { }");
 
     [Fact]
     public Task PartialAtTheEndClass3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             @"[|partial|] sealed class C { }",
             @"sealed partial class C { }");
 
     [Fact]
     public Task PartialAtTheEndClass4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             @"[|partial|] static class C { }",
             @"static partial class C { }");
 
     [Fact]
     public Task PartialAtTheEndClass5()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             @"[|partial|] unsafe class C { }",
             @"unsafe partial class C { }");
 
     [Fact]
     public Task PartialAtTheEndStruct1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             @"[|partial|] public struct S { }",
             @"public partial struct S { }");
 
     [Fact]
     public Task PartialAtTheEndStruct2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             @"[|partial|] unsafe struct S { }",
             @"unsafe partial struct S { }");
 
     [Fact]
     public Task PartialAtTheEndInterface()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             @"[|partial|] public interface I { }",
             @"public partial interface I { }");
 
     [Fact]
     public Task PartialAtTheEndMethod1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             partial class C
             {
@@ -377,7 +377,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task PartialAtTheEndMethod2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             partial class C
             {
@@ -421,7 +421,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact]
     public Task TestFixAllInContainingType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             {|FixAllInContainingType:static|} internal class C
             {
@@ -490,7 +490,7 @@ public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedU
 
     [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7553")]
     public Task TestEmptySelection()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace M;
             [||]static internal class C

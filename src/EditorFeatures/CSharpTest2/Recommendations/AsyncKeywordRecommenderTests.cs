@@ -58,18 +58,12 @@ public sealed class AsyncKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
-    public async Task TestMethodDeclarationInGlobalStatement1()
-    {
-        const string text = @"$$";
-        await VerifyKeywordAsync(SourceCodeKind.Script, text);
-    }
+    public Task TestMethodDeclarationInGlobalStatement1()
+        => VerifyKeywordAsync(SourceCodeKind.Script, @"$$");
 
     [Fact]
-    public async Task TestMethodDeclarationInGlobalStatement2()
-    {
-        const string text = @"public $$";
-        await VerifyKeywordAsync(SourceCodeKind.Script, text);
-    }
+    public Task TestMethodDeclarationInGlobalStatement2()
+        => VerifyKeywordAsync(SourceCodeKind.Script, @"public $$");
 
     [Fact]
     public Task TestExpressionContext()

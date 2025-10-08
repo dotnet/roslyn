@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -53,7 +52,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// workspace).
     /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    private readonly Dictionary<Workspace, (int? forkedFromVersion, Solution solution)> _cachedLspSolutions = [];
+    private readonly Dictionary<Workspace, (int? forkedFromVersion, Checksum? sourceGeneratorChecksum, Solution solution)> _cachedLspSolutions = [];
 
     /// <summary>
     /// Stores the current source text for each URI that is being tracked by LSP. Each time an LSP text sync
@@ -63,7 +62,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// the URI.
     /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    private ImmutableDictionary<DocumentUri, (SourceText Text, string LanguageId)> _trackedDocuments = ImmutableDictionary<DocumentUri, (SourceText SourceText, string LanguageId)>.Empty;
+    private ImmutableDictionary<DocumentUri, TrackedDocumentInfo> _trackedDocuments = ImmutableDictionary<DocumentUri, TrackedDocumentInfo>.Empty;
 
     private readonly ILspLogger _logger;
     private readonly ILspMiscellaneousFilesWorkspaceProvider? _lspMiscellaneousFilesWorkspaceProvider;
@@ -104,7 +103,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public async ValueTask StartTrackingAsync(DocumentUri uri, SourceText documentText, string languageId, CancellationToken cancellationToken)
+    public async ValueTask StartTrackingAsync(DocumentUri uri, SourceText documentText, string languageId, int lspVersion, CancellationToken cancellationToken)
     {
         // First, store the LSP view of the text as the uri is now owned by the LSP client.
         Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(uri), $"didOpen received for {uri} which is already open.");
@@ -114,7 +113,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             _logger.LogError($"Unable to parse URI {uri}");
         }
 
-        _trackedDocuments = _trackedDocuments.Add(uri, (documentText, languageId));
+        _trackedDocuments = _trackedDocuments.Add(uri, new(documentText, languageId, lspVersion));
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
@@ -153,12 +152,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
 
-        // Also remove it from our loose files or metadata workspace if it is still there.
+        // Also remove it from our loose files if it is still there.
         if (_lspMiscellaneousFilesWorkspaceProvider is not null)
         {
             try
             {
-                await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: true).ConfigureAwait(false);
+                await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
@@ -198,12 +197,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// <see cref="DidChangeHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    public void UpdateTrackedDocument(DocumentUri uri, SourceText newSourceText)
+    public void UpdateTrackedDocument(DocumentUri uri, SourceText newSourceText, int lspVersion)
     {
         // Store the updated LSP view of the source text.
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didChange received for {uri} which is not open.");
-        var (_, language) = _trackedDocuments[uri];
-        _trackedDocuments = _trackedDocuments.SetItem(uri, (newSourceText, language));
+        var (_, language, _) = _trackedDocuments[uri];
+        _trackedDocuments = _trackedDocuments.SetItem(uri, new(newSourceText, language, lspVersion));
 
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
@@ -211,7 +210,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         LspTextChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public ImmutableDictionary<DocumentUri, (SourceText SourceText, string LanguageId)> GetTrackedLspText() => _trackedDocuments;
+    public ImmutableDictionary<DocumentUri, TrackedDocumentInfo> GetTrackedLspText() => _trackedDocuments;
 
     #endregion
 
@@ -251,29 +250,42 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Find the matching document from the LSP solutions.
         foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
-            var document = await lspSolution.GetTextDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
-            if (document != null)
+            var documents = await lspSolution.GetTextDocumentsAsync(textDocumentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
+            if (documents.Length > 0)
             {
+                // We have at least one document, so find the one in the right project context
+                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
+
+                if (_lspMiscellaneousFilesWorkspaceProvider is not null)
+                {
+                    // If we started with multiple documents and didn't have specific context information, it's possible we picked a miscellaneous files document when
+                    // we could have picked a real one.
+                    if (documents.Length > 1 && await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(document, cancellationToken).ConfigureAwait(false))
+                    {
+                        // Pick a different one; our choice here is arbitrary, since if we had a specified context in the first place we would have picked the right one.
+                        document = documents.First(d => d != document);
+                    }
+
+                    // If we found the document in a non-misc workspace (either immediately or by the correction above), also attempt to remove it from the misc workspace
+                    // if it happens to be in there as well.
+                    if (_lspMiscellaneousFilesWorkspaceProvider is not null && !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(document, cancellationToken).ConfigureAwait(false))
+                    {
+                        try
+                        {
+                            await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+                        }
+                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                        {
+                            _logger.LogException(ex);
+                        }
+                    }
+                }
+
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}");
-
-                // If we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
-                // if it happens to be in there as well.
-                if (_lspMiscellaneousFilesWorkspaceProvider is not null && !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(document, cancellationToken).ConfigureAwait(false))
-                {
-                    try
-                    {
-                        // Do not attempt to remove the file from the metadata workspace (the document is still open).
-                        await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: false).ConfigureAwait(false);
-                    }
-                    catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                    {
-                        _logger.LogException(ex);
-                    }
-                }
+                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}; project {document.Project.Name}");
 
                 return (workspace, document.Project.Solution, document);
             }
@@ -290,7 +302,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             try
             {
-                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddMiscellaneousDocumentAsync(uri, trackedDocument.Text, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
+                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddMiscellaneousDocumentAsync(uri, trackedDocument.SourceText, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
                 if (miscDocument is not null)
                     return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
             }
@@ -379,9 +391,10 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             var sourceGeneratedDocuments =
                 _trackedDocuments.Keys.Where(static trackedDocument => trackedDocument.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
                     // We know we have a non null URI with a source generated scheme.
-                    .Select(uri => (identity: SourceGeneratedDocumentUri.DeserializeIdentity(workspaceCurrentSolution, uri.ParsedUri!), _trackedDocuments[uri].Text))
-                    .Where(tuple => tuple.identity.HasValue)
-                    .SelectAsArray(tuple => (tuple.identity!.Value, DateTime.Now, tuple.Text));
+                    .Select(uri => (identity: SourceGeneratedDocumentUri.DeserializeIdentity(workspaceCurrentSolution, uri.ParsedUri!), _trackedDocuments[uri].SourceText))
+                    .SelectAsArray(
+                        predicate: tuple => tuple.identity.HasValue,
+                        selector: tuple => (tuple.identity!.Value, DateTime.Now, tuple.SourceText));
 
             // First we check if normal document text matches the workspace solution.
             // This does not look at source generated documents.
@@ -394,13 +407,20 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             if (doesAllTextMatch && doesAllSourceGeneratedTextMatch)
             {
                 // Remember that the current LSP text matches the text in this workspace solution.
-                _cachedLspSolutions[workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
+                _cachedLspSolutions[workspace] = (forkedFromVersion: null, sourceGeneratorChecksum: null, workspaceCurrentSolution);
                 return (workspaceCurrentSolution, IsForked: false);
             }
 
+            var forkedFromVersion = workspaceCurrentSolution.SolutionStateContentVersion;
+            var sourceGeneratorChecksum = workspaceCurrentSolution.CompilationState.SourceGeneratorExecutionVersionMap.GetChecksum();
+
             // Step 4: See if we can reuse a previously forked solution.
-            if (cachedSolution != default && cachedSolution.forkedFromVersion == workspaceCurrentSolution.WorkspaceVersion)
+            if (cachedSolution != default &&
+                cachedSolution.forkedFromVersion == forkedFromVersion &&
+                cachedSolution.sourceGeneratorChecksum == sourceGeneratorChecksum)
+            {
                 return (cachedSolution.solution, IsForked: true);
+            }
 
             // Step 5: Fork a new solution from the workspace with the LSP text applied.
             var lspSolution = workspaceCurrentSolution;
@@ -408,7 +428,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             if (!doesAllTextMatch)
             {
                 foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
-                    lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].Text);
+                    lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].SourceText);
             }
 
             // If the source generated documents matched we can leave the source generated documents as-is
@@ -418,13 +438,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             }
 
             // Remember this forked solution and the workspace version it was forked from.
-            _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
+            _cachedLspSolutions[workspace] = (forkedFromVersion, sourceGeneratorChecksum, lspSolution);
             return (lspSolution, IsForked: true);
         }
 
         async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace)
         {
-            foreach (var (uri, (sourceText, _)) in _trackedDocuments)
+            foreach (var (uri, (sourceText, _, _)) in _trackedDocuments)
             {
                 await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (mutatingWorkspace, documentId) =>
                 {
@@ -492,7 +512,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             // We're comparing text, so we can take any of the linked documents.
             var firstDocument = documentsForUri.First();
-            var isTextEquivalent = await AreChecksumsEqualAsync(firstDocument, _trackedDocuments[uriInWorkspace].Text, cancellationToken).ConfigureAwait(false);
+            var isTextEquivalent = await AreChecksumsEqualAsync(firstDocument, _trackedDocuments[uriInWorkspace].SourceText, cancellationToken).ConfigureAwait(false);
 
             if (!isTextEquivalent)
             {
@@ -564,11 +584,21 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
 
-        public Workspace? GetLspMiscellaneousFilesWorkspace()
+        public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document)
         {
-            // For purposes of testing, we test against the implementation that is also a Workspace.
-            // TODO: once we also test the FileBasedPrograms implementation, we need to do something else here.
-            return _manager._lspMiscellaneousFilesWorkspaceProvider as Workspace;
+            return _manager._lspMiscellaneousFilesWorkspaceProvider!.IsMiscellaneousFilesDocumentAsync(document, CancellationToken.None);
+        }
+
+        public async IAsyncEnumerable<T> GetMiscellaneousDocumentsAsync<T>(Func<Project, IEnumerable<T>> documentSelector) where T : TextDocument
+        {
+            foreach (var workspace in _manager._lspWorkspaceRegistrationService.GetAllRegistrations())
+            {
+                foreach (var document in workspace.CurrentSolution.Projects.SelectMany(documentSelector))
+                {
+                    if (await IsMiscellaneousFilesDocumentAsync(document).ConfigureAwait(false))
+                        yield return document;
+                }
+            }
         }
 
         public bool IsWorkspaceRegistered(Workspace workspace)

@@ -34,14 +34,10 @@ using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Edito
 #else
 using OptionsCollectionAlias = OptionsCollection;
 #endif
-public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
+public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
+    : AbstractUserDiagnosticTest(logger)
 {
     private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = [];
-
-    protected AbstractDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
 
     internal abstract (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace);
 
@@ -147,7 +143,7 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest 
         AddAnalyzerToWorkspace(workspace, analyzer);
 
         var document = GetDocumentAndSelectSpan(workspace, out var span);
-        var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
+        var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
         AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
         return allDiagnostics;
     }
@@ -160,7 +156,7 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest 
 
         GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 
-        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace);
         var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
         var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
         AssertNoAnalyzerExceptionDiagnostics(diagnostics);
@@ -239,17 +235,4 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest 
         var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.AnalyzerException));
         AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
     }
-
-    // This region provides instances of code fix providers from Features layers, such that the corresponding 
-    // analyzer has been ported to CodeStyle layer, but not the fixer.
-    // This enables porting the tests for the ported analyzer in CodeStyle layer.
-    #region CodeFixProvider Helpers
-
-    // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
-    protected static CodeFixProvider GetCSharpUseAutoPropertyCodeFixProvider() => new CSharpUseAutoPropertyCodeFixProvider();
-
-    // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
-    protected static CodeFixProvider GetVisualBasicUseAutoPropertyCodeFixProvider() => new VisualBasicUseAutoPropertyCodeFixProvider();
-
-    #endregion
 }

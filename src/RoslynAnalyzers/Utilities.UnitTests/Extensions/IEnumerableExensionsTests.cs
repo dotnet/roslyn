@@ -19,9 +19,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, false)]
         [Theory]
         public void IEnumerableHasExactly2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, IEnumerableExtensions.HasExactly(CreateIEnumerable(count), 2));
-        }
+            => Assert.Equal(result, IEnumerableExtensions.HasExactly(CreateIEnumerable(count), 2));
 
         [InlineData(0, false)]
         [InlineData(1, false)]
@@ -29,9 +27,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, true)]
         [Theory]
         public void IEnumerableHasMoreThan2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, IEnumerableExtensions.HasMoreThan(CreateIEnumerable(count), 2));
-        }
+            => Assert.Equal(result, IEnumerableExtensions.HasMoreThan(CreateIEnumerable(count), 2));
 
         [InlineData(0, true)]
         [InlineData(1, true)]
@@ -39,9 +35,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, false)]
         [Theory]
         public void IEnumerableHasFewerThan2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, IEnumerableExtensions.HasFewerThan(CreateIEnumerable(count), 2));
-        }
+            => Assert.Equal(result, IEnumerableExtensions.HasFewerThan(CreateIEnumerable(count), 2));
 
         private static IEnumerable<int> CreateIEnumerable(int count)
         {
@@ -62,9 +56,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, false)]
         [Theory]
         public void ICollectionHasExactly2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, IEnumerableExtensions.HasExactly(new Collection(count), 2));
-        }
+            => Assert.Equal(result, IEnumerableExtensions.HasExactly(new Collection(count), 2));
 
         [InlineData(0, false)]
         [InlineData(1, false)]
@@ -72,9 +64,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, true)]
         [Theory]
         public void ICollectionHasMoreThan2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, IEnumerableExtensions.HasMoreThan(new Collection(count), 2));
-        }
+            => Assert.Equal(result, IEnumerableExtensions.HasMoreThan(new Collection(count), 2));
 
         [InlineData(0, true)]
         [InlineData(1, true)]
@@ -82,9 +72,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, false)]
         [Theory]
         public void ICollectionHasFewerThan2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, IEnumerableExtensions.HasFewerThan(new Collection(count), 2));
-        }
+            => Assert.Equal(result, IEnumerableExtensions.HasFewerThan(new Collection(count), 2));
 
 #pragma warning disable CA1010 // Collections should implement generic interface
         private sealed class Collection : ICollection, IEnumerable<int>
@@ -105,9 +93,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, false)]
         [Theory]
         public void IIntCollectionHasExactly2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, IEnumerableExtensions.HasExactly(new IntCollection(count), 2));
-        }
+            => Assert.Equal(result, IEnumerableExtensions.HasExactly(new IntCollection(count), 2));
 
         [InlineData(0, false)]
         [InlineData(1, false)]
@@ -115,9 +101,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, true)]
         [Theory]
         public void IIntCollectionHasMoreThan2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, IEnumerableExtensions.HasMoreThan(new IntCollection(count), 2));
-        }
+            => Assert.Equal(result, IEnumerableExtensions.HasMoreThan(new IntCollection(count), 2));
 
         [InlineData(0, true)]
         [InlineData(1, true)]
@@ -125,9 +109,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, false)]
         [Theory]
         public void IIntCollectionHasFewerThan2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, IEnumerableExtensions.HasFewerThan(new IntCollection(count), 2));
-        }
+            => Assert.Equal(result, IEnumerableExtensions.HasFewerThan(new IntCollection(count), 2));
 
         private sealed class IntCollection : ICollection<int>
         {

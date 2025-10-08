@@ -31,7 +31,7 @@ internal sealed class CompletionHandler : ILspServiceDocumentRequestHandler<Comp
 {
     private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
-    private static readonly Command s_retriggerCompletionCommand = new Command()
+    private static readonly Command s_retriggerCompletionCommand = new()
     {
         CommandIdentifier = StringConstants.RetriggerCompletionCommand,
         Title = "Re-trigger completions"
@@ -139,7 +139,7 @@ internal sealed class CompletionHandler : ILspServiceDocumentRequestHandler<Comp
 
         var xamlCommitCharacters = completionItem.XamlCommitCharacters.Value;
 
-        var commitCharacters = xamlCommitCharacters.Characters.Select(c => new VSInternalCommitCharacter { Character = c.ToString(), Insert = !xamlCommitCharacters.NonInsertCharacters.Contains(c) }).ToImmutableArray();
+        var commitCharacters = xamlCommitCharacters.Characters.SelectAsArray(c => new VSInternalCommitCharacter { Character = c.ToString(), Insert = !xamlCommitCharacters.NonInsertCharacters.Contains(c) });
         commitCharactersCache.Add(completionItem.Kind, commitCharacters);
         return commitCharacters.ToArray();
     }

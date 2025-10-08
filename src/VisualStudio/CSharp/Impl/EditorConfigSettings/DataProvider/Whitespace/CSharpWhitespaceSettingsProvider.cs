@@ -5,11 +5,14 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace;
@@ -19,13 +22,14 @@ internal sealed class CSharpWhitespaceSettingsProvider : SettingsProviderBase<Se
     private static readonly Conversions<SpacePlacementWithinParentheses, int> s_spaceBetweenParenthesesConversions = new(v => (int)v, v => (SpacePlacementWithinParentheses)v);
     private static readonly Conversions<NewLineBeforeOpenBracePlacement, int> s_newLinesForBracesConversions = new(v => (int)v, v => (NewLineBeforeOpenBracePlacement)v);
 
-    public CSharpWhitespaceSettingsProvider(string filePath, OptionUpdater updaterService, Workspace workspace, IGlobalOptionService globalOptions)
-        : base(filePath, updaterService, workspace, globalOptions)
+    public CSharpWhitespaceSettingsProvider(IThreadingContext threadingContext, string filePath, OptionUpdater updaterService, Workspace workspace, IGlobalOptionService globalOptions)
+        : base(threadingContext, filePath, updaterService, workspace, globalOptions)
     {
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var spacingOptions = GetSpacingOptions(options, SettingsUpdater);
         AddRange(spacingOptions.ToImmutableArray());
@@ -35,6 +39,8 @@ internal sealed class CSharpWhitespaceSettingsProvider : SettingsProviderBase<Se
         AddRange(indentationOptions.ToImmutableArray());
         var wrappingOptions = GetWrappingOptions(options, SettingsUpdater);
         AddRange(wrappingOptions.ToImmutableArray());
+
+        return Task.CompletedTask;
     }
 
     private static IEnumerable<Setting> GetSpacingOptions(TieredAnalyzerConfigOptions options, OptionUpdater updaterService)

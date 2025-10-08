@@ -27,7 +27,7 @@ internal sealed class VSTypeScriptFindUsagesContext(FindUsagesContext underlying
         => UnderlyingObject.OnDefinitionFoundAsync(definition.UnderlyingObject, cancellationToken);
 
     public ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken)
-        => UnderlyingObject.OnReferencesFoundAsync(IAsyncEnumerableExtensions.SingletonAsync(reference.UnderlyingObject), cancellationToken);
+        => UnderlyingObject.OnReferencesFoundAsync(AsyncEnumerableFactory.SingletonAsync(reference.UnderlyingObject), cancellationToken);
 
     public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
         => UnderlyingObject.OnCompletedAsync(cancellationToken);

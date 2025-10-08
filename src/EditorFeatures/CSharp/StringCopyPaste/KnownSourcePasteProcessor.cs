@@ -306,7 +306,7 @@ internal sealed class KnownSourcePasteProcessor(
                 }
                 else
                 {
-                    builder.Append(new string('{', dollarSignCount));
+                    builder.Append('{', dollarSignCount);
                     builder.Append(content.InterpolationExpression);
                     builder.Append(content.InterpolationAlignmentClause);
 
@@ -316,7 +316,7 @@ internal sealed class KnownSourcePasteProcessor(
                         builder.Append(content.InterpolationFormatClause);
                     }
 
-                    builder.Append(new string('}', dollarSignCount));
+                    builder.Append('}', dollarSignCount);
                 }
             }
             else

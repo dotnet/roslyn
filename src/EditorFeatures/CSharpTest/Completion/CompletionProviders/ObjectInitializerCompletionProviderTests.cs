@@ -626,9 +626,8 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
     }
 
     [Fact]
-    public async Task TestCommitCharacter()
-    {
-        const string markup = """
+    public Task TestCommitCharacter()
+        => VerifyCommonCommitCharactersAsync("""
             class C { public int value {set; get; }}
 
             class D
@@ -638,10 +637,7 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
                    C goo = new C { v$$
                 }
             }
-            """;
-
-        await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "v");
-    }
+            """, textTypedSoFar: "v");
 
     [Fact]
     public async Task TestEnter()
@@ -1095,6 +1091,29 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
 
         await VerifyItemExistsAsync(markup, "RequiredField", inlineDescription: FeaturesResources.Required, matchPriority: MatchPriority.Preselect);
         await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: FeaturesResources.Required);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80192")]
+    public async Task RequiredMembersNotLabeledOrSelectedInRecordWith()
+    {
+        var markup = """
+            record C
+            {
+                public required int RequiredField;
+                public required int RequiredProperty { get; set; }
+            }
+
+            class D
+            {
+                static void Main(C c)
+                {
+                    var t = c with { $$ };
+                }
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "RequiredField", inlineDescription: "", matchPriority: MatchPriority.Default);
+        await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: "");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15205")]

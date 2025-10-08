@@ -106,7 +106,7 @@ public sealed partial class PreviewTests : AbstractCSharpCodeActionTest
     [WpfFact]
     public async Task TestPickTheRightPreview_NoPreference()
     {
-        var parameters = new TestParameters();
+        var parameters = TestParameters.Default;
         using var workspace = CreateWorkspaceFromOptions("class D {}", parameters);
 
         var (document, previews) = await GetMainDocumentAndPreviewsAsync(parameters, workspace);

@@ -25,7 +25,9 @@ public sealed class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttr
 
     private static readonly Lazy<MetadataReference> _unconditionalSuppressMessageRef = new(() =>
     {
-        const string unconditionalSuppressMessageDef = """
+        return CSharpCompilation.Create("unconditionalsuppress",
+             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            syntaxTrees: [CSharpSyntaxTree.ParseText("""
         namespace System.Diagnostics.CodeAnalysis
         {
             [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple=true, Inherited=false)]
@@ -44,10 +46,7 @@ public sealed class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttr
                 public string Justification { get; set; }
             }
         }
-        """;
-        return CSharpCompilation.Create("unconditionalsuppress",
-             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-            syntaxTrees: [CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef)],
+        """)],
             references: [TestBase.MscorlibRef]).EmitToImageReference();
     }, LazyThreadSafetyMode.PublicationOnly);
 

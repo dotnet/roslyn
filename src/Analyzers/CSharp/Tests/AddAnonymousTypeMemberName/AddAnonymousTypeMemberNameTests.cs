@@ -26,7 +26,7 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
 
     [Fact]
     public Task Test1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -48,7 +48,7 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
 
     [Fact]
     public Task TestExistingName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -70,7 +70,7 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
 
     [Fact]
     public Task TestFixAll1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -92,7 +92,7 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
 
     [Fact]
     public Task TestFixAll2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -114,7 +114,7 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
 
     [Fact]
     public Task TestFixAll3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
         """
         class C
         {

@@ -114,7 +114,7 @@ public partial class PreferFrameworkTypeTests : AbstractCSharpDiagnosticProvider
                     </Document>
                 </Project>
             </Workspace>
-            """, options: FrameworkTypeEverywhere);
+            """, new(options: FrameworkTypeEverywhere));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -218,7 +218,7 @@ public partial class PreferFrameworkTypeTests : AbstractCSharpDiagnosticProvider
                     </Document>
                 </Project>
             </Workspace>
-            """, options: FrameworkTypeEverywhere);
+            """, new(options: FrameworkTypeEverywhere));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -322,7 +322,7 @@ public partial class PreferFrameworkTypeTests : AbstractCSharpDiagnosticProvider
                     </Document>
                 </Project>
             </Workspace>
-            """, options: FrameworkTypeEverywhere);
+            """, new(options: FrameworkTypeEverywhere));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -462,5 +462,5 @@ public partial class PreferFrameworkTypeTests : AbstractCSharpDiagnosticProvider
                     </Document>
                 </Project>
             </Workspace>
-            """, options: FrameworkTypeEverywhere);
+            """, new(options: FrameworkTypeEverywhere));
 }

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             [CombinatorialValues("", "in", "ref readonly")] string refKind,
             bool useExpression,
             bool useCompilationReference)
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_Overloads_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_Overloads_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_Constructor(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_Indexer(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_Delegate(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_CollectionInitializer(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             [CombinatorialValues("", "in", "ref readonly")] string refKind,
             bool useExpression)
         {
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_LocalFunction(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -1089,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_03(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_04(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -1460,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_OverloadsDifferentOrder(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -1633,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_Constructor(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -1735,7 +1735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_Indexer(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -1843,7 +1843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_Delegate(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -1939,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_LocalFunction(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;

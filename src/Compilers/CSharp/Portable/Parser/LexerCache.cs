@@ -5,8 +5,10 @@
 // #define COLLECT_STATS
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -181,21 +183,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
-        internal SyntaxTrivia LookupTrivia<TArg>(
-            ReadOnlySpan<char> textBuffer,
-            int hashCode,
-            Func<TArg, SyntaxTrivia> createTriviaFunction,
-            TArg data)
+        internal SyntaxTrivia LookupWhitespaceTrivia(
+            in SlidingTextWindow textWindow,
+            int lexemeStartPosition,
+            int hashCode)
         {
-            var value = TriviaMap.FindItem(textBuffer, hashCode);
+            var span = TextSpan.FromBounds(lexemeStartPosition, textWindow.Position);
+            Debug.Assert(span.Length > 0);
 
-            if (value == null)
+            if (textWindow.TryGetTextIfWithinWindow(span, out var lexemeTextSpan))
             {
-                value = createTriviaFunction(data);
-                TriviaMap.AddItem(textBuffer, hashCode, value);
+                var value = TriviaMap.FindItem(lexemeTextSpan, hashCode);
+                if (value == null)
+                {
+                    value = SyntaxFactory.Whitespace(textWindow.GetText(lexemeStartPosition, intern: true));
+                    TriviaMap.AddItem(lexemeTextSpan, hashCode, value);
+                }
+
+                return value;
             }
 
-            return value;
+            // Otherwise, if it's outside of the window, just grab from the underlying text.
+            return SyntaxFactory.Whitespace(textWindow.GetText(lexemeStartPosition, intern: true));
         }
 
         // TODO: remove this when done tweaking this cache.

@@ -349,7 +349,7 @@ end interface")
         <WorkItem("https://github.com/dotnet/roslyn/issues/22278")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/31208")>
         Public Async Function TestApplicableKeyword() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 ''' Testing keyword interf[||]ace
 class C(Of TKey)

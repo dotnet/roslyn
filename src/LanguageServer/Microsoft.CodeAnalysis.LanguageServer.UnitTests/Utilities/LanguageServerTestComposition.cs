@@ -25,13 +25,14 @@ internal sealed class LanguageServerTestComposition
             ExtensionAssemblyPaths: extensionPaths ?? [],
             DevKitDependencyPath: devKitDependencyPath,
             RazorDesignTimePath: null,
+            CSharpDesignTimePath: null,
             ExtensionLogDirectory: string.Empty,
             ServerPipeName: null,
             UseStdIo: false);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
 
-        var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
+        var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(TestPaths.GetLanguageServerDirectory(), extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
         exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
         return (exportProvider, assemblyLoader);
     }

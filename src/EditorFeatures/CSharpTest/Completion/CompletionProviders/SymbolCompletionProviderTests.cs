@@ -12904,7 +12904,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task SwitchExpressionEnumColorColor_01()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             public sealed record OrderModel(int Id, Status Status)
             {
                 public string StatusDisplay
@@ -12925,8 +12925,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("Undisclosed"),
             ItemExpectation.Absent("ToString"),
         ]);
@@ -12936,7 +12935,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task SwitchExpressionEnumColorColor_02()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             public sealed record OrderModel(int Id, Status Status)
             {
                 public string StatusDisplay
@@ -12957,8 +12956,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("Undisclosed"),
             ItemExpectation.Absent("ToString"),
         ]);
@@ -12968,7 +12966,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task SwitchExpressionEnumColorColor_03()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             namespace Status;
 
             public sealed record OrderModel(int Id, StatusEn Status)
@@ -12991,8 +12989,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("StatusEn"),
             ItemExpectation.Absent("ToString"),
         ]);
@@ -13002,7 +12999,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task SwitchExpressionEnumColorColor_04()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             using Status = StatusEn;
 
             public sealed record OrderModel(int Id, StatusEn Status)
@@ -13025,8 +13022,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("Undisclosed"),
             ItemExpectation.Absent("ToString"),
         ]);
@@ -13036,7 +13032,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task SwitchExpressionEnumColorColor_05()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             using Status = StatusEn;
 
             public sealed record OrderModel(int Id, StatusEn Status)
@@ -13060,8 +13056,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("Undisclosed"),
             ItemExpectation.Absent("ToString"),
         ]);
@@ -13071,7 +13066,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task ConstantPatternExpressionEnumColorColor_01()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             public sealed record OrderModel(int Id, Status Status)
             {
                 public string StatusDisplay
@@ -13090,8 +13085,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("Undisclosed"),
             ItemExpectation.Absent("ToString"),
         ]);
@@ -13101,7 +13095,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task ConstantPatternExpressionEnumColorColor_02()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             public sealed record OrderModel(int Id, Status Status)
             {
                 public string StatusDisplay
@@ -13120,8 +13114,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("Undisclosed"),
             ItemExpectation.Absent("ToString"),
         ]);
@@ -13131,7 +13124,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task ConstantPatternExpressionEnumColorColor_03()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             namespace Status;
 
             public sealed record OrderModel(int Id, StatusEn Status)
@@ -13152,8 +13145,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("StatusEn"),
             ItemExpectation.Absent("ToString"),
         ]);
@@ -13163,7 +13155,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task ConstantPatternExpressionEnumColorColor_04()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             using Status = StatusEn;
 
             public sealed record OrderModel(int Id, StatusEn Status)
@@ -13184,8 +13176,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("Undisclosed"),
             ItemExpectation.Absent("ToString"),
         ]);
@@ -13195,7 +13186,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task ConstantPatternExpressionEnumColorColor_05()
     {
         //lang=c#-test
-        const string source = """
+        await VerifyExpectedItemsAsync("""
             using Status = StatusEn;
 
             public sealed record OrderModel(int Id, StatusEn Status)
@@ -13217,8 +13208,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 Open,
                 Closed,
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("Undisclosed"),
             ItemExpectation.Absent("ToString"),
         ]);

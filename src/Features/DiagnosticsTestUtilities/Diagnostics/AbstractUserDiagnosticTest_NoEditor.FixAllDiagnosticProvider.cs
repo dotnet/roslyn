@@ -14,7 +14,11 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
-public abstract partial class AbstractUserDiagnosticTest_NoEditor
+public abstract partial class AbstractUserDiagnosticTest_NoEditor<
+    TDocument,
+    TProject,
+    TSolution,
+    TTestWorkspace>
 {
     private sealed class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
     {

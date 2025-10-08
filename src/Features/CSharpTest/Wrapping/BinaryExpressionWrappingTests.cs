@@ -22,10 +22,10 @@ public sealed class BinaryExpressionWrappingTests : AbstractWrappingTests
         => new(options: Option(CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.BeginningOfLine));
 
     private Task TestEndOfLine(string markup, string expected)
-        => TestInRegularAndScript1Async(markup, expected, EndOfLine);
+        => TestInRegularAndScriptAsync(markup, expected, EndOfLine);
 
     private Task TestBeginningOfLine(string markup, string expected)
-        => TestInRegularAndScript1Async(markup, expected, BeginningOfLine);
+        => TestInRegularAndScriptAsync(markup, expected, BeginningOfLine);
 
     [Fact]
     public Task TestMissingWithSyntaxError()

@@ -57,8 +57,8 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             => ExtensionMethodEqualityComparer.Instance.GetHashCode(this);
     }
 
-    internal override FixAllProvider? GetFixAllProvider()
-        => new ConvertToExtensionFixAllProvider();
+    public override RefactorAllProvider? GetRefactorAllProvider()
+        => new ConvertToExtensionRefactorAllProvider();
 
     private static ExtensionMethodInfo? TryGetExtensionMethodInfo(
         SemanticModel semanticModel,
@@ -260,7 +260,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 CodeGenerationContext.Default,
                 CSharpCodeGenerationOptions.Default,
                 (CSharpCodeGenerationService)codeGenerationService,
-                LanguageVersionExtensions.CSharpNext);
+                LanguageVersion.CSharp14);
 
             var firstExtensionInfo = group[0];
             var typeParameters = firstExtensionInfo.MethodTypeParameters.CastArray<ITypeParameterSymbol>();

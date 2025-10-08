@@ -57,7 +57,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task EmptyVerbatimString()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -78,7 +78,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task TestLeadingAndTrailingTrivia()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -115,7 +115,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task VerbatimStringWithBasicText()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -148,7 +148,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task RegularStringWithEscapedNewLine()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -170,7 +170,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task VerbatimStringWithNewLine()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -204,7 +204,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task RegularStringWithEscapedQuote()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -225,7 +225,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task VerbatimStringWithEscapedQuote()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -246,7 +246,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task DoNotEscapeCurlyBracesInRegularString()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -268,7 +268,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task DoNotEscapeCurlyBracesInVerbatimString()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()

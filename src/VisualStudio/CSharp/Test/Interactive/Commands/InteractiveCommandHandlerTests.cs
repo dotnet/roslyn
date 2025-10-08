@@ -169,9 +169,7 @@ public sealed class InteractiveCommandHandlerTests
 
     [WpfFact]
     public void TestCopyToInteractive()
-    {
-        AssertCopyToInteractive($"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
-    }
+        => AssertCopyToInteractive($"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
 
     [WpfFact]
     public void TestCopyToInteractiveWithNonEmptyBuffer()

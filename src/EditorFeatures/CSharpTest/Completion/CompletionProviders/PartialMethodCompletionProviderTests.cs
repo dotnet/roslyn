@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -756,6 +754,33 @@ public sealed class PartialMethodCompletionProviderTests : AbstractCSharpComplet
             }
             """);
     }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/68805")]
+    public Task TestUnsafePartial()
+        => VerifyCustomCommitProviderAsync("""
+            unsafe partial class A
+            {
+                partial void Goo(void* p);
+            }
+
+            partial class A
+            {
+                partial $$
+            }
+            """, "Goo(void* p)", """
+            unsafe partial class A
+            {
+                partial void Goo(void* p);
+            }
+            
+            partial class A
+            {
+                unsafe partial void Goo(void* p)
+                {
+                    [|throw new System.NotImplementedException();|]
+                }
+            }
+            """);
 
     private Task VerifyItemExistsAsync(string markup, string expectedItem)
     {

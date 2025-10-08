@@ -15,7 +15,7 @@ public sealed class SwitchKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestAtRoot_Interactive()
         => VerifyKeywordAsync(SourceCodeKind.Script,
-@"$$");
+            @"$$");
 
     [Fact]
     public Task TestAfterClass_Interactive()
@@ -44,17 +44,17 @@ public sealed class SwitchKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestNotInUsingAlias()
         => VerifyAbsenceAsync(
-@"using Goo = $$");
+            @"using Goo = $$");
 
     [Fact]
     public Task TestNotInGlobalUsingAlias()
         => VerifyAbsenceAsync(
-@"global using Goo = $$");
+            @"global using Goo = $$");
 
     [Fact]
     public Task TestEmptyStatement()
         => VerifyKeywordAsync(AddInsideMethod(
-@"$$"));
+            @"$$"));
 
     [Fact]
     public Task TestBeforeStatement()
@@ -93,7 +93,7 @@ public sealed class SwitchKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestNotAfterSwitch1()
         => VerifyAbsenceAsync(AddInsideMethod(
-@"switch $$"));
+            @"switch $$"));
 
     [Fact]
     public async Task TestAfterExpression()
@@ -119,7 +119,7 @@ public sealed class SwitchKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestNotAfterSwitch2()
         => VerifyAbsenceAsync(AddInsideMethod(
-@"switch ($$"));
+            @"switch ($$"));
 
     [Fact]
     public Task TestNotInClass()
@@ -265,6 +265,21 @@ public sealed class SwitchKeywordRecommenderTests : KeywordRecommenderTests
                         case N.A $$
                     }
                 }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78800")]
+    public Task TestAfterReturnExpression()
+        => VerifyKeywordAsync(
+            """
+            class C
+            {
+                public static string EvaluateRangeVariable()
+                {
+                    return RandomValue() $$
+                }
+
+                public int RandomValue() => 0;
             }
             """);
 }

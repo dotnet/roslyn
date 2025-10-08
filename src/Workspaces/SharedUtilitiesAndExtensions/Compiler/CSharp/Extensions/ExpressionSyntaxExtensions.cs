@@ -657,12 +657,12 @@ internal static partial class ExpressionSyntaxExtensions
 
     public static SimpleNameSyntax? GetRightmostName(this ExpressionSyntax node)
     {
-        if (node is MemberAccessExpressionSyntax memberAccess && memberAccess.Name != null)
+        if (node is MemberAccessExpressionSyntax { Name: not null } memberAccess)
         {
             return memberAccess.Name;
         }
 
-        if (node is QualifiedNameSyntax qualified && qualified.Right != null)
+        if (node is QualifiedNameSyntax { Right: not null } qualified)
         {
             return qualified.Right;
         }
@@ -682,7 +682,7 @@ internal static partial class ExpressionSyntaxExtensions
             return memberBinding.Name;
         }
 
-        if (node is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Name != null)
+        if (node is AliasQualifiedNameSyntax { Name: not null } aliasQualifiedName)
         {
             return aliasQualifiedName.Name;
         }

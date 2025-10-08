@@ -23,7 +23,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         public override SymbolReference CreateReference<T>(SymbolResult<T> symbol)
         {
             return new ProjectSymbolReference(
-                provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project);
+                Provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project);
         }
     }
 }

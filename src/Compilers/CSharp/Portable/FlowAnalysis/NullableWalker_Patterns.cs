@@ -531,7 +531,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagPropertyEvaluation e:
                                     {
                                         Debug.Assert(inputSlot > 0);
-                                        var property = (PropertySymbol)AsMemberOfType(inputType, e.Property); // Tracked by https://github.com/dotnet/roslyn/issues/78828 : this needs to handle extension properties
+                                        var property = e.Property.GetIsNewExtensionMember()
+                                            ? ReInferAndVisitExtensionPropertyAccess(e, e.Property, new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType)).updatedProperty
+                                            : (PropertySymbol)AsMemberOfType(inputType, e.Property);
                                         var type = property.TypeWithAnnotations;
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         int outputSlot = GetOrCreateSlot(property, inputSlot, forceSlotEvenIfEmpty: true);

@@ -2430,9 +2430,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """;
-        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, TestParameters.Default))
         {
-            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, TestParameters.Default);
             Assert.Equal(2, actions.Length);
         }
 
@@ -2452,7 +2452,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0,
-            title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived"));
+            new(title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived")));
         await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
@@ -2469,7 +2469,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """, index: 1,
-            title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
+            new(title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2")));
     }
 
     [Fact]
@@ -2493,9 +2493,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
             """;
 
-        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, TestParameters.Default))
         {
-            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, TestParameters.Default);
             Assert.Equal(2, actions.Length);
         }
 
@@ -2515,7 +2515,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0,
-            title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived"));
+            new(title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived")));
         await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
@@ -2532,7 +2532,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """, index: 1,
-            title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
+            new(title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2")));
 
     }
 
@@ -2633,9 +2633,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """;
-        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, TestParameters.Default))
         {
-            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, TestParameters.Default);
             Assert.Equal(2, actions.Length);
         }
 
@@ -2658,7 +2658,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0,
-            title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived"));
+            new(title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived")));
         await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
@@ -2678,7 +2678,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """, index: 1,
-            title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
+            new(title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2")));
     }
 
     [Fact]
@@ -2707,9 +2707,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """;
-        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, TestParameters.Default))
         {
-            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+            var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, TestParameters.Default);
             Assert.Equal(3, actions.Length);
         }
 
@@ -2735,7 +2735,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0,
-            title: string.Format(CodeFixesResources.Convert_type_to_0, "string"));
+            new(title: string.Format(CodeFixesResources.Convert_type_to_0, "string")));
         await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
@@ -2758,7 +2758,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """, index: 1,
-            title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived"));
+            new(title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived")));
         await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
@@ -2781,7 +2781,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """, index: 2,
-            title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
+            new(title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2")));
     }
 
     [Fact]

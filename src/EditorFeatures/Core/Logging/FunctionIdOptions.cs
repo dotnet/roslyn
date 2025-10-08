@@ -35,7 +35,7 @@ internal static class FunctionIdOptions
     }
 
     private static IEnumerable<FunctionId> GetFunctionIds()
-        => Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>();
+        => Enum.GetValues<FunctionId>();
 
     public static IEnumerable<IOption2> GetOptions()
         => GetFunctionIds().Select(GetOption);

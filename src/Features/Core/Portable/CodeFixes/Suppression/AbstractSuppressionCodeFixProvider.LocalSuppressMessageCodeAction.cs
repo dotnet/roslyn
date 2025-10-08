@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 
 internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
 {
-    internal sealed class LocalSuppressMessageCodeAction(
+    public sealed class LocalSuppressMessageCodeAction(
         AbstractSuppressionCodeFixProvider fixer,
         ISymbol targetSymbol,
         INamedTypeSymbol suppressMessageAttribute,
@@ -30,7 +30,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             var newTargetNode = _fixer.AddLocalSuppressMessageAttribute(
                 TargetNode_TestOnly, _targetSymbol, _suppressMessageAttribute, _diagnostic);
             var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNode<SyntaxNode>(TargetNode_TestOnly, newTargetNode);
+            var newRoot = root.ReplaceNode(TargetNode_TestOnly, newTargetNode);
             return _document.WithSyntaxRoot(newRoot);
         }
 

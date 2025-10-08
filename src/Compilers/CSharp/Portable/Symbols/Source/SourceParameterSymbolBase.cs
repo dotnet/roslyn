@@ -64,8 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol.ContainingAssembly; }
         }
 
-        internal abstract ConstantValue DefaultValueFromAttributes { get; }
-
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);

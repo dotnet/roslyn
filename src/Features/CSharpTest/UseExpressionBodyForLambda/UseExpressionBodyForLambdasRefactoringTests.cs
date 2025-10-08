@@ -54,7 +54,7 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -83,7 +83,7 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -140,7 +140,7 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -169,7 +169,7 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 

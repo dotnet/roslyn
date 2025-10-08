@@ -170,8 +170,7 @@ internal static class CommonSignatureHelpUtilities
             position, parentType, WellKnownMemberNames.CollectionInitializerAddMethodName, includeReducedExtensionMethods: true);
 
         var addMethods = addSymbols.OfType<IMethodSymbol>()
-                                   .Where(m => m.Parameters.Length >= 1)
-                                   .ToImmutableArray()
+                                   .WhereAsArray(m => m.Parameters.Length >= 1)
                                    .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                                    .Sort(semanticModel, position);
 

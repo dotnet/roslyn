@@ -24,20 +24,17 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
 
     [WpfFact]
     public void SimpleTagCompletion()
-    {
-        Verify("""
+        => Verify("""
             /// <goo$$
             class c { }
             """, """
             /// <goo>$$</goo>
             class c { }
             """, '>');
-    }
 
     [WpfFact]
     public void NestedTagCompletion()
-    {
-        Verify("""
+        => Verify("""
             /// <summary>
             /// <goo$$
             /// </summary>
@@ -48,12 +45,10 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </summary>
             class c { }
             """, '>');
-    }
 
     [WpfFact]
     public void CompleteBeforeIncompleteTag()
-    {
-        Verify("""
+        => Verify("""
             /// <goo$$
             /// </summary>
             class c { }
@@ -62,36 +57,30 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </summary>
             class c { }
             """, '>');
-    }
 
     [WpfFact]
     public void NotEmptyElement()
-    {
-        Verify("""
+        => Verify("""
             /// <$$
             class c { }
             """, """
             /// <>$$
             class c { }
             """, '>');
-    }
 
     [WpfFact]
     public void NotAlreadyCompleteTag()
-    {
-        Verify("""
+        => Verify("""
             /// <goo$$</goo>
             class c { }
             """, """
             /// <goo>$$</goo>
             class c { }
             """, '>');
-    }
 
     [WpfFact]
     public void NotAlreadyCompleteTag2()
-    {
-        Verify("""
+        => Verify("""
             /// <goo$$
             ///
             /// </goo>
@@ -102,24 +91,20 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </goo>
             class c { }
             """, '>');
-    }
 
     [WpfFact]
     public void SimpleSlashCompletion()
-    {
-        Verify("""
+        => Verify("""
             /// <goo><$$
             class c { }
             """, """
             /// <goo></goo>$$
             class c { }
             """, '/');
-    }
 
     [WpfFact]
     public void NestedSlashTagCompletion()
-    {
-        Verify("""
+        => Verify("""
             /// <summary>
             /// <goo><$$
             /// </summary>
@@ -130,12 +115,10 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </summary>
             class c { }
             """, '/');
-    }
 
     [WpfFact]
     public void SlashCompleteBeforeIncompleteTag()
-    {
-        Verify("""
+        => Verify("""
             /// <goo><$$
             /// </summary>
             class c { }
@@ -144,36 +127,30 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </summary>
             class c { }
             """, '/');
-    }
 
     [WpfFact]
     public void SlashNotEmptyElement()
-    {
-        Verify("""
+        => Verify("""
             /// <><$$
             class c { }
             """, """
             /// <></$$
             class c { }
             """, '/');
-    }
 
     [WpfFact]
     public void SlashNotAlreadyCompleteTag()
-    {
-        Verify("""
+        => Verify("""
             /// <goo><$$goo>
             class c { }
             """, """
             /// <goo></$$goo>
             class c { }
             """, '/');
-    }
 
     [WpfFact]
     public void SlashNotAlreadyCompleteTag2()
-    {
-        Verify("""
+        => Verify("""
             /// <goo>
             ///
             /// <$$goo>
@@ -184,36 +161,30 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </$$goo>
             class c { }
             """, '/');
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
     public void NestedIdenticalTags()
-    {
-        Verify("""
+        => Verify("""
             /// <goo><goo$$</goo>
             class c { }
             """, """
             /// <goo><goo>$$</goo></goo>
             class c { }
             """, '>');
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
     public void MultipleNestedIdenticalTags()
-    {
-        Verify("""
+        => Verify("""
             /// <goo><goo><goo$$</goo></goo>
             class c { }
             """, """
             /// <goo><goo><goo>$$</goo></goo></goo>
             class c { }
             """, '>');
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
     public void SlashNotIfCloseTagFollows()
-    {
-        Verify("""
+        => Verify("""
             /// <summary>
             /// <$$
             /// </summary>
@@ -224,24 +195,20 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </summary>
             class c { }
             """, '/');
-    }
 
     [WpfFact]
     public void TestSimpleTagCompletion()
-    {
-        Verify("""
+        => Verify("""
             /// <goo$$
             class C {}
             """, """
             /// <goo>$$</goo>
             class C {}
             """, '>');
-    }
 
     [WpfFact]
     public void TestNestedTagCompletion()
-    {
-        Verify("""
+        => Verify("""
             /// <summary>
             /// <goo$$
             /// </summary>
@@ -252,12 +219,10 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </summary>
             class C {}
             """, '>');
-    }
 
     [WpfFact]
     public void TestCompleteBeforeIncompleteTag()
-    {
-        Verify("""
+        => Verify("""
             /// <goo$$
             /// </summary>
             class C {}
@@ -266,36 +231,30 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </summary>
             class C {}
             """, '>');
-    }
 
     [WpfFact]
     public void TestNotEmptyElement()
-    {
-        Verify("""
+        => Verify("""
             /// <$$
             class C {}
             """, """
             /// <>$$
             class C {}
             """, '>');
-    }
 
     [WpfFact]
     public void TestNotAlreadyCompleteTag()
-    {
-        Verify("""
+        => Verify("""
             /// <goo$$</goo>
             class C {}
             """, """
             /// <goo>$$</goo>
             class C {}
             """, '>');
-    }
 
     [WpfFact]
     public void TestNotAlreadyCompleteTag2()
-    {
-        Verify("""
+        => Verify("""
             /// <goo$$
             ///
             /// </goo>
@@ -306,12 +265,10 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </goo>
             class C {}
             """, '>');
-    }
 
     [WpfFact]
     public void TestNotOutsideDocComment()
-    {
-        Verify("""
+        => Verify("""
             class C
             {
                 private int z = <goo$$
@@ -322,12 +279,10 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
                 private int z = <goo>$$
             }
             """, '>');
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
     public void TestNotCloseClosedTag()
-    {
-        Verify("""
+        => Verify("""
             /// <summary>
             /// <$$
             /// </summary>
@@ -338,5 +293,4 @@ public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
             /// </summary>
             class C {}
             """, '/');
-    }
 }
