@@ -34,7 +34,7 @@ internal struct JsonLexer
         => GetSubSequence(start, Position);
 
     public readonly VirtualCharSequence GetSubSequence(int start, int end)
-        => Text.GetSubSequence(TextSpan.FromBounds(start, end));
+        => Text[start..end];
 
     public JsonToken ScanNextToken()
     {
@@ -186,7 +186,7 @@ internal struct JsonLexer
 
     private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
     {
-        var chars = this.Text.GetSubSequence(new TextSpan(Position, 1));
+        var chars = this.Text[Position..(Position + 1)];
         Position++;
         return (chars, kind, null);
     }

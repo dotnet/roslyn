@@ -142,7 +142,7 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
         private void AddStringSubSpans(SyntaxToken token)
         {
             var virtualChars = _virtualCharService.TryConvertToVirtualChars(token);
-            if (virtualChars.IsDefaultOrEmpty)
+            if (virtualChars.IsDefaultOrEmpty())
                 return;
 
             // find the sequences of letters in a row that should be spell checked. if any part of that sequence is

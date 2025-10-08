@@ -352,7 +352,7 @@ public sealed partial class CSharpRegexParserTests
                 ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
                 """, RegexOptions.None, conversionFailureOk: false);
         Assert.False(token.IsMissing);
-        Assert.False(chars.IsDefaultOrEmpty);
+        Assert.False(chars.IsDefaultOrEmpty());
         Assert.Null(tree);
     }
 
@@ -366,7 +366,7 @@ public sealed partial class CSharpRegexParserTests
                 @"{text}"
                 """, RegexOptions.None, conversionFailureOk: false);
             Assert.False(token.IsMissing);
-            Assert.False(chars.IsDefaultOrEmpty);
+            Assert.False(chars.IsDefaultOrEmpty());
         }
     }
 

@@ -80,24 +80,19 @@ internal partial struct VirtualCharGreenSequence
     /// Gets a value indicating whether the <see cref="VirtualCharSequence"/> was declared but not initialized.
     /// </summary>
     public bool IsDefault => _leafCharacters == null;
-    public bool IsEmpty => Length == 0;
-    public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
     /// <summary>
     /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
     /// </summary>
-    public VirtualCharGreenSequence GetSubSequence(TextSpan span)
-       => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
+    public VirtualCharGreenSequence Slice(int start, int length)
+        => new(_leafCharacters, new TextSpan(_span.Start + start, length));
 
     /// <summary>
-    /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
-    /// in the span of this sequence.
+    /// Finds the index of the virtual char in this sequence that contains (not just intersects) the position.  Will
+    /// return null if there is no such virtual char in this sequence.
     /// </summary>
-    public VirtualChar? Find(int tokenStart, int position)
-        => _leafCharacters?.Find(tokenStart, position);
-
-    public VirtualCharGreenSequence Skip(int count)
-        => this.GetSubSequence(TextSpan.FromBounds(count, this.Length));
+    public int? FindIndex(int tokenStart, int position)
+        => _leafCharacters?.FindIndex(tokenStart, position) - _span.Start;
 
     [Conditional("DEBUG")]
     public void AssertAdjacentTo(VirtualCharGreenSequence virtualChars)
@@ -123,9 +118,6 @@ internal partial struct VirtualCharGreenSequence
 /// <inheritdoc cref="VirtualCharGreenSequence"/>
 internal readonly struct VirtualCharSequence
 {
-    private static readonly ObjectPool<ImmutableSegmentedList<VirtualCharGreen>.Builder> s_builderPool
-        = new(() => ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>());
-
     private readonly int _tokenStart;
     private readonly VirtualCharGreenSequence _sequence;
 
@@ -133,33 +125,6 @@ internal readonly struct VirtualCharSequence
 
     public static VirtualCharSequence Create(int tokenStart, string text)
         => new(tokenStart, VirtualCharGreenSequence.Create(text));
-
-    public static VirtualCharSequence Create(ImmutableSegmentedList<VirtualChar> virtualChars)
-    {
-        if (virtualChars.IsEmpty)
-            return Empty;
-
-        // Determine the earliest token start of all of the virtual chars.  This will be where this entire sequence
-        // starts.  Any virtual chars with the same token start will keep their same offset.  Any virtual chars with a
-        // later token start will have their offset adjusted to be relative to this new start.
-        var minimumTokenStart = virtualChars.Min(static c => c.TokenStart);
-
-        using var pooledObject = s_builderPool.GetPooledObject();
-        var builder = pooledObject.Object;
-
-        foreach (var ch in virtualChars)
-        {
-            Debug.Assert(ch.TokenStart >= minimumTokenStart);
-            var offsetDifference = ch.TokenStart - minimumTokenStart;
-            var newGreen = ch.Green.WithOffset(ch.Green.Offset + offsetDifference);
-            builder.Add(newGreen);
-        }
-
-        var result = new VirtualCharSequence(minimumTokenStart, VirtualCharGreenSequence.Create(builder.ToImmutable()));
-        builder.Clear();
-
-        return result;
-    }
 
     public VirtualCharSequence(int tokenStart, VirtualCharGreenSequence sequence)
     {
@@ -176,120 +141,22 @@ internal readonly struct VirtualCharSequence
     public VirtualChar this[int index]
         => new(_sequence[index], _tokenStart);
 
-    /// <inheritdoc cref="VirtualCharGreenSequence.Find"/>
-    public VirtualChar? Find(int position)
-        => _sequence.Find(_tokenStart, position);
-
-    public bool Contains(VirtualChar @char)
-        => IndexOf(@char) >= 0;
-
-    public int IndexOf(VirtualChar @char)
-    {
-        var index = 0;
-        foreach (var ch in this)
-        {
-            if (ch == @char)
-                return index;
-
-            index++;
-        }
-
-        return -1;
-    }
-
     /// <summary>
-    /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
+    /// Returns the index of the <see cref="VirtualChar"/> in this <see cref="VirtualCharSequence"/> that contains the
+    /// given position. Will return null if this position is not in the span of this sequence.
     /// </summary>
-    public string CreateString()
-    {
-        using var _ = PooledStringBuilder.GetInstance(out var builder);
-        foreach (var ch in this)
-            ch.AppendTo(builder);
-
-        return builder.ToString();
-    }
+    public int? FindIndex(int position)
+        => _sequence.FindIndex(_tokenStart, position);
 
     /// <inheritdoc cref="VirtualCharGreenSequence.IsDefault"/>
     public bool IsDefault => _sequence.IsDefault;
 
-    /// <inheritdoc cref="VirtualCharGreenSequence.IsEmpty"/>
-    public bool IsEmpty => _sequence.IsEmpty;
-
-    /// <inheritdoc cref="VirtualCharGreenSequence.IsDefaultOrEmpty"/>
-    public bool IsDefaultOrEmpty => _sequence.IsDefaultOrEmpty;
-
-    /// <inheritdoc cref="VirtualCharGreenSequence.GetSubSequence"/>
-    public VirtualCharSequence GetSubSequence(TextSpan span)
-       => new(_tokenStart, _sequence.GetSubSequence(span));
-
-    /// <inheritdoc cref="VirtualCharGreenSequence.Skip"/>
-    public VirtualCharSequence Skip(int count)
-        => new(_tokenStart, _sequence.Skip(count));
+    /// <inheritdoc cref="VirtualCharGreenSequence.Slice"/>
+    public VirtualCharSequence Slice(int start, int length)
+       => new(_tokenStart, _sequence.Slice(start, length));
 
     public Enumerator GetEnumerator()
         => new(this);
-
-    public VirtualChar First() => this[0];
-    public VirtualChar Last() => this[^1];
-
-    public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
-    {
-        foreach (var ch in this)
-        {
-            if (predicate(ch))
-                return ch;
-        }
-
-        return null;
-    }
-
-    public VirtualChar? LastOrNull(Func<VirtualChar, bool> predicate)
-    {
-        for (var i = this.Length - 1; i >= 0; i--)
-        {
-            var ch = this[i];
-            if (predicate(ch))
-                return ch;
-        }
-
-        return null;
-    }
-
-    public bool Any(Func<VirtualChar, bool> predicate)
-    {
-        foreach (var ch in this)
-        {
-            if (predicate(ch))
-                return true;
-        }
-
-        return false;
-    }
-
-    public bool All(Func<VirtualChar, bool> predicate)
-    {
-        foreach (var ch in this)
-        {
-            if (!predicate(ch))
-                return false;
-        }
-
-        return true;
-    }
-
-    public VirtualCharSequence SkipWhile(Func<VirtualChar, bool> predicate)
-    {
-        var start = 0;
-        foreach (var ch in this)
-        {
-            if (!predicate(ch))
-                break;
-
-            start++;
-        }
-
-        return this.GetSubSequence(TextSpan.FromBounds(start, this.Length));
-    }
 
     [Conditional("DEBUG")]
     public void AssertAdjacentTo(VirtualCharSequence virtualChars)
@@ -301,6 +168,7 @@ internal readonly struct VirtualCharSequence
     /// Combines two <see cref="VirtualCharSequence"/>s, producing a final sequence that points at the same underlying
     /// data, but spans from the start of <paramref name="chars1"/> to the end of <paramref name="chars2"/>.
     /// </summary>  
+    [Obsolete("Only around for ASP.NET compatibility. Do not use anymore.", error: false)]
     public static VirtualCharSequence FromBounds(
         VirtualCharSequence chars1, VirtualCharSequence chars2)
     {
@@ -322,5 +190,115 @@ internal readonly struct VirtualCharSequence
 
         readonly object? IEnumerator.Current => this.Current;
         public readonly void Dispose() { }
+    }
+}
+
+internal static class VirtualCharSequenceExtensions
+{
+    public static VirtualChar? Find(this VirtualCharSequence sequence, int position)
+    {
+        var index = sequence.FindIndex(position);
+        return index is null ? null : sequence[index.Value];
+    }
+
+    public static bool IsEmpty(this VirtualCharSequence sequence) => sequence.Length == 0;
+
+    public static bool IsDefaultOrEmpty(this VirtualCharSequence sequence) => sequence.IsDefault || sequence.IsEmpty();
+
+    public static bool Contains(this VirtualCharSequence sequence, VirtualChar @char)
+        => sequence.IndexOf(@char) >= 0;
+
+    public static int IndexOf(this VirtualCharSequence sequence, VirtualChar @char)
+    {
+        var index = 0;
+        foreach (var ch in sequence)
+        {
+            if (ch == @char)
+                return index;
+
+            index++;
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
+    /// </summary>
+    public static string CreateString(this VirtualCharSequence sequence)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+        foreach (var ch in sequence)
+            builder.Append(ch);
+
+        return builder.ToString();
+    }
+
+    public static string CreateString(this ImmutableSegmentedList<VirtualChar> sequence)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+        foreach (var ch in sequence)
+            builder.Append(ch);
+
+        return builder.ToString();
+    }
+
+    public static VirtualChar? FirstOrNull(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        foreach (var ch in sequence)
+        {
+            if (predicate(ch))
+                return ch;
+        }
+
+        return null;
+    }
+
+    public static VirtualChar? LastOrNull(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        for (var i = sequence.Length - 1; i >= 0; i--)
+        {
+            var ch = sequence[i];
+            if (predicate(ch))
+                return ch;
+        }
+
+        return null;
+    }
+
+    public static bool Any(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        foreach (var ch in sequence)
+        {
+            if (predicate(ch))
+                return true;
+        }
+
+        return false;
+    }
+
+    public static bool All(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        foreach (var ch in sequence)
+        {
+            if (!predicate(ch))
+                return false;
+        }
+
+        return true;
+    }
+
+    public static VirtualCharSequence SkipWhile(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        var start = 0;
+        foreach (var ch in sequence)
+        {
+            if (!predicate(ch))
+                break;
+
+            start++;
+        }
+
+        return sequence[start..];
     }
 }

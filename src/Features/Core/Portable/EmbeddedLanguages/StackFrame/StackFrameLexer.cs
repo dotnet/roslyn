@@ -61,7 +61,7 @@ internal struct StackFrameLexer
         => GetSubSequence(start, Position);
 
     public readonly VirtualCharSequence GetSubSequence(int start, int end)
-        => Text.GetSubSequence(TextSpan.FromBounds(start, end));
+        => Text[start..end];
 
     public StackFrameTrivia? TryScanRemainingTrivia()
     {
@@ -126,7 +126,7 @@ internal struct StackFrameLexer
         }
 
         var ch = Text[Position];
-        return CreateToken(GetKind(ch), Text.GetSubSequence(new TextSpan(Position, 1)));
+        return CreateToken(GetKind(ch), Text[Position..(Position + 1)]);
     }
 
     /// <summary>

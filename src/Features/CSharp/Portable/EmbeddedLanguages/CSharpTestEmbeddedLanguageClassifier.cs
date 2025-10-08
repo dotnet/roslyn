@@ -38,7 +38,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
             return;
 
         var virtualCharsWithMarkup = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-        if (virtualCharsWithMarkup.IsDefaultOrEmpty)
+        if (virtualCharsWithMarkup.IsDefaultOrEmpty())
             return;
 
         // Note: if we get here, then we know that the token is well formed (TryConvertToVirtualChars will fail if
@@ -80,13 +80,13 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
                 }
             }
         }
-        else if (!virtualCharsWithoutMarkup.IsEmpty)
+        else if (virtualCharsWithoutMarkup.Count > 0)
         {
             context.AddClassification(
                 ClassificationTypeNames.TestCode,
                 TextSpan.FromBounds(
-                    virtualCharsWithoutMarkup.First().Span.Start,
-                    virtualCharsWithoutMarkup.Last().Span.End));
+                    virtualCharsWithoutMarkup[0].Span.Start,
+                    virtualCharsWithoutMarkup[^1].Span.End));
         }
 
         // Next, get all the embedded language classifications for the test file.  Combine these with the markdown
@@ -99,7 +99,8 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
     }
 
     private static IEnumerable<ClassifiedSpan> GetTestFileClassifiedSpans(
-        Host.SolutionServices solutionServices, SemanticModel semanticModel, VirtualCharSequence virtualCharsWithoutMarkup, CancellationToken cancellationToken)
+        Host.SolutionServices solutionServices, SemanticModel semanticModel,
+        ImmutableSegmentedList<VirtualChar> virtualCharsWithoutMarkup, CancellationToken cancellationToken)
     {
         var compilation = semanticModel.Compilation;
         var encoding = semanticModel.SyntaxTree.Encoding;
@@ -113,7 +114,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
             solutionServices,
             project: null,
             semanticModeWithTestFile,
-            new TextSpan(0, virtualCharsWithoutMarkup.Length),
+            new TextSpan(0, virtualCharsWithoutMarkup.Count),
             ClassificationOptions.Default,
             cancellationToken);
         return testFileClassifiedSpans;
@@ -127,7 +128,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
     /// positions/spans within that <see cref="SourceText"/> to actual full virtual char spans in the original
     /// document for classification.
     /// </summary>
-    private static VirtualCharSequence StripMarkupCharacters(
+    private static ImmutableSegmentedList<VirtualChar> StripMarkupCharacters(
         VirtualCharSequence virtualChars, ArrayBuilder<TextSpan> markdownSpans, CancellationToken cancellationToken)
     {
         var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
@@ -198,7 +199,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        return VirtualCharSequence.Create(builder.ToImmutable());
+        return builder.ToImmutable();
 
         bool TryConsumeNamedSpanStart(ref int i, int n)
         {
@@ -224,7 +225,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
 
     private static void AddClassifications(
         EmbeddedLanguageClassificationContext context,
-        VirtualCharSequence virtualChars,
+        ImmutableSegmentedList<VirtualChar> virtualChars,
         ClassifiedSpan classifiedSpan)
     {
         if (classifiedSpan.TextSpan.IsEmpty)
@@ -263,17 +264,17 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
     /// </summary>
     private sealed class VirtualCharSequenceSourceText : SourceText
     {
-        private readonly VirtualCharSequence _virtualChars;
+        private readonly ImmutableSegmentedList<VirtualChar> _virtualChars;
 
         public override Encoding? Encoding { get; }
 
-        public VirtualCharSequenceSourceText(VirtualCharSequence virtualChars, Encoding? encoding)
+        public VirtualCharSequenceSourceText(ImmutableSegmentedList<VirtualChar> virtualChars, Encoding? encoding)
         {
             _virtualChars = virtualChars;
             Encoding = encoding;
         }
 
-        public override int Length => _virtualChars.Length;
+        public override int Length => _virtualChars.Count;
 
         public override char this[int position] => _virtualChars[position];
 

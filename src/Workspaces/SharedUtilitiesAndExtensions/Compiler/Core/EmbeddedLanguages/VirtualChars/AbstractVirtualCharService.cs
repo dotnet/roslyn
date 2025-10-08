@@ -110,7 +110,7 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
                 }
             }
 
-            var lastVC = result.Last();
+            var lastVC = result[^1];
 
             if (token.RawKind == syntaxKinds.StringLiteralToken ||
                 token.RawKind == syntaxKinds.CharacterLiteralToken)
@@ -219,7 +219,7 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         if (textLength == result.Count)
         {
             var sequence = VirtualCharGreenSequence.Create(tokenText);
-            return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
+            return sequence[startIndexInclusive..endIndexExclusive];
         }
 
         return VirtualCharGreenSequence.Create(result.ToImmutable());

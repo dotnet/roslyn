@@ -2204,5 +2204,89 @@ class C
                 Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
             });
         }
+
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void FieldKeyword_01()
+        {
+            var source =
+@"
+class C
+{
+    public int P1
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public int P2
+    {
+        get
+        {
+#line 100
+            return field;
+#line 200
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public int P3
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.get_P2", atLineNumber: 100);
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "int b = field;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (int V_0,
+            System.Guid V_1)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""b""
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.1
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""b""
+  IL_0023:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int C.<P2>k__BackingField""
+  IL_002e:  stind.i4
+  IL_002f:  ret
+}
+");
+            });
+        }
     }
 }

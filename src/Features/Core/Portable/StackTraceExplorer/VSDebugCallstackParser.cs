@@ -35,7 +35,7 @@ internal sealed class VSDebugCallstackParser : IStackFrameParser
             return false;
         }
 
-        var textToParse = line.GetSubSequence(TextSpan.FromBounds(startPoint, line.Length));
+        var textToParse = line[startPoint..];
         var tree = StackFrameParser.TryParse(textToParse);
 
         if (tree is null)

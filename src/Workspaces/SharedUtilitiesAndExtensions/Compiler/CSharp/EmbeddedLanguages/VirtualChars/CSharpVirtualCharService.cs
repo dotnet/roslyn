@@ -249,7 +249,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         if (!ContainsEscape(tokenText.AsSpan(startIndexInclusive, endIndexExclusive - startIndexInclusive), escapeBraces))
         {
             var sequence = VirtualCharGreenSequence.Create(tokenText);
-            return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
+            return sequence[startIndexInclusive..endIndexExclusive];
         }
         else
         {

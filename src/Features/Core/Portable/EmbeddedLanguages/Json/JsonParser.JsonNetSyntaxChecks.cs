@@ -88,7 +88,7 @@ internal partial struct JsonParser
                 if (chars[1].Value is 'x' or 'X')
                 {
                     // Base 16.  Fortunately, we have helpers for this common case.
-                    if (!long.TryParse(chars.Skip("0x".Length).CreateString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out _))
+                    if (!long.TryParse(chars["0x".Length..].CreateString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out _))
                         return new EmbeddedDiagnostic(FeaturesResources.Invalid_number, GetSpan(chars));
                 }
                 else
