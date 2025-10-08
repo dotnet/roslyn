@@ -51,6 +51,8 @@ public sealed class ProjectAppDirectiveCompletionProviderTests : AbstractAppDire
 
 public abstract class AbstractAppDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
+    /// <summary>The directive kind. For example, `package` in `#:package MyNugetPackage@Version`.</summary>
+    /// <remarks>Term defined in feature doc: https://github.com/dotnet/sdk/blob/main/documentation/general/dotnet-run-file.md#directives-for-project-metadata</remarks>
     protected abstract string DirectiveKind { get; }
 
     protected static string GetMarkup(string code, string features = "FileBasedProgram=true") => $$"""

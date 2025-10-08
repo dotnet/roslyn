@@ -593,13 +593,17 @@
   </data>
   <data name="Build_property_name" xml:space="preserve">
     <value>Name</value>
-    <comment>'Name' is a placeholder for a property, package, sdk name in a directive like '#:property Name=Value'.</comment>
+    <comment>'Name' is a placeholder for a property name in a directive like '#:property Name=Value'.</comment>
+  </data>
+  <data name="Package_name" xml:space="preserve">
+    <value>Name</value>
+    <comment>'Name' is a placeholder for a package or sdk name in a directive like '#:package Name@Version'.</comment>
   </data>
   <data name="Package_version" xml:space="preserve">
     <value>Version</value>
     <comment>'Version' is a placeholder for a package or sdk version in a directive like '#:package Name@Version'.</comment>
   </data>
-  <data name="File_path" xml:space="preserve">
+  <data name="Project_directive_file_path" xml:space="preserve">
     <value>path</value>
     <comment>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</comment>
   </data>

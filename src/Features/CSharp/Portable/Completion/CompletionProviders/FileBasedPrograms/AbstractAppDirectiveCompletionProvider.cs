@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 /// </summary>
 internal abstract class AbstractAppDirectiveCompletionProvider : LSPCompletionProvider
 {
+    /// <summary>The directive kind. For example, `package` in `#:package MyNugetPackage@Version`.</summary>
+    /// <remarks>Term defined in feature doc: https://github.com/dotnet/sdk/blob/main/documentation/general/dotnet-run-file.md#directives-for-project-metadata</remarks>
     protected abstract string DirectiveKind { get; }
 
     public sealed override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)

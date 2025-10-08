@@ -32,7 +32,7 @@ internal sealed class SdkAppDirectiveCompletionProvider() : AbstractAppDirective
             description: [
                 new(SymbolDisplayPartKind.Keyword, symbol: null, "#:sdk"),
                 new(SymbolDisplayPartKind.Space, symbol: null, " "),
-                new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.Build_property_name),
+                new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.Package_name),
                 new(SymbolDisplayPartKind.StringLiteral, symbol: null, "@"),
                 new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.Package_version),
                 new(SymbolDisplayPartKind.LineBreak, symbol: null, ""),

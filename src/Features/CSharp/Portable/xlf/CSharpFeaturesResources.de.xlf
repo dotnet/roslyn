@@ -150,7 +150,7 @@
       <trans-unit id="Build_property_name">
         <source>Name</source>
         <target state="new">Name</target>
-        <note>'Name' is a placeholder for a property, package, sdk name in a directive like '#:property Name=Value'.</note>
+        <note>'Name' is a placeholder for a property name in a directive like '#:property Name=Value'.</note>
       </trans-unit>
       <trans-unit id="Build_property_value">
         <source>Value</source>
@@ -232,11 +232,6 @@
         <target state="translated">Nullwerte zulassende Verweistypen in der Lösung aktivieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="File_path">
-        <source>path</source>
-        <target state="new">path</target>
-        <note>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</note>
-      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Globale "Using"-Anweisungen</target>
@@ -247,10 +242,20 @@
         <target state="translated">Private Felder nach Möglichkeit als schreibgeschützt festlegen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Package_name">
+        <source>Name</source>
+        <target state="new">Name</target>
+        <note>'Name' is a placeholder for a package or sdk name in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
       <trans-unit id="Package_version">
         <source>Version</source>
         <target state="new">Version</target>
         <note>'Version' is a placeholder for a package or sdk version in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
+      <trans-unit id="Project_directive_file_path">
+        <source>path</source>
+        <target state="new">path</target>
+        <note>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</note>
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>

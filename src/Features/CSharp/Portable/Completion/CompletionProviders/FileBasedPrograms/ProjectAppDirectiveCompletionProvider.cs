@@ -32,7 +32,7 @@ internal sealed class ProjectAppDirectiveCompletionProvider() : AbstractAppDirec
             description: [
                 new(SymbolDisplayPartKind.Keyword, symbol: null, "#:project"),
                 new(SymbolDisplayPartKind.Space, symbol: null, " "),
-                new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.File_path),
+                new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.Project_directive_file_path),
                 new(SymbolDisplayPartKind.LineBreak, symbol: null, ""),
                 new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Adds_a_project_reference),
                 ]));
