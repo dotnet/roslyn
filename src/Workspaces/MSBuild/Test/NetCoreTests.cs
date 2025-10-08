@@ -105,16 +105,18 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         var projectFilePath = GetSolutionFileName("Project.csproj");
         var projectDir = Path.GetDirectoryName(projectFilePath);
-        var binLogPath = Path.Combine(projectDir, "msbuild.binlog");
+        var binLogPath = Path.Combine(projectDir, "build.binlog");
 
         DotNetRestore("Project.csproj");
 
         using var workspace = CreateMSBuildWorkspace();
         var project = await workspace.OpenProjectAsync(projectFilePath, new BinaryLogger() { Parameters = binLogPath });
 
-        var binlogInfo = new FileInfo(binLogPath);
-        Assert.True(binlogInfo.Exists);
-        Assert.True(binlogInfo.Length > 0);
+        // The binarylog could have been given a suffix to avoid filename collisions when used by multiple buildhosts.
+        var buildLogPaths = Directory.EnumerateFiles(projectDir, "build*.binlog").ToImmutableArray();
+        var buildLogPath = Assert.Single(buildLogPaths);
+        var buildLogInfo = new FileInfo(buildLogPath);
+        Assert.True(buildLogInfo.Length > 0);
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
