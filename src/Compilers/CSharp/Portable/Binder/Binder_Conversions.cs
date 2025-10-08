@@ -892,7 +892,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                collectionCreation = BindIEnumerableCollectionExpressionConstructor(syntax, targetType, constructor, node.WithElement, diagnostics);
+
+                collectionCreation = BindCollectionConstructionConstruction(syntax, targetType, constructor, node.WithElement, diagnostics);
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
@@ -956,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface)
                     {
                         Debug.Assert(constructor is null, "Only initialized in ImplementsIEnumerable case in Conversions.GetCollectionExpressionConversion.");
-                        collectionCreation = BindArrayInterfaceCollectionExpressionConstructor(
+                        collectionCreation = BindCollectionArrayInterfaceConstruction(
                             targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
                     }
                     else
@@ -1105,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionBuilderMethod;
         }
 
-        private BoundExpression BindIEnumerableCollectionExpressionConstructor(
+        private BoundExpression BindCollectionConstructionConstruction(
             SyntaxNode syntax,
             TypeSymbol targetType,
             MethodSymbol? constructor,
@@ -1143,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionCreation;
         }
 
-        private BoundExpression? BindArrayInterfaceCollectionExpressionConstructor(
+        private BoundExpression? BindCollectionArrayInterfaceConstruction(
             TypeSymbol targetType,
             MethodSymbol? list_T__ctor,
             MethodSymbol? list_T__ctorInt32,
