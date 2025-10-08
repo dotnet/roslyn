@@ -228,19 +228,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_additionalLocals is { });
             Debug.Assert(node.CollectionCreation is null); // shouldn't have generated a constructor call
             Debug.Assert(node.Placeholder is null);
+            Debug.Assert(collectionType is ArrayTypeSymbol or NamedTypeSymbol);
 
-            return collectionType switch
+            if (collectionType is ArrayTypeSymbol arrayType)
             {
-                ArrayTypeSymbol arrayType
-                    => createArray(node, arrayType, targetsReadOnlyCollection: false),
-                NamedTypeSymbol spanType when spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T))
-                    => createSpan(node, spanType, isReadOnlySpan: false),
-                NamedTypeSymbol readOnlySpanType when readOnlySpanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
-                    => createSpan(node, readOnlySpanType, isReadOnlySpan: true),
-                NamedTypeSymbol immutableArrayType when immutableArrayType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T))
-                    => createImmutableArray(node, immutableArrayType),
-                _ => throw ExceptionUtilities.UnexpectedValue(collectionType),
-            };
+                return createArray(node, arrayType, targetsReadOnlyCollection: false);
+            }
+            else
+            {
+                var namedType = (NamedTypeSymbol)collectionType;
+
+                if (namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T)))
+                {
+                    return createImmutableArray(node, namedType);
+                }
+                else
+                {
+                    Debug.Assert(namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T)) ||
+                                 namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T)));
+
+                    return createSpan(node, namedType, isReadOnlySpan: namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T)));
+                }
+            }
 
             ArrayTypeSymbol getBackingArrayType(NamedTypeSymbol collectionType)
             {
