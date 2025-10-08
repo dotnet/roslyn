@@ -243,7 +243,7 @@ public partial class MSBuildProjectLoader
             onLoaderFailure: reportingMode);
 
         var binLogPathProvider = IsBinaryLogger(msbuildLogger)
-            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters)
+            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters!)
             : null;
 
         var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
@@ -274,15 +274,15 @@ public partial class MSBuildProjectLoader
 
     internal sealed class DefaultBinLogPathProvider : IBinLogPathProvider
     {
-        internal const string DefaultFileName = "msbuild";
-        internal const string DefaultExtension = ".binlog";
+        private const string DefaultFileName = "msbuild";
+        private const string DefaultExtension = ".binlog";
 
         private readonly string _path;
         private readonly string _filename;
         private readonly string _extension;
         private int _suffix = 0;
 
-        public DefaultBinLogPathProvider(string? logFilePath)
+        public DefaultBinLogPathProvider(string logFilePath)
         {
             Contract.ThrowIfNull(logFilePath);
 
@@ -295,13 +295,11 @@ public partial class MSBuildProjectLoader
                 : DefaultExtension;
         }
 
-        public string? GetNewLogPath() => BuildLogPath(_path, _filename, _extension, _suffix++);
-
-        internal static string BuildLogPath(string path, string filename, string extension, int suffix)
+        public string? GetNewLogPath()
         {
-            return suffix == 0
-                ? Path.Combine(path, filename + extension)
-                : Path.Combine(path, $"{filename}-{suffix}{extension}");
+            return _suffix == 0
+                ? Path.Combine(_path, _filename + _extension)
+                : Path.Combine(_path, $"{_filename}-{_suffix}{_extension}");
         }
     }
 }

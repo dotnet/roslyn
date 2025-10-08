@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
 public sealed class DefaultBinLogPathProviderTests
 {
+    private const string DefaultFileName = "msbuild";
+    private const string DefaultExtension = ".binlog";
+
     private readonly string LogDirectory = $".{Path.PathSeparator}logs";
     private const string LogFileName = "mylog";
     private const string LogExtension = ".mylog";
@@ -58,7 +61,7 @@ public sealed class DefaultBinLogPathProviderTests
 
             Assert.Equal(LogDirectory, newLogDirectory);
             Assert.StartsWith(LogFileName, newLogFileName);
-            Assert.Equal(DefaultBinLogPathProvider.DefaultExtension, newLogExtension);
+            Assert.Equal(DefaultExtension, newLogExtension);
         }
     }
 
@@ -79,8 +82,8 @@ public sealed class DefaultBinLogPathProviderTests
             var newLogExtension = Path.GetExtension(newLogPath);
 
             Assert.Equal(LogDirectory, newLogDirectory);
-            Assert.StartsWith(DefaultBinLogPathProvider.DefaultFileName, newLogFileName);
-            Assert.Equal(DefaultBinLogPathProvider.DefaultExtension, newLogExtension);
+            Assert.StartsWith(DefaultFileName, newLogFileName);
+            Assert.Equal(DefaultExtension, newLogExtension);
         }
     }
 }
