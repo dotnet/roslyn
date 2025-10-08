@@ -8935,8 +8935,11 @@ static class Test1
                     public class Awaiter : System.Runtime.CompilerServices.{{notifyType}}
                     {
                         private bool isCompleted = false;
-                        public void OnCompleted(System.Action continuation) {}
-                        public void UnsafeOnCompleted(System.Action continuation) {}
+                        public void OnCompleted(System.Action continuation) 
+                        {
+                            System.Threading.Tasks.Task.Run(continuation);
+                        }
+                        public void UnsafeOnCompleted(System.Action continuation) => OnCompleted(continuation);
                         public bool IsCompleted
                         {
                             get
@@ -8992,8 +8995,11 @@ static class Test1
                     public class Awaiter : {{notifyType}}
                     {
                         private bool isCompleted = false;
-                        public void OnCompleted(System.Action continuation) {}
-                        public void UnsafeOnCompleted(System.Action continuation) {}
+                        public void OnCompleted(System.Action continuation) 
+                        {
+                            System.Threading.Tasks.Task.Run(continuation);
+                        }
+                        public void UnsafeOnCompleted(System.Action continuation) => OnCompleted(continuation);
                         public bool IsCompleted
                         {
                             get
