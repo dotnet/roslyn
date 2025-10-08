@@ -67,6 +67,9 @@ console.Pipeline.Attach(new LoggingRenderHook(logWriter));
 
 // Welcome message.
 console.MarkupLineInterpolated($"Welcome to [grey]{getFileName()}[/], an interactive script to help with snap-related infra tasks");
+console.WriteLine();
+console.MarkupLine("[purple]Configuration[/]");
+console.WriteLine();
 
 var httpClient = new HttpClient();
 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("dotnet-roslyn-snap-script");
@@ -157,6 +160,10 @@ var targetVsPrefixAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"What
     .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData?.BranchInfo.InsertionTitlePrefix)).Value;
 
 // Check subscriptions.
+console.WriteLine();
+console.MarkupLine("[purple]Subscriptions[/]");
+console.WriteLine();
+
 var darc = new DarcHelper(console);
 var printers = await Task.WhenAll([
     darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/dotnet", "VMR"),
@@ -170,6 +177,10 @@ foreach (var printer in printers)
 }
 
 // Find last 5 PRs merged to current branch.
+
+console.WriteLine();
+console.MarkupLine("[purple]Pull Requests[/] (point of snap)");
+console.WriteLine();
 
 const string prJsonFields = "number,title,mergedAt,mergeCommit";
 
@@ -224,9 +235,9 @@ if (milestonePullRequests.Length > 5)
 }
 console.WriteLine();
 
-// Determine last PR to include.
+// Determine the last PR to include.
 
-var lastPrNumber = console.Prompt(TextPrompt<int>.Create($"Number of last PR to include in [teal]{targetBranchName}[/]")
+var lastPrNumber = console.Prompt(TextPrompt<int>.Create($"Number of the last PR to include in [teal]{targetBranchName}[/]")
     .DefaultValueIfNotNull(lastMergedPullRequests is [var defaultLastPr, ..] ? defaultLastPr.Number : null));
 var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumber)
     ?? (await Cli.Wrap("gh")
