@@ -271,8 +271,36 @@ public partial class MSBuildProjectLoader
         return logger?.GetType().FullName == "Microsoft.Build.Logging.BinaryLogger";
     }
 
-    private sealed class DefaultBinLogPathProvider(string? logFilePath) : IBinLogPathProvider
+    internal sealed class DefaultBinLogPathProvider : IBinLogPathProvider
     {
-        public string? GetNewLogPath() => logFilePath;
+        internal const string DefaultFileName = "msbuild";
+        internal const string DefaultExtension = ".binlog";
+
+        private readonly string _path;
+        private readonly string _filename;
+        private readonly string _extension;
+        private int _suffix = 0;
+
+        public DefaultBinLogPathProvider(string? logFilePath)
+        {
+            Contract.ThrowIfNull(logFilePath);
+
+            _path = Path.GetDirectoryName(logFilePath) ?? ".";
+            _filename = !string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(logFilePath))
+                ? Path.GetFileNameWithoutExtension(logFilePath)!
+                : DefaultFileName;
+            _extension = !string.IsNullOrEmpty(Path.GetExtension(logFilePath))
+                ? Path.GetExtension(logFilePath)!
+                : DefaultExtension;
+        }
+
+        public string? GetNewLogPath() => BuildLogPath(_path, _filename, _extension, _suffix++);
+
+        internal static string BuildLogPath(string path, string filename, string extension, int suffix)
+        {
+            return suffix == 0
+                ? Path.Combine(path, filename + extension)
+                : Path.Combine(path, $"{filename}-{suffix}{extension}");
+        }
     }
 }
