@@ -826,6 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: false, diagnostics);
             }
 
+            Debug.Assert(elementType is { });
             var syntax = node.Syntax;
             if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, Compilation))
             {
@@ -847,6 +848,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case CollectionExpressionTypeKind.ReadOnlySpan:
                     _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics, syntax: syntax);
+                    break;
+
+                case CollectionExpressionTypeKind.ArrayInterface:
+                    {
+                        Debug.Assert(elementType is { });
+
+                        if (elementType.IsRefLikeOrAllowsRefLikeType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, syntax);
+                        }
+                    }
                     break;
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
