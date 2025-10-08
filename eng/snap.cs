@@ -65,8 +65,23 @@ TaskScheduler.UnobservedTaskException += (s, e) =>
 
 console.Pipeline.Attach(new LoggingRenderHook(logWriter));
 
+// Parse args.
+const string dryRunLong = "--dry-run";
+const string dryRunShort = "-n";
+bool dryRun = args is [dryRunLong or dryRunShort];
+if (!dryRun && args is not [])
+{
+    console.MarkupLineInterpolated($"[red]Error:[/] This script does not take any arguments except [teal]{dryRunLong}[/]/[teal]{dryRunShort}[/], found: [grey]{string.Join(' ', args)}[/]");
+    return 1;
+}
+
 // Welcome message.
 console.MarkupLineInterpolated($"Welcome to [grey]{getFileName()}[/], an interactive script to help with snap-related infra tasks");
+
+console.MarkupLine(dryRun
+    ? "[yellow]Note:[/] Running in [green]dry run[/] mode, no changes will be made"
+    : "[yellow]Note:[/] Running in [red]live[/] mode, changes will be made at the end (after confirmation)");
+
 console.WriteLine();
 console.MarkupLine("[purple]Configuration[/]");
 console.WriteLine();
