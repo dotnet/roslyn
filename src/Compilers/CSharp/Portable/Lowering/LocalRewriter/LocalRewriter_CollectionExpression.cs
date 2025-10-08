@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // produced a bad node (with diagnostics)).  In the case where we succeeded, we want that constructed
                 // list to be what we add elements to.  In the case where we failed, it doesn't matter and we can just
                 // fall back to the optimal emit path (since an error was already reported).
-                Debug.Assert(node.CollectionCreation is null or BoundObjectCreationExpression or BoundBadExpression);
+                Debug.Assert(node.CollectionCreation is null or BoundObjectCreationExpression);
                 arrayOrList = CreateAndPopulateList(node, elementType, elements, receiver: node.CollectionCreation as BoundObjectCreationExpression);
             }
 
