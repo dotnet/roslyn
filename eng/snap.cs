@@ -82,25 +82,24 @@ var defaultRepo = (await Cli.Wrap("gh")
     .StandardOutput
     .Trim();
 
-var sourceRepoShort = console.Prompt(TextPrompt<RawString>.Create("Source repo in the format owner/repo")
-    .DefaultValueIfNotNullOrEmpty(defaultRepo)
+var sourceRepoShort = console.Prompt(TextPrompt<string>.Create("Source repo in the format owner/repo",
+    defaultValueIfNotNullOrEmpty: defaultRepo)
     .Validate(static repo =>
     {
-        if (repo.Value.Count(c => c == '/') != 1)
+        if (repo.Count(c => c == '/') != 1)
         {
             return ValidationResult.Error("Repo must be in the format owner/repo");
         }
 
         return ValidationResult.Success();
-    }))
-    .Value;
+    }));
 
 var sourceRepoUrl = $"https://github.com/{sourceRepoShort}";
 
 // Ask for source and target branches.
 
-var sourceBranchName = console.Prompt(TextPrompt<string>.Create("Source branch")
-    .DefaultValue("main"));
+var sourceBranchName = console.Prompt(TextPrompt<string>.Create("Source branch",
+    defaultValue: "main"));
 
 // Find Roslyn version number.
 var sourceVersionsProps = await VersionsProps.LoadAsync(httpClient, sourceRepoShort, sourceBranchName);
@@ -125,8 +124,8 @@ suggestedTargetBranchName ??= (await Cli.Wrap("git")
     .Select(static s => s.IndexOf('/') is var slashIndex and >= 0 ? s[(slashIndex + 1)..] : s)
     .FirstOrDefault();
 
-var targetBranchName = console.Prompt(TextPrompt<string>.Create("Target branch")
-    .DefaultValue(suggestedTargetBranchName ?? "release/insiders"));
+var targetBranchName = console.Prompt(TextPrompt<string>.Create("Target branch",
+    defaultValue: suggestedTargetBranchName ?? "release/insiders"));
 
 // Find Roslyn version number.
 var targetVersionsProps = await VersionsProps.LoadAsync(httpClient, sourceRepoShort, targetBranchName);
@@ -148,16 +147,16 @@ var suggestedSourceVsVersionAfterSnap =
     targetPublishData is null ? inferredVsVersion?.Increase() : inferredVsVersion;
 var suggestedTargetVsVersionAfterSnap = inferredVsVersion;
 
-var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"After snap, [teal]{sourceBranchName}[/] should insert to")
-    .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsVsBranchName())).Value;
+var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should insert to",
+    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsBranchName()));
 var sourceVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
-var sourceVsPrefixAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"What prefix should insertion PR titles have for [teal]{sourceBranchName}[/]?")
-    .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData?.BranchInfo.InsertionTitlePrefix)).Value;
-var targetVsBranchAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"After snap, [teal]{targetBranchName}[/] should insert to")
-    .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsVsBranchName())).Value;
+var sourceVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{sourceBranchName}[/]?",
+    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData?.BranchInfo.InsertionTitlePrefix));
+var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to",
+    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
 var targetVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
-var targetVsPrefixAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"What prefix should insertion PR titles have for [teal]{targetBranchName}[/]?")
-    .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData?.BranchInfo.InsertionTitlePrefix)).Value;
+var targetVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{targetBranchName}[/]?",
+    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData?.BranchInfo.InsertionTitlePrefix));
 
 // Check subscriptions.
 console.WriteLine();
@@ -183,10 +182,10 @@ var existingSourceBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
     flow.SourceRepoUrl == sourceRepoUrl &&
     flow.SourceBranch == sourceBranchName &&
     flow.TargetRepoUrl == vmrRepoUrl);
-var sourceChannelAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"After snap, [teal]{sourceBranchName}[/] should publish to darc channel")
-    .DefaultValueIfNotNullOrEmpty(suggestedSourceVsVersionAfterSnap?.AsDarcChannelName())).Value;
-var sourceVmrBranchAfterSnap = console.Prompt(TextPrompt<RawString>.Create("And flow to VMR branch")
-    .DefaultValueIfNotNullOrEmpty(existingSourceBranchFlow?.TargetBranch)).Value;
+var sourceChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should publish to darc channel",
+    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsDarcChannelName()));
+var sourceVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
+    defaultValueIfNotNullOrEmpty: existingSourceBranchFlow?.TargetBranch));
 suggestSubscriptionChange(expectedFlow: new Flow(
     SourceRepoUrl: sourceRepoUrl,
     SourceBranch: sourceBranchName,
@@ -197,10 +196,10 @@ var existingTargetBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
     flow.SourceRepoUrl == sourceRepoUrl &&
     flow.SourceBranch == targetBranchName &&
     flow.TargetRepoUrl == vmrRepoUrl);
-var targetChannelAfterSnap = console.Prompt(TextPrompt<RawString>.Create($"After snap, [teal]{targetBranchName}[/] should publish to darc channel")
-    .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersionAfterSnap?.AsDarcChannelName())).Value;
-var targetVmrBranchAfterSnap = console.Prompt(TextPrompt<RawString>.Create("And flow to VMR branch")
-    .DefaultValueIfNotNullOrEmpty(existingTargetBranchFlow?.TargetBranch)).Value;
+var targetChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should publish to darc channel",
+    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsDarcChannelName()));
+var targetVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
+    defaultValueIfNotNullOrEmpty: existingTargetBranchFlow?.TargetBranch));
 suggestSubscriptionChange(expectedFlow: new Flow(
     SourceRepoUrl: sourceRepoUrl,
     SourceBranch: targetBranchName,
@@ -293,8 +292,8 @@ console.WriteLine();
 
 // Determine the last PR to include.
 
-var lastPrNumber = console.Prompt(TextPrompt<int>.Create($"Number of the last PR to include in [teal]{targetBranchName}[/]")
-    .DefaultValueIfNotNull(lastMergedPullRequests is [var defaultLastPr, ..] ? defaultLastPr.Number : null));
+var lastPrNumber = console.Prompt(TextPrompt<int>.Create($"Number of the last PR to include in [teal]{targetBranchName}[/]",
+    defaultValueIfNotNull: lastMergedPullRequests is [var defaultLastPr, ..] ? defaultLastPr.Number : null));
 var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumber)
     ?? (await Cli.Wrap("gh")
     .WithArguments(["pr", "view", $"{lastPrNumber}",
@@ -325,8 +324,8 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     var lastMilestonePr = milestonePullRequests.FirstOrDefault(pr => pr.Number == lastPr.Number);
     if (lastMilestonePr is null)
     {
-        var lastMilestonePrNumber = console.Prompt(TextPrompt<int>.Create($"Number of last PR to include from milestone {nextMilestoneName}")
-            .DefaultValue(defaultLastMilestonePr.Number)
+        var lastMilestonePrNumber = console.Prompt(TextPrompt<int>.Create($"Number of last PR to include from milestone {nextMilestoneName}",
+            defaultValue: defaultLastMilestonePr.Number)
             .Validate(prNumber => milestonePullRequests.Any(pr => pr.Number == prNumber)
                 ? ValidationResult.Success()
                 : ValidationResult.Error($"No PR with number {prNumber} found in milestone {nextMilestoneName}")));
@@ -348,11 +347,10 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
 
     // Determine target milestone.
     var suggestedTargetVsVersion = VsVersion.TryParse(targetVsBranchAfterSnap) ?? suggestedTargetVsVersionAfterSnap;
-    var targetMilestone = console.Prompt(TextPrompt<RawString>.Create("Target milestone")
-        .DefaultValueIfNotNullOrEmpty(suggestedTargetVsVersion != null
+    var targetMilestone = console.Prompt(TextPrompt<string>.Create("Target milestone",
+        defaultValueIfNotNullOrEmpty: suggestedTargetVsVersion != null
             ? $"VS {suggestedTargetVsVersion.Major}.{suggestedTargetVsVersion.Minor}"
-            : milestones.FirstOrDefault()?.Title))
-        .Value;
+            : milestones.FirstOrDefault()?.Title));
 
     var selectedMilestone = milestones.FirstOrDefault(m => m.Title == targetMilestone);
     if (selectedMilestone is null)
@@ -607,61 +605,36 @@ file static class Extensions
 
     extension<T>(TextPrompt<T>)
     {
-        public static TextPrompt<T> Create(string text)
+        /// <summary>
+        /// Use this instead of <see cref="TextPromptExtensions.DefaultValue"/> to work around
+        /// <see href="https://github.com/spectreconsole/spectre.console/issues/1181"/>.
+        /// </summary>
+        public static TextPrompt<T> Create(string text, T defaultValue)
         {
-            return new TextPrompt<T>(text)
-                .DefaultValueStyle(Style.Plain.Foreground(Color.Grey));
-        }
-
-    }
-
-    extension<T>(TextPrompt<T> prompt) where T : struct
-    {
-        public TextPrompt<T> DefaultValueIfNotNull(T? value)
-        {
-            return value is { } v ? prompt.DefaultValue(v) : prompt;
+            return new TextPrompt<T>($"{text} [grey](default: {Markup.Escape($"{defaultValue}")})[/]:")
+                .DefaultValue(defaultValue)
+                .HideDefaultValue();
         }
     }
 
-    extension(TextPrompt<RawString> prompt)
+    extension<T>(TextPrompt<T>) where T : struct
     {
-        public TextPrompt<RawString> DefaultValueIfNotNullOrEmpty(string? value)
+        public static TextPrompt<T> Create(string text, T? defaultValueIfNotNull)
         {
-            return !string.IsNullOrEmpty(value) ? prompt.DefaultValue(value) : prompt;
+            return defaultValueIfNotNull is { } v
+                ? TextPrompt<T>.Create(text, defaultValue: v)
+                : new TextPrompt<T>($"{text}:");
         }
     }
-}
 
-/// <summary>
-/// Workaround for <see href="https://github.com/spectreconsole/spectre.console/issues/1181"/>.
-/// When displaying the default value, <see cref="RawStringConverter"/> is used which escapes it.
-/// When obtaining the default value, one can access the original <see cref="Value"/> which is not escaped.
-/// Unfortunately when the default value is echoed, it's still escaped, but that's just an UI issue.
-/// </summary>
-[TypeConverter(typeof(RawStringConverter))]
-file sealed record RawString(string Value)
-{
-    public static implicit operator RawString(string value) => new(value);
-}
-
-/// <summary>
-/// Can convert <see cref="RawString"/> to <see cref="string"/>.
-/// </summary>
-file sealed class RawStringConverter : TypeConverter
-{
-    public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
+    extension(TextPrompt<string>)
     {
-        return destinationType == typeof(string);
-    }
-
-    public override object? ConvertTo(ITypeDescriptorContext? context, System.Globalization.CultureInfo? culture, object? value, Type destinationType)
-    {
-        if (value is RawString rawString && destinationType == typeof(string))
+        public static TextPrompt<string> Create(string text, string? defaultValueIfNotNullOrEmpty)
         {
-            return Markup.Escape(rawString.Value);
+            return !string.IsNullOrEmpty(defaultValueIfNotNullOrEmpty)
+                ? TextPrompt<string>.Create(text, defaultValue: defaultValueIfNotNullOrEmpty)
+                : new TextPrompt<string>($"{text}:");
         }
-
-        return base.ConvertTo(context, culture, value, destinationType);
     }
 }
 
