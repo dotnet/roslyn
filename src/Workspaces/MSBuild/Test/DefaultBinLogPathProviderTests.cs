@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
 public sealed class DefaultBinLogPathProviderTests
 {
-    private const string LogDirectory = "./logs";
+    private readonly string LogDirectory = $".{Path.PathSeparator}logs";
     private const string LogFileName = "mylog";
     private const string LogExtension = ".mylog";
 
