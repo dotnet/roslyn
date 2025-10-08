@@ -1070,8 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only want to use the known length when creating the final list if there was no existing receiver that
             // we're already instantiating.  In that case, our caller has already figured out the value and just wants
             // us to add the elements to it.
-            int numberIncludingLastSpread = 0;
-            bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread) && receiver is null;
+            var useKnownLength = ShouldUseKnownLength(node, out var numberIncludingLastSpread) && receiver is null;
             RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
             bool useOptimizations = false;
