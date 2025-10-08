@@ -297,9 +297,12 @@ public partial class MSBuildProjectLoader
 
         public string? GetNewLogPath()
         {
-            return _suffix == 0
+            var newLogPath = _suffix == 0
                 ? Path.Combine(_path, _filename + _extension)
                 : Path.Combine(_path, $"{_filename}-{_suffix}{_extension}");
+
+            _suffix++;
+            return newLogPath;
         }
     }
 }
