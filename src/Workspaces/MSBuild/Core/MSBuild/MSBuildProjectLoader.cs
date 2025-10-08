@@ -268,6 +268,7 @@ public partial class MSBuildProjectLoader
 
     private static bool IsBinaryLogger([NotNullWhen(returnValue: true)] ILogger? logger)
     {
+        // We validate the type name to avoid taking a dependency on the Microsoft.Build package.
         return logger?.GetType().FullName == "Microsoft.Build.Logging.BinaryLogger";
     }
 
