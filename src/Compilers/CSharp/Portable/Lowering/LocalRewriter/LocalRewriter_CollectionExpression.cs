@@ -234,22 +234,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return createArray(node, arrayType, targetsReadOnlyCollection: false);
             }
-            else
+
+            var namedType = (NamedTypeSymbol)collectionType;
+
+            if (namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T)))
             {
-                var namedType = (NamedTypeSymbol)collectionType;
-
-                if (namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T)))
-                {
-                    return createImmutableArray(node, namedType);
-                }
-                else
-                {
-                    Debug.Assert(namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T)) ||
-                                 namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T)));
-
-                    return createSpan(node, namedType, isReadOnlySpan: namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T)));
-                }
+                return createImmutableArray(node, namedType);
             }
+
+            Debug.Assert(namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T)) ||
+                         namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T)));
+
+            return createSpan(node, namedType, isReadOnlySpan: namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T)));
 
             ArrayTypeSymbol getBackingArrayType(NamedTypeSymbol collectionType)
             {
