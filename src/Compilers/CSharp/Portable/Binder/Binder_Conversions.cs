@@ -1174,6 +1174,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg `with()` and
             // single int arg for the `List(int capacity)` case.
+            //
+            // This is from
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/collection-expressions.md#mutable-interface-translation
+            // which dictates that IList<E> and ICollection<E> map to List<E>. and from
+            // https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#interface-target-type
+            // which dictates the two constructors we allow from that.
 
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
