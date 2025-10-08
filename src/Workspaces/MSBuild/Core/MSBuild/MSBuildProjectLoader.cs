@@ -287,11 +287,11 @@ public partial class MSBuildProjectLoader
             Contract.ThrowIfNull(logFilePath);
 
             _path = Path.GetDirectoryName(logFilePath) ?? ".";
-            _filename = !string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(logFilePath))
-                ? Path.GetFileNameWithoutExtension(logFilePath)!
+            _filename = Path.GetFileNameWithoutExtension(logFilePath) is { Length: > 0 } fileName
+                ? fileName
                 : DefaultFileName;
-            _extension = !string.IsNullOrEmpty(Path.GetExtension(logFilePath))
-                ? Path.GetExtension(logFilePath)!
+            _extension = Path.GetExtension(logFilePath) is { Length: > 0 } extension
+                ? extension
                 : DefaultExtension;
         }
 
