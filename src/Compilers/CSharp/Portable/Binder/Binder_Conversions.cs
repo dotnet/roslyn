@@ -1183,20 +1183,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            // Find the corresponding List<E> type for this IList<E> or ICollection<E>, as well as the corresponding
-            // List<E>() and List<E>(int) constructors.
+            // Map to the corresponding List<E>() and List<E>(int) constructors in the constructed List<E> target.
 
             var constructedListType =
                 this.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo)
                     .Construct([typeArgument]);
-            var constructedListCtor = constructedListType.InstanceConstructors.FirstOrDefault(
-                static (c, list_T__ctor) => Equals(c.OriginalDefinition, list_T__ctor), list_T__ctor);
-            var constructedListCtorInt32 = constructedListType.InstanceConstructors.FirstOrDefault(
-                static (c, list_T__ctorInt32) => Equals(c.OriginalDefinition, list_T__ctorInt32), list_T__ctorInt32);
 
             var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
-            candidateConstructorsBuilder.AddIfNotNull(constructedListCtor);
-            candidateConstructorsBuilder.AddIfNotNull(constructedListCtorInt32);
+            candidateConstructorsBuilder.AddIfNotNull(list_T__ctor?.AsMember(constructedListType));
+            candidateConstructorsBuilder.AddIfNotNull(list_T__ctorInt32?.AsMember(constructedListType));
             var candidateConstructors = candidateConstructorsBuilder.ToImmutableAndFree();
 
             var analyzedArguments = AnalyzedArguments.GetInstance(

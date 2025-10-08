@@ -30922,7 +30922,10 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
                 // (15,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static S F() => [[]];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(15, 21));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(15, 21),
+                // (15,22): error CS9404: Element type of this collection may not be a ref struct or a type parameter allowing ref structs
+                //     static S F() => [[]];
+                Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[]").WithLocation(15, 22));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
