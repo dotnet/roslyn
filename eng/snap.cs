@@ -193,6 +193,7 @@ foreach (var printer in printers)
 
 // Determine subscription changes.
 
+// Source -> VMR
 var existingSourceBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
     flow.SourceRepoUrl == sourceRepoUrl &&
     flow.SourceBranch == sourceBranchName &&
@@ -207,6 +208,23 @@ suggestSubscriptionChange(existingFlow: existingSourceBranchFlow, expectedFlow: 
     Channel: sourceChannelAfterSnap,
     TargetRepoUrl: vmrRepoUrl,
     TargetBranch: sourceVmrBranchAfterSnap));
+
+// VMR -> Source
+var existingSourceBranchBackFlow = darc.FoundFlows.FirstOrDefault(flow =>
+    flow.SourceRepoUrl == vmrRepoUrl &&
+    flow.TargetRepoUrl == sourceRepoUrl &&
+    flow.SourceBranch == sourceVmrBranchAfterSnap);
+var suggestedSourceBranchBackFlowChannel = existingSourceBranchBackFlow?.Channel
+    ?? await darc.TryGetDefaultChannelAsync(vmrRepoUrl, sourceVmrBranchAfterSnap)
+    ?? console.Prompt(new TextPrompt<string>($"After snap, [teal]{sourceBranchName}[/] should flow back from VMR's [teal]{sourceVmrBranchAfterSnap}[/] via darc channel"));
+suggestSubscriptionChange(existingFlow: existingSourceBranchBackFlow, expectedFlow: new Flow(
+    SourceRepoUrl: vmrRepoUrl,
+    SourceBranch: sourceVmrBranchAfterSnap,
+    Channel: suggestedSourceBranchBackFlowChannel,
+    TargetRepoUrl: sourceRepoUrl,
+    TargetBranch: sourceBranchName));
+
+// Target -> VMR
 var existingTargetBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
     flow.SourceRepoUrl == sourceRepoUrl &&
     flow.SourceBranch == targetBranchName &&
@@ -224,6 +242,21 @@ suggestSubscriptionChange(existingFlow: existingTargetBranchFlow, expectedFlow: 
     TargetRepoUrl: vmrRepoUrl,
     TargetBranch: targetVmrBranchAfterSnap));
 
+// VMR -> Target
+var existingTargetBranchBackFlow = darc.FoundFlows.FirstOrDefault(flow =>
+    flow.SourceRepoUrl == vmrRepoUrl &&
+    flow.TargetRepoUrl == sourceRepoUrl &&
+    flow.SourceBranch == targetVmrBranchAfterSnap);
+var suggestedTargetBranchBackFlowChannel = existingTargetBranchBackFlow?.Channel
+    ?? await darc.TryGetDefaultChannelAsync(vmrRepoUrl, targetVmrBranchAfterSnap)
+    ?? console.Prompt(new TextPrompt<string>($"After snap, [teal]{targetBranchName}[/] should flow back from VMR's [teal]{targetVmrBranchAfterSnap}[/] via darc channel"));
+suggestSubscriptionChange(existingFlow: existingTargetBranchBackFlow, expectedFlow: new Flow(
+    SourceRepoUrl: vmrRepoUrl,
+    SourceBranch: targetVmrBranchAfterSnap,
+    Channel: suggestedTargetBranchBackFlowChannel,
+    TargetRepoUrl: sourceRepoUrl,
+    TargetBranch: targetBranchName));
+
 void suggestSubscriptionChange(Flow? existingFlow, Flow expectedFlow)
 {
     if (darc.FoundFlows.Contains(expectedFlow))
@@ -232,7 +265,8 @@ void suggestSubscriptionChange(Flow? existingFlow, Flow expectedFlow)
     }
     else
     {
-        if (existingFlow != null && console.Confirm($"[green]Add to plan:[/] Update flow {existingFlow.ToFullString()} to be from source branch [teal]{expectedFlow.SourceBranch}[/] and have channel [teal]{expectedFlow.Channel}[/]?", defaultValue: true))
+        if (existingFlow != null &&
+            console.Confirm($"[green]Add to plan:[/] Update flow {existingFlow.ToFullString()} {Flow.DescribeChanges(existingFlow, expectedFlow)}?", defaultValue: true))
         {
             // TODO: Add to plan.
         }
@@ -332,6 +366,8 @@ if (lastPr.MergeCommit.Oid != lastPrCommitDetails.Sha)
 
 console.MarkupLineInterpolated($"Last included commit will be [teal]{lastPrCommitDetails.Sha}[/]: {lastPrCommitDetails.Commit.Message.GetFirstLine()}");
 
+// Determine PRs to move between milestones.
+
 if (milestonePullRequests is [var defaultLastMilestonePr, ..])
 {
     var lastMilestonePr = milestonePullRequests.FirstOrDefault(pr => pr.Number == lastPr.Number);
@@ -374,6 +410,8 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     // TODO: Add to plan.
     console.Confirm($"[green]Add to plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]?", defaultValue: true);
 }
+
+// TODO: Merge between branches.
 
 return 0;
 
@@ -694,6 +732,12 @@ file sealed class DarcHelper(IAnsiConsole console)
         return _defaultChannelsCache.GetOrAdd(repoUrl, static (repoUrl, @this) => @this._barApiClient.GetDefaultChannelsAsync(repoUrl), this);
     }
 
+    public async Task<string?> TryGetDefaultChannelAsync(string repoUrl, string branchName)
+    {
+        var channels = await GetDefaultChannelsAsync(repoUrl);
+        return channels.FirstOrDefault(c => c.Branch == branchName)?.Channel.Name;
+    }
+
     public async Task<Action> ListSubscriptionsAsync(string sourceRepoUrl, string targetRepoUrl, string targetRepoFriendlyName, string subscriptionsText = "subscriptions to")
     {
         var subscriptionsTask = _barApiClient.GetSubscriptionsAsync(sourceRepoUrl, targetRepoUrl);
@@ -733,6 +777,34 @@ file sealed class DarcHelper(IAnsiConsole console)
 
 file sealed record Flow(string SourceRepoUrl, string SourceBranch, string Channel, string TargetRepoUrl, string TargetBranch)
 {
+    public static string DescribeChanges(Flow existingFlow, Flow expectedFlow)
+    {
+        Debug.Assert(existingFlow.SourceRepoUrl == expectedFlow.SourceRepoUrl);
+        Debug.Assert(existingFlow.TargetRepoUrl == expectedFlow.TargetRepoUrl);
+
+        var changes = string.Join(" and ", DescribeChangesCore(existingFlow, expectedFlow));
+        Debug.Assert(!string.IsNullOrWhiteSpace(changes));
+        return changes;
+    }
+
+    private static IEnumerable<string> DescribeChangesCore(Flow existingFlow, Flow expectedFlow)
+    {
+        if (existingFlow.SourceBranch != expectedFlow.SourceBranch)
+        {
+            yield return $"to be from source branch [teal]{expectedFlow.SourceBranch}[/]";
+        }
+
+        if (existingFlow.Channel != expectedFlow.Channel)
+        {
+            yield return $"to have channel [teal]{expectedFlow.Channel}[/]";
+        }
+
+        if (existingFlow.TargetBranch != expectedFlow.TargetBranch)
+        {
+            yield return $"to target branch [teal]{expectedFlow.TargetBranch}[/]";
+        }
+    }
+
     public string ToShortString() => $"{SourceBranch} -> {Channel} -> {TargetBranch}";
 
     public string ToFullString() => $"{SourceRepoUrl.GetRepoShortcut()}/{SourceBranch} -> {Channel} -> {TargetRepoUrl.GetRepoShortcut()}/{TargetBranch}";
