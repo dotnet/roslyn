@@ -2098,5 +2098,177 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(MyList<T>)").WithLocation(12, 9));
     }
 
+    [Fact]
+    public void WithElement_ArgumentsAreLowered1()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    List<int> list = [with(Invoke(() => 10))];
+                    Console.WriteLine(list.Capacity);
+                }
+
+                static T Invoke<T>(System.Func<T> func) => func();
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10")).VerifyIL("C.Main", """
+            {
+              // Code size       52 (0x34)
+              .maxstack  2
+              IL_0000:  ldsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_0005:  dup
+              IL_0006:  brtrue.s   IL_001f
+              IL_0008:  pop
+              IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_000e:  ldftn      "int C.<>c.<Main>b__0_0()"
+              IL_0014:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+              IL_0019:  dup
+              IL_001a:  stsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_001f:  call       "int C.Invoke<int>(System.Func<int>)"
+              IL_0024:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_0029:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_002e:  call       "void System.Console.WriteLine(int)"
+              IL_0033:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_ArgumentsAreLowered1_A()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    IList<int> list = [with(Invoke(() => 10))];
+                    Console.WriteLine(((List<int>)list).Capacity);
+                }
+
+                static T Invoke<T>(System.Func<T> func) => func();
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10")).VerifyIL("C.Main", """
+            {
+              // Code size       57 (0x39)
+              .maxstack  2
+              IL_0000:  ldsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_0005:  dup
+              IL_0006:  brtrue.s   IL_001f
+              IL_0008:  pop
+              IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_000e:  ldftn      "int C.<>c.<Main>b__0_0()"
+              IL_0014:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+              IL_0019:  dup
+              IL_001a:  stsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_001f:  call       "int C.Invoke<int>(System.Func<int>)"
+              IL_0024:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_0029:  castclass  "System.Collections.Generic.List<int>"
+              IL_002e:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_0033:  call       "void System.Console.WriteLine(int)"
+              IL_0038:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_ArgumentsAreLowered2()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    List<int> list = [with(Goo([1, args.Length]))];
+                    Console.WriteLine(list.Capacity);
+                }
+
+                static int Goo(int[] values) => values.Length;
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2")).VerifyIL("C.Main", """
+            {
+              // Code size       37 (0x25)
+              .maxstack  4
+              IL_0000:  ldc.i4.2
+              IL_0001:  newarr     "int"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  stelem.i4
+              IL_000a:  dup
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldarg.0
+              IL_000d:  ldlen
+              IL_000e:  conv.i4
+              IL_000f:  stelem.i4
+              IL_0010:  call       "int C.Goo(int[])"
+              IL_0015:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_001a:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_001f:  call       "void System.Console.WriteLine(int)"
+              IL_0024:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_ArgumentsAreLowered2_A()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    IList<int> list = [with(Goo([1, args.Length]))];
+                    Console.WriteLine(((List<int>)list).Capacity);
+                }
+
+                static int Goo(int[] values) => values.Length;
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2")).VerifyIL("C.Main", """
+            {
+              // Code size       42 (0x2a)
+              .maxstack  4
+              IL_0000:  ldc.i4.2
+              IL_0001:  newarr     "int"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  stelem.i4
+              IL_000a:  dup
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldarg.0
+              IL_000d:  ldlen
+              IL_000e:  conv.i4
+              IL_000f:  stelem.i4
+              IL_0010:  call       "int C.Goo(int[])"
+              IL_0015:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_001a:  castclass  "System.Collections.Generic.List<int>"
+              IL_001f:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_0024:  call       "void System.Console.WriteLine(int)"
+              IL_0029:  ret
+            }
+            """);
+    }
+
     #endregion
 }

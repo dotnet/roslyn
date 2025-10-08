@@ -491,8 +491,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // produced a bad node (with diagnostics)).  In the case where we succeeded, we want that constructed
                 // list to be what we add elements to.  In the case where we failed, it doesn't matter and we can just
                 // fall back to the optimal emit path (since an error was already reported).
-                Debug.Assert(node.CollectionCreation is null or BoundObjectCreationExpression or BoundBadExpression);
-                arrayOrList = CreateAndPopulateList(node, elementType, elements, receiver: node.CollectionCreation as BoundObjectCreationExpression);
+                Debug.Assert(node.CollectionCreation is null or BoundObjectCreationExpression);
+
+                arrayOrList = CreateAndPopulateList(
+                    node, elementType, elements,
+                    // Ensure we recurse into the receiver (if passed one), so any arguments passed to to the collection
+                    // construction are properly lowered as well.
+                    receiver: VisitExpression(node.CollectionCreation));
             }
 
             return _factory.Convert(collectionType, arrayOrList);
@@ -1043,14 +1048,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Create and populate an list from a collection expression.
-        /// The collection may or may not have a known length.
+        /// Create and populate an list from a collection expression. The collection may or may not have a known length.
         /// </summary>
+        /// <remarks>
+        /// <paramref name="receiver"/> should already be visited prior to calling this helper.
+        /// </remarks>
         private BoundExpression CreateAndPopulateList(
             BoundCollectionExpression node,
             TypeWithAnnotations elementType,
             ImmutableArray<BoundNode> elements,
-            BoundObjectCreationExpression? receiver)
+            BoundExpression? receiver)
         {
             Debug.Assert(!_inExpressionLambda);
 
@@ -1063,8 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only want to use the known length when creating the final list if there was no existing receiver that
             // we're already instantiating.  In that case, our caller has already figured out the value and just wants
             // us to add the elements to it.
-            int numberIncludingLastSpread = 0;
-            bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread) && receiver is null;
+            var useKnownLength = ShouldUseKnownLength(node, out var numberIncludingLastSpread) && receiver is null;
             RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
             bool useOptimizations = false;
