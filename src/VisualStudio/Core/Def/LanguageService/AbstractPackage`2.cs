@@ -57,16 +57,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         _shell = (IVsShell?)shell;
         Assumes.Present(_shell);
 
-        foreach (var editorFactory in CreateEditorFactories())
-        {
-            RegisterEditorFactory(editorFactory);
-        }
-
         // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
     }
 
-    private Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+    private async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
     {
         AddService(typeof(TLanguageService), async (_, cancellationToken, _) =>
             {
@@ -103,7 +98,10 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
-        return Task.CompletedTask;
+        foreach (var editorFactory in CreateEditorFactories())
+        {
+            await RegisterEditorFactoryAsync(editorFactory, cancellationToken).ConfigureAwait(true);
+        }
     }
 
     protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
