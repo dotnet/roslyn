@@ -149,6 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: true, closestTypeSyntax, identifierToken, kind);
         }
 
+#nullable enable
+
         /// <summary>
         /// Make a local variable symbol whose type can be inferred (if necessary) by binding and enclosing construct.
         /// </summary>
@@ -179,6 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: true, typeSyntax, identifierToken, kind);
         }
+
+#nullable disable
 
         /// <summary>
         /// Make a local variable symbol which can be inferred (if necessary) by binding its initializing expression.
@@ -564,7 +568,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return TypeWithAnnotations.Create(initializerOpt?.Type);
             }
 
-            internal override SyntaxNode ForbiddenZone => _initializer;
+            internal override bool IsForbiddenReference(SyntaxNode reference, out ErrorCode forbiddenDiagnostic)
+            {
+                if (_initializer.Contains(reference))
+                {
+                    forbiddenDiagnostic = ErrorCode.ERR_VariableUsedBeforeDeclaration;
+                    return true;
+                }
+
+                forbiddenDiagnostic = ErrorCode.Unknown;
+                return false;
+            }
 
             /// <summary>
             /// Determine the constant value of this local and the corresponding diagnostics.
@@ -650,7 +664,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// There is no forbidden zone for a foreach loop, because the iteration
             /// variable is not in scope in the collection expression.
             /// </summary>
-            internal override SyntaxNode ForbiddenZone => null;
+            internal override bool IsForbiddenReference(SyntaxNode reference, out ErrorCode forbiddenDiagnostic)
+            {
+                forbiddenDiagnostic = ErrorCode.Unknown;
+                return false;
+            }
         }
 
         /// <summary>
@@ -701,7 +719,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _type.Value;
             }
 
-            internal override SyntaxNode ForbiddenZone
+            internal override bool IsForbiddenReference(SyntaxNode reference, out ErrorCode forbiddenDiagnostic)
+            {
+                if (ForbiddenZone?.Contains(reference) == true)
+                {
+                    forbiddenDiagnostic = ErrorCode.ERR_VariableUsedBeforeDeclaration;
+                    return true;
+                }
+
+                forbiddenDiagnostic = ErrorCode.Unknown;
+                return false;
+            }
+
+            private SyntaxNode ForbiddenZone
             {
                 get
                 {
@@ -720,6 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+
         private sealed class LocalSymbolWithEnclosingContext : SourceLocalSymbol
         {
             private readonly SyntaxNode _forbiddenZone;
@@ -730,13 +762,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Symbol containingSymbol,
                 Binder scopeBinder,
                 Binder nodeBinder,
-                TypeSyntax typeSyntax,
+                TypeSyntax? typeSyntax,
                 SyntaxToken identifierToken,
                 LocalDeclarationKind declarationKind,
                 SyntaxNode nodeToBind,
                 SyntaxNode forbiddenZone)
                 : base(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: true, typeSyntax, identifierToken, declarationKind)
             {
+                Debug.Assert(declarationKind is LocalDeclarationKind.OutVariable or LocalDeclarationKind.PatternVariable);
+                Debug.Assert(forbiddenZone is not null);
+                Debug.Assert(declarationKind is not LocalDeclarationKind.OutVariable || forbiddenZone is BaseArgumentListSyntax);
                 Debug.Assert(
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                     nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
@@ -753,12 +788,158 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this._forbiddenZone = forbiddenZone;
             }
 
-            internal override SyntaxNode ForbiddenZone => _forbiddenZone;
+            internal override bool IsForbiddenReference(SyntaxNode reference, out ErrorCode forbiddenDiagnostic)
+            {
+                if (this.DeclarationKind == LocalDeclarationKind.OutVariable)
+                {
+                    Debug.Assert(_forbiddenZone is BaseArgumentListSyntax);
 
-            // This type is currently used for out variables and pattern variables.
-            // Pattern variables do not have a forbidden zone, so we only need to produce
-            // the diagnostic for out variables here.
-            internal override ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList;
+                    // If the local is referenced anywhere in the argument list, overload resolution cannot be done
+                    // because the type of the local is not known yet. The 'if' below takes care of a situation like this.
+                    // Technically, references within an implicit object creation expression used as an argument within
+                    // the same argument list could be allowed. For example, in the following code: 
+                    //
+                    //      M1(out var x, new(x));
+                    //      M1(out var y, new() {y});
+                    //
+                    // But this relaxation is not implemented here to keep the rules and implementation simpler.
+                    // Currently, the process of binding 'new()' to its unconverted form binds (but does not convert) its
+                    // arguments. This would have to be changed in order to support the relaxation. Also, with the
+                    // relaxation, switching from 'new(...) ...' to 'new T(...) ...' in the code (i.e. adding an explicit type)
+                    // could become a possible breaking change since the relaxation wouldn't be applied to an explicitly
+                    // typed object creation. There is a flip side to this binding behavior, expression locals declared "deep"
+                    // inside an argument of a 'new()' have known type before the 'new()' is converted. For example,
+                    // the following code is legal because of that:
+                    // 
+                    //      M1(new() (M2(out var x)), x);
+                    //      M1(new() (M2() is var y)), y);
+                    //
+
+                    if (_forbiddenZone.Contains(reference))
+                    {
+                        forbiddenDiagnostic = ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList;
+                        return true;
+                    }
+                }
+
+                // Forbidden zone necessarily includes declaration of the variable.
+                SyntaxNode nodeEnclosingDeclaration = _forbiddenZone;
+
+                if (!typeMightBecomeUnknown(nodeEnclosingDeclaration, reference))
+                {
+                    forbiddenDiagnostic = ErrorCode.Unknown;
+                    return false;
+                }
+
+                // Expressions are generally bound from left to right depth first. When some expression infers type of
+                // the local, the result is available only for nodes that are bound "later". We don't need to worry
+                // about detecting references in "previous" nodes. All references before the declaration are disallowed
+                // by the language and are detected elsewhere simply by looking at locations. 
+                //
+                // We are going to traverse the syntax tree bottom up, tracking in 'typeIsKnownAfterBinding' the "lowest" child
+                // node, binding which makes the type of the local known within the immediate parent of 'nodeEnclosingDeclaration'.
+                // When type should be considered unknown, 'typeIsKnownAfterBinding' is set to 'null'.
+                // Of course, the type will be known only for the right siblings of 'nodeEnclosingDeclaration'. But, as explained
+                // above, we don't need to worry about flagging references on the left. Therefore, when the type is known, i.e.
+                // 'typeIsKnownAfterBinding' is not null, references to the local anywhere within the parent are allowed.
+                // Otherwise, they are forbidden.
+                //
+                // We start with a state when the type is known. As we go up the tree, once we reach an implicit object cration,
+                // we may change the state to unknown. The state may be flipped back to known later on when appropriate.
+                //
+                // For simplicity, we may assign nodes that themselves don't represent expressions to 'typeIsKnownAfterBinding'. 
+
+                SyntaxNode? typeIsKnownAfterBinding = nodeEnclosingDeclaration; // Strictly speaking, when we are dealind with an argument list,
+                                                                                // the type is known after an overload resolution for an operation 
+                                                                                // owning the argument list is performed and the arguments are converted
+                                                                                // accordingly. But for our purposes simply pretending that this happens
+                                                                                // when we bind the argument list itself works pretty well.
+                while (true)
+                {
+                    var parent = nodeEnclosingDeclaration.Parent;
+
+                    if (parent is null)
+                    {
+                        forbiddenDiagnostic = ErrorCode.Unknown;
+                        return false;
+                    }
+
+                    if (parent.Contains(reference))
+                    {
+                        if (typeIsKnownAfterBinding is null)
+                        {
+                            switch (parent)
+                            {
+                                case BinaryExpressionSyntax { RawKind: (int)SyntaxKind.CoalesceExpression } coalesce when coalesce.Left == nodeEnclosingDeclaration:
+                                case AssignmentExpressionSyntax assignment when assignment.Left == nodeEnclosingDeclaration:
+                                case InitializerExpressionSyntax { RawKind: (int)SyntaxKind.CollectionInitializerExpression }:
+                                    // Ok to reference in this context given the curent binding behavior. 
+                                    break;
+                                default:
+                                    forbiddenDiagnostic = ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone;
+                                    return true;
+                            }
+                        }
+
+                        forbiddenDiagnostic = ErrorCode.Unknown;
+                        return false;
+                    }
+
+                    switch (parent)
+                    {
+                        case ImplicitObjectCreationExpressionSyntax creation:
+
+                            // Nodes below the argument list don't require converting the 'new()' to bind them, simply binding the 'new()' to
+                            // its unconverted form is good enough. Other nodes will be bound in the process of converting the unconverted 'new()'
+                            // to the tartget type.
+                            if (typeIsKnownAfterBinding is not null)
+                            {
+                                if (nodeEnclosingDeclaration == creation.ArgumentList && typeIsKnownAfterBinding != creation.ArgumentList)
+                                {
+                                    if (!typeMightBecomeUnknown(parent, reference))
+                                    {
+                                        forbiddenDiagnostic = ErrorCode.Unknown;
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    typeIsKnownAfterBinding = null;
+                                }
+                            }
+                            break;
+
+                        case ArgumentSyntax: // Argument node itself doesn't change the state of type knowledge.
+                        case InitializerExpressionSyntax { RawKind: (int)SyntaxKind.ArrayInitializerExpression }: // All initializer elements are bound first and only then they are converted to element type.
+                        case ExpressionElementSyntax or CollectionExpressionSyntax: // All collection expression elements are bound first and only then they are converted to element type.
+                        case TupleExpressionSyntax: // All tuple elements are bound first and only then they are converted.
+                            // Untill conversion happens, the state of type knowledge doesn't change.
+                            // For our puposes, we pretend that the parent node (quite possibly an inderect parent, depending on the nesting structure) initiates the conversion.
+                            break;
+
+                        default:
+                            if (typeIsKnownAfterBinding is null)
+                            {
+                                if (!typeMightBecomeUnknown(parent, reference))
+                                {
+                                    forbiddenDiagnostic = ErrorCode.Unknown;
+                                    return false;
+                                }
+
+                                typeIsKnownAfterBinding = parent;
+                            }
+
+                            break;
+                    }
+
+                    nodeEnclosingDeclaration = parent;
+                }
+
+                static bool typeMightBecomeUnknown(SyntaxNode nodeEnclosingDeclaration, SyntaxNode reference)
+                {
+                    return nodeEnclosingDeclaration.Ancestors(ascendOutOfTrivia: false).OfType<ImplicitObjectCreationExpressionSyntax>().Any(static (creation, reference) => !creation.Contains(reference), reference);
+                }
+            }
 
             protected override TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
             {
@@ -813,6 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     SetTypeWithAnnotations(TypeWithAnnotations.Create(_nodeBinder.CreateErrorType("var")));
                 }
 
+                Debug.Assert(this._type != null);
                 return _type.Value;
             }
         }

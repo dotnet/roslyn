@@ -8202,4 +8202,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitInterfaceMemberReturnTypeMismatch" xml:space="preserve">
     <value>'{0}': return type must be '{1}' to match implemented member '{2}'</value>
   </data>
+  <data name="ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone" xml:space="preserve">
+    <value>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</value>
+  </data>
 </root>

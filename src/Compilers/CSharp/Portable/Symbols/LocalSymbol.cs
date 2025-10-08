@@ -371,16 +371,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// When a local variable's type is inferred, it may not be used in the
-        /// expression that computes its value (and type). This property returns
-        /// the expression where a reference to an inferred variable is forbidden.
+        /// expression that computes its value (and type). This function returns
+        /// true if the reference to an inferred variable is forbidden.
         /// </summary>
-        internal virtual SyntaxNode ForbiddenZone => null;
-
-        /// <summary>
+        /// <param name="reference">The reference</param>
+        /// <param name="forbiddenDiagnostic">
         /// The diagnostic code to be reported when an inferred variable is used
         /// in its forbidden zone.
-        /// </summary>
-        internal virtual ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_VariableUsedBeforeDeclaration;
+        /// </param>
+        /// <returns></returns>
+        internal virtual bool IsForbiddenReference(SyntaxNode reference, out ErrorCode forbiddenDiagnostic)
+        {
+            forbiddenDiagnostic = ErrorCode.Unknown;
+            return false;
+        }
 
         protected sealed override ISymbol CreateISymbol()
         {
