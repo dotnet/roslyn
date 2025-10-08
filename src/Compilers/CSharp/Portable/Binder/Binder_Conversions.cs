@@ -878,9 +878,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        // (collectionBuilderMethod, elementType) = ConvertColle
-                        //collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
-                        //collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
+                        var lastParameterType = collectionBuilderInfo.Value.Method.Parameters.Last().Type;
+                        Debug.Assert(lastParameterType.IsReadOnlySpan());
+                        elementType = ((NamedTypeSymbol)lastParameterType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                     }
                     break;
 
@@ -1053,14 +1053,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder @this,
                 BoundUnconvertedCollectionExpression node,
                 TypeSymbol targetType,
-                ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> collectionBuilderMethods,
+                ImmutableArray<MethodSymbol> collectionBuilderMethods,
                 BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(collectionBuilderMethods.Length > 0);
 
                 var projectionToOriginalMethod = PooledDictionary<MethodSymbol, MethodSymbol>.GetInstance();
                 var projectionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-                foreach (var (builderMethod, _, _) in collectionBuilderMethods)
+                foreach (var builderMethod in collectionBuilderMethods)
                 {
                     var projection = new SynthesizedCollectionBuilderProjectedMethodSymbol(builderMethod);
                     projectionMethods.Add(projection);
@@ -1075,10 +1075,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
                 // All the methods were instantiated with the same type-arguments, so we can grab what we need off of the first in the list.
-                Debug.Assert(collectionBuilderMethods.All(t => t.method.Name == collectionBuilderMethods[0].method.Name));
+                Debug.Assert(collectionBuilderMethods.All(t => t.Name == collectionBuilderMethods[0].Name));
 
                 var syntax = node.WithElement?.Syntax ?? node.Syntax;
-                var methodName = collectionBuilderMethods[0].method.Name;
+                var methodName = collectionBuilderMethods[0].Name;
 
                 var methodGroup = new BoundMethodGroup(
                     syntax,
@@ -1160,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// created.</item>
         /// </list>
         /// </returns>
-        internal ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> GetAndValidateCollectionBuilderMethods(
+        internal ImmutableArray<MethodSymbol> GetAndValidateCollectionBuilderMethods(
             SyntaxNode syntax,
             NamedTypeSymbol namedType,
             BindingDiagnosticBag diagnostics,
@@ -1176,8 +1176,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var collectionBuilderMethods = GetCollectionBuilderMethods(
                 namedType, forParams, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo);
-
-            Debug.Assert(collectionBuilderMethods.All(t => t.returnTypeConversion.Exists));
 
             diagnostics.Add(syntax, useSiteInfo);
             if (collectionBuilderMethods.IsEmpty)
