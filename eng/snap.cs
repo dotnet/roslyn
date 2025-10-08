@@ -257,7 +257,7 @@ void suggestSubscriptionChange(Flow? existingFlow, Flow expectedFlow)
     {
         if (existingFlow != null)
         {
-            if (actions.Add($"Update flow {existingFlow.ToFullString()} {Flow.DescribeChanges(existingFlow, expectedFlow)}?", () => expectedFlow.UpdateAsync(console, existingFlow)))
+            if (actions.Add($"Update flow {existingFlow.ToFullString()} {Flow.DescribeChanges(existingFlow, expectedFlow)}", () => expectedFlow.UpdateAsync(console, existingFlow)))
             {
                 return;
             }
