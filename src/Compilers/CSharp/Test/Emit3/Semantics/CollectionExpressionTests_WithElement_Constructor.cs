@@ -2098,5 +2098,46 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(MyList<T>)").WithLocation(12, 9));
     }
 
+    [Fact]
+    public void WithElement_ArgumentsAreLowered()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    List<int> list = [with(Invoke(() => 10))];
+                    Console.WriteLine(list.Capacity);
+                }
+
+                static T Invoke<T>(System.Func<T> func) => func();
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10")).VerifyIL("C.Main", """
+            {
+              // Code size       52 (0x34)
+              .maxstack  2
+              IL_0000:  ldsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_0005:  dup
+              IL_0006:  brtrue.s   IL_001f
+              IL_0008:  pop
+              IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_000e:  ldftn      "int C.<>c.<Main>b__0_0()"
+              IL_0014:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+              IL_0019:  dup
+              IL_001a:  stsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_001f:  call       "int C.Invoke<int>(System.Func<int>)"
+              IL_0024:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_0029:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_002e:  call       "void System.Console.WriteLine(int)"
+              IL_0033:  ret
+            }
+            """);
+    }
+
     #endregion
 }
