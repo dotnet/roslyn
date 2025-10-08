@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -69,12 +70,14 @@ console.MarkupLine(dryRun
     ? "[yellow]Note:[/] Running in [green]dry run[/] mode, no changes will be made"
     : "[yellow]Note:[/] Running in [red]live[/] mode, changes will be made at the end (after confirmation)");
 
+// Setup.
+var httpClient = new HttpClient();
+httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("dotnet-roslyn-snap-script");
+var actions = new ActionList(console);
+
 console.WriteLine();
 console.MarkupLine("[purple]Configuration[/]");
 console.WriteLine();
-
-var httpClient = new HttpClient();
-httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("dotnet-roslyn-snap-script");
 
 // Ask for source repo.
 
@@ -137,43 +140,28 @@ console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] has version 
 var sourcePublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, sourceBranchName);
 var targetPublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, targetBranchName);
 var sourcePublishData = await sourcePublishDataTask;
-console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] inserts to VS [teal]{sourcePublishData?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{sourcePublishData?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
+sourcePublishData.Report(console);
 var targetPublishData = await targetPublishDataTask;
-console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] inserts to VS [teal]{targetPublishData?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{targetPublishData?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
-
-// Initialize action collection.
-var actions = new List<(string Name, Func<Task> Func)>();
-void addAction(string title, Func<Task> func)
-{
-    if (console.Confirm($"[green]Add to plan:[/] {title}?", defaultValue: true))
-    {
-        var funcWithProgress = () =>
-        {
-            console.MarkupLine($"[yellow]Started:[/] {title}...");
-            return func();
-        };
-        actions.Add((title, funcWithProgress));
-    }
-}
+targetPublishData.Report(console);
 
 // Where should branches insert after the snap?
 
 var inferredVsVersion = VsVersion.TryParse(targetBranchName);
 var suggestedSourceVsVersionAfterSnap =
     // When the target branch does not exist, that likely means a snap to a new minor version.
-    targetPublishData is null ? inferredVsVersion?.Increase() : inferredVsVersion;
+    targetPublishData.Data is null ? inferredVsVersion?.Increase() : inferredVsVersion;
 var suggestedTargetVsVersionAfterSnap = inferredVsVersion;
 
 var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should insert to",
     defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsBranchName()));
 var sourceVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
 var sourceVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{sourceBranchName}[/]?",
-    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData?.BranchInfo.InsertionTitlePrefix));
+    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData.Data?.BranchInfo.InsertionTitlePrefix));
 var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to",
     defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
 var targetVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
 var targetVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{targetBranchName}[/]?",
-    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData?.BranchInfo.InsertionTitlePrefix));
+    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData.Data?.BranchInfo.InsertionTitlePrefix));
 
 // Check subscriptions.
 console.WriteLine();
@@ -267,16 +255,15 @@ void suggestSubscriptionChange(Flow? existingFlow, Flow expectedFlow)
     }
     else
     {
-        if (existingFlow != null &&
-            console.Confirm($"[green]Add to plan:[/] Update flow {existingFlow.ToFullString()} {Flow.DescribeChanges(existingFlow, expectedFlow)}?", defaultValue: true))
+        if (existingFlow != null)
         {
-            // TODO: Add to plan.
+            if (actions.Add($"Update flow {existingFlow.ToFullString()} {Flow.DescribeChanges(existingFlow, expectedFlow)}?", () => expectedFlow.UpdateAsync(console, existingFlow)))
+            {
+                return;
+            }
         }
-        else
-        {
-            // TODO: Add to plan.
-            console.Confirm($"[green]Add to plan:[/] Add flow {expectedFlow.ToFullString()}?", defaultValue: true);
-        }
+
+        actions.Add($"Add flow {expectedFlow.ToFullString()}", () => expectedFlow.AddAsync(console));
     }
 }
 
@@ -411,7 +398,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
 
     // Move PRs to target milestone.
     var prsToChangeMilestonesOf = milestonePullRequests.AsSpan(lastMilestonePrIndex..).ToArray();
-    addAction($"Move [teal]{prsToChangeMilestonesOf.Length}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]", async () =>
+    actions.Add($"Move [teal]{prsToChangeMilestonesOf.Length}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]", async () =>
     {
         if (selectedMilestone is null)
         {
@@ -440,7 +427,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
 }
 
 // Merge between branches.
-addAction($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]", async () =>
+actions.Add($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]", async () =>
 {
     var prTitle = $"Snap {sourceBranchName} into {targetBranchName}";
 
@@ -524,7 +511,7 @@ addAction($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranc
             .WithArguments([
                 "pr", "create",
                 "--title", prTitle,
-                "--body", $"Snap {sourceBranchName} into {targetBranchName}\n\nAuto-generated by snap script.",
+                "--body", "Auto-generated by snap script.",
                 "--head", snapBranchName,
                 "--base", targetBranchName,
                 "--repo", sourceRepoShort])
@@ -532,6 +519,27 @@ addAction($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranc
         console.WriteLine(createPrResult.StandardOutput.Trim());
     }
 });
+
+// Change PublishData.json.
+// Needs to be done after the merge which would create the target branch if it doesn't exist yet.
+var sourcePublishDataAfterSnap = sourcePublishData with
+{
+    Data = new PublishDataJson(
+        BranchInfo: new BranchInfo(
+            VsBranch: sourceVsBranchAfterSnap,
+            InsertionTitlePrefix: sourceVsPrefixAfterSnap,
+            InsertionCreateDraftPR: sourceVsAsDraftAfterSnap)),
+};
+sourcePublishDataAfterSnap.SaveIfNeeded(logger, actions, sourcePublishData);
+var targetPublishDataAfterSnap = targetPublishData with
+{
+    Data = new PublishDataJson(
+        BranchInfo: new BranchInfo(
+            VsBranch: targetVsBranchAfterSnap,
+            InsertionTitlePrefix: targetVsPrefixAfterSnap,
+            InsertionCreateDraftPR: targetVsAsDraftAfterSnap)),
+};
+targetPublishDataAfterSnap.SaveIfNeeded(logger, actions, targetPublishData);
 
 // Perform actions.
 console.WriteLine();
@@ -541,26 +549,9 @@ if (dryRun)
 {
     console.MarkupLine("[yellow]Dry run[/]: No changes made");
 }
-else if (actions.Count == 0)
-{
-    console.MarkupLine("[yellow]Aborted[/]: No actions added to plan");
-}
 else
 {
-    var actionList = string.Join("\n", actions.Select(static a => $"- {a.Name}"));
-    if (console.Confirm($"[red]Perform actions added to plan?[/]\n{actionList}\nContinue?", defaultValue: true))
-    {
-        foreach (var action in actions)
-        {
-            await action.Func();
-        }
-
-        console.MarkupLine("[green]Done[/]");
-    }
-    else
-    {
-        console.MarkupLine("[yellow]Aborted[/]: No changes made");
-    }
+    await actions.PerformAllAsync();
 }
 
 return 0;
@@ -585,27 +576,120 @@ file sealed record Milestone(int Number, string Title)
 }
 
 file sealed record PublishData(
-    [property: JsonRequired] BranchInfo BranchInfo)
+    string RepoOwnerAndName,
+    string BranchName,
+    PublishDataJson? Data)
 {
     /// <returns>
     /// <see langword="null"/> if the repo or branch does not exist.
     /// </returns>
-    public static async Task<PublishData?> LoadAsync(HttpClient httpClient, string repoOwnerAndName, string branchName)
+    public static async Task<PublishData> LoadAsync(HttpClient httpClient, string repoOwnerAndName, string branchName)
     {
         try
         {
-            return await httpClient.GetFromJsonAsync<PublishData>($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/eng/config/PublishData.json")
+            var data = await httpClient.GetFromJsonAsync<PublishDataJson>($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/eng/config/PublishData.json")
                 ?? throw new InvalidOperationException("Null PublishData.json");
+            return new PublishData(RepoOwnerAndName: repoOwnerAndName, BranchName: branchName, Data: data);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            return null;
+            return new PublishData(RepoOwnerAndName: repoOwnerAndName, BranchName: branchName, Data: null);
         }
         catch (Exception ex)
         {
             throw new InvalidOperationException($"Cannot load PublishData.json from '{repoOwnerAndName}' branch '{branchName}'", ex);
         }
     }
+
+    public void Report(IAnsiConsole console)
+    {
+        console.MarkupLineInterpolated($"Branch [teal]{BranchName}[/] inserts to VS [teal]{Data?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{Data?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
+    }
+
+    public void SaveIfNeeded(Logger logger, ActionList actions, PublishData? original)
+    {
+        Debug.Assert(original is null || (original.RepoOwnerAndName == RepoOwnerAndName && original.BranchName == BranchName));
+
+        if (this.Equals(original))
+        {
+            actions.Console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{BranchName}[/] PublishData.json already up to date");
+            return;
+        }
+
+        Debug.Assert(Data != null);
+        Debug.Assert(!Data.Equals(original?.Data));
+
+        var title = $"Update [teal]{BranchName}[/] PublishData.json";
+        actions.Add(title, async () =>
+        {
+            var prTitle = "Update PublishData.json";
+            var updateBranchName = $"snap-publish-data-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+
+            // Get base branch SHA.
+            var baseBranchSha = (await Cli.Wrap("gh")
+                .WithArguments(["api", $"repos/{RepoOwnerAndName}/git/refs/heads/{BranchName}"])
+                .ExecuteBufferedAsync(logger))
+                .StandardOutput
+                .Trim()
+                .ParseJson<JsonElement>()
+                .GetProperty("object")
+                .GetProperty("sha")
+                .GetString()
+                ?? throw new InvalidOperationException($"Null branch '{BranchName}' in '{RepoOwnerAndName}'");
+
+            // Create a branch for the PR.
+            await Cli.Wrap("gh")
+                .WithArguments(["api", "-X", "POST", $"repos/{RepoOwnerAndName}/git/refs",
+                    "--field", $"ref=refs/heads/{updateBranchName}",
+                    "--field", $"sha={baseBranchSha}"])
+                .ExecuteBufferedAsync(logger);
+
+            // Obtain SHA of the file (needed for the update API call).
+            var fileSha = (await Cli.Wrap("gh")
+                .WithArguments(["api", "-X", "GET", $"repos/{RepoOwnerAndName}/contents/eng/config/PublishData.json",
+                    "--field", $"ref=refs/heads/{updateBranchName}"])
+                .ExecuteBufferedAsync(logger))
+                .StandardOutput
+                .Trim()
+                .ParseJson<JsonElement>()
+                .GetProperty("sha")
+                .GetString()
+                ?? throw new InvalidOperationException("Null file SHA");
+
+            // Apply changes.
+            var serialized = Data.ToJson();
+            await Cli.Wrap("gh")
+                .WithArguments(["api", "-X", "PUT", $"repos/{RepoOwnerAndName}/contents/eng/config/PublishData.json",
+                    "--field", $"message={prTitle}",
+                    "--field", $"branch={updateBranchName}",
+                    "--field", $"sha={fileSha}",
+                    "--field", $"content={Convert.ToBase64String(Encoding.UTF8.GetBytes(serialized))}"])
+                .ExecuteBufferedAsync(logger);
+
+            // Open the PR.
+            var createPrResult = await Cli.Wrap("gh")
+                .WithArguments(["pr", "create",
+                    "--title", prTitle,
+                    "--body", "Auto-generated by snap script.",
+                    "--head", updateBranchName,
+                    "--base", BranchName,
+                    "--repo", RepoOwnerAndName])
+                .ExecuteBufferedAsync(logger);
+            actions.Console.WriteLine(createPrResult.StandardOutput.Trim());
+        });
+    }
+}
+
+file sealed record PublishDataJson(
+    [property: JsonRequired] BranchInfo BranchInfo)
+{
+    private static readonly JsonSerializerOptions s_jsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true,
+    };
+
+    // TODO: Preserve the original content and formatting.
+    public string ToJson() => JsonSerializer.Serialize(this, s_jsonOptions);
 }
 
 file sealed record BranchInfo(
@@ -689,8 +773,17 @@ file static class Extensions
         public async Task<BufferedCommandResult> ExecuteBufferedAsync(Logger logger)
         {
             logger.Log($"Executing command: {command}");
-            var result = await command.ExecuteBufferedAsync();
+
+            var originalValidation = command.Validation;
+            var result = await command.WithValidation(CommandResultValidation.None).ExecuteBufferedAsync();
+
             logger.Log($"Command completed ({result.ExitCode}):\nStdout:{result.StandardOutput}\nStderr:{result.StandardError}");
+
+            if (!result.IsSuccess && originalValidation == CommandResultValidation.ZeroExitCode)
+            {
+                throw new InvalidOperationException($"Command '{command}' failed with exit code {result.ExitCode}.\nStdout:{result.StandardOutput}\nStderr:{result.StandardError}");
+            }
+
             return result;
         }
     }
@@ -969,6 +1062,17 @@ file sealed record Flow(string SourceRepoUrl, string SourceBranch, string Channe
         }
     }
 
+    public async Task AddAsync(IAnsiConsole console)
+    {
+        console.MarkupLine("[red]TODO: Not implemented yet[/]");
+    }
+
+    public async Task UpdateAsync(IAnsiConsole console, Flow existingFlow)
+    {
+        _ = existingFlow;
+        console.MarkupLine("[red]TODO: Not implemented yet[/]");
+    }
+
     public string ToShortString() => $"{SourceBranch} -> {Channel} -> {TargetBranch}";
 
     public string ToFullString() => $"{SourceRepoUrl.GetRepoShortcut()}/{SourceBranch} -> {Channel} -> {TargetRepoUrl.GetRepoShortcut()}/{TargetBranch}";
@@ -1004,5 +1108,53 @@ file sealed class Logger
     public void Log(string message)
     {
         Writer.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {message}");
+    }
+}
+
+file sealed class ActionList(IAnsiConsole console)
+{
+    private readonly List<(string Name, Func<Task> Func)> _actions = [];
+
+    public IAnsiConsole Console => console;
+
+    public bool Add(string title, Func<Task> func)
+    {
+        if (console.Confirm($"[green]Add to plan:[/] {title}?", defaultValue: true))
+        {
+            var funcWithProgress = () =>
+            {
+                console.MarkupLine($"[yellow]Started:[/] {title}...");
+                return func();
+            };
+            _actions.Add((title, funcWithProgress));
+            return true;
+        }
+
+        return false;
+    }
+
+    public async Task PerformAllAsync()
+    {
+        if (_actions.Count == 0)
+        {
+            console.MarkupLine("[yellow]Aborted[/]: No actions added to plan");
+        }
+        else
+        {
+            var actionList = string.Join("\n", _actions.Select(static a => $"- {a.Name}"));
+            if (console.Confirm($"[red]Perform actions added to plan?[/]\n{actionList}\nContinue?", defaultValue: true))
+            {
+                foreach (var action in _actions)
+                {
+                    await action.Func();
+                }
+
+                console.MarkupLine("[green]Done[/]");
+            }
+            else
+            {
+                console.MarkupLine("[yellow]Aborted[/]: No changes made");
+            }
+        }
     }
 }
