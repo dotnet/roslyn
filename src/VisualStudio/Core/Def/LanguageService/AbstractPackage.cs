@@ -52,19 +52,14 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected virtual void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
-        // This treatment of registering work on the bg/main threads is a bit unique as we want the component model initialized at the beginning
-        // of whichever context is invoked first. The current architecture doesn't execute any of the registered tasks concurrently,
-        // so that isn't a concern for calculating or setting _componentModel_doNotAccessDirectly multiple times.
+        // We register this task so our ComponentModel property is available during other parts of package initialization and OnAfterPackageLoaded work. The
+        // expectation at this point is no work scheduled to the UI thread needs the ComponentModel, so we only schedule it for the background thread.
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
-        packageInitializationTasks.AddTask(isMainThreadTask: true, task: EnsureComponentModelAsync);
 
         async Task EnsureComponentModelAsync(PackageLoadTasks packageInitializationTasks, CancellationToken token)
         {
-            if (_componentModel_doNotAccessDirectly == null)
-            {
-                _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
-                Assumes.Present(_componentModel_doNotAccessDirectly);
-            }
+            _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
+            Assumes.Present(_componentModel_doNotAccessDirectly);
         }
     }
 
