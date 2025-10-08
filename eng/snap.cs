@@ -1065,12 +1065,14 @@ file sealed record Flow(string SourceRepoUrl, string SourceBranch, string Channe
     public async Task AddAsync(IAnsiConsole console)
     {
         console.MarkupLine("[red]TODO: Not implemented yet[/]");
+        await Task.Yield();
     }
 
     public async Task UpdateAsync(IAnsiConsole console, Flow existingFlow)
     {
         _ = existingFlow;
         console.MarkupLine("[red]TODO: Not implemented yet[/]");
+        await Task.Yield();
     }
 
     public string ToShortString() => $"{SourceBranch} -> {Channel} -> {TargetBranch}";
