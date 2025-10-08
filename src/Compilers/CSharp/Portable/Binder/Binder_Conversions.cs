@@ -852,8 +852,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case CollectionExpressionTypeKind.ArrayInterface:
                     {
-                        Debug.Assert(elementType is { });
-
                         if (elementType.IsRefLikeOrAllowsRefLikeType())
                         {
                             diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, syntax);
@@ -863,8 +861,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
-                        Debug.Assert(elementType is { });
-
                         var namedType = (NamedTypeSymbol)targetType;
 
                         collectionBuilderMethod = GetAndValidateCollectionBuilderMethod(syntax, namedType, diagnostics, out var updatedElementType);
@@ -874,6 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         elementType = updatedElementType;
+                        Debug.Assert(elementType is { });
                         collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
                         collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
                     }
@@ -978,7 +975,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var elementConversions = conversion.UnderlyingConversions;
 
-                Debug.Assert(elementType is { });
                 Debug.Assert(elements.Length == elementConversions.Length);
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
