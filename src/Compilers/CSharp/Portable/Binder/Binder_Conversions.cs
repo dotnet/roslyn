@@ -850,15 +850,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics, syntax: syntax);
                     break;
 
-                case CollectionExpressionTypeKind.ArrayInterface:
-                    {
-                        if (elementType.IsRefLikeOrAllowsRefLikeType())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, syntax);
-                        }
-                    }
-                    break;
-
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
                         var namedType = (NamedTypeSymbol)targetType;
@@ -937,6 +928,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // If we're not in the collection-construction case, we do not allow ref-structs.  First, for the
+                // array/interface case, we can't make the storage to store the ref structs in.  Second, for the span
+                // case, spans are not 'allows ref struct' for their T element.  So they don' allow them either.  Finally,
+                // collection builders need to take in a ReadOnlySpan<T> so they are restricted for the same reason.
+                if (elementType.IsRefLikeOrAllowsRefLikeType())
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, syntax);
+                }
+
                 MethodSymbol? list_T__ctor = null;
                 MethodSymbol? list_T__ctorInt32 = null;
                 if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
@@ -1188,12 +1188,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constructedListCtorInt32 = constructedListType.InstanceConstructors.FirstOrDefault(
                     static (c, list_T__ctorInt32) => Equals(c.OriginalDefinition, list_T__ctorInt32), list_T__ctorInt32);
 
-                var analyzedArguments = AnalyzedArguments.GetInstance(
-                    withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
                 var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
                 candidateConstructorsBuilder.AddIfNotNull(constructedListCtor);
                 candidateConstructorsBuilder.AddIfNotNull(constructedListCtorInt32);
                 var candidateConstructors = candidateConstructorsBuilder.ToImmutableAndFree();
+
+                var analyzedArguments = AnalyzedArguments.GetInstance(
+                    withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
                 // Now perform overload resolution given only those two constructors and no others.
                 if (TryPerformOverloadResolutionWithConstructorSubset(
