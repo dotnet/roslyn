@@ -20,6 +20,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Xml;
 using CliWrap;
@@ -471,7 +472,7 @@ file sealed record Milestone(int Number, string Title)
 }
 
 file sealed record PublishData(
-    BranchInfo BranchInfo)
+    [property: JsonRequired] BranchInfo BranchInfo)
 {
     /// <returns>
     /// <see langword="null"/> if the repo or branch does not exist.
