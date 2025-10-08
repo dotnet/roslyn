@@ -4150,8 +4150,8 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">İmzayı değiştir...</target>
-        <note />
+        <target state="needs-review-translation">İmzayı değiştir...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

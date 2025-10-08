@@ -467,6 +467,7 @@
   </data>
   <data name="Change_Signature" xml:space="preserve">
     <value>Change Signature</value>
+    <comment>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</comment>
   </data>
   <data name="Preview_Changes_0" xml:space="preserve">
     <value>Preview Changes - {0}</value>
@@ -494,6 +495,7 @@
   </data>
   <data name="Change_Signature_colon" xml:space="preserve">
     <value>Change Signature:</value>
+    <comment>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</comment>
   </data>
   <data name="Rename_0_to_1_colon" xml:space="preserve">
     <value>Rename '{0}' to '{1}':</value>
