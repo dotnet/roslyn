@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var wellKnownMember = isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__ctor_Array : WellKnownMember.System_Span_T__ctor_Array;
                 var spanConstructor = _factory.WellKnownMethod(wellKnownMember).AsMember(spanType);
 
-                // We can either get the same array type as the target span type or an aray of more derived type.
+                // We can either get the same array type as the target span type or an array of more derived type.
                 // In the second case reference conversion would happen automatically since we still construct the span
                 // of the base type, while usually such conversion requires stloc+ldloc with the local of the base type
                 assertTypesAreCompatible(_compilation, arrayType, spanConstructor.Parameters[0].Type, isReadOnlySpan);
