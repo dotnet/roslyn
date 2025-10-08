@@ -180,7 +180,7 @@ public partial class MSBuildProjectLoader
         }
 
         var binLogPathProvider = IsBinaryLogger(msbuildLogger)
-            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters)
+            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters!)
             : null;
 
         var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
