@@ -141,7 +141,20 @@ console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] inserts to V
 var targetPublishData = await targetPublishDataTask;
 console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] inserts to VS [teal]{targetPublishData?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{targetPublishData?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
 
+// Initialize action collection.
 var actions = new List<(string Name, Func<Task> Func)>();
+void addAction(string title, Func<Task> func)
+{
+    if (console.Confirm($"[green]Add to plan:[/] {title}?", defaultValue: true))
+    {
+        var funcWithProgress = () =>
+        {
+            console.MarkupLine($"[yellow]Started:[/] {title}...");
+            return func();
+        };
+        actions.Add((title, funcWithProgress));
+    }
+}
 
 // Where should branches insert after the snap?
 
@@ -396,110 +409,129 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
         console.MarkupLineInterpolated($"[green]Note:[/] Milestone [teal]{targetMilestone}[/] does not exist yet (will be created when needed)");
     }
 
-    // TODO: Add to plan.
-    console.Confirm($"[green]Add to plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]?", defaultValue: true);
+    // Move PRs to target milestone.
+    var prsToChangeMilestonesOf = milestonePullRequests.AsSpan(lastMilestonePrIndex..).ToArray();
+    addAction($"Move [teal]{prsToChangeMilestonesOf.Length}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]", async () =>
+    {
+        if (selectedMilestone is null)
+        {
+            console.MarkupLineInterpolated($"Creating milestone [teal]{targetMilestone}[/]");
+            var createMilestoneResult = await Cli.Wrap("gh")
+                .WithArguments(["api", "-X", "POST", $"repos/{sourceRepoShort}/milestones",
+                    "--field", $"title={targetMilestone}"])
+                .ExecuteBufferedAsync(logger);
+        }
+
+        await console.ProgressLine().StartAsync(async progress =>
+        {
+            var task = progress.AddTask("Processing PRs", maxValue: prsToChangeMilestonesOf.Length);
+            foreach (var pr in prsToChangeMilestonesOf)
+            {
+                await Cli.Wrap("gh")
+                    .WithArguments(["pr", "edit", $"{pr.Number}",
+                        "--repo", sourceRepoShort,
+                        "--milestone", targetMilestone])
+                    .ExecuteBufferedAsync(logger);
+                task.Increment(1);
+            }
+            task.StopTask();
+        });
+    });
 }
 
 // Merge between branches.
-if (console.Confirm($"[green]Add to plan:[/] Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]?", defaultValue: true))
+addAction($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]", async () =>
 {
-    actions.Add((
-        $"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/]", async () =>
-        {
-            console.MarkupLine($"[yellow]Started:[/] Merging changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]...");
+    var prTitle = $"Snap {sourceBranchName} into {targetBranchName}";
 
-            var prTitle = $"Snap {sourceBranchName} into {targetBranchName}";
+    // Checkout the repo.
+    var repoCheckoutDir = Path.Join(Path.GetTempPath(), "snap-script", $"{sourceRepoShort.Split('/').Last()}");
+    if (!Directory.Exists(repoCheckoutDir))
+    {
+        console.WriteLine($"Checking out repository '{sourceRepoShort}' to '{repoCheckoutDir}'");
+        Directory.CreateDirectory(repoCheckoutDir);
+        await Cli.Wrap("git")
+            .WithArguments(["clone", sourceRepoUrl, repoCheckoutDir])
+            .ExecuteBufferedAsync(logger);
+    }
+    else
+    {
+        console.WriteLine($"Using existing checkout of repository '{sourceRepoShort}' at '{repoCheckoutDir}'");
+        await Cli.Wrap("git")
+            .WithWorkingDirectory(repoCheckoutDir)
+            .WithArguments(["remote", "set-url", "origin", sourceRepoUrl])
+            .ExecuteBufferedAsync(logger);
+    }
 
-            // Checkout the repo.
-            var repoCheckoutDir = Path.Join(Path.GetTempPath(), "snap-script", $"{sourceRepoShort.Split('/').Last()}");
-            if (!Directory.Exists(repoCheckoutDir))
-            {
-                console.WriteLine($"Checking out repository '{sourceRepoShort}' to '{repoCheckoutDir}'");
-                Directory.CreateDirectory(repoCheckoutDir);
-                await Cli.Wrap("git")
-                    .WithArguments(["clone", sourceRepoUrl, repoCheckoutDir])
-                    .ExecuteBufferedAsync(logger);
-            }
-            else
-            {
-                console.WriteLine($"Using existing checkout of repository '{sourceRepoShort}' at '{repoCheckoutDir}'");
-                await Cli.Wrap("git")
-                    .WithWorkingDirectory(repoCheckoutDir)
-                    .WithArguments(["remote", "set-url", "origin", sourceRepoUrl])
-                    .ExecuteBufferedAsync(logger);
-            }
+    // Fetch the commit.
+    await Cli.Wrap("git")
+        .WithWorkingDirectory(repoCheckoutDir)
+        .WithArguments(["fetch", "origin", lastPrCommitDetails.Sha])
+        .ExecuteBufferedAsync(logger);
 
-            // Fetch the commit.
-            await Cli.Wrap("git")
-                .WithWorkingDirectory(repoCheckoutDir)
-                .WithArguments(["fetch", "origin", lastPrCommitDetails.Sha])
-                .ExecuteBufferedAsync(logger);
+    // Check whether the target branch exists.
+    var targetBranchExists = (await Cli.Wrap("gh")
+        .WithArguments(["api", $"repos/{sourceRepoShort}/branches/{targetBranchName}"])
+        .WithValidation(CommandResultValidation.None)
+        .ExecuteBufferedAsync(logger)).IsSuccess;
 
-            // Check whether the target branch exists.
-            var targetBranchExists = (await Cli.Wrap("gh")
-                .WithArguments(["api", $"repos/{sourceRepoShort}/branches/{targetBranchName}"])
-                .WithValidation(CommandResultValidation.None)
-                .ExecuteBufferedAsync(logger)).IsSuccess;
+    if (!targetBranchExists)
+    {
+        // Target branch does not exist, checkout the commit and just push to the new branch.
+        console.MarkupLineInterpolated($"Target branch [teal]{targetBranchName}[/] does not exist, will be created.");
+        await Cli.Wrap("git")
+            .WithWorkingDirectory(repoCheckoutDir)
+            .WithArguments(["checkout", lastPrCommitDetails.Sha, "-b", targetBranchName])
+            .ExecuteBufferedAsync(logger);
+        await Cli.Wrap("git")
+            .WithWorkingDirectory(repoCheckoutDir)
+            .WithArguments(["push", "origin", "HEAD"])
+            .ExecuteBufferedAsync(logger);
+        console.MarkupLineInterpolated($"Pushed new branch [teal]{targetBranchName}[/] to [teal]{sourceRepoShort}[/].");
+    }
+    else
+    {
+        // Target branch exists, merge changes up to the commit.
+        var snapBranchName = $"snap-{sourceBranchName.Replace('/', '-')}-to-{targetBranchName.Replace('/', '-')}-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+        console.WriteLine("Merging branches.");
+        await Cli.Wrap("git")
+            .WithWorkingDirectory(repoCheckoutDir)
+            .WithArguments(["fetch", "origin", targetBranchName])
+            .ExecuteBufferedAsync(logger);
+        await Cli.Wrap("git")
+            .WithWorkingDirectory(repoCheckoutDir)
+            .WithArguments(["checkout", "FETCH_HEAD", "-b", snapBranchName])
+            .ExecuteBufferedAsync(logger);
+        await Cli.Wrap("git")
+            .WithWorkingDirectory(repoCheckoutDir)
+            .WithArguments(["merge", "--no-ff", "--no-commit", lastPrCommitDetails.Sha])
+            .ExecuteBufferedAsync(logger);
+        await Cli.Wrap("git")
+            .WithWorkingDirectory(repoCheckoutDir)
+            .WithArguments(["commit", "-m", prTitle])
+            .ExecuteBufferedAsync(logger);
 
-            if (!targetBranchExists)
-            {
-                // Target branch does not exist, checkout the commit and just push to the new branch.
-                console.MarkupLineInterpolated($"Target branch [teal]{targetBranchName}[/] does not exist, will be created.");
-                await Cli.Wrap("git")
-                    .WithWorkingDirectory(repoCheckoutDir)
-                    .WithArguments(["checkout", lastPrCommitDetails.Sha, "-b", targetBranchName])
-                    .ExecuteBufferedAsync(logger);
-                await Cli.Wrap("git")
-                    .WithWorkingDirectory(repoCheckoutDir)
-                    .WithArguments(["push", "origin", "HEAD"])
-                    .ExecuteBufferedAsync(logger);
-                console.MarkupLineInterpolated($"Pushed new branch [teal]{targetBranchName}[/] to [teal]{sourceRepoShort}[/].");
-            }
-            else
-            {
-                // Target branch exists, merge changes up to the commit.
-                var snapBranchName = $"snap-{sourceBranchName.Replace('/', '-')}-to-{targetBranchName.Replace('/', '-')}-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
-                console.WriteLine("Merging branches.");
-                await Cli.Wrap("git")
-                    .WithWorkingDirectory(repoCheckoutDir)
-                    .WithArguments(["fetch", "origin", targetBranchName])
-                    .ExecuteBufferedAsync(logger);
-                await Cli.Wrap("git")
-                    .WithWorkingDirectory(repoCheckoutDir)
-                    .WithArguments(["checkout", "FETCH_HEAD", "-b", snapBranchName])
-                    .ExecuteBufferedAsync(logger);
-                await Cli.Wrap("git")
-                    .WithWorkingDirectory(repoCheckoutDir)
-                    .WithArguments(["merge", "--no-ff", "--no-commit", lastPrCommitDetails.Sha])
-                    .ExecuteBufferedAsync(logger);
-                await Cli.Wrap("git")
-                    .WithWorkingDirectory(repoCheckoutDir)
-                    .WithArguments(["commit", "-m", prTitle])
-                    .ExecuteBufferedAsync(logger);
+        // Push the changes.
+        await Cli.Wrap("git")
+            .WithWorkingDirectory(repoCheckoutDir)
+            .WithArguments(["push", "origin", "HEAD"])
+            .ExecuteBufferedAsync(logger);
 
-                // Push the changes.
-                await Cli.Wrap("git")
-                    .WithWorkingDirectory(repoCheckoutDir)
-                    .WithArguments(["push", "origin", "HEAD"])
-                    .ExecuteBufferedAsync(logger);
-
-                // Open the PR.
-                console.WriteLine("Opening snap PR.");
-                var createPrResult = await Cli.Wrap("gh")
-                    .WithWorkingDirectory(repoCheckoutDir)
-                    .WithArguments([
-                        "pr", "create",
-                        "--title", prTitle,
-                        "--body", $"Snap {sourceBranchName} into {targetBranchName}\n\nAuto-generated by snap script.",
-                        "--head", snapBranchName,
-                        "--base", targetBranchName,
-                        "--repo", sourceRepoShort])
-                    .ExecuteBufferedAsync(logger);
-                console.WriteLine(createPrResult.StandardOutput.Trim());
-            }
-        }
-    ));
-}
+        // Open the PR.
+        console.WriteLine("Opening snap PR.");
+        var createPrResult = await Cli.Wrap("gh")
+            .WithWorkingDirectory(repoCheckoutDir)
+            .WithArguments([
+                "pr", "create",
+                "--title", prTitle,
+                "--body", $"Snap {sourceBranchName} into {targetBranchName}\n\nAuto-generated by snap script.",
+                "--head", snapBranchName,
+                "--base", targetBranchName,
+                "--repo", sourceRepoShort])
+            .ExecuteBufferedAsync(logger);
+        console.WriteLine(createPrResult.StandardOutput.Trim());
+    }
+});
 
 // Perform actions.
 console.WriteLine();
@@ -508,6 +540,10 @@ console.WriteLine();
 if (dryRun)
 {
     console.MarkupLine("[yellow]Dry run[/]: No changes made");
+}
+else if (actions.Count == 0)
+{
+    console.MarkupLine("[yellow]Aborted[/]: No actions added to plan");
 }
 else
 {
@@ -670,6 +706,16 @@ file static class Extensions
                 ChoicesStyle = Style.Plain,
             }
             .Show(console);
+        }
+
+        /// <summary>
+        /// Original <see cref="AnsiConsoleExtensions.Progress"/> can overwrite existing text, this avoids that.
+        /// </summary>
+        public Progress ProgressLine()
+        {
+            console.WriteLine();
+            console.WriteLine();
+            return console.Progress();
         }
     }
 
