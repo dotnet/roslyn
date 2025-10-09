@@ -4790,23 +4790,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // expression is the scope of an invocation of the builder method with the
                     // collection expression as the span argument. That is, `R r = [x, y, z];`
                     // is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
-                    //var constructMethod = expr.CollectionBuilderMethod;
-                    //if (constructMethod is not { Parameters: [.., { RefKind: RefKind.None } parameter] })
-                    //{
-                    //    // Unexpected construct method. Restrict the collection to local scope.
-                    //    return true;
-                    //}
-                    //Debug.Assert(constructMethod.ReturnType.Equals(expr.Type, TypeCompareKind.AllIgnoreOptions));
-                    //Debug.Assert(parameter.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
-                    //if (parameter.EffectiveScope == ScopedKind.ScopedValue)
-                    //{
-                    //    return false;
-                    //}
-                    //if (LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, ((NamedTypeSymbol)parameter.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
-                    //{
-                    //    return false;
-                    //}
-                    //return true;
+                    //
+                    // expr.CollectionCreation contains this call, including anything affected by its 'with(...)'
+                    // element, and the place-holder representing the elements.
                     Debug.Assert(expr.CollectionCreation is { });
                     var context = GetValEscape(expr.CollectionCreation, _localScopeDepth);
                     return !context.IsReturnable;
