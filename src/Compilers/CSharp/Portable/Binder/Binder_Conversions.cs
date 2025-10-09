@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(result);
 
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var collectionBuilderMethods = GetCollectionBuilderMethods(
+            var collectionBuilderMethods = collectMethods(
                 namedType, forParams, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo);
 
             diagnostics.Add(syntax, useSiteInfo);
@@ -1222,6 +1222,105 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return collectionBuilderMethods;
+
+            ImmutableArray<MethodSymbol> collectMethods(
+                NamedTypeSymbol targetType,
+                bool forParams,
+                TypeSymbol elementTypeOriginalDefinition,
+                TypeSymbol? builderType,
+                string? methodName,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+
+                if (!SourceNamedTypeSymbol.IsValidCollectionBuilderType(builderType))
+                {
+                    return [];
+                }
+
+                if (string.IsNullOrEmpty(methodName))
+                {
+                    return [];
+                }
+
+                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                targetType.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
+                var allTypeArguments = builder.ToImmutableAndFree();
+
+                var readOnlySpanType = Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
+
+                var result = ArrayBuilder<MethodSymbol>.GetInstance();
+                foreach (var candidate in builderType.GetMembers(methodName))
+                {
+                    if (candidate is not MethodSymbol { IsStatic: true } method)
+                    {
+                        continue;
+                    }
+
+                    if (forParams && method.ParameterCount != 1)
+                    {
+                        continue;
+                    }
+
+                    var candidateUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
+                    if (!IsAccessible(method, ref candidateUseSiteInfo))
+                    {
+                        continue;
+                    }
+
+                    if (method.Arity != allTypeArguments.Length)
+                    {
+                        continue;
+                    }
+
+                    if (method.Parameters is not [.., { RefKind: RefKind.None, Type: NamedTypeSymbol parameterType }]
+                        || !readOnlySpanType.Equals(parameterType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        continue;
+                    }
+
+                    MethodSymbol methodWithTargetTypeParameters; // builder method substituted with type parameters from target type
+                    if (allTypeArguments.Length > 0)
+                    {
+                        var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());
+                        methodWithTargetTypeParameters = method.OriginalDefinition.Construct(allTypeParameters);
+                        method = method.Construct(allTypeArguments);
+                    }
+                    else
+                    {
+                        methodWithTargetTypeParameters = method;
+                    }
+
+                    parameterType = (NamedTypeSymbol)methodWithTargetTypeParameters.Parameters.Last().Type;
+                    var elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    var conversion = Conversions.ClassifyImplicitConversionFromType(elementTypeOriginalDefinition, elementType, ref candidateUseSiteInfo);
+                    if (!conversion.IsIdentity)
+                    {
+                        continue;
+                    }
+
+                    conversion = Conversions.ClassifyImplicitConversionFromType(methodWithTargetTypeParameters.ReturnType, targetType.OriginalDefinition, ref candidateUseSiteInfo);
+                    switch (conversion.Kind)
+                    {
+                        case ConversionKind.Identity:
+                        case ConversionKind.ImplicitReference:
+                        case ConversionKind.Boxing:
+                            break;
+                        default:
+                            continue;
+                    }
+
+                    useSiteInfo.AddDiagnostics(candidateUseSiteInfo.Diagnostics);
+
+                    result.Add(method);
+
+                    // Can early-exist in the params case at this point as there can only be one such creation method with
+                    // this signature.
+                    if (forParams)
+                        break;
+                }
+
+                return result.ToImmutableAndFree();
+            }
         }
 
         internal void CheckCollectionBuilderMethod(
@@ -2133,105 +2232,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return;
-        }
-
-        private ImmutableArray<MethodSymbol> GetCollectionBuilderMethods(
-            NamedTypeSymbol targetType,
-            bool forParams,
-            TypeSymbol elementTypeOriginalDefinition,
-            TypeSymbol? builderType,
-            string? methodName,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-
-            if (!SourceNamedTypeSymbol.IsValidCollectionBuilderType(builderType))
-            {
-                return [];
-            }
-
-            if (string.IsNullOrEmpty(methodName))
-            {
-                return [];
-            }
-
-            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            targetType.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
-            var allTypeArguments = builder.ToImmutableAndFree();
-
-            var readOnlySpanType = Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
-
-            var result = ArrayBuilder<MethodSymbol>.GetInstance();
-            foreach (var candidate in builderType.GetMembers(methodName))
-            {
-                if (candidate is not MethodSymbol { IsStatic: true } method)
-                {
-                    continue;
-                }
-
-                if (forParams && method.ParameterCount != 1)
-                {
-                    continue;
-                }
-
-                var candidateUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
-                if (!IsAccessible(method, ref candidateUseSiteInfo))
-                {
-                    continue;
-                }
-
-                if (method.Arity != allTypeArguments.Length)
-                {
-                    continue;
-                }
-
-                if (method.Parameters is not [.., { RefKind: RefKind.None, Type: NamedTypeSymbol parameterType }]
-                    || !readOnlySpanType.Equals(parameterType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
-                {
-                    continue;
-                }
-
-                MethodSymbol methodWithTargetTypeParameters; // builder method substituted with type parameters from target type
-                if (allTypeArguments.Length > 0)
-                {
-                    var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());
-                    methodWithTargetTypeParameters = method.OriginalDefinition.Construct(allTypeParameters);
-                    method = method.Construct(allTypeArguments);
-                }
-                else
-                {
-                    methodWithTargetTypeParameters = method;
-                }
-
-                parameterType = (NamedTypeSymbol)methodWithTargetTypeParameters.Parameters.Last().Type;
-                var elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                var conversion = Conversions.ClassifyImplicitConversionFromType(elementTypeOriginalDefinition, elementType, ref candidateUseSiteInfo);
-                if (!conversion.IsIdentity)
-                {
-                    continue;
-                }
-
-                conversion = Conversions.ClassifyImplicitConversionFromType(methodWithTargetTypeParameters.ReturnType, targetType.OriginalDefinition, ref candidateUseSiteInfo);
-                switch (conversion.Kind)
-                {
-                    case ConversionKind.Identity:
-                    case ConversionKind.ImplicitReference:
-                    case ConversionKind.Boxing:
-                        break;
-                    default:
-                        continue;
-                }
-
-                useSiteInfo.AddDiagnostics(candidateUseSiteInfo.Diagnostics);
-
-                result.Add(method);
-
-                // Can early-exist in the params case at this point as there can only be one such creation method with
-                // this signature.
-                if (forParams)
-                    break;
-            }
-
-            return result.ToImmutableAndFree();
         }
 
         /// <summary>
