@@ -4,6 +4,7 @@
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <SignAssembly>false</SignAssembly>
+    <DefineConstants>$(DefineConstants);ROSLYN_NO_INDEXRANGE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
