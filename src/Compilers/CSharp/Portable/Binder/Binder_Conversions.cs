@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // create a placeholder to stand in for them.
                     //
                     // In other words, given `[with(a, b, c), x, y, z]` wew will first have figured out how to call
-                    // CollectionBuilder.ProjectedCreate(a, b, c).  From that, we will then want to actually call
+                    // In other words, given `[with(a, b, c), x, y, z]` we will first have figured out how to call
                     // CollectionBuilder.Create<T1, T2, ..>(a, b, c, <placeholder for [x, y, z]>).
 
                     var readonlySpanParameter = collectionBuilderMethod.Parameters.Last();
