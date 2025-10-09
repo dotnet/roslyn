@@ -17,7 +17,7 @@
 ## Development Workflow
 
 **Building**:
-- `.\Build.cmd` - Full solution build
+- `build.sh` - Full solution build
 - `dotnet build Compilers.slnf` - Compiler-only build  
 - Use VS tasks: `build current project`, `build Compilers.slnf`
 
