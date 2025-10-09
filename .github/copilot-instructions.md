@@ -33,6 +33,9 @@
 - Launch hive manually: `devenv /rootSuffix RoslynDev`
 - VSIX projects automatically deploy to experimental instance
 
+**Formatting**:
+- Whitespace formatting preferences are stored in the `.editorconfig` file
+- Run `dotnet format whitespace -f . --include ` followed by the relative path to changed files to apply formatting preferences
 ## Code Patterns
 
 **Service Architecture** (use MEF consistently):
