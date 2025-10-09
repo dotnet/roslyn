@@ -9,11 +9,6 @@
 - **EditorFeatures** (`src/EditorFeatures/`): Editor-specific implementations and text buffer integration
 - **VisualStudio** (`src/VisualStudio/`): VS-specific language services and UI integration
 
-**Key Service Boundaries**:
-- Language services via MEF exports: `[ExportLanguageService(typeof(IService), LanguageNames.CSharp)]`
-- Host services for cross-language functionality
-- Remote services for out-of-process execution via ServiceHub
-
 ## Development Workflow
 
 **Building**:
