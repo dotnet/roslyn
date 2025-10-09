@@ -445,7 +445,7 @@ internal abstract class LanguageServerProjectLoader
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
-    protected async ValueTask UnloadProjectAsync(string projectPath)
+    protected async ValueTask<bool> UnloadProjectAsync(string projectPath)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -453,7 +453,7 @@ internal abstract class LanguageServerProjectLoader
             {
                 // It is common to be called with a path to a project which is already not loaded.
                 // In this case, we should do nothing.
-                return;
+                return false;
             }
 
             if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId))
@@ -475,5 +475,6 @@ internal abstract class LanguageServerProjectLoader
         }
 
         await OnProjectUnloadedAsync(projectPath);
+        return true;
     }
 }

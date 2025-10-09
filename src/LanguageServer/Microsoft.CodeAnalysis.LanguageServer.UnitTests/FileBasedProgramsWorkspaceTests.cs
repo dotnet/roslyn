@@ -125,8 +125,11 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.NotNull(documentWorkspace);
         Assert.Equal(WorkspaceKind.Host, documentWorkspace.Kind);
         Assert.Equal(projectName, document.Project.AssemblyName);
+        // There should no longer be a FBP document in the solution.
+        var matchingDocuments = await document.Project.Solution.GetTextDocumentsAsync(newDocumentUri, CancellationToken.None);
+        Assert.Single(matchingDocuments);
 
-        // LSP request context will have the main sln document, GetTextDocumentAsync should also return the FBP document (as the order is in the sln state).
+        // LSP request context will have the main sln document, GetTextDocumentAsync should also return the main document (FBP was removed).
         var documentFromAPI = document.Project.Solution.GetTextDocumentAsync(CreateTextDocumentIdentifier(newDocumentUri), CancellationToken.None);
         Assert.Equal(document, await documentFromAPI);
     }

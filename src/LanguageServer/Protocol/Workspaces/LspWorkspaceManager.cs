@@ -251,23 +251,28 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
             var documents = await lspSolution.GetTextDocumentsAsync(textDocumentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
+
             if (documents.Length > 0)
             {
                 // We have at least one document, so find the one in the right project context.
-
-                // If we need to modify which document is found, that should be handled centrally in FindDocumentInProjectContext to ensure
-                // callers always get a consistent document from here, or from calling FindDocumentInProjectContext directly.
                 var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
 
                 if (_lspMiscellaneousFilesWorkspaceProvider is not null)
                 {
-                    // If we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
-                    // if it happens to be in there as well.
-                    if (_lspMiscellaneousFilesWorkspaceProvider is not null && !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(document, cancellationToken).ConfigureAwait(false))
+                    // Check if we found a document that is not a misc document.  If we did we should remove it from misc if it is there (e.g. document was transferred)
+                    var foundNonMiscDocument = await documents
+                        .AnyAsync(async doc => !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(doc, cancellationToken).ConfigureAwait(false))
+                        .ConfigureAwait(false);
+                    if (foundNonMiscDocument)
                     {
                         try
                         {
-                            await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+                            var didRemove = await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+                            if (didRemove)
+                            {
+                                // If we actually removed something, lookup the document again to find it in the updated solutions.
+                                return await GetLspDocumentInfoAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+                            }
                         }
                         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                         {

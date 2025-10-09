@@ -175,27 +175,10 @@ internal static partial class Extensions
             // This branch should be removed when we're using the LSP based navbar in all scenarios.
 
             var solution = documents.First().Project.Solution;
-
             // Lookup which of the linked documents is currently active in the workspace.
             var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
-
-            var document = documentGetter(solution, documentIdInCurrentContext);
-
-            // Always want to prefer the non-misc document when we have multiple docs.
-            if (documents.Length > 1 && IsMiscDocumentInHostWorkspace(document))
-            {
-                var nonMisc = documents.First(d => d.Id != document.Id);
-                return nonMisc;
-            }
-
-            return document;
+            return documentGetter(solution, documentIdInCurrentContext);
         });
-    }
-
-    public static bool IsMiscDocumentInHostWorkspace(this TextDocument document)
-    {
-        // When a misc document is loaded into the host workspace, it's project file path is the same as the document file path.
-        return document.Project.Solution.WorkspaceKind == WorkspaceKind.Host && document.Project.FilePath != null && document.Project.FilePath == document.FilePath;
     }
 
     public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
