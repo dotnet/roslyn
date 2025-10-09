@@ -835,6 +835,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, targetType);
             }
 
+            // Stores the `new T(...)` call if this is a normal constructor backed collection (including mutable array
+            // interfaces).  Otherwise stores the `T.Create(...)` call for collection builders.  It will be null for
+            // spans, arrays, and read-only interfaces.
             BoundExpression? collectionCreation = null;
             MethodSymbol? collectionBuilderMethod = null;
             BoundValuePlaceholder? collectionBuilderElementsPlaceholder = null;
