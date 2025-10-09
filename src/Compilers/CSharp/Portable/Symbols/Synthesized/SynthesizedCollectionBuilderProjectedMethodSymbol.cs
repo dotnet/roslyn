@@ -104,9 +104,9 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
         internal override bool IsCallerFilePath => this.UnderlyingParameter.IsCallerFilePath;
         internal override bool IsCallerMemberName => this.UnderlyingParameter.IsCallerMemberName;
 
-        internal override bool HasEnumeratorCancellationAttribute => throw new NotImplementedException();
+        internal override int CallerArgumentExpressionParameterIndex => this.UnderlyingParameter.CallerArgumentExpressionParameterIndex;
 
-        internal override int CallerArgumentExpressionParameterIndex => throw new NotImplementedException();
+        internal override bool HasEnumeratorCancellationAttribute => throw new NotImplementedException();
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw new NotImplementedException();
 
