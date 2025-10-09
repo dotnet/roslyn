@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return CreateAndPopulateList(
                                     node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node),
                                     // We have no with-element.  Create a List<T> in an optimal a fashion as possible.
-                                    receiver: null);
+                                    rewrittenReceiver: null);
                             }
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node, elementType, elements,
                     // Array/Span collections cannot have with-elements.  So we can create a List<T> in an optimal
                     // fashion depending on our analysis of the elements.
-                    receiver: null);
+                    rewrittenReceiver: null);
 
                 Debug.Assert(list.Type is { });
                 Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // A read-only list interface can have a `with()` element, but only an empty one. Regardless
                             // of whether it has that or not, we want to create the final underlying list in an optimal
                             // fashion as possible.
-                            receiver: null),
+                            rewrittenReceiver: null),
                         var v => throw ExceptionUtilities.UnexpectedValue(v)
                     };
 
@@ -481,17 +481,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(collectionType.IsMutableArrayInterface(out _));
 
-                // We should have only been able to bind to `List<T>()` or `List<T>(int)` constructors (or failed and
-                // produced a bad node (with diagnostics)).  In the case where we succeeded, we want that constructed
-                // list to be what we add elements to.  In the case where we failed, it doesn't matter and we can just
-                // fall back to the optimal emit path (since an error was already reported).
+                // Null case is when there is no 'with', and thus we want to create the List<T> in an optimal fashion,
+                // allowing the compiler to do whatever it wants.  'with(...)' case will be processed by when the
+                // collection conversion happens in the compiler, and will represent the appropriate `new List<T>()` or
+                // `new List<T>(capacity)` call.
                 Debug.Assert(node.CollectionCreation is null or BoundObjectCreationExpression);
 
                 arrayOrList = CreateAndPopulateList(
                     node, elementType, elements,
                     // Ensure we recurse into the receiver (if passed one), so any arguments passed to to the collection
                     // construction are properly lowered as well.
-                    receiver: VisitExpression(node.CollectionCreation));
+                    rewrittenReceiver: VisitExpression(node.CollectionCreation));
             }
 
             return _factory.Convert(collectionType, arrayOrList);
@@ -1058,13 +1058,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Create and populate an list from a collection expression. The collection may or may not have a known length.
         /// </summary>
         /// <remarks>
-        /// <paramref name="receiver"/> should already be visited prior to calling this helper.
+        /// <paramref name="rewrittenReceiver"/> should already be visited prior to calling this helper.
         /// </remarks>
         private BoundExpression CreateAndPopulateList(
             BoundCollectionExpression node,
             TypeWithAnnotations elementType,
             ImmutableArray<BoundNode> elements,
-            BoundExpression? receiver)
+            BoundExpression? rewrittenReceiver)
         {
             Debug.Assert(!_inExpressionLambda);
 
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only want to use the known length when creating the final list if there was no existing receiver that
             // we're already instantiating.  In that case, our caller has already figured out the value and just wants
             // us to add the elements to it.
-            var useKnownLength = ShouldUseKnownLength(node, out var numberIncludingLastSpread) && receiver is null;
+            var useKnownLength = ShouldUseKnownLength(node, out var numberIncludingLastSpread) && rewrittenReceiver is null;
             RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
             bool useOptimizations = false;
@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAssignmentOperator assignmentToTemp;
             BoundLocal? knownLengthTemp = null;
 
-            if (receiver is null)
+            if (rewrittenReceiver is null)
             {
                 if (useKnownLength && elements.Length > 0)
                 {
@@ -1117,24 +1117,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sideEffects.Add(assignmentToTemp);
 
                         // List<ElementType> list = new(knownLengthTemp);
-                        receiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
+                        rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
                     }
                     else
                     {
                         // List<ElementType> list = new(N + s1.Length + ...)
-                        receiver = _factory.New(constructor, ImmutableArray.Create(knownLengthExpression));
+                        rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(knownLengthExpression));
                     }
                 }
                 else
                 {
                     // List<ElementType> list = new();
                     var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctor)).AsMember(collectionType);
-                    receiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+                    rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
                 }
             }
 
             // Create a temp for the list.
-            BoundLocal listTemp = _factory.StoreToTemp(receiver, out assignmentToTemp);
+            BoundLocal listTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
             localsBuilder.Add(listTemp);
             sideEffects.Add(assignmentToTemp);
 
