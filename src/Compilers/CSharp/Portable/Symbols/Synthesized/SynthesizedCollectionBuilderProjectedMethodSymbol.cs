@@ -10,8 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
 /// <summary>
-/// See
-/// https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#collectionbuilderattribute-methods.
+/// See https://github.com/dotnet/csharplang/blob/90f1d8b0e9ba8a140f73aef376833969cce8bf9e/proposals/collection-expression-arguments.md?plain=1#L225
 /// For collection builders: For each create method for the target type, we define a projection method with an identical
 /// signature to the create method but without the last parameter.  This is the signature of the method a `with(...)`
 /// element will be matched against when using a collection builder type for a collection expression.
