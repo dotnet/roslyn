@@ -27,12 +27,6 @@
 - Tests inherit from base classes like `AbstractLanguageServerProtocolTests`, `WorkspaceTestBase`
 - Use `[UseExportProvider]` for MEF-dependent tests
 
-**Debugging in VS**:
-- Set `RoslynDeployment` as startup project and F5 to launch experimental hive
-- Deploy changes: `.\Build.cmd -deployExtensions -launch`
-- Launch hive manually: `devenv /rootSuffix RoslynDev`
-- VSIX projects automatically deploy to experimental instance
-
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
 - Run `dotnet format whitespace -f . --include ` followed by the relative paths to changed .cs and .vb files to apply formatting preferences
