@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If we're not in the collection-construction case, we do not allow ref-structs.  First, for the
                 // array/interface case, we can't make the storage to store the ref structs in.  Second, for the span
-                // case, spans are not 'allows ref struct' for their T element.  So they don' allow them either.  Finally,
+                // case, spans are not 'allows ref struct' for their T element.  So they don't allow them either.  Finally,
                 // collection builders need to take in a ReadOnlySpan<T> so they are restricted for the same reason.
                 if (elementType.IsRefLikeOrAllowsRefLikeType())
                 {
