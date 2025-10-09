@@ -860,7 +860,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-<<<<<<< HEAD
                         (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(
                             this, node, targetType, collectionBuilderMethods, diagnostics);
                         if (collectionCreation is null || collectionBuilderMethod is null || collectionBuilderElementsPlaceholder is null)
@@ -871,12 +870,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var lastParameterType = collectionBuilderMethod.Parameters.Last().Type;
                         Debug.Assert(lastParameterType.IsReadOnlySpan());
                         elementType = ((NamedTypeSymbol)lastParameterType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-=======
-                        elementType = updatedElementType;
-                        Debug.Assert(elementType is { });
-                        collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
-                        collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
->>>>>>> upstream/features/collection-expression-arguments
                     }
                     break;
 
@@ -972,17 +965,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         collectionCreation = BindCollectionArrayInterfaceConstruction(
                             targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
                     }
-<<<<<<< HEAD
                     else if (collectionTypeKind is not CollectionExpressionTypeKind.CollectionBuilder)
                     {
                         // Array, Span, ReadOnlySpan
-=======
-                    else
-                    {
-                        // PROTOTYPE: Implement support for CollectionBuilder.  For now, error on it.
-
-                        // Array, Span, ReadOnlySpan, CollectionBuilder.
->>>>>>> upstream/features/collection-expression-arguments
                         diagnostics.Add(
                             ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
                             node.WithElement.Syntax.GetFirstToken().GetLocation(),
