@@ -22,7 +22,7 @@
 - Use VS tasks: `build current project`, `build Compilers.slnf`
 
 **Testing**:
-- `.\Test.cmd` - Run all tests
+- `test.sh` - Run all tests
 - `dotnet test` for specific test projects
 - Tests inherit from base classes like `AbstractLanguageServerProtocolTests`, `WorkspaceTestBase`
 - Use `[UseExportProvider]` for MEF-dependent tests
