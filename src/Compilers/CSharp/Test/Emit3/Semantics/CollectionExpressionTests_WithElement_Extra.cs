@@ -1365,9 +1365,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (7,18): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         Identity([with(default), default, 3]);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default), default, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 18),
-            // (7,24): error CS8716: There is no target type for the default literal.
-            //         Identity([with(default), default, 3]);
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 24),
             // (7,34): error CS8716: There is no target type for the default literal.
             //         Identity([with(default), default, 3]);
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 34));
@@ -2073,7 +2070,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // (3,58): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
             //     static MyCollection<T> NoConstraints<T>(T x, T y) => NoConstraintsParams(x, y);
-            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "NoConstraintsParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(3, 58));
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "NoConstraintsParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(3, 58),
+            // (4,51): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+            //     static MyCollection<T> NoConstraintsParams<T>(params MyCollection<T> c) => c;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(4, 51),
+            // (25,83): error CS1737: Optional parameters must appear after all required parameters
+            //     public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items) where T : struct => new(arg, items);
+            Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(25, 83));
 
         string sourceB3 = """
                 class Program
@@ -3727,9 +3730,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (8,19): error CS8716: There is no target type for the default literal.
-            //         c = [with(default)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 19),
             // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = F(1, 2);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(1, 2)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13),
