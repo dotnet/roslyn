@@ -19,6 +19,7 @@
 **Building**:
 - `build.sh` - Full solution build
 - `dotnet build Compilers.slnf` - Compiler-only build  
+- Run `build.sh /t:UpdateXlf` when .resx files are modified to update corresponding .xlf files
 
 **Testing**:
 - `test.sh` - Run all tests
