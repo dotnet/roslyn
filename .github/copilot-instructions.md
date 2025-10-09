@@ -90,7 +90,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 ## Essential Files for Context
 
 - `docs/wiki/Roslyn-Overview.md` - Architecture deep-dive
-- `docs/contributing/Building, Debugging, and Testing on Windows.md` - Development setup
+- `docs/contributing/Building, Debugging, and Testing on Unix.md` - Development setup
 - `src/Compilers/Core/Portable/` - Core compiler APIs
 - `src/Workspaces/Core/Portable/` - Workspace object model
 - Solution filters: `Roslyn.sln`, `Compilers.slnf`, `Ide.slnf` for focused builds
