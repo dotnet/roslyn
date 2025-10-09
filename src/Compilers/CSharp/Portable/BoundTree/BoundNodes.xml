@@ -1958,7 +1958,9 @@
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow"/>
     <!-- Collection builder method being invoked. If generic, this will be the constructed form -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
-    <!-- Placeholder location where the builder elements will be placed -->
+    <!-- Placeholder location where the builder elements will be placed.  For example, if the collection is `[with(a, b,
+         c), x, y, z]` initial binding will produce `Factory.Crate(a, b, c, <placeholder>)`.  The last arg will be
+         replaced in lowering with the ReadOnlySpan for `x, y, z`. -->
     <Field Name="CollectionBuilderElementsPlaceholder" Type="BoundValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="HasWithElement" Type="bool" />
