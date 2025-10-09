@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     public static class IncrementalValueProviderExtensions
     {
         /// <summary>
-        /// Transforms an <see cref="IncrementalValueProvider{TSource}"/> into a new <see cref="IncrementalValueProvider{TResult}"/> by applying a transform function to each value.
+        /// Transforms an <see cref="IncrementalValueProvider{TSource}"/> into a new <see cref="IncrementalValueProvider{TResult}"/> by applying a transform function to the value.
         /// </summary>
         /// <typeparam name="TSource">The type of the input value</typeparam>
         /// <typeparam name="TResult">The type of the output value</typeparam>
