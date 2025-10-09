@@ -1696,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            var collectionBuilderMethods = binder.GetAndValidateCollectionBuilderMethods(
+                            var collectionBuilderMethods = binder.GetCollectionBuilderMethods(
                                 syntax, (NamedTypeSymbol)Type, diagnostics, forParams: true);
                             Debug.Assert(collectionBuilderMethods.Length <= 1);
 

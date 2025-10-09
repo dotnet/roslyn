@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var namedType = (NamedTypeSymbol)targetType;
 
-                        var collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, forParams: false);
+                        var collectionBuilderMethods = GetCollectionBuilderMethods(syntax, namedType, diagnostics, forParams: false);
                         if (collectionBuilderMethods.IsEmpty)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
