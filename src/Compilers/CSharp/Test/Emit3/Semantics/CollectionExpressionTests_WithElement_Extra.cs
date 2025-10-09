@@ -2057,7 +2057,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // (3,58): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
             //     static MyCollection<T> NoConstraints<T>(T x, T y) => [x, y];
-            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "[x, y]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(3, 58));
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "[x, y]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(3, 58),
+            // (25,83): error CS1737: Optional parameters must appear after all required parameters
+            //     public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items) where T : struct => new(arg, items);
+            Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(25, 83));
 
         string sourceB2 = """
                 class Program
@@ -2464,7 +2467,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "NoConstraintsParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(9, 58),
             // (11,76): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
             //     static MyCollection<T> ClassConstraint<T>(T x, T y) where T : class => ClassConstraintParams(x, y);
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ClassConstraintParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(11, 76));
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ClassConstraintParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(11, 76),
+            // (12,51): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+            //     static MyCollection<T> NoConstraintsParams<T>(params MyCollection<T> c) => c;
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(12, 51),
+            // (14,53): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+            //     static MyCollection<T> ClassConstraintParams<T>(params MyCollection<T> c) where T : class => c;
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(14, 53));
     }
 
     [Fact]
@@ -2550,7 +2559,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "NoConstraintsParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(9, 58),
             // (11,76): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
             //     static MyCollection<T> ClassConstraint<T>(T x, T y) where T : class => ClassConstraintParams(x, y);
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ClassConstraintParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(11, 76));
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ClassConstraintParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(11, 76),
+            // (12,51): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+            //     static MyCollection<T> NoConstraintsParams<T>(params MyCollection<T> c) => c;
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(12, 51),
+            // (14,53): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+            //     static MyCollection<T> ClassConstraintParams<T>(params MyCollection<T> c) where T : class => c;
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(14, 53));
     }
 
     [Fact]
@@ -4323,21 +4338,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB2],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //         c = [];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[]").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)", "T", "object").WithLocation(6, 13),
+            // (7,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //         c = [with(), 1];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), 1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with()").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)", "T", "object").WithLocation(7, 14),
+            // (8,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //         c = [with(2)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(2)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(2)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)", "T", "object").WithLocation(8, 14),
+            // (9,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //         F<object>();
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F<object>()").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 9),
-            // (10,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>()").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)", "T", "object").WithLocation(9, 9),
+            // (10,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //         F((object)3);
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F((object)3)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 9),
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F((object)3)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)", "T", "object").WithLocation(10, 9),
             // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c)
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 22));
