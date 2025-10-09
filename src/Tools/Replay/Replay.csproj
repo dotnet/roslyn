@@ -27,6 +27,7 @@
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="MSBuild.StructuredLogger" />
     <PackageReference Include="Basic.CompilerLog.Util" />
+    <packageReference Include="MessagePack" VersionOverride="3.1.4" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
 

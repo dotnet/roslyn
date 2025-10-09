@@ -922,63 +922,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal(expectedVersion, compilerApiVersion);
         }
 
-        [Theory]
-        [InlineData(".NETCoreApp", true)]
-        [InlineData(".NETFramework", false)]
-        [InlineData(".NETStandard", false)]
-        public void CS8002SuppressedForNetCoreAppInCSharp(string targetFrameworkIdentifier, bool shouldSuppressCS8002)
-        {
-            XmlReader xmlReader = XmlReader.Create(new StringReader($"""
-<Project>
-    <PropertyGroup>
-        <TargetFrameworkIdentifier>{targetFrameworkIdentifier}</TargetFrameworkIdentifier>
-        <_TargetFrameworkVersionWithoutV>5.0</_TargetFrameworkVersionWithoutV>
-    </PropertyGroup>
-    <Import Project="Microsoft.CSharp.Core.targets" />
-</Project>
-"""));
-
-            // This test verifies that the C# targets file can be successfully imported and evaluated
-            // for different target frameworks. When TargetFrameworkIdentifier is .NETCoreApp, the
-            // CoreCompile target will append 8002 to NoWarn property to suppress the warning.
-            // The shouldSuppressCS8002 parameter documents the expected behavior.
-            // Note: Testing the actual NoWarn property value is challenging because properties set
-            // inside MSBuild targets using PropertyGroup are scoped to that target and don't persist
-            // after target execution completes.
-            var instance = CreateProjectInstance(xmlReader);
-            Assert.NotNull(instance);
-            
-            _ = shouldSuppressCS8002; // Suppress unused parameter warning
-        }
-
-        [Theory]
-        [InlineData(".NETCoreApp", true)]
-        [InlineData(".NETFramework", false)]
-        [InlineData(".NETStandard", false)]
-        public void CS8002SuppressedForNetCoreAppInVisualBasic(string targetFrameworkIdentifier, bool shouldSuppressCS8002)
-        {
-            XmlReader xmlReader = XmlReader.Create(new StringReader($"""
-<Project>
-    <PropertyGroup>
-        <TargetFrameworkIdentifier>{targetFrameworkIdentifier}</TargetFrameworkIdentifier>
-    </PropertyGroup>
-    <Import Project="Microsoft.VisualBasic.Core.targets" />
-</Project>
-"""));
-
-            // This test verifies that the Visual Basic targets file can be successfully imported and
-            // evaluated for different target frameworks. When TargetFrameworkIdentifier is .NETCoreApp,
-            // the CoreCompile target will append 8002 to NoWarn property to suppress the warning.
-            // The shouldSuppressCS8002 parameter documents the expected behavior.
-            // Note: Testing the actual NoWarn property value is challenging because properties set
-            // inside MSBuild targets using PropertyGroup are scoped to that target and don't persist
-            // after target execution completes.
-            var instance = CreateProjectInstance(xmlReader);
-            Assert.NotNull(instance);
-            
-            _ = shouldSuppressCS8002; // Suppress unused parameter warning
-        }
-
         private static ProjectInstance CreateProjectInstance(XmlReader reader)
         {
             Project proj = new Project(reader);
