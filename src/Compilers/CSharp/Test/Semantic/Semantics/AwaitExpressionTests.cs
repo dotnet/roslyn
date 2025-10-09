@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11,7 +13,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -585,6 +586,342 @@ class C
 ";
             CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "Passed").VerifyDiagnostics();
             CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "Passed").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestAwaitUsingDeclarationAwaitInfo()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+class C : IAsyncDisposable
+{
+    async Task M()
+    {
+        await using var x = new C();
+    }
+
+    public ValueTask DisposeAsync() => default;
+}";
+
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
+            validateComp(comp, isRuntimeAsync: false);
+
+            comp = CreateRuntimeAsyncCompilation(text);
+            validateComp(comp, isRuntimeAsync: true);
+
+            static void validateComp(CSharpCompilation comp, bool isRuntimeAsync)
+            {
+                comp.VerifyDiagnostics();
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+                var awaitUsingDeclaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+
+                var info = model.GetAwaitExpressionInfo(awaitUsingDeclaration);
+                if (isRuntimeAsync)
+                {
+                    Assert.Null(info.GetAwaiterMethod);
+                    Assert.Null(info.IsCompletedProperty);
+                    Assert.Null(info.GetResultMethod);
+                    AssertEx.Equal("void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask task)", info.RuntimeAwaitMethod.ToTestDisplayString());
+                }
+                else
+                {
+                    AssertEx.Equal("System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+                    Assert.NotNull(info.IsCompletedProperty);
+                    Assert.NotNull(info.GetResultMethod);
+                    Assert.Null(info.RuntimeAwaitMethod);
+                }
+                Assert.False(info.IsDynamic);
+            }
+        }
+
+        [Fact]
+        public void TestAwaitUsingStatementAwaitInfo()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+class C : IAsyncDisposable
+{
+    async Task M()
+    {
+        await using (var x = new C())
+        {
+        }
+    }
+
+    public ValueTask DisposeAsync() => default;
+}";
+
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
+            validateComp(comp, isRuntimeAsync: false);
+
+            comp = CreateRuntimeAsyncCompilation(text);
+            validateComp(comp, isRuntimeAsync: true);
+
+            static void validateComp(CSharpCompilation comp, bool isRuntimeAsync)
+            {
+                comp.VerifyDiagnostics();
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+                var awaitUsingStatement = tree.GetRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
+
+                var info = model.GetAwaitExpressionInfo(awaitUsingStatement);
+                if (isRuntimeAsync)
+                {
+                    Assert.Null(info.GetAwaiterMethod);
+                    Assert.Null(info.IsCompletedProperty);
+                    Assert.Null(info.GetResultMethod);
+                    AssertEx.Equal("void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask task)", info.RuntimeAwaitMethod.ToTestDisplayString());
+                }
+                else
+                {
+                    AssertEx.Equal("System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+                    Assert.NotNull(info.IsCompletedProperty);
+                    Assert.NotNull(info.GetResultMethod);
+                    Assert.Null(info.RuntimeAwaitMethod);
+                }
+                Assert.False(info.IsDynamic);
+            }
+        }
+
+        [Fact]
+        public void TestAwaitUsingDeclarationAwaitInfo_ThrowsOnNonAwaitUsing()
+        {
+            var text = @"
+using System;
+
+class C : IDisposable
+{
+    void M()
+    {
+        using var x = new C();
+    }
+
+    public void Dispose() { }
+}";
+
+            var comp = CreateCompilation(text);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var usingDeclaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+            Assert.Throws<ArgumentException>("node", () => model.GetAwaitExpressionInfo(usingDeclaration));
+        }
+
+        [Fact]
+        public void TestAwaitUsingStatementAwaitInfo_ReturnsDefaultOnNonAwaitUsing()
+        {
+            var text = @"
+using System;
+
+class C : IDisposable
+{
+    void M()
+    {
+        using (var x = new C())
+        {
+        }
+    }
+
+    public void Dispose() { }
+}";
+
+            var comp = CreateCompilation(text);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var usingStatement = tree.GetRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
+            Assert.Throws<ArgumentException>("node", () => model.GetAwaitExpressionInfo(usingStatement));
+        }
+
+        [Fact]
+        public void TestAwaitUsingDeclarationWithCustomAwaitable()
+        {
+            var text = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+public struct MyValueTask
+{
+    public MyAwaiter GetAwaiter() => default;
+}
+
+public struct MyAwaiter : ICriticalNotifyCompletion
+{
+    public bool IsCompleted => true;
+    public void GetResult() { }
+    public void OnCompleted(Action continuation) { }
+    public void UnsafeOnCompleted(Action continuation) { }
+}
+
+class C : IAsyncDisposable
+{
+    async Task M()
+    {
+        await using var x = new C();
+    }
+
+    public MyValueTask DisposeAsync() => default;
+}";
+
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
+            validate(comp, isRuntimeAsync: false);
+
+            comp = CreateRuntimeAsyncCompilation(text);
+            validate(comp, isRuntimeAsync: true);
+
+            static void validate(CSharpCompilation comp, bool isRuntimeAsync)
+            {
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+
+                var awaitUsingDeclaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+
+                var info = model.GetAwaitExpressionInfo(awaitUsingDeclaration);
+                Assert.NotNull(info.GetAwaiterMethod);
+                Assert.Equal("MyAwaiter MyValueTask.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+                Assert.NotNull(info.IsCompletedProperty);
+                Assert.Equal("System.Boolean MyAwaiter.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+                Assert.NotNull(info.GetResultMethod);
+                Assert.Equal("void MyAwaiter.GetResult()", info.GetResultMethod.ToTestDisplayString());
+                Assert.False(info.IsDynamic);
+
+                if (isRuntimeAsync)
+                {
+                    AssertEx.Equal("void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<MyAwaiter>(MyAwaiter awaiter)", info.RuntimeAwaitMethod.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Null(info.RuntimeAwaitMethod);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestAwaitUsingStatementWithCustomAwaitable()
+        {
+            var text = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+public struct MyValueTask
+{
+    public MyAwaiter GetAwaiter() => default;
+}
+
+public struct MyAwaiter : ICriticalNotifyCompletion
+{
+    public bool IsCompleted => true;
+    public void GetResult() { }
+    public void OnCompleted(Action continuation) { }
+    public void UnsafeOnCompleted(Action continuation) { }
+}
+
+class C : IAsyncDisposable
+{
+    async Task M()
+    {
+        await using (var x = new C()) { }
+    }
+
+    public MyValueTask DisposeAsync() => default;
+}";
+
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
+            validate(comp, isRuntimeAsync: false);
+
+            comp = CreateRuntimeAsyncCompilation(text);
+            validate(comp, isRuntimeAsync: true);
+
+            static void validate(CSharpCompilation comp, bool isRuntimeAsync)
+            {
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+
+                var awaitUsingDeclaration = tree.GetRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
+
+                var info = model.GetAwaitExpressionInfo(awaitUsingDeclaration);
+                Assert.NotNull(info.GetAwaiterMethod);
+                Assert.Equal("MyAwaiter MyValueTask.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+                Assert.NotNull(info.IsCompletedProperty);
+                Assert.Equal("System.Boolean MyAwaiter.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+                Assert.NotNull(info.GetResultMethod);
+                Assert.Equal("void MyAwaiter.GetResult()", info.GetResultMethod.ToTestDisplayString());
+                Assert.False(info.IsDynamic);
+
+                if (isRuntimeAsync)
+                {
+                    AssertEx.Equal("void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<MyAwaiter>(MyAwaiter awaiter)", info.RuntimeAwaitMethod.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Null(info.RuntimeAwaitMethod);
+                }
+            }
+        }
+
+        [Fact]
+        public void SpeculativeSemanticModel_GetAwaitExpressionInfo_LocalDeclarationStatement()
+        {
+            var text = """
+                using System.Threading.Tasks;
+                class C : System.IAsyncDisposable
+                {
+                    async Task Goo()
+                    {
+                        await using var x = new C();
+                    }
+                    public ValueTask DisposeAsync() => default;
+                }
+                """;
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actualLocalDecl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var speculativeLocalDecl = SyntaxFactory.ParseStatement("await using var y = new C();");
+
+            var success = model.TryGetSpeculativeSemanticModel(actualLocalDecl.SpanStart, speculativeLocalDecl, out var specModel);
+            Assert.True(success);
+            Assert.NotNull(specModel);
+
+            var speculativeInfo = specModel.GetAwaitExpressionInfo((LocalDeclarationStatementSyntax)speculativeLocalDecl);
+            AssertEx.Equal("System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()", speculativeInfo.GetAwaiterMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SpeculativeSemanticModel_GetAwaitExpressionInfo_UsingStatementSyntax()
+        {
+            var text = """
+                using System.Threading.Tasks;
+                class C : System.IAsyncDisposable
+                {
+                    async Task Goo()
+                    {
+                        await using (var x = new C()) { }
+                    }
+                    public ValueTask DisposeAsync() => default;
+                }
+                """;
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actualUsingStmt = tree.GetRoot().DescendantNodes().OfType<UsingStatementSyntax>().First();
+            var speculativeUsingStmt = SyntaxFactory.ParseStatement("await using (var y = new C()) { }");
+
+            var success = model.TryGetSpeculativeSemanticModel(actualUsingStmt.SpanStart, speculativeUsingStmt, out var specModel);
+            Assert.True(success);
+            Assert.NotNull(specModel);
+
+            var speculativeInfo = specModel.GetAwaitExpressionInfo((UsingStatementSyntax)speculativeUsingStmt);
+            AssertEx.Equal("System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()", speculativeInfo.GetAwaiterMethod.ToTestDisplayString());
         }
     }
 }

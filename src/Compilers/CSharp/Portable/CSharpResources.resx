@@ -8205,4 +8205,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ParameterRequiresTypeOrIdentifier" xml:space="preserve">
     <value>ParameterSyntax requires either a type or an identifier.</value>
   </data>
+  <data name="NodeIsNotAwaitUsingDeclaration" xml:space="preserve">
+    <value>'node' is not an 'await using' declaration</value>
+    <comment>node and await using are not localizable</comment>
+  </data>
+  <data name="NodeIsNotAwaitUsingStatement" xml:space="preserve">
+    <value>'node' is not an 'await using' statement</value>
+    <comment>node and await using are not localizable</comment>
+  </data>
 </root>
