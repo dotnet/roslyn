@@ -72,7 +72,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
-      <!-- CS8002 is not relevant when targeting .NET Core -->
+      <!-- CS8002 is not relevant when targeting .NET Core because it ignores strong naming -->
       <NoWarn>$(NoWarn);8002</NoWarn>
     </PropertyGroup>
 
