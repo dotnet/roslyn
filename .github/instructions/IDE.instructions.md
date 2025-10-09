@@ -90,16 +90,16 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
 
 ```bash
 # Full build
-.\Build.cmd
+.build.sh
 
 # Build and deploy to experimental VS instance  
-.\Build.cmd -deployExtensions -launch
+.build.sh -deployExtensions -launch
 
 # Run specific test project
 dotnet test src/EditorFeatures/Test/
 
 # Build with analyzers
-.\Build.cmd -testUsedAssemblies
+.build.sh -testUsedAssemblies
 
 # Generate compiler code (if changing syntax)
 dotnet run --file eng/generate-compiler-code.cs

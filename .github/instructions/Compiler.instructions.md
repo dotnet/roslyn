@@ -58,7 +58,7 @@ compilation = compilation.ReplaceSyntaxTree(oldTree, newTree);
 ### Essential Build Commands
 ```powershell
 # Full build (use VS Code tasks when available)
-./build.cmd
+./build.sh
 
 # Build specific components  
 dotnet build Compilers.slnf                    # Compiler-only build
