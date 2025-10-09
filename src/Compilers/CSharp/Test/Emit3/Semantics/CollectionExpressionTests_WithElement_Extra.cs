@@ -1418,9 +1418,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (15,53): error CS9502: Collection arguments are not supported for type 'MyCollection<T>'.
+            // (15,52): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<T>").WithLocation(15, 53));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(t), t]").WithArguments("Create", "1").WithLocation(15, 52));
     }
 
     [Fact]
@@ -1467,10 +1467,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var comp = CreateCompilation(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics(
-            // (15,53): error CS9502: Collection arguments are not supported for type 'MyCollection<T>'.
-            //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<T>").WithLocation(15, 53));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -1913,12 +1910,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         // result in errors since x should not be included in the params argument. Should
         // be fixed when the last parameter of the builder method is the items parameter.
         comp.VerifyEmitDiagnostics(
-            // (15,14): error CS9502: Collection arguments are not supported for type 'MyCollection<MyItem>'.
+            // (15,13): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         c = [with(x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<MyItem>").WithLocation(15, 14),
-            // (16,14): error CS9502: Collection arguments are not supported for type 'MyCollection<MyItem>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(x)]").WithArguments("Create", "1").WithLocation(15, 13),
+            // (16,13): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         c = [with(x), y];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<MyItem>").WithLocation(16, 14));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(x), y]").WithArguments("Create", "1").WithLocation(16, 13));
     }
 
     // C#7.3 feature ImprovedOverloadCandidates drops candidates with constraint violations
@@ -3034,24 +3031,24 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB1, s_collectionExtensions], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (6,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(0)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6),
-            // (8,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(0)]").WithArguments("Create", "1").WithLocation(6, 5),
+            // (8,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6),
-            // (11,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(x)]").WithArguments("Create", "1").WithLocation(8, 5),
+            // (11,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(ref x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(11, 6),
-            // (14,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(ref x)]").WithArguments("Create", "1").WithLocation(11, 5),
+            // (14,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(in x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(14, 6),
-            // (17,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(in x)]").WithArguments("Create", "1").WithLocation(14, 5),
+            // (17,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(in r)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(17, 6),
-            // (20,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(in r)]").WithArguments("Create", "1").WithLocation(17, 5),
+            // (20,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(in ro)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(20, 6));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(in ro)]").WithArguments("Create", "1").WithLocation(20, 5));
 
         string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
@@ -3115,24 +3112,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB1, s_collectionExtensions], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(0)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6),
-            // (8,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6),
-            // (11,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (11,15): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             // c = [with(ref x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(11, 6),
-            // (14,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(in x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(14, 6),
-            // (17,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(in r)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(17, 6),
-            // (20,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(in ro)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(20, 6));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(11, 15));
 
         string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
