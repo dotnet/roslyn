@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 arguments = ArrayBuilder<BoundExpression>.GetInstance();
-                var concatMethods = new WellKnownConcatRelatedMethods(_compilation);
+                var concatMethods = new StringConcatOptimizationPatterns(_compilation);
                 VisitAndAddConcatArgumentInReverseOrder(unvisitedRight, argumentAlreadyVisited: false, arguments, ref concatMethods);
                 VisitAndAddConcatArgumentInReverseOrder(left, argumentAlreadyVisited: true, arguments, ref concatMethods);
                 arguments.ReverseContents();
@@ -209,34 +209,35 @@ fallbackStrings:
         {
             Debug.Assert(!_inExpressionLambda);
             destinationArguments = ArrayBuilder<BoundExpression>.GetInstance();
-            var concatMethods = new WellKnownConcatRelatedMethods(_compilation);
-            pushArguments(this, originalOperator, destinationArguments, ref concatMethods);
+            var stringConcatOptimizationPatterns = new StringConcatOptimizationPatterns(_compilation);
+            pushArguments(this, originalOperator, destinationArguments, ref stringConcatOptimizationPatterns);
             if (visitedCompoundAssignmentLeftRead is not null)
             {
+#if DEBUG
                 // We don't expect to be able to optimize anything about the compound assignment left read, so we just add it as-is. This assert should be kept in sync
                 // with the cases that can be optimized by the VisitAndAddConcatArgumentInReverseOrder method below; if we ever find a case that can be optimized, we may
                 // need to consider whether to do so. The visiting logic in the parent function here depends on only one argument being added for a compound assignment
                 // left read, so if we ever do introduce optimizations here that result in more than one argument being added to destinationArguments, we'll need to adjust
                 // that logic.
-                Debug.Assert(visitedCompoundAssignmentLeftRead is
-                    not (BoundCall or BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand.Type.SpecialType: SpecialType.System_Char })
-                    and { ConstantValueOpt: null });
+                Debug.Assert(!stringConcatOptimizationPatterns.IsOptimizable(visitedCompoundAssignmentLeftRead));
+                Debug.Assert(visitedCompoundAssignmentLeftRead.ConstantValueOpt is null);
+#endif
                 destinationArguments.Add(visitedCompoundAssignmentLeftRead);
             }
             destinationArguments.ReverseContents();
 
             // We push these in reverse order to take advantage of the left-recursive nature of the tree and avoid needing a second stack
-            static void pushArguments(LocalRewriter self, BoundBinaryOperator binaryOperator, ArrayBuilder<BoundExpression> arguments, ref WellKnownConcatRelatedMethods concatMethods)
+            static void pushArguments(LocalRewriter self, BoundBinaryOperator binaryOperator, ArrayBuilder<BoundExpression> arguments, ref StringConcatOptimizationPatterns stringConcatOptimizationPatterns)
             {
                 while (true)
                 {
                     if (shouldRecurse(binaryOperator.Right, out var right))
                     {
-                        pushArguments(self, right, arguments, ref concatMethods);
+                        pushArguments(self, right, arguments, ref stringConcatOptimizationPatterns);
                     }
                     else
                     {
-                        self.VisitAndAddConcatArgumentInReverseOrder(binaryOperator.Right, argumentAlreadyVisited: false, arguments, ref concatMethods);
+                        self.VisitAndAddConcatArgumentInReverseOrder(binaryOperator.Right, argumentAlreadyVisited: false, arguments, ref stringConcatOptimizationPatterns);
                     }
 
                     if (shouldRecurse(binaryOperator.Left, out var left))
@@ -245,7 +246,7 @@ fallbackStrings:
                     }
                     else
                     {
-                        self.VisitAndAddConcatArgumentInReverseOrder(binaryOperator.Left, argumentAlreadyVisited: false, arguments, ref concatMethods);
+                        self.VisitAndAddConcatArgumentInReverseOrder(binaryOperator.Left, argumentAlreadyVisited: false, arguments, ref stringConcatOptimizationPatterns);
                         break;
                     }
                 }
@@ -275,7 +276,7 @@ fallbackStrings:
         /// to <paramref name="finalArguments"/>. It will also fold consecutive constant strings or chars into a single string constant, to avoid unnecessary concatenation. It may also do other optimizations,
         /// such as deconstructing nested string.Concat calls.
         /// </remarks>
-        private void VisitAndAddConcatArgumentInReverseOrder(BoundExpression argument, bool argumentAlreadyVisited, ArrayBuilder<BoundExpression> finalArguments, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
+        private void VisitAndAddConcatArgumentInReverseOrder(BoundExpression argument, bool argumentAlreadyVisited, ArrayBuilder<BoundExpression> finalArguments, ref StringConcatOptimizationPatterns stringConcatOptimizationPatterns)
         {
             Debug.Assert(argument is not BoundBinaryOperator { InterpolatedStringHandlerData: null } op || !IsBinaryStringConcatenation(op));
             if (!argumentAlreadyVisited)
@@ -283,30 +284,29 @@ fallbackStrings:
                 argument = VisitExpression(argument);
             }
 
-            if (argument is BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand: { Type.SpecialType: SpecialType.System_Char } operand })
+            if (argument is BoundConversion conversion && StringConcatOptimizationPatterns.IsBoxedChar(conversion, out BoundExpression? operand))
             {
                 argument = operand;
             }
             else if (argument is BoundCall call)
             {
-                if (wellKnownConcatOptimizationMethods.IsWellKnownConcatMethod(call, out var concatArguments))
+                if (stringConcatOptimizationPatterns.IsWellKnownConcatMethod(call, out var concatArguments))
                 {
                     for (int i = concatArguments.Length - 1; i >= 0; i--)
                     {
-                        VisitAndAddConcatArgumentInReverseOrder(concatArguments[i], argumentAlreadyVisited: true, finalArguments, ref wellKnownConcatOptimizationMethods);
+                        VisitAndAddConcatArgumentInReverseOrder(concatArguments[i], argumentAlreadyVisited: true, finalArguments, ref stringConcatOptimizationPatterns);
                     }
 
                     return;
                 }
-                else if (wellKnownConcatOptimizationMethods.IsCharToString(call, out var charExpression))
+                else if (stringConcatOptimizationPatterns.IsCharToString(call, out var charExpression))
                 {
                     argument = charExpression;
                 }
             }
-            // This is `strValue ?? ""`, possibly from a nested binary addition of an interpolated string. We can just directly use the left operand
-            else if (argument is BoundNullCoalescingOperator { LeftOperand: { Type.SpecialType: SpecialType.System_String } left, RightOperand: BoundLiteral { ConstantValueOpt: { IsString: true, RopeValue.IsEmpty: true } } })
+            else if (argument is BoundNullCoalescingOperator nullCoalescingOperator && StringConcatOptimizationPatterns.IsNullCoalesceWithEmptyString(nullCoalescingOperator, out operand))
             {
-                argument = left;
+                argument = operand;
             }
 
             switch (argument.ConstantValueOpt)
@@ -353,7 +353,7 @@ fallbackStrings:
             InvolvesObjects,
         }
 
-        private struct WellKnownConcatRelatedMethods(CSharpCompilation compilation)
+        private struct StringConcatOptimizationPatterns(CSharpCompilation compilation)
         {
             private readonly CSharpCompilation _compilation = compilation;
 
@@ -404,6 +404,42 @@ fallbackStrings:
                 charExpression = null;
                 return false;
             }
+
+            public static bool IsBoxedChar(BoundConversion conversion, [NotNullWhen(true)] out BoundExpression? charExpression)
+            {
+                if (conversion is { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand: { Type.SpecialType: SpecialType.System_Char } operand })
+                {
+                    charExpression = operand;
+                    return true;
+                }
+
+                charExpression = null;
+                return false;
+            }
+
+            public static bool IsNullCoalesceWithEmptyString(BoundNullCoalescingOperator nullCoalescingOperator, [NotNullWhen(true)] out BoundExpression? stringExpression)
+            {
+                // This is `strValue ?? ""`, possibly from a nested binary addition of an interpolated string. We can just directly use the left operand
+                if (nullCoalescingOperator is { LeftOperand: { Type.SpecialType: SpecialType.System_String } left, RightOperand: BoundLiteral { ConstantValueOpt: { IsString: true, RopeValue.IsEmpty: true } } })
+                {
+                    stringExpression = left;
+                    return true;
+                }
+
+                stringExpression = null;
+                return false;
+            }
+
+#if DEBUG
+            public bool IsOptimizable(BoundExpression expression)
+                => expression switch
+                {
+                    BoundCall call => IsWellKnownConcatMethod(call, out _) || IsCharToString(call, out _),
+                    BoundConversion conversion => StringConcatOptimizationPatterns.IsBoxedChar(conversion, out _),
+                    BoundNullCoalescingOperator nullCoalescingOperator => StringConcatOptimizationPatterns.IsNullCoalesceWithEmptyString(nullCoalescingOperator, out _),
+                    _ => false,
+                };
+#endif
 
             private readonly void InitializeField(ref MethodSymbol? member, SpecialMember specialMember)
             {
