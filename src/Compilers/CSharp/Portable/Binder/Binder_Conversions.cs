@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // PROTOTYPE: Implement support for CollectionBuilder.  For now, error on it.
 
-                        // Array, Span, ReadOnlySpan, CollectionBuilder,
+                        // Array, Span, ReadOnlySpan, CollectionBuilder.
                         diagnostics.Add(
                             ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
                             node.WithElement.Syntax.GetFirstToken().GetLocation(),
