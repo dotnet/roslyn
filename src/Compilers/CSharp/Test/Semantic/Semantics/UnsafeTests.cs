@@ -13942,5 +13942,168 @@ unsafe class C
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ExplicitImplementation_01()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    void Method();
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    unsafe void ITest<void*[]>.Method()
+    {
+
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ExplicitImplementation_02()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    int P1 {get;}
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    unsafe int ITest<void*[]>.P1
+    {
+        get;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_03()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    int this[int i] {get;}
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    unsafe int ITest<void*[]>.this[int i]
+    {
+        get => 0;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_04()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    event System.Action E1;
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    unsafe event System.Action ITest<void*[]>.E1
+    {
+        add{}
+        remove{}    
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ExplicitImplementation_05()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    abstract static ITest<T> operator-(ITest<T> x);
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    static unsafe ITest<void*[]> ITest<void*[]>.operator-(ITest<void*[]> x)
+    {
+        return null;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ExplicitImplementation_06()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    abstract static implicit operator int(ITest<T> x);
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    static unsafe implicit ITest<void*[]>.operator int(ITest<void*[]> x)
+    {
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(
+                // (4,39): error CS0552: 'ITest<T>.implicit operator int(ITest<T>)': user-defined conversions to or from an interface are not allowed
+                //     abstract static implicit operator int(ITest<T> x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("ITest<T>.implicit operator int(ITest<T>)").WithLocation(4, 39)
+                );
+        }
     }
 }
