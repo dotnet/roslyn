@@ -357,6 +357,11 @@
         <target state="translated">“{0}”类型对于 "using static" 无效。只能使用类、结构、接口、枚举、委托或命名空间。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
         <target state="translated">不能在 "unsafe" 块中使用 "yield return"</target>
