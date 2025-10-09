@@ -2707,12 +2707,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (5,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(ref x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
-            // (8,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(ref x)]").WithArguments("Create", "1").WithLocation(5, 5),
+            // (8,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(ref r)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(ref r)]").WithArguments("Create", "1").WithLocation(8, 5));
 
         string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
@@ -2781,13 +2781,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var comp = CreateCompilation(
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics(
-            // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(ref x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
-            // (8,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(ref r)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6));
+        comp.VerifyEmitDiagnostics();
 
         string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
@@ -2893,15 +2887,15 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (5,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(in x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(in x)]").WithArguments("Create", "1").WithLocation(5, 5),
             // (6,15): error CS1510: A ref or out value must be an assignable variable
             // c = [with(ref ro)];
             Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(6, 15),
-            // (7,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (7,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(out x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 6));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(out x)]").WithArguments("Create", "1").WithLocation(7, 5));
     }
 
     [Fact]
@@ -2969,15 +2963,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(in x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
             // (6,15): error CS1510: A ref or out value must be an assignable variable
             // c = [with(ref ro)];
             Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(6, 15),
-            // (7,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (7,15): error CS1615: Argument 1 may not be passed with the 'out' keyword
             // c = [with(out x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 6));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(7, 15));
     }
 
     [Fact]
@@ -3415,45 +3406,24 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (2,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(items: default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(2, 5),
-            // (2,18): error CS8716: There is no target type for the default literal.
-            // c = [with(items: default)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 18),
             // (3,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(items: default, 1)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default, 1)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(3, 5),
-            // (3,18): error CS8716: There is no target type for the default literal.
-            // c = [with(items: default, 1)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(3, 18),
             // (4,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(items: default, arg: 2)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default, arg: 2)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(4, 5),
-            // (4,18): error CS8716: There is no target type for the default literal.
-            // c = [with(items: default, arg: 2)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(4, 18),
             // (5,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(3, items: default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(3, items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 5),
-            // (5,21): error CS8716: There is no target type for the default literal.
-            // c = [with(3, items: default)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(5, 21),
             // (6,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(arg: 4, items: default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(arg: 4, items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 5),
-            // (6,26): error CS8716: There is no target type for the default literal.
-            // c = [with(arg: 4, items: default)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 26),
             // (7,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(default, 5)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default, 5)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 5),
-            // (7,11): error CS8716: There is no target type for the default literal.
-            // c = [with(default, 5)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 11),
             // (8,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(default, arg: 6)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default, arg: 6)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 5),
-            // (8,11): error CS8716: There is no target type for the default literal.
-            // c = [with(default, arg: 6)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 11));
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default, arg: 6)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 5));
     }
 
     [Fact]
@@ -3489,48 +3459,27 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (2,11): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
             // c = [with(items: default)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(2, 5),
-            // (2,18): error CS8716: There is no target type for the default literal.
-            // c = [with(items: default)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 18),
-            // (3,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(2, 11),
+            // (3,11): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
             // c = [with(items: default, 1)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default, 1)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(3, 5),
-            // (3,18): error CS8716: There is no target type for the default literal.
-            // c = [with(items: default, 1)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(3, 18),
-            // (4,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(3, 11),
+            // (4,11): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
             // c = [with(items: default, arg: 2)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default, arg: 2)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(4, 5),
-            // (4,18): error CS8716: There is no target type for the default literal.
-            // c = [with(items: default, arg: 2)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(4, 18),
-            // (5,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(4, 11),
+            // (5,14): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
             // c = [with(3, items: default)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(3, items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 5),
-            // (5,21): error CS8716: There is no target type for the default literal.
-            // c = [with(3, items: default)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(5, 21),
-            // (6,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(5, 14),
+            // (6,19): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
             // c = [with(arg: 4, items: default)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(arg: 4, items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 5),
-            // (6,26): error CS8716: There is no target type for the default literal.
-            // c = [with(arg: 4, items: default)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 26),
-            // (7,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(6, 19),
+            // (7,5): error CS9405: No overload for method 'Create' takes 2 'with(...)' element arguments
             // c = [with(default, 5)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default, 5)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 5),
-            // (7,11): error CS8716: There is no target type for the default literal.
-            // c = [with(default, 5)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 11),
-            // (8,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(default, 5)]").WithArguments("Create", "2").WithLocation(7, 5),
+            // (8,20): error CS1744: Named argument 'arg' specifies a parameter for which a positional argument has already been given
             // c = [with(default, arg: 6)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default, arg: 6)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 5),
-            // (8,11): error CS8716: There is no target type for the default literal.
-            // c = [with(default, arg: 6)];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 11));
+            Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "arg").WithArguments("arg").WithLocation(8, 20));
     }
 
     [Fact]
