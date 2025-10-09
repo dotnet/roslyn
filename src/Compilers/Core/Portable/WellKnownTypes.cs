@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_Encoding,
 
+        // The InlineArray types must be sequential, as we do arithmetic on them.
         System_Runtime_CompilerServices_InlineArray2,
         System_Runtime_CompilerServices_InlineArray3,
         System_Runtime_CompilerServices_InlineArray4,
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArray16,
 
         NextAvailable,
-        // Remember to update the AllWellKnownTypes tests when making changes here
+        // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
     }
 
     internal static class WellKnownTypes
@@ -787,6 +788,14 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 RoslynDebug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
+            }
+
+            // InlineArray types must be sequential, as we do arithmetic on them.
+            var startingOffset = WellKnownType.System_Runtime_CompilerServices_InlineArray2 - 2;
+            for (int i = 2; i <= 16; i++)
+            {
+                var expectedName = $"System_Runtime_CompilerServices_InlineArray{i}";
+                Debug.Assert(expectedName == (startingOffset + i).ToString());
             }
 
 #if DEBUG

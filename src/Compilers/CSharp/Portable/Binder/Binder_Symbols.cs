@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1836,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownType(compilation, type, diagnostics, node.Location);
         }
 
+#nullable enable
         internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location)
         {
             NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
@@ -1843,6 +1845,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUseSite(typeSymbol, diagnostics, location);
             return typeSymbol;
         }
+
+        internal static bool TryGetWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location, [NotNullWhen(true)] out NamedTypeSymbol? typeSymbol)
+        {
+            typeSymbol = compilation.GetWellKnownType(type);
+            Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
+            if (typeSymbol.GetUseSiteInfo().DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            {
+                typeSymbol = null;
+                return false;
+            }
+
+            ReportUseSite(typeSymbol, diagnostics, location);
+            return true;
+        }
+#nullable disable
 
         /// <summary>
         /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
