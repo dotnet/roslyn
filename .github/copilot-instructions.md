@@ -70,7 +70,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 
 ## Common Gotchas
 
-- Don't modify `SyntaxTree`/`Document` directly - use `With*` methods
+- Follow existing conventions in the file
 - Language services must be exported per-language, not shared across C#/VB
 - Test failures often indicate MEF composition issues - check export attributes
 - VSIX deployment targets multiple architectures - ensure platform-specific assets are handled
