@@ -1056,14 +1056,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(collectionBuilderMethods.Length > 0);
 
-                var projectionToOriginalMethod = PooledDictionary<MethodSymbol, MethodSymbol>.GetInstance();
                 var projectionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                 foreach (var builderMethod in collectionBuilderMethods)
                 {
                     var projection = new SynthesizedCollectionBuilderProjectedMethodSymbol(builderMethod);
                     Debug.Assert(projection.Arity == 0);
                     projectionMethods.Add(projection);
-                    projectionToOriginalMethod.Add(projection, builderMethod);
                 }
 
                 var analyzedArguments = node.WithElement is null
@@ -1073,11 +1071,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
-                // All the methods were instantiated with the same type-arguments, so we can grab what we need off of the first in the list.
-                Debug.Assert(collectionBuilderMethods.All(t => t.Name == collectionBuilderMethods[0].Name));
-
                 var syntax = node.WithElement?.Syntax ?? node.Syntax;
+
+                // All the methods were instantiated with the same type-arguments, so we can grab what we need off of the first in the list.
                 var methodName = collectionBuilderMethods[0].Name;
+                Debug.Assert(collectionBuilderMethods.All(t => t.Name == methodName));
 
                 var methodGroup = new BoundMethodGroup(
                     syntax,
@@ -1103,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (projectionInvocationExpression is not BoundCall projectionCall ||
                     projectionCall.Expanded ||
-                    !projectionToOriginalMethod.TryGetValue(projectionCall.Method, out collectionBuilderMethod))
+                    projectionCall.Method is not SynthesizedCollectionBuilderProjectedMethodSymbol { UnderlyingMethod: var underlyingMethod })
                 {
                     // PROTOTYPE: give error when in expanded form.  This means we had something like `Foo(params int[]
                     // x, ReadOnlySpan<int> y)` which is already extremely strange.
@@ -1115,6 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Now that we've settled on the actual collection builder method to call, do a final round of
                     // checks on it in case there are reasons it will have a problem.
+                    collectionBuilderMethod = underlyingMethod;
                     @this.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics, forParams: false);
 
                     // Take our successful call to the projection method and rewrite it to call the actual call to the
@@ -1165,7 +1164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 overloadResolutionResult.Free();
                 analyzedArguments.Free();
-                projectionToOriginalMethod.Free();
 
                 return (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder);
             }
