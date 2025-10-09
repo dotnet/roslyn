@@ -23,6 +23,7 @@ public sealed class SdkIntegrationTests : IDisposable
     public ITestOutputHelper TestOutputHelper { get; }
     public TempRoot Temp { get; }
     public TempDirectory ProjectDir { get; }
+    public ArtifactUploadUtil ArtifactUploadUtil { get; }
 
     public SdkIntegrationTests(ITestOutputHelper testOutputHelper)
     {
@@ -30,11 +31,13 @@ public sealed class SdkIntegrationTests : IDisposable
         TestOutputHelper = testOutputHelper;
         Temp = new TempRoot();
         ProjectDir = Temp.CreateDirectory();
+        ArtifactUploadUtil = new ArtifactUploadUtil(testOutputHelper);
     }
 
     public void Dispose()
     {
         Temp.Dispose();
+        ArtifactUploadUtil.Dispose();
     }
 
     public static string GetRoslynTargetsPath()
@@ -56,8 +59,7 @@ public sealed class SdkIntegrationTests : IDisposable
         bool succeeds = true)
     {
         var workingDirectory = Path.GetDirectoryName(projectFilePath)!;
-        using var uploadUtil = new ArtifactUploadUtil(TestOutputHelper);
-        uploadUtil.AddDirectory(workingDirectory);
+        ArtifactUploadUtil.AddDirectory(workingDirectory);
 
         var args = new StringBuilder();
         args.Append("build /bl ");
@@ -79,7 +81,6 @@ public sealed class SdkIntegrationTests : IDisposable
             Assert.False(result.ExitCode == 0, $"MSBuild failed with exit code {result.ExitCode}: {result.Output}");
         }
 
-        uploadUtil.SetSucceeded();
         return Path.Combine(workingDirectory, "msbuild.binlog");
     }
 
@@ -120,6 +121,7 @@ public sealed class SdkIntegrationTests : IDisposable
         var compilations = ReadCompilations(binlogPath);
         Assert.Single(compilations);
         Assert.True(compilations[0].SyntaxTrees.Any(x => Path.GetFileName(x.FilePath) == "hello.cs"));
+        ArtifactUploadUtil.SetSucceeded();
     }
 
     [ConditionalTheory(typeof(DotNetSdkAvailable))]
@@ -156,6 +158,8 @@ public sealed class SdkIntegrationTests : IDisposable
         {
             Assert.False(options.SpecificDiagnosticOptions.TryGetValue("CS8002", out _));
         }
+
+        ArtifactUploadUtil.SetSucceeded();
     }
 
     [ConditionalTheory(typeof(DotNetSdkAvailable))]
@@ -193,5 +197,7 @@ public sealed class SdkIntegrationTests : IDisposable
         {
             Assert.False(options.SpecificDiagnosticOptions.TryGetValue("BC41997", out _));
         }
+
+        ArtifactUploadUtil.SetSucceeded();
     }
 }
