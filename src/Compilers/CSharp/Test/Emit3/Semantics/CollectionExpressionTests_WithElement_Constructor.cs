@@ -215,6 +215,41 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2,42"));
     }
 
+    [Fact]
+    public void WithElement_ExecutedBeforeElements()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public int CustomProperty { get; }
+                
+                public MyList(int capacity, int customValue) : base(capacity)
+                {
+                    CustomProperty = customValue;
+                    Console.Write("ctor called. ");
+                }
+
+                public void Add(T value)
+                {
+                    Console.Write("add called. ");
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(capacity: 100, customValue: 42), 1, 2];
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("ctor called. add called. add called. "));
+    }
+
     #endregion
 
     #region Argument Count Tests

@@ -7283,7 +7283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out MemberResolutionResult<MethodSymbol> memberResolutionResult,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            bool isParamsModifierValidation = false)
+            bool isParamsModifierValidation)
         {
             OverloadResolutionResult<MethodSymbol> result = OverloadResolutionResult<MethodSymbol>.GetInstance();
 

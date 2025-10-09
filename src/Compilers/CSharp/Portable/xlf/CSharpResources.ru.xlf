@@ -498,8 +498,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeEmpty">
-        <source>'with(...)' element for read-only interface must be empty</source>
-        <target state="new">'with(...)' element for read-only interface must be empty</target>
+        <source>'with(...)' element for a read-only interface must be empty if present</source>
+        <target state="new">'with(...)' element for a read-only interface must be empty if present</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeFirst">

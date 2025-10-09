@@ -19995,6 +19995,81 @@ partial class Program
         }
 
         [Fact]
+        public void Missing_ListType()
+        {
+            string sourceA = """
+                namespace System
+                {
+                    public class Object { }
+                    public abstract class ValueType { }
+                    public class String { }
+                    public class Type { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public struct Enum { }
+                    public class Attribute { }
+                    public class AttributeUsageAttribute : Attribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets t) { }
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                    public enum AttributeTargets { }
+                    public ref struct ReadOnlySpan<T>
+                    {
+                    }
+                }
+                namespace System.Collections.Generic
+                {
+                    public interface IEnumerator
+                    {
+                        bool MoveNext();
+                        object Current { get; }
+                    }
+
+                    public interface IList<T>
+                    {
+                    }
+                }
+                """;
+            string sourceB = """
+                using System;
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        IList<int> list = [with(), 1, 2, 3];
+                    }
+                }
+                """;
+            var comp = CreateEmptyCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (8,27): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 27),
+                // (8,27): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 27),
+                // (8,27): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(8, 27),
+                // (8,27): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 27),
+                // (8,28): error CS1729: 'List<int>' does not contain a constructor that takes 0 arguments
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "0").WithLocation(8, 28),
+                // (8,28): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "with()").WithArguments("System.Collections.Generic.List`1").WithLocation(8, 28));
+        }
+
+        [Fact]
         public void CollectionBuilder_Async()
         {
             string sourceA = """
