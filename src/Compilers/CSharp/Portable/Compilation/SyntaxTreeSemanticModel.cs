@@ -2410,6 +2410,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberModel == null ? default(AwaitExpressionInfo) : memberModel.GetAwaitExpressionInfo(node);
         }
 
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(LocalDeclarationStatementSyntax node)
+        {
+            MemberSemanticModel memberModel = GetMemberModel(node);
+            return memberModel == null ? default(AwaitExpressionInfo) : memberModel.GetAwaitExpressionInfo(node);
+        }
+
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(UsingStatementSyntax node)
+        {
+            MemberSemanticModel memberModel = GetMemberModel(node);
+            return memberModel == null ? default(AwaitExpressionInfo) : memberModel.GetAwaitExpressionInfo(node);
+        }
+
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
         {
             MemberSemanticModel memberModel = GetMemberModel(node);

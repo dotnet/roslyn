@@ -241,16 +241,6 @@
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox x:Uid="EditorColorSchemeGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
-                <StackPanel>
-                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Edit_color_scheme}">
-                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2019}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2019_Tag}" />
-                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
-                    </ComboBox>
-                </StackPanel>
-            </GroupBox>
-
             <GroupBox x:Uid="Implement_Interface_or_Abstract_Class_GroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Implement_Interface_or_Abstract_Class}">
 

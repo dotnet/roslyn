@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.BracketedParameterList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ParameterSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static Syntax.InternalSyntax.ParameterSyntax GenerateParameter()
-            => InternalSyntaxFactory.Parameter(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), null, null, null);
+            => InternalSyntaxFactory.Parameter(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName(), null, null);
 
         private static Syntax.InternalSyntax.FunctionPointerParameterSyntax GenerateFunctionPointerParameter()
             => InternalSyntaxFactory.FunctionPointerParameter(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName());
@@ -3295,7 +3295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
-            Assert.Null(node.Type);
+            Assert.NotNull(node.Type);
             Assert.Null(node.Identifier);
             Assert.Null(node.Default);
 
@@ -10955,7 +10955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.BracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<ParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static ParameterSyntax GenerateParameter()
-            => SyntaxFactory.Parameter(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), default(TypeSyntax), default(SyntaxToken), default(EqualsValueClauseSyntax));
+            => SyntaxFactory.Parameter(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName(), default(SyntaxToken), default(EqualsValueClauseSyntax));
 
         private static FunctionPointerParameterSyntax GenerateFunctionPointerParameter()
             => SyntaxFactory.FunctionPointerParameter(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName());
@@ -13645,7 +13645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
-            Assert.Null(node.Type);
+            Assert.NotNull(node.Type);
             Assert.Equal(SyntaxKind.None, node.Identifier.Kind());
             Assert.Null(node.Default);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type).WithIdentifier(node.Identifier).WithDefault(node.Default);

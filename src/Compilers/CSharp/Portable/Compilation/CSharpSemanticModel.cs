@@ -1661,6 +1661,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 options |= LookupOptions.AllMethodsOnArityZero;
                 options &= ~LookupOptions.MustBeInstance;
+                Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
+                Debug.Assert((options & LookupOptions.NamespaceAliasesOnly) == 0);
+                Debug.Assert((options & LookupOptions.LabelsOnly) == 0);
 
                 binder.LookupAllExtensions(lookupResult, name, options);
 
@@ -4849,6 +4852,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="node">The node.</param>
         public abstract AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node);
+
+        /// <summary>
+        /// Gets await expression info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract AwaitExpressionInfo GetAwaitExpressionInfo(LocalDeclarationStatementSyntax node);
+
+        /// <summary>
+        /// Gets await expression info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract AwaitExpressionInfo GetAwaitExpressionInfo(UsingStatementSyntax node);
 
         /// <summary>
         /// If the given node is within a preprocessing directive, gets the preprocessing symbol info for it.

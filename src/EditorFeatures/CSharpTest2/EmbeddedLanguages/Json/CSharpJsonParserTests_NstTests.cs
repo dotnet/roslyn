@@ -4724,12 +4724,12 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     """
     <Diagnostics>
-      <Diagnostic Message="Invalid escape sequence" Start="13" Length="3" />
+      <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """,
     """
     <Diagnostics>
-      <Diagnostic Message="Invalid escape sequence" Start="13" Length="3" />
+      <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """);
 
