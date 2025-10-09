@@ -2436,6 +2436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionArgumentsDynamicBinding = 9402,
         ERR_CollectionArgumentsMustBeEmpty = 9403,
         ERR_CollectionRefLikeElementType = 9404,
+        ERR_BadCollectionArgumentsArgCount = 9405,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

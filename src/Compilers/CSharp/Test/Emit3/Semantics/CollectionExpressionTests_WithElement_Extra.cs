@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// #DEFINE CREATE_METHODS
 // #DEFINE DICTIONARY_EXPRESSIONS
 
 using System.Linq;
@@ -1315,7 +1314,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyCollection<T>.MyCollection(T)").WithLocation(9, 22));
     }
 
-#if CREATE_METHODS
     [Fact]
     public void TypeInference_CollectionBuilder()
     {
@@ -1645,12 +1643,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (6,13): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         c = [with(1)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 14),
-            // (7,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(1)]").WithArguments("Create", "1").WithLocation(6, 13),
+            // (7,13): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         c = [with(2), 3];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 14));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(2), 3]").WithArguments("Create", "1").WithLocation(7, 13));
     }
 
     [Fact]
@@ -2176,7 +2174,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
 
         string sourceB1 = """
-#pragma warning disable 219 // variable assigned but never used
+                #pragma warning disable 219 // variable assigned but never used
                 MyCollection<int> c;
                 int x = 1;
                 ref int r = ref x;
@@ -2198,7 +2196,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6));
 
         string sourceB2 = """
-#pragma warning disable 219 // variable assigned but never used
+                #pragma warning disable 219 // variable assigned but never used
                 MyCollection<int> c;
                 int x = 1;
                 ref readonly int ro = ref x;
@@ -2251,7 +2249,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
 
         string sourceB1 = """
-#pragma warning disable 219 // variable assigned but never used
+                #pragma warning disable 219 // variable assigned but never used
                 MyCollection<int> c;
                 int x = 1;
                 ref int r = ref x;
@@ -2291,7 +2289,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(17, 6));
 
         string sourceB2 = """
-#pragma warning disable 219 // variable assigned but never used
+                #pragma warning disable 219 // variable assigned but never used
                 MyCollection<int> c;
                 int x = 1;
                 ref readonly int ro = ref x;
@@ -2336,7 +2334,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
 
         string sourceB1 = """
-#pragma warning disable 219 // variable assigned but never used
+                #pragma warning disable 219 // variable assigned but never used
                 MyCollection<int> c;
                 int x = 1;
                 ref int r = ref x;
@@ -2380,7 +2378,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(20, 6));
 
         string sourceB2 = """
-#pragma warning disable 219 // variable assigned but never used
+                #pragma warning disable 219 // variable assigned but never used
                 MyCollection<int> c;
                 int x = 1;
                 ref readonly int ro = ref x;
@@ -2417,7 +2415,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
 
         string sourceB1 = """
-#pragma warning disable 219 // variable assigned but never used
+                #pragma warning disable 219 // variable assigned but never used
                 MyCollection<int> c;
                 int x = 1;
                 ref int r = ref x;
@@ -2439,7 +2437,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6));
 
         string sourceB2 = """
-#pragma warning disable 219 // variable assigned but never used
+                #pragma warning disable 219 // variable assigned but never used
                 MyCollection<int> c;
                 int x = 1;
                 c = [with(1)];
@@ -2494,7 +2492,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 }
                 """;
         string sourceB = """
-#pragma warning disable 219 // variable assigned but never used
+                #pragma warning disable 219 // variable assigned but never used
                 MyCollection<int> c;
                 int x = 1;
                 int y = 2;
@@ -2689,7 +2687,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 }
                 """;
         string sourceB = """
-#nullable enable
+                #nullable enable
                 using System;
                 class Program
                 {
@@ -2993,9 +2991,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (9,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (9,13): error CS1501: No overload for method 'Create' takes 1 arguments
             //         y = [with(2), 3];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(9, 14));
+            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(2), 3]").WithArguments("Create", "1").WithLocation(9, 13));
 
         string sourceB2 = """
                 class Program
@@ -3247,8 +3245,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             //     static void F<T>(params MyCollection<T> c)
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 22));
     }
-
-#endif
 
     [Fact]
     public void List_NoElements()
