@@ -1541,12 +1541,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (4,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (4,46): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(4, 46),
-            // (5,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-            //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 52),
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[with()]").WithArguments("arg", "MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(4, 46),
             // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 38));
@@ -2597,15 +2594,15 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (2,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (2,11): error CS1739: The best overload for 'Create' does not have a parameter named 'x'
             // c = [with(x: 1), 2, 3];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(2, 6),
-            // (4,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("Create", "x").WithLocation(2, 11),
+            // (4,11): error CS1739: The best overload for 'Create' does not have a parameter named 'y'
             // c = [with(y: 4), 5];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(4, 6),
-            // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("Create", "y").WithLocation(4, 11),
+            // (6,11): error CS1739: The best overload for 'Create' does not have a parameter named 'y'
             // c = [with(y: 6, x: 7), 8];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6));
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("Create", "y").WithLocation(6, 11));
     }
 
     [Fact]
@@ -2648,16 +2645,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var comp = CreateCompilation(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics(
-            // (2,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(x: 1), 2, 3];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(2, 6),
-            // (4,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(y: 4), 5];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(4, 6),
-            // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
-            // c = [with(y: 6, x: 7), 8];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -3165,18 +3153,18 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (4,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (4,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(4, 6),
-            // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(1)]").WithArguments("Create", "1").WithLocation(4, 5),
+            // (5,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
-            // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(x)]").WithArguments("Create", "1").WithLocation(5, 5),
+            // (6,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(ref x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6),
-            // (7,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(ref x)]").WithArguments("Create", "1").WithLocation(6, 5),
+            // (7,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(in x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 6));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(in x)]").WithArguments("Create", "1").WithLocation(7, 5));
     }
 
     [Fact]
@@ -3229,18 +3217,18 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (4,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (4,11): error CS1620: Argument 1 must be passed with the 'out' keyword
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(4, 6),
-            // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("1", "out").WithLocation(4, 11),
+            // (5,11): error CS1620: Argument 1 must be passed with the 'out' keyword
             // c = [with(x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
-            // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "out").WithLocation(5, 11),
+            // (6,15): error CS1620: Argument 1 must be passed with the 'out' keyword
             // c = [with(ref x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6),
-            // (7,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "out").WithLocation(6, 15),
+            // (7,14): error CS1620: Argument 1 must be passed with the 'out' keyword
             // c = [with(in x)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 6));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "out").WithLocation(7, 14));
     }
 
     [Fact]
@@ -3772,9 +3760,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (8,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
+            // (8,13): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         c = [with(default)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 14));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(default)]").WithArguments("Create", "1").WithLocation(8, 13));
     }
 
     [Fact]
