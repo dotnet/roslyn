@@ -35,7 +35,7 @@
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
-- Run `dotnet format whitespace -f . --include ` followed by the relative path to changed files to apply formatting preferences
+- Run `dotnet format whitespace -f . --include ` followed by the relative paths to changed .cs and .vb files to apply formatting preferences
 
 ## Code Patterns
 
