@@ -4165,9 +4165,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (9,13): error CS1501: No overload for method 'Create' takes 1 arguments
+            // (9,13): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         y = [with(2), 3];
-            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(2), 3]").WithArguments("Create", "1").WithLocation(9, 13));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(2), 3]").WithArguments("Create", "1").WithLocation(9, 13));
 
         string sourceB2 = """
                 class Program
