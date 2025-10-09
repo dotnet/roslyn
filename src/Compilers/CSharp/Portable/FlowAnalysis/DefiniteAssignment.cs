@@ -2770,17 +2770,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
-        {
-            // This node can appear in cases like:
-            //
-            //  CollectionBuilder.Create(P1, P2, <placeholder for elements>)
-            //
-            // It is ok that we no-op here as the elements themselves are placed in the
-            // BoundCollectionExpressionBase.Elements and will be visited naturally through that property.
-            return node;
-        }
-
         #endregion Visitors
 
         protected override string Dump(LocalState state)
