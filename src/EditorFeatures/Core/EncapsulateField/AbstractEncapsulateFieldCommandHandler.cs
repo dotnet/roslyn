@@ -65,9 +65,10 @@ internal abstract class AbstractEncapsulateFieldCommandHandler(
         var workspace = initialDocument.Project.Solution.Workspace;
 
         var indicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-        using var context = indicatorFactory.Create(
+        var context = indicatorFactory.Create(
             args.TextView, span, EditorFeaturesResources.Computing_Encapsulate_Field_information,
             cancelOnEdit: true, cancelOnFocusLost: true);
+        await using var _ = context.ConfigureAwait(false);
 
         var cancellationToken = context.UserCancellationToken;
         var document = await subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context).ConfigureAwait(false);

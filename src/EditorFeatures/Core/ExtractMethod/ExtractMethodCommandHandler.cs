@@ -118,8 +118,9 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         // Note: we do not want to cancel on 'focus lost'.  That's because extract-method may show the user a
         // notification dialog about proceeding or not.  We don't want the act of showing them a dialog about proceeding
         // to then cause the whole operation to then fail.
-        using var indicatorContext = indicatorFactory.Create(
+        var indicatorContext = indicatorFactory.Create(
             view, span, EditorFeaturesResources.Applying_Extract_Method_refactoring, cancelOnEdit: true, cancelOnFocusLost: false);
+        await using var _ = indicatorContext.ConfigureAwait(false);
 
         using var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ExecuteCommand));
         await ExecuteWorkerAsync(view, textBuffer, span.Span.ToTextSpan(), indicatorContext).ConfigureAwait(false);
