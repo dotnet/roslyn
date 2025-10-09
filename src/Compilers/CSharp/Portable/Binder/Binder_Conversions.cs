@@ -1190,7 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="forParams">Determines if this is finding collection builder methods for the <c>params
-        /// SomeCollectionType</c> case, or for the general <c>>SomeCollection c = [...]</c> case.  The former differs
+        /// SomeCollectionType</c> case, or for the general <c>SomeCollection c = [...]</c> case.  The former differs
         /// from the latter in that the collection builder method itself can only contain a single <see
         /// cref="ReadOnlySpan{T}"/> parameter, while the latter can be any method that <em>ends</em> with a <see
         /// cref="ReadOnlySpan{T}"/> parameter, but otherwise follows the collection builder method pattern.</param>
