@@ -87,12 +87,12 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     internal override int TryGetOverloadResolutionPriority()
         => this.UnderlyingMethod.TryGetOverloadResolutionPriority();
 
-    public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => throw new NotImplementedException();
-    public override Symbol AssociatedSymbol => throw new NotImplementedException();
-    internal override bool HasSpecialNameAttribute => throw new NotImplementedException();
-    internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw new NotImplementedException();
-    internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument) => throw new NotImplementedException();
-    internal override bool IsNullableAnalysisEnabled() => throw new NotImplementedException();
+    public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => throw ExceptionUtilities.Unreachable();
+    public override Symbol AssociatedSymbol => throw ExceptionUtilities.Unreachable();
+    internal override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+    internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable();
+    internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument) => throw ExceptionUtilities.Unreachable();
+    internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
     private sealed class SynthesizedCollectionBuilderProjectedParameterSymbol(
         SynthesizedCollectionBuilderProjectedMethodSymbol methodSymbol,
@@ -108,11 +108,11 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
 
         internal override int CallerArgumentExpressionParameterIndex => this.UnderlyingParameter.CallerArgumentExpressionParameterIndex;
 
-        internal override bool HasEnumeratorCancellationAttribute => throw new NotImplementedException();
+        internal override bool HasEnumeratorCancellationAttribute => throw ExceptionUtilities.Unreachable();
 
-        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw new NotImplementedException();
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
-        internal override bool HasInterpolatedStringHandlerArgumentError => throw new NotImplementedException();
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
     }
 }
 
