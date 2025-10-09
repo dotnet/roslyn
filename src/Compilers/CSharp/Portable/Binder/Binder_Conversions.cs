@@ -1158,7 +1158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: collectionBuilderMethod.ReturnType).MakeCompilerGenerated();
 
                     // Wrap in a conversion if necessary.  Note that GetAndValidateCollectionBuilderMethods guarantees
-                    // that this conversion exists and is valid for a collection builder method.
+                    // that either return and target type are identical, or that a valid implicit conversion exists
+                    // between them.
                     collectionCreation = @this.CreateConversion(builderCall, targetType, diagnostics);
                 }
 
