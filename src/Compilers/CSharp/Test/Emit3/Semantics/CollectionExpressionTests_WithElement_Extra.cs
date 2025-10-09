@@ -2096,7 +2096,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // (8,78): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
             //     static MyCollection<T> StructConstraint<T>(T x, T y) where T : struct => [x, y];
-            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "[x, y]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(8, 78));
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "[x, y]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(8, 78),
+            // (25,83): error CS1737: Optional parameters must appear after all required parameters
+            //     public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items) where T : struct => new(arg, items);
+            Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(25, 83));
 
         string sourceB4 = """
                 class Program
@@ -2118,7 +2121,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // (8,78): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
             //     static MyCollection<T> StructConstraint<T>(T x, T y) where T : struct => StructConstraintParams(x, y);
-            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "StructConstraintParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(8, 78));
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "StructConstraintParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(8, 78),
+            // (10,54): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+            //     static MyCollection<T> StructConstraintParams<T>(params MyCollection<T> c) where T : struct => c;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(10, 54),
+            // (25,83): error CS1737: Optional parameters must appear after all required parameters
+            //     public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items) where T : struct => new(arg, items);
+            Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(25, 83));
     }
 
     [Fact]
