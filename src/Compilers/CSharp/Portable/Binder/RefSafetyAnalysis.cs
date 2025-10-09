@@ -1299,8 +1299,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var elementType = ((NamedTypeSymbol)spanPlaceholder.Type!).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                     var safeContext = LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type) ? SafeContext.ReturnOnly : _localScopeDepth;
+
                     var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
                     placeholders.Add((spanPlaceholder, SafeContextAndLocation.Create(safeContext)));
+
                     using var _ = new PlaceholderRegion(this, placeholders);
                     Visit(collectionCreation);
                 }
@@ -1309,6 +1311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Visit(collectionCreation);
                 }
             }
+
             VisitList(node.Elements);
             return null;
         }
