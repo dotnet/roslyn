@@ -7246,11 +7246,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             out CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             bool isParamsModifierValidation = false)
         {
-            // Get accessible constructors for performing overload resolution.
-            ImmutableArray<MethodSymbol> allInstanceConstructors;
+            // Get all accessible constructors for performing overload resolution.
             useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            candidateConstructors = GetAccessibleConstructorsForOverloadResolution(typeContainingConstructors, allowProtectedConstructorsOfBaseType, out allInstanceConstructors, ref useSiteInfo);
+            candidateConstructors = GetAccessibleConstructorsForOverloadResolution(
+                typeContainingConstructors,
+                allowProtectedConstructorsOfBaseType,
+                out var allInstanceConstructors, ref useSiteInfo);
 
+            // Then perform overload resolution with all the accessible constructors.
+            return TryPerformOverloadResolutionWithConstructorSubset(
+                typeContainingConstructors,
+                ref candidateConstructors,
+                allInstanceConstructors,
+                analyzedArguments,
+                errorName,
+                errorLocation,
+                suppressResultDiagnostics, diagnostics,
+                out memberResolutionResult,
+                ref useSiteInfo,
+                isParamsModifierValidation);
+        }
+
+        /// <summary>
+        /// Core implementation for <see cref="TryPerformConstructorOverloadResolution"/>, just with the ability for the
+        /// caller to specify the candidate constructors instead of computing them from <paramref
+        /// name="typeContainingConstructors"/>.
+        /// </summary>
+        private bool TryPerformOverloadResolutionWithConstructorSubset(
+            NamedTypeSymbol typeContainingConstructors,
+            ref ImmutableArray<MethodSymbol> candidateConstructors,
+            ImmutableArray<MethodSymbol> allInstanceConstructors,
+            AnalyzedArguments analyzedArguments,
+            string errorName,
+            Location errorLocation,
+            bool suppressResultDiagnostics,
+            BindingDiagnosticBag diagnostics,
+            out MemberResolutionResult<MethodSymbol> memberResolutionResult,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            bool isParamsModifierValidation)
+        {
             OverloadResolutionResult<MethodSymbol> result = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
             // Indicates whether overload resolution successfully chose an accessible constructor.

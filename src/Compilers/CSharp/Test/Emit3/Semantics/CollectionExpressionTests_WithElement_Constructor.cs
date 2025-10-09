@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -216,6 +213,41 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """;
 
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2,42"));
+    }
+
+    [Fact]
+    public void WithElement_ExecutedBeforeElements()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public int CustomProperty { get; }
+                
+                public MyList(int capacity, int customValue) : base(capacity)
+                {
+                    CustomProperty = customValue;
+                    Console.Write("ctor called. ");
+                }
+
+                public void Add(T value)
+                {
+                    Console.Write("add called. ");
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(capacity: 100, customValue: 42), 1, 2];
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("ctor called. add called. add called. "));
     }
 
     #endregion
@@ -1266,6 +1298,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
+        // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
         CreateCompilation(source).VerifyDiagnostics(
             // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
             //         MyList<int> list = [with(10)];
@@ -1292,6 +1325,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
+        // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
         CreateCompilation(source).VerifyDiagnostics(
             // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
             //         MyList<int> list = [with(10)];
@@ -2046,6 +2080,229 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             // (25,9): error CS0121: The call is ambiguous between the following methods or properties: 'D.M(Collection1)' and 'D.M(Collection2)'
             //         M([with(capacity: 42)]);
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("D.M(Collection1)", "D.M(Collection2)").WithLocation(25, 9));
+    }
+
+    [Fact]
+    public void WithElement_DoesNotContributeToTypeInference1()
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void G()
+                {
+                    M([with(capacity: 10)]);
+                }
+
+                void M<T>(List<T> list) { }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,9): error CS0411: The type arguments for method 'C.M<T>(List<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //         M([with(capacity: 10)]);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(System.Collections.Generic.List<T>)").WithLocation(7, 9));
+    }
+
+    [Fact]
+    public void WithElement_DoesNotContributeToTypeInference2()
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T value) { }
+            }
+
+            class C
+            {
+                void G()
+                {
+                    M([with(10)]);
+                }
+
+                void M<T>(MyList<T> list) { }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,9): error CS0411: The type arguments for method 'C.M<T>(MyList<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //         M([with(10)]);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(MyList<T>)").WithLocation(12, 9));
+    }
+
+    [Fact]
+    public void WithElement_ArgumentsAreLowered1()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    List<int> list = [with(Invoke(() => 10))];
+                    Console.WriteLine(list.Capacity);
+                }
+
+                static T Invoke<T>(System.Func<T> func) => func();
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10")).VerifyIL("C.Main", """
+            {
+              // Code size       52 (0x34)
+              .maxstack  2
+              IL_0000:  ldsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_0005:  dup
+              IL_0006:  brtrue.s   IL_001f
+              IL_0008:  pop
+              IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_000e:  ldftn      "int C.<>c.<Main>b__0_0()"
+              IL_0014:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+              IL_0019:  dup
+              IL_001a:  stsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_001f:  call       "int C.Invoke<int>(System.Func<int>)"
+              IL_0024:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_0029:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_002e:  call       "void System.Console.WriteLine(int)"
+              IL_0033:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_ArgumentsAreLowered1_A()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    IList<int> list = [with(Invoke(() => 10))];
+                    Console.WriteLine(((List<int>)list).Capacity);
+                }
+
+                static T Invoke<T>(System.Func<T> func) => func();
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10")).VerifyIL("C.Main", """
+            {
+              // Code size       57 (0x39)
+              .maxstack  2
+              IL_0000:  ldsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_0005:  dup
+              IL_0006:  brtrue.s   IL_001f
+              IL_0008:  pop
+              IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
+              IL_000e:  ldftn      "int C.<>c.<Main>b__0_0()"
+              IL_0014:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+              IL_0019:  dup
+              IL_001a:  stsfld     "System.Func<int> C.<>c.<>9__0_0"
+              IL_001f:  call       "int C.Invoke<int>(System.Func<int>)"
+              IL_0024:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_0029:  castclass  "System.Collections.Generic.List<int>"
+              IL_002e:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_0033:  call       "void System.Console.WriteLine(int)"
+              IL_0038:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_ArgumentsAreLowered2()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    List<int> list = [with(Goo([1, args.Length]))];
+                    Console.WriteLine(list.Capacity);
+                }
+
+                static int Goo(int[] values) => values.Length;
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2")).VerifyIL("C.Main", """
+            {
+              // Code size       37 (0x25)
+              .maxstack  4
+              IL_0000:  ldc.i4.2
+              IL_0001:  newarr     "int"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  stelem.i4
+              IL_000a:  dup
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldarg.0
+              IL_000d:  ldlen
+              IL_000e:  conv.i4
+              IL_000f:  stelem.i4
+              IL_0010:  call       "int C.Goo(int[])"
+              IL_0015:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_001a:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_001f:  call       "void System.Console.WriteLine(int)"
+              IL_0024:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_ArgumentsAreLowered2_A()
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    IList<int> list = [with(Goo([1, args.Length]))];
+                    Console.WriteLine(((List<int>)list).Capacity);
+                }
+
+                static int Goo(int[] values) => values.Length;
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2")).VerifyIL("C.Main", """
+            {
+              // Code size       42 (0x2a)
+              .maxstack  4
+              IL_0000:  ldc.i4.2
+              IL_0001:  newarr     "int"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  stelem.i4
+              IL_000a:  dup
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldarg.0
+              IL_000d:  ldlen
+              IL_000e:  conv.i4
+              IL_000f:  stelem.i4
+              IL_0010:  call       "int C.Goo(int[])"
+              IL_0015:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_001a:  castclass  "System.Collections.Generic.List<int>"
+              IL_001f:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_0024:  call       "void System.Console.WriteLine(int)"
+              IL_0029:  ret
+            }
+            """);
     }
 
     #endregion

@@ -363,6 +363,57 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.ReadOnlySpan<int>").WithLocation(8, 42));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+    public void WithElement_RefLikeElementType1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    IEnumerable<ReadOnlySpan<int>> list = [[1, 2, 3], [4, 5, 6]];
+
+                    foreach (var span in list)
+                    {
+                        foreach (var item in span)
+                        {
+                            Console.Write(item + " ");
+                        }
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (8,47): error CS9404: Element type of an interface collection may not be a ref struct or a type parameter allowing ref structs
+            //         IEnumerable<ReadOnlySpan<int>> list = [[1, 2, 3], [4, 5, 6]];
+            Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[[1, 2, 3], [4, 5, 6]]").WithLocation(8, 47));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+    public void WithElement_RefLikeElementType2()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Goo<T>(T t1) where T : allows ref struct
+                {
+                    IEnumerable<T> list = [t1];
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (7,31): error CS9404: Element type of an interface collection may not be a ref struct or a type parameter allowing ref structs
+            //         IEnumerable<T> list = [t1];
+            Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[t1]").WithLocation(7, 31));
+    }
+
     [Fact]
     public void WithElement_Array_AsMethodParameter()
     {
