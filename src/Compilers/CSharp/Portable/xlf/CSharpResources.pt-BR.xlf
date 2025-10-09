@@ -822,11 +822,6 @@
         <target state="translated">Uma árvore de expressão não pode conter um operador == ou != de tupla</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
-        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">Uma árvore de expressão não pode conter conversão de cadeia de caracteres UTF-8 ou literal.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">Uma árvore de expressão não pode conter uma expressão with.</target>
@@ -903,11 +898,6 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
-        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">O recurso '{0}' não está disponível em C# 8.0. Use a versão de linguagem {1} ou superior.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">O recurso '{0}' não está disponível em C# 8.0. Use a versão de linguagem {1} ou superior.</target>
         <note />
@@ -2382,11 +2372,6 @@
         <target state="translated">O programa que usa as instruções de nível superior precisa ser um executável.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
-        <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">Um padrão de desconstrução de elemento único requer alguma outra sintaxe para desambiguação. É recomendado adicionar um designador de descarte '_' após o parêntese de fechamento ')'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
         <target state="translated">O operador de propagação '..' não pode operar em variáveis do tipo '{0}' porque '{0}' não contém uma instância pública ou definição de extensão para '{1}'</target>
@@ -2615,11 +2600,6 @@
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
         <target state="translated">Os padrões de lista não podem ser usados para um valor do tipo '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
-        <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="translated">Os padrões de fatia não podem ser usados para um valor do tipo '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
@@ -3107,16 +3087,6 @@
         <target state="translated">O parâmetro de atribuição 'SizeConst' deve ser especificado.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_CallArgMixing">
-        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Essa combinação de argumentos para '{0}' pode expor variáveis referenciadas pelo parâmetro '{1}' fora de seu escopo de declaração</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing_Title">
-        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Essa combinação de argumentos pode expor variáveis referenciadas por parâmetro fora de seu escopo de declaração</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
         <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro '{0}' não terá efeito. Ele é aplicado com um nome de parâmetro inválido.</target>
@@ -3255,26 +3225,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Referência do analisador especificada várias vezes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall">
-        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">O uso do resultado de '{0}' nesse contexto pode expor variáveis referenciadas por parâmetro '{1}' fora de seu escopo de declaração</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2">
-        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">O uso do membro do resultado de '{0}' nesse contexto pode expor variáveis referenciadas pelo parâmetro '{1}' fora de seu escopo de declaração</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2_Title">
-        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">O uso do membro do resultado nesse contexto pode expor variáveis referenciadas por parâmetro fora de seu escopo de declaração</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall_Title">
-        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">O uso do resultado nesse contexto pode expor variáveis referenciadas por parâmetro fora do seu escopo de declaração</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc">
@@ -10407,11 +10357,6 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <target state="translated">Não é possível inicializar o tipo "{0}" com um inicializador de coleta porque ele não implementa "System.Collections.IEnumerable"</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantSetWin32Manifest">
-        <source>Error reading Win32 manifest file '{0}' -- '{1}'</source>
-        <target state="translated">Erro ao ler o arquivo de manifesto Win32 "{0}" -- "{1}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CantHaveManifestForModule">
         <source>Ignoring /win32manifest for module because it only applies to assemblies</source>
         <target state="translated">Ignore /win32manifest do módulo porque ele só se aplica aos assemblies</target>
@@ -11292,11 +11237,6 @@ Você pode suprimir o aviso se tiver certeza de que não vai querer aguardar a c
         <target state="translated">Um acesso à matriz não pode ter um especificador de argumento nomeado</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotYetImplementedInRoslyn">
-        <source>This language feature ('{0}') is not yet implemented.</source>
-        <target state="translated">Esse recurso de idioma ("{0}") ainda não está implementado.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultValueNotAllowed">
         <source>Default values are not valid in this context.</source>
         <target state="translated">Valores padrão não são válidos neste contexto.</target>
@@ -11825,36 +11765,6 @@ Você pode suprimir o aviso se tiver certeza de que não vai querer aguardar a c
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
         <source>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</source>
         <target state="translated">'{0}' não pode implementar '{1}' porque '{2}' é um evento de Windows Runtime e '{3}' é um evento regular do .NET.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
-        <source>Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</source>
-        <target state="translated">Chamar System.IDisposable.Dispose() na instância alocada de {0} antes que todas as referências a ele fiquem fora do escopo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1_Title">
-        <source>Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</source>
-        <target state="translated">Chame System.IDisposable.Dispose() na instância alocada antes que todas as referências a ele estejam fora do escopo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2">
-        <source>Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</source>
-        <target state="translated">Instância alocada de {0} não é descartada ao longo de todos os caminhos de exceção. Chamar System.IDisposable.Dispose() antes que todas as referências a ela estejam fora do escopo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2_Title">
-        <source>Allocated instance is not disposed along all exception paths</source>
-        <target state="translated">Instância alocada não descartada em todos os caminhos de exceção</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes">
-        <source>Object '{0}' can be disposed more than once.</source>
-        <target state="translated">Objeto "{0}" pode ser descartado mais de uma vez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes_Title">
-        <source>Object can be disposed more than once</source>
-        <target state="translated">O objeto pode ser descartado mais de uma vez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewCoClassOnLink">
@@ -12540,11 +12450,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">Propriedades autoimplementadas devem substituir todos os acessadores de propriedade substituída.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
-        <source>Structs without explicit constructors cannot contain members with initializers.</source>
-        <target state="translated">Estruturas sem construtores explícitos não podem conter membros com inicializadores.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EncodinglessSyntaxTree">
         <source>Cannot emit debug information for a source text without encoding.</source>
         <target state="translated">Não é possível emitir informações de depuração para um texto de origem sem codificação.</target>
@@ -12558,11 +12463,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_SwitchFallOut">
         <source>Control cannot fall out of switch from final case label ('{0}')</source>
         <target state="translated">O controle não pode ficar fora do switch do rótulo de caso final ('{0}')</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnexpectedBoundGenericName">
-        <source>Type arguments are not allowed in the nameof operator.</source>
-        <target state="translated">Os argumentos de tipo não são permitidos no nome do operador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullPropagatingOpInExpressionTree">
@@ -12840,19 +12740,9 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">Não é possível retornar por referência um membro de '{0}' porque ele foi inicializado para um valor que não pode ser retornado por referência</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal">
-        <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">Não é possível retornar '{0}' por referência, porque ele é somente leitura</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
         <source>Cannot return the range variable '{0}' by reference</source>
         <target state="translated">Não é possível retornar a variável de intervalo '{0}' por referência</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocalCause">
-        <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">Não é possível retornar '{0}' por referência, porque ele é um '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">

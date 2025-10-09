@@ -822,11 +822,6 @@
         <target state="translated">Дерево выражений не может содержать оператор == или != кортежа.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
-        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">Дерево выражений не может содержать преобразование строк UTF-8 или литерал.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">Дерево выражения не может содержать выражение with.</target>
@@ -903,11 +898,6 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
-        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">Функция "{0}" недоступна в C# 8.0. Используйте версию языка {1} или более позднюю.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">Функция "{0}" недоступна в C# 8.0. Используйте версию языка {1} или более позднюю.</target>
         <note />
@@ -2382,11 +2372,6 @@
         <target state="translated">Программы, использующие инструкции верхнего уровня, должны быть исполняемыми.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
-        <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">Для шаблона деконструкции с одним элементом требуется другой синтаксис для устранения неоднозначности. Рекомендуется добавить указатель отмены "_" после закрывающей скобки ")".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
         <target state="translated">Оператор расширения ".." не работает с переменными типа "{0}", так как "{0}" не содержит открытое определение экземпляра или расширения для "{1}"</target>
@@ -2615,11 +2600,6 @@
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
         <target state="translated">Шаблоны списка не могут использоваться для значений типа "{0}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
-        <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="translated">Шаблоны среза не могут использоваться для значений типа "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
@@ -3107,16 +3087,6 @@
         <target state="translated">Должен быть указан параметр атрибута "SizeConst".</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_CallArgMixing">
-        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Это сочетание аргументов для "{0}" может представить переменные, на которые ссылается параметр "{1}", за пределами их области объявления</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing_Title">
-        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Эта комбинация аргументов может представить переменные, на которые ссылается параметр, за пределами области их объявления.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
         <target state="translated">Применение класса CallerArgumentExpressionAttribute к параметру "{0}" не подействует, поскольку он применен с недопустимым именем параметра.</target>
@@ -3255,26 +3225,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Ссылка на анализатор указана несколько раз</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall">
-        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Использование результата "{0}" в этом контексте может представить переменные, на которые ссылается параметр "{1}", за пределами области их объявления</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2">
-        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Использование элемента результата "{0}" в этом контексте может представить переменные, на которые ссылается параметр "{1}", за пределами области их объявления.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2_Title">
-        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Использование элемента результата в этом контексте может представить переменные, на которые ссылается параметр, за пределами области их объявления.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall_Title">
-        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Использование результата в этом контексте может представить переменные, на которые ссылается параметр, за пределами области их объявления.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc">
@@ -10408,11 +10358,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">Не удается инициализировать тип "{0}" инициализатором набора, потому что он не реализует интерфейс "System.Collections.IEnumerable".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantSetWin32Manifest">
-        <source>Error reading Win32 manifest file '{0}' -- '{1}'</source>
-        <target state="translated">Ошибка при чтении файла манифеста Win32 "{0}" — "{1}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CantHaveManifestForModule">
         <source>Ignoring /win32manifest for module because it only applies to assemblies</source>
         <target state="translated">Ключ /win32manifest для модуля пропущен, т. к. используется только для сборок</target>
@@ -11293,11 +11238,6 @@ You should consider suppressing the warning only if you're sure that you don't w
         <target state="translated">Возможно, для доступа к массиву отсутствует спецификатор именованного аргумента.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotYetImplementedInRoslyn">
-        <source>This language feature ('{0}') is not yet implemented.</source>
-        <target state="translated">Эта возможность языка ("{0}") еще не реализована.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultValueNotAllowed">
         <source>Default values are not valid in this context.</source>
         <target state="translated">В этом контексте значения по умолчанию недействительны.</target>
@@ -11826,36 +11766,6 @@ You should consider suppressing the warning only if you're sure that you don't w
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
         <source>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</source>
         <target state="translated">"{0}" не может реализовать "{1}", так как "{2}" является событием среды выполнения Windows и "{3}" является регулярным событием .NET.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
-        <source>Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</source>
-        <target state="translated">Следует вызвать метод System.IDisposable.Dispose() для выделенного экземпляра {0} до того, как все ссылки на него будут находиться вне области действия.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1_Title">
-        <source>Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</source>
-        <target state="translated">Вызов System.IDisposable.Dispose() в выделенном экземпляре до того, как все ссылки, указывающие на него, окажутся за пределами диапазона</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2">
-        <source>Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</source>
-        <target state="translated">Выделенный экземпляр {0} не уничтожается во всех путях исключений.  Следует вызвать метод System.IDisposable.Dispose до того, как все ссылки на него будут находиться вне области действия.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2_Title">
-        <source>Allocated instance is not disposed along all exception paths</source>
-        <target state="translated">Выделенный экземпляр освобождается не во всех путях исключений</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes">
-        <source>Object '{0}' can be disposed more than once.</source>
-        <target state="translated">Объект "{0}" нельзя удалить более одного раза.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes_Title">
-        <source>Object can be disposed more than once</source>
-        <target state="translated">Объект может быть освобожден несколько раз</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewCoClassOnLink">
@@ -12541,11 +12451,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Автоматически реализуемые свойства должны переопределять все методы доступа переопределенного свойства.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
-        <source>Structs without explicit constructors cannot contain members with initializers.</source>
-        <target state="translated">Структуры без явных конструкторов не могут содержать члены с инициализаторами.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EncodinglessSyntaxTree">
         <source>Cannot emit debug information for a source text without encoding.</source>
         <target state="translated">Не удается выдать отладочную информацию для исходного текста без кодировки.</target>
@@ -12559,11 +12464,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_SwitchFallOut">
         <source>Control cannot fall out of switch from final case label ('{0}')</source>
         <target state="translated">Управление не может выйти за пределы переключателя с окончательной меткой case ("{0}")</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnexpectedBoundGenericName">
-        <source>Type arguments are not allowed in the nameof operator.</source>
-        <target state="translated">Аргументы типа недопустимы в операторе nameof.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullPropagatingOpInExpressionTree">
@@ -12841,19 +12741,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Невозможно вернуть по ссылке член "{0}", так как он был инициализирован значением, которое нельзя вернуть по ссылке</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal">
-        <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">Невозможно вернуть "{0}" по ссылке, так как он доступен только для чтения</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
         <source>Cannot return the range variable '{0}' by reference</source>
         <target state="translated">Невозможно вернуть переменную диапазона "{0}" по ссылке</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocalCause">
-        <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">Невозможно вернуть "{0}" по ссылке, так как это "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
