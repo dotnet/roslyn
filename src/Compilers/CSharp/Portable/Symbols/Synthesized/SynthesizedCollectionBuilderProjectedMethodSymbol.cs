@@ -9,6 +9,27 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
+/// <summary>
+/// See
+/// https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#collectionbuilderattribute-methods.
+/// For collection builders: For each create method for the target type, we define a projection method with an identical
+/// signature to the create method but without the last parameter.
+/// </summary>
+/// <remarks>
+/// The 'Create' methods found are guaranteed by the spec to match generic arity with the collection type being created.
+/// So they will have signatures like:
+/// <code><![CDATA[
+/// CollectionType<T1, T2> Create<T1, T2>(Parameter1, .. ParameterN, ReadOnlySpan<ElementType<T1, T2>> elements)
+/// ]]></code>
+/// Then spec then requires: For a collection expression with a target type <c><![CDATA[C<S0, S1, …>]]></c> where the
+/// type declaration <![CDATA[C<T0, T1, …>]]> has an associated builder method <![CDATA[B.M<U0, U1, …>()]]>, the generic
+/// type arguments from the target type are applied in order — and from outermost containing type to innermost — to the
+/// builder method.
+/// <para/> Because of this, the collection builder method will actually be the constructed method, not the original
+/// definition. And from this constructed method, we will then generate: <![CDATA[CollectionType<X, Y>
+/// Create(Parameter1, .. ParameterN)]]>.  In other words, the projected method will have the same return type, no type
+/// parameters/arguments, and all but the last constructed parameter from the original method.
+/// </remarks>
 internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     MethodSymbol originalCollectionBuilderMethod) : WrappedMethodSymbol
 {
