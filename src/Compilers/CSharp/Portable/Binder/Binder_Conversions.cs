@@ -1121,7 +1121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // final ReadOnlySpan (that happens in LocalRewriter.VisitCollectionBuilderCollectionExpression), we
                     // create a placeholder to stand in for them.
                     //
-                    // In other words, given `[with(a, b, c), x, y, z]` wew will first have figured out how to call
                     // In other words, given `[with(a, b, c), x, y, z]` we will first have figured out how to call
                     // CollectionBuilder.Create<T1, T2, ..>(a, b, c, <placeholder for [x, y, z]>).
 
@@ -1317,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     result.Add(method);
 
-                    // Can early-exist in the params case at this point as there can only be one such creation method with
+                    // Can early-exit in the params case at this point as there can only be one such creation method with
                     // this signature.
                     if (forParams)
                         break;
