@@ -1316,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     result.Add(method);
 
-                    // Can early-exist in the params case at this point as there can only be one such creation method with
+                    // Can early-exit in the params case at this point as there can only be one such creation method with
                     // this signature.
                     if (forParams)
                         break;
