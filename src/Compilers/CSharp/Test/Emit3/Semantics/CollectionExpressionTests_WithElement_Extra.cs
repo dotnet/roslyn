@@ -1976,7 +1976,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // (3,58): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
             //     static MyCollection<T> NoConstraints<T>(T x, T y) => NoConstraintsParams(x, y);
-            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "NoConstraintsParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(3, 58));
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "NoConstraintsParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(3, 58),
+            // (4,51): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+            //     static MyCollection<T> NoConstraintsParams<T>(params MyCollection<T> c) => c;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(4, 51));
 
         string sourceB3 = """
                 class Program

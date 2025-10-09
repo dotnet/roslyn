@@ -84,13 +84,15 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
         => this.UnderlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
+    internal override int TryGetOverloadResolutionPriority()
+        => this.UnderlyingMethod.TryGetOverloadResolutionPriority();
+
     public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => throw new NotImplementedException();
     public override Symbol AssociatedSymbol => throw new NotImplementedException();
     internal override bool HasSpecialNameAttribute => throw new NotImplementedException();
     internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw new NotImplementedException();
     internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument) => throw new NotImplementedException();
     internal override bool IsNullableAnalysisEnabled() => throw new NotImplementedException();
-    internal override int TryGetOverloadResolutionPriority() => throw new NotImplementedException();
 
     private sealed class SynthesizedCollectionBuilderProjectedParameterSymbol(
         SynthesizedCollectionBuilderProjectedMethodSymbol methodSymbol,
