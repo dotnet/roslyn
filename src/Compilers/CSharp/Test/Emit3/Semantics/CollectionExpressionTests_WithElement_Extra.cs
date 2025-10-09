@@ -2021,7 +2021,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // (8,78): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
             //     static MyCollection<T> StructConstraint<T>(T x, T y) where T : struct => StructConstraintParams(x, y);
-            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "StructConstraintParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(8, 78));
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "StructConstraintParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(8, 78),
+            // (10,54): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+            //     static MyCollection<T> StructConstraintParams<T>(params MyCollection<T> c) where T : struct => c;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(10, 54));
     }
 
     [Fact]
@@ -4420,7 +4423,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var comp = CreateCompilation(
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (16,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static void F<T>(params MyCollection<T> c) where T : struct
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(16, 22));
 
         string sourceB2 = """
                 class Program
