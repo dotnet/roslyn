@@ -92,9 +92,6 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
 # Full build
 .build.sh
 
-# Build and deploy to experimental VS instance  
-.build.sh -deployExtensions -launch
-
 # Run specific test project
 dotnet test src/EditorFeatures/Test/
 
