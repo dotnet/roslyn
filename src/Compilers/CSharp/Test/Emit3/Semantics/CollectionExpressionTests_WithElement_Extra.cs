@@ -4259,12 +4259,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB2],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,14): error CS9502: Collection arguments are not supported for type 'MyCollection<object>'.
+            // (6,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //         x = [with(default)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<object>").WithLocation(6, 14),
-            // (7,14): error CS9502: Collection arguments are not supported for type 'MyCollection<object>'.
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(default)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)", "T", "object").WithLocation(6, 14),
+            // (7,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //         x = [with(2), 3];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<object>").WithLocation(7, 14));
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(2)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)", "T", "object").WithLocation(7, 14));
     }
 
     [Fact]
