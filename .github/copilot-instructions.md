@@ -19,7 +19,6 @@
 **Building**:
 - `build.sh` - Full solution build
 - `dotnet build Compilers.slnf` - Compiler-only build  
-- Use VS tasks: `build current project`, `build Compilers.slnf`
 
 **Testing**:
 - `test.sh` - Run all tests
