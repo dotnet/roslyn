@@ -3200,7 +3200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // While inferring the type of a more complex construct (like lambda),
             // nullability analysis could be triggered against a reference of the local being inferred,
             // querying its type and hence starting the same type inference recursively.
-            if (local is SourceLocalSymbol { IsVar: true } && local.ForbiddenZone?.Contains(node.Syntax) == true)
+            if (local is SourceLocalSymbol { IsVar: true } && local.IsForbiddenReference(node.Syntax, out _))
             {
                 SetResultType(node, TypeWithState.ForType(node.Type));
                 return null;

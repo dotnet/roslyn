@@ -2307,7 +2307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             LocalSymbol localSymbol = node.LocalSymbol;
-            if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node.Syntax) == true)
+            if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.IsForbiddenReference(node.Syntax, out _))
             {
                 // Since we've already reported a use of the variable where not permitted, we
                 // suppress the diagnostic that the variable may not be assigned where used.

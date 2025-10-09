@@ -269,12 +269,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression BindToTypeForErrorRecovery(BoundExpression expression, TypeSymbol type = null)
         {
+            return BindToTypeForErrorRecovery(expression, BindingDiagnosticBag.Discarded, type);
+        }
+
+        internal BoundExpression BindToTypeForErrorRecovery(BoundExpression expression, BindingDiagnosticBag diagnostics, TypeSymbol type = null)
+        {
             if (expression is null)
                 return null;
             var result =
                 !expression.NeedsToBeConverted() ? expression :
-                type is null ? BindToNaturalType(expression, BindingDiagnosticBag.Discarded, reportNoTargetType: false) :
-                GenerateConversionForAssignment(type, expression, BindingDiagnosticBag.Discarded);
+                type is null ? BindToNaturalType(expression, diagnostics, reportNoTargetType: false) :
+                GenerateConversionForAssignment(type, expression, diagnostics);
             return result;
         }
 
@@ -2094,7 +2099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
                             isNullableUnknown = true;
                         }
-                        else if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node) == true)
+                        else if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.IsForbiddenReference(node, out ErrorCode forbiddenDiagnostic))
                         {
                             // A var (type-inferred) local variable has been used in its own initialization (the "forbidden zone").
                             // There are many cases where this occurs, including:
@@ -2105,7 +2110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             //
                             // localSymbol.ForbiddenDiagnostic provides a suitable diagnostic for whichever case applies.
                             //
-                            diagnostics.Add(localSymbol.ForbiddenDiagnostic, node.Location, node);
+                            diagnostics.Add(forbiddenDiagnostic, node.Location, node);
                             type = new ExtendedErrorTypeSymbol(
                                 this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
                             isNullableUnknown = true;
@@ -5133,7 +5138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArgumentsWithAnnotations: ImmutableArray<TypeWithAnnotations>.Empty,
                     analyzedArguments: analyzedArguments,
                     invokedAsExtensionMethod: false,
-                    isDelegate: false);
+                    isDelegate: false,
+                    BindingDiagnosticBag.Discarded);
                 result.WasCompilerGenerated = initializerArgumentListOpt == null;
                 return result;
             }
@@ -6934,7 +6940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: The use site diagnostics of the candidate constructors have already been reported (in PerformConstructorOverloadResolution).
 
             var childNodes = ArrayBuilder<BoundExpression>.GetInstance();
-            childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments, candidateConstructors));
+            childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments, candidateConstructors, BindingDiagnosticBag.Discarded));
             if (initializerSyntaxOpt != null)
             {
                 childNodes.Add(MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics));
