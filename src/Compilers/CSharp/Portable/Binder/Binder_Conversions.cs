@@ -1508,7 +1508,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                // From the specification: https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#conversions
+                // From the specification:
+                // https://github.com/dotnet/csharplang/blob/90f1d8b0e9ba8a140f73aef376833969cce8bf9e/proposals/collection-expression-arguments.md?plain=1#L175
                 //
                 // A struct or class type that implements System.Collections.IEnumerable where:
                 //
