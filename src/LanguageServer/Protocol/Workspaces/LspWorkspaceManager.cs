@@ -259,7 +259,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
                 if (_lspMiscellaneousFilesWorkspaceProvider is not null)
                 {
-                    // Check if we found a document that is not a misc document.  If we did we should remove it from misc if it is there (e.g. document was transferred)
+                    // It is possible that a document that was previously a misc file is now part of a real workspace (e.g. project system told us about a file we already had open).
+                    // If we found a non-misc document, we should clean up any references to it in the misc provider.
                     var foundNonMiscDocument = await documents
                         .AnyAsync(async doc => !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(doc, cancellationToken).ConfigureAwait(false))
                         .ConfigureAwait(false);
@@ -270,7 +271,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                             var didRemove = await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
                             if (didRemove)
                             {
-                                // If we actually removed something, lookup the document again to find it in the updated solutions.
+                                // If we actually removed something, lookup the document again to ensure we return updated solutions without the misc document.
                                 return await GetLspDocumentInfoAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
                             }
                         }
