@@ -100,11 +100,11 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
 
         public override Symbol ContainingSymbol => _methodSymbol;
 
+        internal override bool IsCallerLineNumber => this.UnderlyingParameter.IsCallerLineNumber;
+
         internal override bool HasEnumeratorCancellationAttribute => throw new NotImplementedException();
 
         internal override bool IsCallerFilePath => throw new NotImplementedException();
-
-        internal override bool IsCallerLineNumber => throw new NotImplementedException();
 
         internal override bool IsCallerMemberName => throw new NotImplementedException();
 

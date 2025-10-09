@@ -4184,12 +4184,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB2],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,14): error CS9502: Collection arguments are not supported for type 'MyCollection<object>'.
+            // (6,13): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         x = [with(default)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<object>").WithLocation(6, 14),
-            // (7,14): error CS9502: Collection arguments are not supported for type 'MyCollection<object>'.
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(default)]").WithArguments("Create", "1").WithLocation(6, 13),
+            // (7,13): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         x = [with(2), 3];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<object>").WithLocation(7, 14));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(2), 3]").WithArguments("Create", "1").WithLocation(7, 13));
     }
 
     [Fact]
@@ -4242,10 +4242,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var comp = CreateCompilation(
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics(
-            // (9,13): error CS1501: No overload for method 'Create' takes 1 arguments
-            //         y = [with(2), 3];
-            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(2), 3]").WithArguments("Create", "1").WithLocation(9, 13));
+        comp.VerifyEmitDiagnostics();
 
         string sourceB2 = """
                 class Program
