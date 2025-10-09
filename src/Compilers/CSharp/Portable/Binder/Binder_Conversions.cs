@@ -2234,6 +2234,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteInfo.AddDiagnostics(candidateUseSiteInfo.Diagnostics);
 
                 result.Add(method);
+
+                // Can early-exist in the params case at this point as there can only be one such creation method with
+                // this signature.
                 if (forParams)
                     break;
             }
