@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var syntax = node.WithElement?.Syntax ?? node.Syntax;
 
-                // All the methods were instantiated with the same type-arguments, so we can grab what we need off of the first in the list.
+                // All the methods should have the same name, so we can grab what we need off of the first in the list.
                 var methodName = collectionBuilderMethods[0].Name;
                 Debug.Assert(collectionBuilderMethods.All(t => t.Name == methodName));
 
