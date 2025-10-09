@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 /// See
 /// https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#collectionbuilderattribute-methods.
 /// For collection builders: For each create method for the target type, we define a projection method with an identical
-/// signature to the create method but without the last parameter.
+/// signature to the create method but without the last parameter.  This is the signature of the method a `with(...)`
+/// element will be matched against when using a collection builder type for a collection expression.
 /// </summary>
 /// <remarks>
 /// The 'Create' methods found are guaranteed by the spec to match generic arity with the collection type being created.
