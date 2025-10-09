@@ -102,10 +102,9 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
 
         internal override bool IsCallerLineNumber => this.UnderlyingParameter.IsCallerLineNumber;
         internal override bool IsCallerFilePath => this.UnderlyingParameter.IsCallerFilePath;
+        internal override bool IsCallerMemberName => this.UnderlyingParameter.IsCallerMemberName;
 
         internal override bool HasEnumeratorCancellationAttribute => throw new NotImplementedException();
-
-        internal override bool IsCallerMemberName => throw new NotImplementedException();
 
         internal override int CallerArgumentExpressionParameterIndex => throw new NotImplementedException();
 
