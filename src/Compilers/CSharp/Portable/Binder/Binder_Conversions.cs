@@ -1139,6 +1139,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!argumentRefKinds.IsDefault)
                         argumentRefKinds = argumentRefKinds.Add(RefKind.None);
 
+                    var argsToParams = projectionCall.ArgsToParamsOpt;
+                    if (!argsToParams.IsDefault)
+                        argsToParams = argsToParams.Add(collectionBuilderMethod.ParameterCount - 1);
+
                     var builderCall = new BoundCall(
                         syntax,
                         receiverOpt: null,
@@ -1151,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isDelegateCall: false,
                         expanded: false,
                         invokedAsExtensionMethod: false,
-                        argsToParamsOpt: default,
+                        argsToParamsOpt: argsToParams,
                         defaultArguments: projectionCall.DefaultArguments,
                         resultKind: LookupResultKind.Viable,
                         type: collectionBuilderMethod.ReturnType).MakeCompilerGenerated();
