@@ -1194,18 +1194,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// from the latter in that the collection builder method itself can only contain a single <see
         /// cref="ReadOnlySpan{T}"/> parameter, while the latter can be any method that <em>ends</em> with a <see
         /// cref="ReadOnlySpan{T}"/> parameter, but otherwise follows the collection builder method pattern.</param>
-        /// <returns>
-        /// An array containing tuples where the elements of the tuple are:
-        /// <list type="number">
-        /// <item>The actual collection builder method found.</item>
-        /// <item>The final element type determined.  This will be equivalent to the type-argument of the final <see
-        /// cref="ReadOnlySpan{T}"/> parameter type in the collection builder method (after construction has been
-        /// performed using the type arguments from <paramref name="namedType"/>.</item>
-        /// <item>The conversion from the return type of the constructed method, to the actual collection type being
-        /// created.</item>
-        /// </list>
-        /// </returns>
-        internal ImmutableArray<MethodSymbol> GetAndValidateCollectionBuilderMethods(
+        /// <remarks>
+        /// This method does not validate the collection builder methods it returns (for example, checking for obsolete
+        /// errors and the like).  The caller should use <see cref="CheckCollectionBuilderMethod"/> to do so. Once they
+        /// have decided on which method to use.
+        /// </remarks>
+        internal ImmutableArray<MethodSymbol> GetCollectionBuilderMethods(
             SyntaxNode syntax,
             NamedTypeSymbol namedType,
             BindingDiagnosticBag diagnostics,
