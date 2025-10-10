@@ -201,13 +201,7 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
 
             // Now that we've finished the work to produce the file, add the project and document to the workspace.
             // This should not be cancelled, or we'll leave the workspace in a bad state.
-            metadataWorkspace.OnProjectAdded(temporaryProjectInfo);
-            temporaryDocument = metadataWorkspace.CurrentSolution.GetRequiredDocument(temporaryDocument.Id);
-
-            var newLoader = new WorkspaceFileTextLoader(temporaryDocument.Project.Solution.Services, fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding);
-            metadataWorkspace.OnDocumentTextLoaderChanged(temporaryDocumentId, newLoader);
-
-            _generatedFilenameToInformation.Add(fileInfo.TemporaryFilePath, (fileInfo, temporaryDocument.Id));
+            MutateWorkspace(temporaryDocument.Id, fileInfo, temporaryProjectInfo, metadataWorkspace);
             generatedDocumentId = temporaryDocument.Id;
         }
         else
@@ -227,6 +221,16 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
         return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
+    }
+
+    private void MutateWorkspace(DocumentId temporaryDocumentId, MetadataAsSourceGeneratedFileInfo fileInfo, ProjectInfo temporaryProjectInfo, Workspace metadataWorkspace)
+    {
+        var newLoader = new WorkspaceFileTextLoader(metadataWorkspace.CurrentSolution.Services, fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding);
+        var updatedDocuments = temporaryProjectInfo.Documents.Select(d => d.Id == temporaryDocumentId ? d.WithTextLoader(newLoader) : d);
+        temporaryProjectInfo = temporaryProjectInfo.WithDocuments(updatedDocuments);
+        metadataWorkspace.OnProjectAdded(temporaryProjectInfo);
+
+        _generatedFilenameToInformation.Add(fileInfo.TemporaryFilePath, (fileInfo, temporaryDocumentId));
     }
 
     private (MetadataReference? metadataReference, string? assemblyLocation, bool isReferenceAssembly) GetReferenceInfo(Compilation compilation, IAssemblySymbol containingAssembly)
