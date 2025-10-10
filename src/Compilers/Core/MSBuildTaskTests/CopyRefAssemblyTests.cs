@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             File.WriteAllText(source.Path, "test");
             var dest = dir.CreateFile("dest.dll");
             File.WriteAllText(dest.Path, "dest");
-            
+
             // Ensure different timestamps to test MVID checking path
             System.Threading.Thread.Sleep(10);
             File.SetLastWriteTimeUtc(source.Path, DateTime.UtcNow);
-            
+
             var engine = new MockEngine();
             var task = new CopyRefAssembly()
             {
@@ -118,12 +118,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var dest = dir.CreateFile("mvid2.dll");
             File.WriteAllBytes(dest.Path, TestResources.General.MVID2);
-            
+
             // Ensure different timestamps so size/timestamp check doesn't incorrectly short-circuit
             // (MVID1 and MVID2 have the same size)
             System.Threading.Thread.Sleep(10);
             File.SetLastWriteTimeUtc(source.Path, DateTime.UtcNow);
-            
+
             var sourceTimestamp = File.GetLastWriteTimeUtc(source.Path).ToString("O");
             var destTimestamp = File.GetLastWriteTimeUtc(dest.Path).ToString("O");
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var dest = dir.CreateFile("dest.dll");
             File.WriteAllBytes(dest.Path, TestResources.General.MVID1);
-            
+
             // Set the destination to have the same timestamp as the source
             File.SetLastWriteTimeUtc(dest.Path, File.GetLastWriteTimeUtc(source.Path));
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var dest = dir.CreateFile("dest.dll");
             File.WriteAllBytes(dest.Path, TestResources.General.MVID1);
-            
+
             // Ensure different timestamps so size/timestamp check doesn't short-circuit
             System.Threading.Thread.Sleep(10);
             File.SetLastWriteTimeUtc(source.Path, DateTime.UtcNow);
