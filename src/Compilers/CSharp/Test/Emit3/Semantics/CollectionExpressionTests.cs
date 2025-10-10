@@ -43939,7 +43939,7 @@ class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net90, expectedOutput: "1234", verify: Verification.Fails);
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("1234"), verify: Verification.Fails);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", """
                 {
