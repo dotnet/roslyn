@@ -1383,7 +1383,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     public MyCollection(ReadOnlySpan<T> items)
                     {
                     }
-                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    public IEnumerator<T> GetEnumerator() => null;
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
                 class MyBuilder
@@ -1393,6 +1393,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         string sourceB = """
                 #nullable enable
+                using System;
                 class Program
                 {
                     static void Main()
@@ -1407,19 +1408,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var comp = CreateCompilation(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics(
-            // (5,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-            //         Identity([with()]);
-            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(5, 9),
-            // (6,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-            //         Identity([with(default, 2), default]);
-            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(6, 9),
-            // (7,18): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-            //         Identity([with(default), default, 3]);
-            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default), default, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 18),
-            // (7,34): error CS8716: There is no target type for the default literal.
-            //         Identity([with(default), default, 3]);
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 34));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
