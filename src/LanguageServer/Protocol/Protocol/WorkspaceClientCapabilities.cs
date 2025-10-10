@@ -121,4 +121,12 @@ internal sealed class WorkspaceClientCapabilities
     [JsonPropertyName("diagnostics")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DiagnosticWorkspaceSetting? Diagnostics { get; set; }
+
+    /// <summary>
+    /// Gets or sets capabilities indicating what support the client has for text document content requests.
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    [JsonPropertyName("textDocumentContent")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextDocumentContentClientCapabilities? TextDocumentContent { get; set; }
 }

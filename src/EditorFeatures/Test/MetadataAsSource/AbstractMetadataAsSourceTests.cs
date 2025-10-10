@@ -49,14 +49,15 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
         string symbolName,
         string projectLanguage,
         string expected,
+        bool useVirtualFiles,
         bool signaturesOnly = true,
         bool includeXmlDocComments = false,
         string languageVersion = null,
         string metadataLanguageVersion = null,
-        string metadataCommonReferences = null,
-        string commonReferencesValue = null)
+        string metadataCommonReferences = null, string commonReferencesValue = null)
     {
         using var context = TestContext.Create(
+            useVirtualFiles,
             projectLanguage, [metadataSource], includeXmlDocComments,
             languageVersion: languageVersion,
             metadataLanguageVersion: metadataLanguageVersion,
@@ -65,9 +66,9 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
         await context.GenerateAndVerifySourceAsync(symbolName, expected, signaturesOnly: signaturesOnly);
     }
 
-    internal static async Task GenerateAndVerifySourceLineAsync(string source, string language, string expected)
+    internal static async Task GenerateAndVerifySourceLineAsync(string source, string language, string expected, bool useVirtualFiles)
     {
-        using var context = TestContext.Create(language, sourceWithSymbolReference: source);
+        using var context = TestContext.Create(useVirtualFiles, language, sourceWithSymbolReference: source);
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
         var document = context.GetDocument(metadataAsSourceFile);
@@ -78,7 +79,7 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
         Assert.Equal(expected, lineText);
     }
 
-    internal static async Task TestNotReusedOnAssemblyDiffersAsync(string projectLanguage)
+    internal static async Task TestNotReusedOnAssemblyDiffersAsync(string projectLanguage, bool useVirtualFiles)
     {
         var metadataSources = new[]
         {
@@ -86,7 +87,7 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
             @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class D {}"
         };
 
-        using var context = TestContext.Create(projectLanguage);
+        using var context = TestContext.Create(useVirtualFiles, projectLanguage);
         var projectId = ProjectId.CreateNewId();
         var metadataProject = context.CurrentSolution
             .AddProject(projectId, "Metadata", "Metadata", LanguageNames.CSharp).GetProject(projectId)
@@ -112,12 +113,12 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
         TestContext.VerifyDocumentNotReused(a, b);
     }
 
-    internal static async Task TestSymbolIdMatchesMetadataAsync(string projectLanguage)
+    internal static async Task TestSymbolIdMatchesMetadataAsync(string projectLanguage, bool useVirtualFiles)
     {
         var metadataSource = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C { }";
         var symbolName = "C";
 
-        using var context = TestContext.Create(projectLanguage, [metadataSource]);
+        using var context = TestContext.Create(useVirtualFiles, projectLanguage, [metadataSource]);
         var metadataSymbol = await context.ResolveSymbolAsync(symbolName);
         var metadataSymbolId = metadataSymbol.GetSymbolKey();
         var generatedFile = await context.GenerateSourceAsync(symbolName);

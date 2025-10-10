@@ -41,8 +41,10 @@ public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocum
             using var hash = SHA256.Create();
             var fileHash = hash.ComputeHash(File.ReadAllBytes(sourceFilePath));
 
+            var persister = new FileSystemMetadataDocumentPersister();
+
             var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithms.Default, [.. fileHash], null, "https://sourcelink");
-            var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, CancellationToken.None);
+            var result = await service.LoadSourceDocumentAsync(sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, project.Id, persister, CancellationToken.None);
 
             Assert.NotNull(result);
             Assert.Equal(sourceFilePath, result!.FilePath);
@@ -69,8 +71,9 @@ public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocum
             var sourceLinkService = new Lazy<ISourceLinkService>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
             var service = new PdbSourceDocumentLoaderService(sourceLinkService, logger: null);
 
+            var persister = new FileSystemMetadataDocumentPersister();
             var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.None, default, null, SourceLinkUrl: null);
-            var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, CancellationToken.None);
+            var result = await service.LoadSourceDocumentAsync(sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, project.Id, persister, CancellationToken.None);
 
             Assert.Null(result);
         });
