@@ -551,7 +551,7 @@ public sealed class WhereKeywordRecommenderTests : KeywordRecommenderTests
                         $$
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/ISSUE_NUMBER")]
     public Task TestAfterExtensionWithTypeParameterAndCompleteParameterList()
         => VerifyKeywordAsync(
             """
@@ -560,7 +560,7 @@ public sealed class WhereKeywordRecommenderTests : KeywordRecommenderTests
                 extension<T>(T value) $$
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/ISSUE_NUMBER")]
     public Task TestAfterExtensionWithMultipleTypeParametersAndCompleteParameterList()
         => VerifyKeywordAsync(
             """
@@ -569,7 +569,7 @@ public sealed class WhereKeywordRecommenderTests : KeywordRecommenderTests
                 extension<T1, T2>(T1 value1, T2 value2) $$
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/ISSUE_NUMBER")]
     public Task TestAfterExtensionWithTypeParameterConstraint()
         => VerifyKeywordAsync(
             """
@@ -578,7 +578,7 @@ public sealed class WhereKeywordRecommenderTests : KeywordRecommenderTests
                 extension<T>(T value) where T : class $$
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/ISSUE_NUMBER")]
     public Task TestNotAfterExtensionWithTypeParameterWithoutParameterList()
         => VerifyAbsenceAsync(
             """
@@ -587,7 +587,7 @@ public sealed class WhereKeywordRecommenderTests : KeywordRecommenderTests
                 extension<T> $$
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/ISSUE_NUMBER")]
     public Task TestNotAfterExtensionWithoutTypeParameter()
         => VerifyAbsenceAsync(
             """
@@ -596,7 +596,7 @@ public sealed class WhereKeywordRecommenderTests : KeywordRecommenderTests
                 extension $$
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/ISSUE_NUMBER")]
     public Task TestNotAfterExtensionWithoutTypeParameterAndParameterList()
         => VerifyAbsenceAsync(
             """
