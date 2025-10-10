@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             // This test demonstrates that the size/timestamp check is faster than MVID extraction.
             // The fast path (size/timestamp) should complete significantly faster than MVID extraction.
-            
+
             var dir = TempRoot.CreateDirectory();
             var source = dir.CreateFile("mvid_perf.dll");
             File.WriteAllBytes(source.Path, TestResources.General.MVID1);
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // The fast path should be significantly faster than MVID extraction
             // We expect at least 2x improvement, but typically it's much more
-            Assert.True(mvidPathTime > fastPathTime, 
+            Assert.True(mvidPathTime > fastPathTime,
                 $"MVID path ({mvidPathTime}ms) should be slower than fast path ({fastPathTime}ms)");
         }
     }
