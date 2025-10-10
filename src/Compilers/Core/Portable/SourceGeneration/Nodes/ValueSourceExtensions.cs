@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Transforms an <see cref="IncrementalValueProvider{TSource}"/> into a new <see cref="IncrementalValueProvider{TResult}"/> by applying a transform function to the value.
+        /// This is a 1-to-1 transformation where each input value produces exactly one output value.
         /// </summary>
         /// <typeparam name="TSource">The type of the input value</typeparam>
         /// <typeparam name="TResult">The type of the output value</typeparam>
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Transforms an <see cref="IncrementalValueProvider{TSource}"/> into a new <see cref="IncrementalValuesProvider{TResult}"/> by applying a transform function that returns zero or more results for the input value.
+        /// This is a 1-to-many transformation where each input value can produce zero, one, or multiple output values.
         /// </summary>
         /// <typeparam name="TSource">The type of the input value</typeparam>
         /// <typeparam name="TResult">The type of each output value</typeparam>

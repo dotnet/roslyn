@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Registers an output node that will produce host-specific outputs that are not added to the compilation.
         /// Host outputs have no defined use and do not contribute to the final compilation. They are made available to the host
+        /// (i.e., the development environment or build system running the generator, such as Visual Studio, dotnet build, etc.)
         /// via <see cref="GeneratorRunResult.HostOutputs"/> and it is up to the host to decide how to use them.
         /// The provided action will be invoked with the value from the provider whenever it changes.
         /// </summary>
