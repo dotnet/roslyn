@@ -43,40 +43,27 @@ internal sealed class WhereKeywordRecommender() : AbstractSyntacticSingleKeyword
             if (typeParameters != null && token == typeParameters.GetLastToken(includeSkipped: true))
             {
                 var decl = typeParameters.GetAncestorOrThis<TypeDeclarationSyntax>();
-                if (decl != null && decl.TypeParameterList == typeParameters)
-                {
-                    // Don't offer 'where' after extension<T> | without a parameter list
-                    // It should only be offered after extension<T>(...) |
-                    if (decl is ExtensionBlockDeclarationSyntax)
-                    {
-                        return false;
-                    }
 
+                // Don't offer 'where' after extension<T> | without a parameter list
+                // It should only be offered after extension<T>(...) |
+                if (decl is not ExtensionBlockDeclarationSyntax &&
+                    decl?.TypeParameterList == typeParameters)
+                {
                     return true;
                 }
             }
         }
 
-        // delegate void D<T>() |
-        if (token.Kind() == SyntaxKind.CloseParenToken &&
-            token.Parent.IsKind(SyntaxKind.ParameterList) &&
-            token.Parent.IsParentKind(SyntaxKind.DelegateDeclaration))
-        {
-            var decl = token.GetAncestor<DelegateDeclarationSyntax>();
-            if (decl != null && decl.TypeParameterList != null)
-            {
-                return true;
-            }
-        }
-
         // void Goo<T>() |
         // extension<T>(T value) |
+        // delegate void D<T>() |
 
         if (token.Kind() == SyntaxKind.CloseParenToken &&
             token.Parent is ParameterListSyntax &&
-            token.Parent.Parent is MethodDeclarationSyntax { TypeParameterList.Parameters.Count: > 0 }
-                                or LocalFunctionStatementSyntax { TypeParameterList.Parameters.Count: > 0 }
-                                or ExtensionBlockDeclarationSyntax { TypeParameterList.Parameters.Count: > 0 })
+            token.Parent.Parent is MethodDeclarationSyntax { TypeParameterList: not null }
+                                or LocalFunctionStatementSyntax { TypeParameterList: not null }
+                                or ExtensionBlockDeclarationSyntax { TypeParameterList: not null }
+                                or DelegateDeclarationSyntax { TypeParameterList: not null })
         {
             return true;
         }
