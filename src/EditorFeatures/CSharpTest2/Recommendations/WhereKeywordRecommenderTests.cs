@@ -604,4 +604,22 @@ public sealed class WhereKeywordRecommenderTests : KeywordRecommenderTests
             {
                 extension() $$
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestNotAfterExtensionWithIncompleteParameterList()
+        => VerifyAbsenceAsync(
+            """
+            public static class C
+            {
+                extension( $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestNotAfterExtensionWithTypeParameterAndIncompleteParameterList()
+        => VerifyAbsenceAsync(
+            """
+            public static class C
+            {
+                extension<T>( $$
+            """);
 }
