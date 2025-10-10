@@ -154,7 +154,7 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest(
         var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
         AddAnalyzerToWorkspace(workspace, analyzer);
 
-        GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+        var (document, span, annotation) = await GetDocumentAndSelectSpanOrAnnotatedSpan(workspace);
 
         var testDriver = new TestDiagnosticAnalyzerDriver(workspace);
         var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
