@@ -129,7 +129,7 @@ public sealed class SdkIntegrationTests : IDisposable
     [InlineData("net6.0", true)]
     [InlineData("netstandard2.0", false)]
     [InlineData("net472", false)]
-    public void StrongNameWarningCSharp(string tfm, bool suppressStrongName)
+    public void StrongNameWarningCSharp(string tfm, bool expectStrongNameSuppression)
     {
         var projectFile = ProjectDir.CreateFile("console.csproj");
         projectFile.WriteAllText($"""
@@ -149,7 +149,7 @@ public sealed class SdkIntegrationTests : IDisposable
         var binlogPath = RunBuild(projectFile.Path);
         var compilation = ReadCompilations(binlogPath).Single();
         var options = compilation.Options;
-        if (suppressStrongName)
+        if (expectStrongNameSuppression)
         {
             Assert.True(options.SpecificDiagnosticOptions.TryGetValue("CS8002", out ReportDiagnostic d));
             Assert.Equal(ReportDiagnostic.Suppress, d);
@@ -167,7 +167,7 @@ public sealed class SdkIntegrationTests : IDisposable
     [InlineData("net6.0", true)]
     [InlineData("netstandard2.0", false)]
     [InlineData("net472", false)]
-    public void StrongNameWarningVisualBasic(string tfm, bool suppressStrongName)
+    public void StrongNameWarningVisualBasic(string tfm, bool expectStrongNameSuppression)
     {
         var projectFile = ProjectDir.CreateFile("console.vbproj");
         projectFile.WriteAllText($"""
@@ -188,7 +188,7 @@ public sealed class SdkIntegrationTests : IDisposable
         var binlogPath = RunBuild(projectFile.Path);
         var compilation = ReadCompilations(binlogPath).Single();
         var options = compilation.Options;
-        if (suppressStrongName)
+        if (expectStrongNameSuppression)
         {
             Assert.True(options.SpecificDiagnosticOptions.TryGetValue("BC41997", out ReportDiagnostic d));
             Assert.Equal(ReportDiagnostic.Suppress, d);
