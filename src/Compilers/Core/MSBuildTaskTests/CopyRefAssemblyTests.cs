@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             File.WriteAllText(source.Path, "test");
             var dest = dir.CreateFile("dest.dll");
             File.WriteAllText(dest.Path, "dest");
+            
+            // Ensure different timestamps to test MVID checking path
+            System.Threading.Thread.Sleep(10);
+            File.SetLastWriteTimeUtc(source.Path, DateTime.UtcNow);
+            
             var engine = new MockEngine();
             var task = new CopyRefAssembly()
             {
@@ -110,10 +115,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var dir = TempRoot.CreateDirectory();
             var source = dir.CreateFile("mvid1.dll");
             File.WriteAllBytes(source.Path, TestResources.General.MVID1);
-            var sourceTimestamp = File.GetLastWriteTimeUtc(source.Path).ToString("O");
 
             var dest = dir.CreateFile("mvid2.dll");
             File.WriteAllBytes(dest.Path, TestResources.General.MVID2);
+            
+            // Ensure different timestamps so size/timestamp check doesn't incorrectly short-circuit
+            // (MVID1 and MVID2 have the same size)
+            System.Threading.Thread.Sleep(10);
+            File.SetLastWriteTimeUtc(source.Path, DateTime.UtcNow);
+            
+            var sourceTimestamp = File.GetLastWriteTimeUtc(source.Path).ToString("O");
             var destTimestamp = File.GetLastWriteTimeUtc(dest.Path).ToString("O");
 
             var engine = new MockEngine();
@@ -129,6 +140,67 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
                 Source reference assembly "{{source.Path}}" (timestamp "{{sourceTimestamp}}", MVID "f851dda2-6ea3-475e-8c0d-19bd3c4d9437") differs from destination "{{dest.Path}}" (timestamp "{{destTimestamp}}", MVID "8e1ed25b-2980-4f32-9dee-c1e3b0a57c4b").
                 Copying reference assembly from "{{source.Path}}" to "{{dest.Path}}".
+                """,
+                engine.Log);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public void SourceAndDestinationWithSameSizeAndTimestamp()
+        {
+            var dir = TempRoot.CreateDirectory();
+            var source = dir.CreateFile("mvid1.dll");
+            File.WriteAllBytes(source.Path, TestResources.General.MVID1);
+
+            var dest = dir.CreateFile("dest.dll");
+            File.WriteAllBytes(dest.Path, TestResources.General.MVID1);
+            
+            // Set the destination to have the same timestamp as the source
+            File.SetLastWriteTimeUtc(dest.Path, File.GetLastWriteTimeUtc(source.Path));
+
+            var engine = new MockEngine();
+            var task = new CopyRefAssembly()
+            {
+                BuildEngine = engine,
+                SourcePath = source.Path,
+                DestinationPath = dest.Path,
+            };
+
+            Assert.True(task.Execute());
+
+            // Should skip copy due to matching size and timestamp (fast path optimization)
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
+                Reference assembly "{{dest.Path}}" already has latest information. Leaving it untouched.
+                """,
+                engine.Log);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public void SourceAndDestinationWithSameMvidButDifferentTimestamp()
+        {
+            var dir = TempRoot.CreateDirectory();
+            var source = dir.CreateFile("mvid1.dll");
+            File.WriteAllBytes(source.Path, TestResources.General.MVID1);
+
+            var dest = dir.CreateFile("dest.dll");
+            File.WriteAllBytes(dest.Path, TestResources.General.MVID1);
+            
+            // Ensure different timestamps so size/timestamp check doesn't short-circuit
+            System.Threading.Thread.Sleep(10);
+            File.SetLastWriteTimeUtc(source.Path, DateTime.UtcNow);
+
+            var engine = new MockEngine();
+            var task = new CopyRefAssembly()
+            {
+                BuildEngine = engine,
+                SourcePath = source.Path,
+                DestinationPath = dest.Path,
+            };
+
+            Assert.True(task.Execute());
+
+            // Should skip copy due to matching MVID (falls through to MVID check)
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
+                Reference assembly "{{dest.Path}}" already has latest information. Leaving it untouched.
                 """,
                 engine.Log);
         }
