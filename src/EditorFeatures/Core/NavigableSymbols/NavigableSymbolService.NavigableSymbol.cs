@@ -55,11 +55,10 @@ internal partial class NavigableSymbolService
         {
             // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
             // causing ourselves to self-cancel.
-            var backgroundIndicator = _indicatorFactory.Create(
+            using var backgroundIndicator = _indicatorFactory.Create(
                 _textView, SymbolSpan,
                 EditorFeaturesResources.Navigating_to_definition,
                 cancelOnFocusLost: false);
-            await using var _ = backgroundIndicator.ConfigureAwait(false);
 
             await _location.TryNavigateToAsync(
                 _service._threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), backgroundIndicator.UserCancellationToken).ConfigureAwait(false);

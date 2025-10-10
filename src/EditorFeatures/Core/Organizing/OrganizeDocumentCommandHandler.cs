@@ -127,13 +127,12 @@ internal sealed class OrganizeDocumentCommandHandler(
         var snapshotSpan = textView.GetTextElementSpan(textView.Caret.Position.BufferPosition);
 
         var indicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-        var backgroundWorkContext = indicatorFactory.Create(
+        using var backgroundWorkContext = indicatorFactory.Create(
             commandArgs.TextView,
             snapshotSpan,
             EditorFeaturesResources.Organizing_document,
             cancelOnEdit: true,
             cancelOnFocusLost: false);
-        await using var _1 = backgroundWorkContext.ConfigureAwait(false);
 
         var cancellationToken = backgroundWorkContext.UserCancellationToken;
 
@@ -154,7 +153,7 @@ internal sealed class OrganizeDocumentCommandHandler(
 
         // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
         var disposable = await backgroundWorkContext.SuppressAutoCancelAsync().ConfigureAwait(true);
-        await using var _2 = disposable.ConfigureAwait(true);
+        await using var _ = disposable.ConfigureAwait(true);
 
         commandArgs.SubjectBuffer.ApplyChanges(changes);
     }
