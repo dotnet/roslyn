@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression createImmutableArray(BoundCollectionExpression node, NamedTypeSymbol immutableArrayType)
             {
                 if (node.Elements.IsEmpty &&
-                    _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty) is FieldSymbol immutableArrayOfTEmpty)
+                    _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty, isOptional: true) is FieldSymbol immutableArrayOfTEmpty)
                 {
                     // ImmutableArray<T> value = [];
                     var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember(immutableArrayType);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCollectionBuilderCollectionExpression(node);
                 }
 
-                if (_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray)
+                if (_factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T, isOptional: true) is MethodSymbol asImmutableArray)
                 {
                     // T[] array = [elems];
                     // ImmutableArray<T> value = ImmutableCollectionsMarshal.AsImmutableArray<T>(array);
