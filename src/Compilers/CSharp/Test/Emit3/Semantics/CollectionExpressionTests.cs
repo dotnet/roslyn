@@ -18967,6 +18967,7 @@ partial class Program
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+
             comp.VerifyEmitDiagnostics(
                 // (6,34): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
                 //         MyCollection<string> x = [];
@@ -19012,7 +19013,9 @@ partial class Program
                     }
                 }
                 """;
+
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+
             comp.VerifyEmitDiagnostics(
                 // (6,34): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
                 //         MyCollection<string> x = [];
@@ -31442,10 +31445,12 @@ partial class Program
                 // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 // MyCollection<string?> x1 = [null]; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(7, 28),
+                // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // MyCollection<string?> x1 = [null]; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(7, 28),
                 // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 // MyCollection<string> x2 = [null]; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
-                );
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28));
         }
 
         [Fact]
@@ -31488,10 +31493,12 @@ partial class Program
                 // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T?>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 // MyCollection<string?> x1 = [null];
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28),
+                // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T?>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // MyCollection<string?> x1 = [null];
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28),
                 // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 // MyCollection<string> x2 = [null];
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
-                );
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28));
         }
 
         [Fact]

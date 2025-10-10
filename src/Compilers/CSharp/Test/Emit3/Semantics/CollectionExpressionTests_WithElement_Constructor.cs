@@ -1587,6 +1587,52 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("0"));
     }
 
+    [Theory]
+    [InlineData("List")]
+    [InlineData("IList")]
+    public void WithElement_NullableFlow(string type)
+    {
+        var source = $$"""
+            #nullable enable
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    {{type}}<int> list = [with((s = "").Length), 1];
+                    var v = s.ToString();
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("List")]
+    [InlineData("IList")]
+    public void WithElement_NullableFlow2(string type)
+    {
+        var source = $$"""
+            #nullable enable
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    {{type}}<int> list = [with((s = "").Length), s.Length];
+                    var v = s.ToString();
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
     #endregion
 
     #region Error Recovery Tests
