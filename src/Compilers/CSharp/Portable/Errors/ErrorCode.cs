@@ -2430,6 +2430,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
         ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
 
+        HDN_RedundantPattern = 9335,
+        WRN_RedundantPattern = 9336,
+        HDN_RedundantPatternStackGuard = 9337,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

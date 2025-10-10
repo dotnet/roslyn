@@ -89,10 +89,22 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             this.Dispose();
         }
 
+        /// <summary>
+        /// Inherited from <see cref="IUIThreadOperationContext"/>, so we unfortunately have to keep it.
+        /// Must be called from the UI thread.
+        /// </summary>
         public void Dispose()
         {
+            Contract.ThrowIfFalse(_factory._threadingContext.JoinableTaskFactory.Context.IsOnMainThread, "Dispose must be called on the UI thread");
             _backgroundWorkIndicator.Dispose();
             _factory.OnContextDisposed(this);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            // Intentionally non-cancellable.  We must ensure disposal fully happens to leave us in a good state.
+            await _factory._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            this.Dispose();
         }
 
         /// <summary>

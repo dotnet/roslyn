@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -87,10 +86,11 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
         }
 
         var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-        using var context = backgroundWorkIndicatorFactory.Create(
+        var context = backgroundWorkIndicatorFactory.Create(
             args.TextView,
             args.TextView.GetTextElementSpan(caretPoint.Value),
             EditorFeaturesResources.Finding_token_to_rename);
+        await using var _1 = context.ConfigureAwait(false);
 
         var cancellationToken = context.UserCancellationToken;
 

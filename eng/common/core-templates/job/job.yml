@@ -20,6 +20,7 @@ parameters:
   artifacts: ''
   enableMicrobuild: false
   enablePreviewMicrobuild: false
+  microbuildPluginVersion: 'latest'
   enableMicrobuildForMacAndLinux: false
   microbuildUseESRP: true
   enablePublishBuildArtifacts: false
@@ -130,6 +131,7 @@ jobs:
       parameters:
         enableMicrobuild: ${{ parameters.enableMicrobuild }}
         enablePreviewMicrobuild: ${{ parameters.enablePreviewMicrobuild }}
+        microbuildPluginVersion: ${{ parameters.microbuildPluginVersion }}
         enableMicrobuildForMacAndLinux: ${{ parameters.enableMicrobuildForMacAndLinux }}
         microbuildUseESRP: ${{ parameters.microbuildUseESRP }}
         continueOnError: ${{ parameters.continueOnError }}
@@ -156,6 +158,7 @@ jobs:
       parameters:
         enableMicrobuild: ${{ parameters.enableMicrobuild }}
         enablePreviewMicrobuild: ${{ parameters.enablePreviewMicrobuild }}
+        microbuildPluginVersion: ${{ parameters.microbuildPluginVersion }}
         enableMicrobuildForMacAndLinux: ${{ parameters.enableMicrobuildForMacAndLinux }}
         continueOnError: ${{ parameters.continueOnError }}
 
