@@ -1114,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Now that we've settled on the actual collection builder method to call, do a final round of
                     // checks on it in case there are reasons it will have a problem.
                     collectionBuilderMethod = underlyingMethod;
-                    @this.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics, forParams: false);
+                    @this.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics);
 
                     // Take our successful call to the projection method and rewrite it to call the actual call to the
                     // real collection builder.  Because we don't know how the actual elements will be converted to the
@@ -1329,27 +1329,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void CheckCollectionBuilderMethod(
             SyntaxNode syntax,
             MethodSymbol collectionBuilderMethod,
-            BindingDiagnosticBag diagnostics,
-            bool forParams)
+            BindingDiagnosticBag diagnostics)
         {
             ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
 
             var parameterType = (NamedTypeSymbol)collectionBuilderMethod.Parameters.Last().Type;
             Debug.Assert(parameterType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
+            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
+
             collectionBuilderMethod.CheckConstraints(
                 new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
 
-            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
-
-            // The normal method resolution done by the call to BindInvocationExpression in ConvertCollectionExpression
-            // will already report these issues. So we only need to do this extra checking when we're in the params
-            // checking case.
-            if (forParams)
-            {
-                ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
-                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
-            }
+            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 
             Debug.Assert(!collectionBuilderMethod.GetIsNewExtensionMember());
         }
@@ -1381,7 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (targetType is TypeParameterSymbol typeParameter)
             {
-                collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: false, diagnostics);
                 collectionCreation.WasCompilerGenerated = true;
             }
             else

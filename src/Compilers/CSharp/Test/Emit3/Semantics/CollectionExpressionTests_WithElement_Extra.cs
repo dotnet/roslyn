@@ -1370,6 +1370,59 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
+    public void TypeInference_CollectionBuilder_Nullable()
+    {
+        string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(ReadOnlySpan<T> items)
+                    {
+                    }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(int length, ReadOnlySpan<T> items) => new(items);
+                }
+                """;
+        string sourceB = """
+                #nullable enable
+                class Program
+                {
+                    static void Main()
+                    {
+                        string? s = null;
+                        Identity<int>([with((s = "").Length)]);
+                        Console.WriteLine(s.Length);
+                    }
+                    static MyCollection<T> Identity<T>(MyCollection<T> c) => c;
+                }
+                """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //         Identity([with()]);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(5, 9),
+            // (6,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //         Identity([with(default, 2), default]);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(6, 9),
+            // (7,18): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //         Identity([with(default), default, 3]);
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default), default, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 18),
+            // (7,34): error CS8716: There is no target type for the default literal.
+            //         Identity([with(default), default, 3]);
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 34));
+    }
+
+    [Fact]
     public void CollectionBuilder_MultipleBuilderMethods()
     {
         string sourceA = """
@@ -3836,9 +3889,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (8,14): warning CS0612: 'MyBuilder.Create<int>(int, ReadOnlySpan<int>)' is obsolete
+            // (8,14): warning CS0612: 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)' is obsolete
             //         c = [with(default)];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create<int>(int, System.ReadOnlySpan<int>)").WithLocation(8, 14));
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(8, 14));
     }
 
     [Fact]
@@ -3930,18 +3983,18 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): warning CS0612: 'MyBuilder.Create<int>(int, ReadOnlySpan<int>)' is obsolete
+            // (6,13): warning CS0612: 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)' is obsolete
             //         c = [];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[]").WithArguments("MyBuilder.Create<int>(int, System.ReadOnlySpan<int>)").WithLocation(6, 13),
-            // (7,14): warning CS0612: 'MyBuilder.Create<int>(int, ReadOnlySpan<int>)' is obsolete
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[]").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(6, 13),
+            // (7,14): warning CS0612: 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)' is obsolete
             //         c = [with()];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with()").WithArguments("MyBuilder.Create<int>(int, System.ReadOnlySpan<int>)").WithLocation(7, 14),
-            // (8,14): warning CS0612: 'MyBuilder.Create<int>(int, ReadOnlySpan<int>)' is obsolete
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with()").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(7, 14),
+            // (8,14): warning CS0612: 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)' is obsolete
             //         c = [with(default)];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create<int>(int, System.ReadOnlySpan<int>)").WithLocation(8, 14),
-            // (9,13): warning CS0612: 'MyBuilder.Create<int>(int, ReadOnlySpan<int>)' is obsolete
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(8, 14),
+            // (9,13): warning CS0612: 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)' is obsolete
             //         c = F(1, 2);
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F(1, 2)").WithArguments("MyBuilder.Create<int>(int, System.ReadOnlySpan<int>)").WithLocation(9, 13),
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F(1, 2)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(9, 13),
             // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 33));
@@ -7214,11 +7267,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 }
                 """;
         var comp = CreateCompilation(source);
-        // PROTOTYPE: Handle collection arguments in flow analysis.
-        comp.VerifyEmitDiagnostics(
-            // (9,16): warning CS8603: Possible null reference return.
-            //         return e;
-            Diagnostic(ErrorCode.WRN_NullReferenceReturn, "e").WithLocation(9, 16));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]

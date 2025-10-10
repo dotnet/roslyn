@@ -46,6 +46,14 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     public override ImmutableArray<CustomModifier> RefCustomModifiers => this.UnderlyingMethod.RefCustomModifiers;
     public override TypeWithAnnotations ReturnTypeWithAnnotations => this.UnderlyingMethod.ReturnTypeWithAnnotations;
 
+    /// <summary>
+    /// The projection method itself is intentionally not obsolete.  We don't want to report obsoletion errors when
+    /// using it in some speculative binding for overload resolution.  Instead, we will then report the error on the
+    /// original <see cref="UnderlyingMethod"/> this points at directly in <see
+    /// cref="Binder.CheckCollectionBuilderMethod"/>.
+    /// </summary>
+    internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
+
     // Note: it is very intentional that we return empty arrays for Type arguments/parameters.  Consider a
     // hypothetical signature like:
     //
