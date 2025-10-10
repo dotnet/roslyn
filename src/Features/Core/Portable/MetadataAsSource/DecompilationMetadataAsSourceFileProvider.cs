@@ -201,6 +201,7 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
 
             // Now that we've finished the work to produce the file, add the project and document to the workspace.
             // This should not be cancelled, or we'll leave the workspace in a bad state.
+            cancellationToken = default;
             MutateWorkspace(temporaryDocument.Id, fileInfo, temporaryProjectInfo, metadataWorkspace);
             generatedDocumentId = temporaryDocument.Id;
         }
@@ -225,6 +226,7 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
 
     private void MutateWorkspace(DocumentId temporaryDocumentId, MetadataAsSourceGeneratedFileInfo fileInfo, ProjectInfo temporaryProjectInfo, Workspace metadataWorkspace)
     {
+        // This method should run to completion and not be cancelled to prevent invalid workspace state.
         var newLoader = new WorkspaceFileTextLoader(metadataWorkspace.CurrentSolution.Services, fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding);
         var updatedDocuments = temporaryProjectInfo.Documents.Select(d => d.Id == temporaryDocumentId ? d.WithTextLoader(newLoader) : d);
         temporaryProjectInfo = temporaryProjectInfo.WithDocuments(updatedDocuments);
