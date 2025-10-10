@@ -7,7 +7,6 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -35117,10 +35116,7 @@ static class E
             }
             """;
 
-        var parseOptions = TestOptions.Regular.WithLanguageVersion(languageVersion);
-        var comp = CreateCompilation([
-            CSharpSyntaxTree.ParseText(code, path: "file1.cs", encoding: Encoding.UTF8, options: parseOptions),
-            CSharpSyntaxTree.ParseText(code2, path: "file2.cs", encoding: Encoding.UTF8, options: parseOptions)]);
+        var comp = CreateCompilation([(code, "file1.cs"), (code2, "file2.cs")], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
 
         if (languageVersion == LanguageVersion.CSharp10)
         {
@@ -35174,7 +35170,7 @@ static class E
             }
             """;
 
-        var comp = CreateCompilation([CSharpSyntaxTree.ParseText(code, path: "file1.cs", encoding: Encoding.UTF8), CSharpSyntaxTree.ParseText(code2, path: "file2.cs", encoding: Encoding.UTF8)]);
+        var comp = CreateCompilation([(code, "file1.cs"), (code2, "file2.cs")]);
         comp.VerifyEmitDiagnostics(
             // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
             //             await using var test = await nonExistent.ExtensionMethod(o);

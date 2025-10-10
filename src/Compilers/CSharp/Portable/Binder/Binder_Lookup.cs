@@ -208,7 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var candidate in extensionCandidates)
             {
                 SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                result.Add(resultOfThisMember);
+                if (resultOfThisMember.Kind != LookupResultKind.Empty)
+                {
+                    result.Add(resultOfThisMember);
+                }
 
                 if (candidate is MethodSymbol { IsStatic: false } shadows &&
                     shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
@@ -230,7 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
                 {
                     SingleLookupResult resultOfThisMember = originalBinder.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
-                    result.Add(resultOfThisMember);
+                    if (resultOfThisMember.Kind != LookupResultKind.Empty)
+                    {
+                        result.Add(resultOfThisMember);
+                    }
                 }
             }
 

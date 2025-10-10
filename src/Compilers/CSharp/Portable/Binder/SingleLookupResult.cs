@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal SingleLookupResult(LookupResultKind kind, Symbol? symbol, DiagnosticInfo? error)
         {
+            Debug.Assert(symbol is not null || kind == LookupResultKind.Empty);
             this.Kind = kind;
             this.Symbol = symbol;
             this.Error = error;
