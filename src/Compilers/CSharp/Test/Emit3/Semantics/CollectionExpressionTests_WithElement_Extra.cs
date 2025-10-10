@@ -1506,7 +1506,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
-            expectedOutput: IncludeExpectedOutput("0, [1], 2, [2], "));
+            expectedOutput: IncludeExpectedOutput("0, [1], 2, [2], "),
+            verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
     }
 
@@ -2716,7 +2717,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
-            expectedOutput: IncludeExpectedOutput("[1, 0, 2, 3], [0, 4, 5], [7, 6, 8], "));
+            expectedOutput: IncludeExpectedOutput("[1, 0, 2, 3], [0, 4, 5], [7, 6, 8], "),
+            verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
     }
 
@@ -2833,7 +2835,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var verifier = CompileAndVerify(
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
-            expectedOutput: IncludeExpectedOutput("[1], [2], "));
+            expectedOutput: IncludeExpectedOutput("[1], [2], "),
+            verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         string sourceB2 = """
@@ -3279,7 +3282,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var verifier = CompileAndVerify(
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
-            expectedOutput: IncludeExpectedOutput("[0], [3, 0], "));
+            expectedOutput: IncludeExpectedOutput("[0], [3, 0], "),
+            verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         string sourceB2 = """
@@ -3417,7 +3421,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
-            expectedOutput: IncludeExpectedOutput("[1, 0], [1, 0, 3], [1, 2], [0, 2, 3], "));
+            expectedOutput: IncludeExpectedOutput("[1, 0], [1, 0, 3], [1, 2], [0, 2, 3], "),
+            verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
     }
 
@@ -3679,7 +3684,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // (12,68): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //     static IMyCollection<T?> F<T>(ReadOnlySpan<T> items, T arg) => [with(arg), ..items];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(arg), ..items]").WithArguments("Create", "1").WithLocation(12, 68));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(arg), ..items]").WithArguments("Create", "1").WithLocation(12, 68),
+            // (12,74): warning CS8620: Argument of type 'T' cannot be used for parameter 'items' of type 'ReadOnlySpan<T?>' in 'MyCollection<T?> MyCollectionBuilder.Create<T?>(ReadOnlySpan<T?> items)' due to differences in the nullability of reference types.
+            //     static IMyCollection<T?> F<T>(ReadOnlySpan<T> items, T arg) => [with(arg), ..items];
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "arg").WithArguments("T", "System.ReadOnlySpan<T?>", "items", "MyCollection<T?> MyCollectionBuilder.Create<T?>(ReadOnlySpan<T?> items)").WithLocation(12, 74));
     }
 
     [Fact]
@@ -3729,7 +3737,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
-            expectedOutput: IncludeExpectedOutput("[null], [1, 2, 3], "));
+            expectedOutput: IncludeExpectedOutput("[null], [1, 2, 3], "),
+            verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
     }
 
@@ -4180,7 +4189,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var verifier = CompileAndVerify(
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
-            expectedOutput: IncludeExpectedOutput("[null, 1], [2, 3], [null, 1], [0, 3], "));
+            expectedOutput: IncludeExpectedOutput("[null, 1], [2, 3], [null, 1], [0, 3], "),
+            verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         string sourceB2 = """
