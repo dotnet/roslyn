@@ -4135,10 +4135,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
                 }
                 """;
-        var comp = CreateCompilation(
+        var verifier = CompileAndVerify(
             [sourceA, sourceB1, s_collectionExtensions],
-            targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics();
+            targetFramework: TargetFramework.Net80,
+            expectedOutput: IncludeExpectedOutput("[null, 1], [2, 3], [null, 1], [0, 3], "));
+        verifier.VerifyDiagnostics();
 
         string sourceB2 = """
                 class Program
@@ -4151,7 +4152,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     }
                 }
                 """;
-        comp = CreateCompilation(
+        var comp = CreateCompilation(
             [sourceA, sourceB2],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
