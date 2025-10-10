@@ -54,6 +54,13 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     /// </summary>
     internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
 
+    /// <summary>
+    /// Similarly to <see cref="ObsoleteAttributeData"/>, we do not want to report unmanaged callers only on this
+    /// method.  Instead, we will then report the error on the original <see cref="UnderlyingMethod"/> this points at
+    /// directly in <see cref="Binder.CheckCollectionBuilderMethod"/>.
+    /// </summary>
+    internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
     // Note: it is very intentional that we return empty arrays for Type arguments/parameters.  Consider a
     // hypothetical signature like:
     //
@@ -88,9 +95,6 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
             return _lazyParameters;
         }
     }
-
-    internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
-        => this.UnderlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
     internal override int TryGetOverloadResolutionPriority()
         => this.UnderlyingMethod.TryGetOverloadResolutionPriority();
