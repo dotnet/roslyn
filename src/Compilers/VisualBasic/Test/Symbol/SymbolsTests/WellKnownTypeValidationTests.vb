@@ -573,7 +573,22 @@ End Namespace
                          WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
                          WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal,
                          WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
-                        WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray2,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray3,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray4,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray5,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray6,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray7,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray8,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray9,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray10,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray11,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray12,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray13,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray14,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray15,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -658,7 +673,22 @@ End Namespace
                          WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
                          WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal,
                          WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray2,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray3,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray4,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray5,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray6,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray7,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray8,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray9,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray10,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray11,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray12,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray13,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray14,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray15,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
