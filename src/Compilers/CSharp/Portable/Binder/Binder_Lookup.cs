@@ -208,10 +208,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var candidate in extensionCandidates)
             {
                 SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                if (resultOfThisMember.Kind != LookupResultKind.Empty)
+                if (resultOfThisMember.Kind == LookupResultKind.Empty)
                 {
-                    result.Add(resultOfThisMember);
+                    continue;
                 }
+
+                Debug.Assert(resultOfThisMember.Symbol is not null);
+                result.Add(resultOfThisMember);
 
                 if (candidate is MethodSymbol { IsStatic: false } shadows &&
                     shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
