@@ -34355,13 +34355,13 @@ static class E
 {
     extension<T1>(I<T1> node)
     {
-        public void Add(T1 value) { }
-        public void Add(params T1[] values) { }
+        public void Add(T1 value) { System.Console.Write("ran"); }
+        public void Add(params T1[] values) => throw null;
     }
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         src = """
 var c = new C();
@@ -34372,12 +34372,12 @@ class C : I<int> { }
 
 static class E
 {
-    public static void Add<T1>(this I<T1> node, T1 value) { }
-    public static void Add<T1>(this I<T1> node, params T1[] values) { }
+    public static void Add<T1>(this I<T1> node, T1 value) { System.Console.Write("ran"); }
+    public static void Add<T1>(this I<T1> node, params T1[] values) => throw null;
 }
 """;
         comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
@@ -34421,12 +34421,12 @@ static class E
     extension<T>(I<T> node) where T : struct
     {
         public void Add(T x, params T[] y) { }
-        public void Add(T y, params System.Span<T> x) { }
+        public void Add(T y, params System.Span<T> x) { System.Console.Write("ran"); }
     }
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 }
 
