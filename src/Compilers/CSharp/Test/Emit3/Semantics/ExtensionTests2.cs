@@ -7,6 +7,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -35084,6 +35085,101 @@ static class E
         Assert.True(SyntaxFacts.IsContextualKeyword(SyntaxKind.ExtensionKeyword));
 
         Assert.Equal("extension", SyntaxFacts.GetText(SyntaxKind.ExtensionKeyword));
+    }
+
+    [Theory, WorkItem("https://developercommunity.visualstudio.com/t/NRE-in-Roslyn-v500-225451107/10979295")]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersion.Latest)]
+    public void InvalidReceiverWithOldExtensionInFileClass(LanguageVersion languageVersion)
+    {
+        var code = """
+            #nullable enable
+            using System.Threading.Tasks;
+            using N2;
+            namespace N1
+            {
+                class C
+                {
+                    async Task M(object o)
+                    {
+                        await using var test = await nonExistent.ExtensionMethod(o);
+                    }
+                }
+            }
+            """;
+
+        var code2 = """
+            namespace N2;
+
+            file static class E
+            {
+                public static void ExtensionMethod(this object o) { }
+            }
+            """;
+
+        var parseOptions = TestOptions.Regular.WithLanguageVersion(languageVersion);
+        var comp = CreateCompilation([
+            CSharpSyntaxTree.ParseText(code, path: "file1.cs", encoding: Encoding.UTF8, options: parseOptions),
+            CSharpSyntaxTree.ParseText(code2, path: "file2.cs", encoding: Encoding.UTF8, options: parseOptions)]);
+
+        if (languageVersion == LanguageVersion.CSharp10)
+        {
+            comp.VerifyEmitDiagnostics(
+                // file2.cs(3,19): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // file static class E
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "E").WithArguments("file types", "11.0").WithLocation(3, 19),
+                // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+                //             await using var test = await nonExistent.ExtensionMethod(o);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+            );
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics(
+                    // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+                    //             await using var test = await nonExistent.ExtensionMethod(o);
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+                );
+        }
+    }
+
+    [Fact, WorkItem("https://developercommunity.visualstudio.com/t/NRE-in-Roslyn-v500-225451107/10979295")]
+    public void InvalidReceiverWithNewExtensionInFileClass()
+    {
+        var code = """
+            #nullable enable
+            using System.Threading.Tasks;
+            using N2;
+            namespace N1
+            {
+                class C
+                {
+                    async Task M(object o)
+                    {
+                        await using var test = await nonExistent.ExtensionMethod(o);
+                    }
+                }
+            }
+            """;
+
+        var code2 = """
+            namespace N2;
+
+            file static class E
+            {
+                extension(object o)
+                {
+                    public void ExtensionMethod(object o2) { }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([CSharpSyntaxTree.ParseText(code, path: "file1.cs", encoding: Encoding.UTF8), CSharpSyntaxTree.ParseText(code2, path: "file2.cs", encoding: Encoding.UTF8)]);
+        comp.VerifyEmitDiagnostics(
+            // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+            //             await using var test = await nonExistent.ExtensionMethod(o);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+        );
     }
 }
 

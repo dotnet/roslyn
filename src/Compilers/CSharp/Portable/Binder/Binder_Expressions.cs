@@ -10896,7 +10896,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
-                        Symbol extensionMember = singleLookupResult.Symbol;
+                        Symbol? extensionMember = singleLookupResult.Symbol;
+                        if (extensionMember is null)
+                        {
+                            // There was some applicability error with this result, skip
+                            continue;
+                        }
+
                         if (IsStaticInstanceMismatchForUniqueSignatureFromMethodGroup(receiver, extensionMember))
                         {
                             // Remove static/instance mismatches
@@ -11109,7 +11115,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: singleLookupResults.Count);
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
-                        Symbol extensionMember = singleLookupResult.Symbol;
+                        Symbol? extensionMember = singleLookupResult.Symbol;
+                        if (extensionMember is null)
+                        {
+                            // There was some applicability error with this result, skip
+                            continue;
+                        }
+
                         if (IsStaticInstanceMismatchForUniqueSignatureFromMethodGroup(receiver, extensionMember))
                         {
                             // Remove static/instance mismatches
