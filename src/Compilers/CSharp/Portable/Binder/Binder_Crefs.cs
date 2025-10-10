@@ -341,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (result.Kind == LookupResultKind.Viable)
                         {
+                            Debug.Assert(result.Symbol is not null);
                             sortedSymbolsBuilder ??= ArrayBuilder<Symbol>.GetInstance();
                             sortedSymbolsBuilder.Add(result.Symbol);
                         }

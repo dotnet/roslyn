@@ -208,6 +208,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var candidate in extensionCandidates)
             {
                 SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                if (resultOfThisMember.Kind == LookupResultKind.Empty)
+                {
+                    continue;
+                }
+
+                Debug.Assert(resultOfThisMember.Symbol is not null);
                 result.Add(resultOfThisMember);
 
                 if (candidate is MethodSymbol { IsStatic: false } shadows &&
@@ -230,7 +236,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
                 {
                     SingleLookupResult resultOfThisMember = originalBinder.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
-                    result.Add(resultOfThisMember);
+                    if (resultOfThisMember.Kind != LookupResultKind.Empty)
+                    {
+                        result.Add(resultOfThisMember);
+                    }
                 }
             }
 
