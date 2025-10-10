@@ -251,7 +251,8 @@ internal sealed class HelixTestRunner
             string[] knownEnvironmentVariables =
             [
                 "ROSLYN_TEST_IOPERATION",
-                "ROSLYN_TEST_USEDASSEMBLIES"
+                "ROSLYN_TEST_USEDASSEMBLIES",
+                "DOTNET_RuntimeAsync"
             ];
 
             foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
