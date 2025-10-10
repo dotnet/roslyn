@@ -30,6 +30,8 @@ internal sealed class WhereKeywordRecommender() : AbstractSyntacticSingleKeyword
         //   delegate void D<T> where T : IGoo |
         //   void Goo<T>() |
         //   void Goo<T>() where T : IGoo |
+        //   extension<T>(T value) |
+        //   extension<T>(T value) where T : IGoo |
 
         var token = context.TargetToken;
 
@@ -43,6 +45,13 @@ internal sealed class WhereKeywordRecommender() : AbstractSyntacticSingleKeyword
                 var decl = typeParameters.GetAncestorOrThis<TypeDeclarationSyntax>();
                 if (decl != null && decl.TypeParameterList == typeParameters)
                 {
+                    // Don't offer 'where' after extension<T> | without a parameter list
+                    // It should only be offered after extension<T>(...) |
+                    if (decl is ExtensionBlockDeclarationSyntax)
+                    {
+                        return false;
+                    }
+
                     return true;
                 }
             }
@@ -76,6 +85,14 @@ internal sealed class WhereKeywordRecommender() : AbstractSyntacticSingleKeyword
             else if (tokenParent.Parent is LocalFunctionStatementSyntax { TypeParameterList.Parameters.Count: > 0 })
             {
                 return true;
+            }
+            // extension<T>(...) |
+            else if (tokenParent.Parent is ExtensionBlockDeclarationSyntax extensionDecl)
+            {
+                if (extensionDecl.TypeParameterList?.Parameters.Count > 0)
+                {
+                    return true;
+                }
             }
         }
 
