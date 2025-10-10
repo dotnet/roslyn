@@ -1460,10 +1460,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
                 }
                 """;
-        var comp = CreateCompilation(
+        // Added execution output verification.
+        var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
-            targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics();
+            targetFramework: TargetFramework.Net80,
+            expectedOutput: IncludeExpectedOutput("0, [1], 2, [2], "));
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
@@ -2668,10 +2670,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(y: 6, x: 7), 8];
                 c.Report();
                 """;
-        var comp = CreateCompilation(
+        // Added execution output verification.
+        var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
-            targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics();
+            targetFramework: TargetFramework.Net80,
+            expectedOutput: IncludeExpectedOutput("[1, 0, 2, 3], [0, 4, 5], [7, 6, 8], "));
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
@@ -2783,10 +2787,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(ref r)];
                 c.Report();
                 """;
-        var comp = CreateCompilation(
+        // Added execution output verification.
+        var verifier = CompileAndVerify(
             [sourceA, sourceB1, s_collectionExtensions],
-            targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics();
+            targetFramework: TargetFramework.Net80,
+            expectedOutput: IncludeExpectedOutput("[1], [2], "));
+        verifier.VerifyDiagnostics();
 
         string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
@@ -2799,7 +2805,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(ref ro)];
                 c = [with(out x)];
                 """;
-        comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+        var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
             // (5,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
             // c = [with(0)];
@@ -3227,10 +3233,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(out r), 3];
                 c.Report();
                 """;
-        var comp = CreateCompilation(
+        // Added execution output verification.
+        var verifier = CompileAndVerify(
             [sourceA, sourceB1, s_collectionExtensions],
-            targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics();
+            targetFramework: TargetFramework.Net80,
+            expectedOutput: IncludeExpectedOutput("[0], [3, 0], "));
+        verifier.VerifyDiagnostics();
 
         string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
@@ -3241,7 +3249,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(ref x)];
                 c = [with(in x)];
                 """;
-        comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+        var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
             // (4,11): error CS1620: Argument 1 must be passed with the 'out' keyword
             // c = [with(1)];
@@ -3363,10 +3371,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(out x, y), 3];
                 c.Report();
                 """;
-        var comp = CreateCompilation(
+        // Added execution output verification.
+        var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
-            targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics();
+            targetFramework: TargetFramework.Net80,
+            expectedOutput: IncludeExpectedOutput("[1, 0], [1, 0, 3], [1, 2], [0, 2, 3], "));
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
