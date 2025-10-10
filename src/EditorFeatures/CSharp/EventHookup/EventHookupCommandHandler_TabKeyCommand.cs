@@ -145,9 +145,7 @@ internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler
             _threadingContext.ThrowIfNotOnUIThread();
 
             var factory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-
-            var waitContext = factory.Create(textView, applicableToSpan, CSharpEditorResources.Generating_event);
-            await using var _1 = waitContext.ConfigureAwait(false);
+            using var waitContext = factory.Create(textView, applicableToSpan, CSharpEditorResources.Generating_event);
 
             var cancellationToken = waitContext.UserCancellationToken;
 
