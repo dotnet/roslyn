@@ -70,30 +70,15 @@ internal sealed class WhereKeywordRecommender() : AbstractSyntacticSingleKeyword
         }
 
         // void Goo<T>() |
+        // extension<T>(T value) |
 
         if (token.Kind() == SyntaxKind.CloseParenToken &&
-            token.Parent.IsKind(SyntaxKind.ParameterList))
+            token.Parent is ParameterListSyntax &&
+            token.Parent.Parent is MethodDeclarationSyntax { TypeParameterList.Parameters.Count: > 0 }
+                                or LocalFunctionStatementSyntax { TypeParameterList.Parameters.Count: > 0 }
+                                or ExtensionBlockDeclarationSyntax { TypeParameterList.Parameters.Count: > 0 })
         {
-            var tokenParent = token.Parent;
-            if (tokenParent.IsParentKind<MethodDeclarationSyntax>(SyntaxKind.MethodDeclaration, out var methodDeclaration))
-            {
-                if (methodDeclaration.Arity > 0)
-                {
-                    return true;
-                }
-            }
-            else if (tokenParent.Parent is LocalFunctionStatementSyntax { TypeParameterList.Parameters.Count: > 0 })
-            {
-                return true;
-            }
-            // extension<T>(...) |
-            else if (tokenParent.Parent is ExtensionBlockDeclarationSyntax extensionDecl)
-            {
-                if (extensionDecl.TypeParameterList?.Parameters.Count > 0)
-                {
-                    return true;
-                }
-            }
+            return true;
         }
 
         // class C<T> : IGoo |
