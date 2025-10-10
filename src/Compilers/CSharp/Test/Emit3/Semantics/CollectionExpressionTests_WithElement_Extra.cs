@@ -3684,10 +3684,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     static IMyCollection<T?> F<T>(ReadOnlySpan<T> items, T arg) => [with(arg), ..items];
                 }
                 """;
-        var comp = CreateCompilation(
+        var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
-            targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics();
+            targetFramework: TargetFramework.Net80,
+            expectedOutput: IncludeExpectedOutput("[null], [1, 2, 3], "));
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
