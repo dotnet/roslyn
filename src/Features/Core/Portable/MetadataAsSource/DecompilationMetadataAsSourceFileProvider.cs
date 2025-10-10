@@ -102,8 +102,9 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         {
             // We don't have this file in the workspace.  We need to create a project to put it in.
             var (temporaryProjectInfo, temporaryDocumentId) = GenerateProjectAndDocumentInfo(fileInfo, metadataWorkspace.CurrentSolution.Services, sourceProject, topLevelNamedType);
-            metadataWorkspace.OnProjectAdded(temporaryProjectInfo);
-            var temporaryDocument = metadataWorkspace.CurrentSolution
+            var temporarySolution = metadataWorkspace.CurrentSolution.AddProject(temporaryProjectInfo);
+
+            var temporaryDocument = temporarySolution
                 .GetRequiredDocument(temporaryDocumentId);
 
             // Generate the file if it doesn't exist (we may still have it if there was a previous request for it that was then closed).
@@ -198,9 +199,14 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
             // Retrieve the navigable location for the symbol using the generated syntax.  
             navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
 
-            // Update the workspace to pull the text from the document.
+            // Now that we've finished the work to produce the file, add the project and document to the workspace.
+            // This should not be cancelled, or we'll leave the workspace in a bad state.
+            metadataWorkspace.OnProjectAdded(temporaryProjectInfo);
+            temporaryDocument = metadataWorkspace.CurrentSolution.GetRequiredDocument(temporaryDocument.Id);
+
             var newLoader = new WorkspaceFileTextLoader(temporaryDocument.Project.Solution.Services, fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding);
             metadataWorkspace.OnDocumentTextLoaderChanged(temporaryDocumentId, newLoader);
+
             _generatedFilenameToInformation.Add(fileInfo.TemporaryFilePath, (fileInfo, temporaryDocument.Id));
             generatedDocumentId = temporaryDocument.Id;
         }
