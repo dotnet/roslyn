@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
-using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -123,40 +122,64 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             var editor = await solutionEditor.GetDocumentEditorAsync(documentToUpdate.Id, cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(oldConstructor, newConstructor.WithAdditionalAnnotations(Formatter.Annotation));
 
-            // Get the updated solution with the constructor changes
-            solution = solutionEditor.GetChangedSolution();
-
-            // Now add initializers to each member using the InitializeParameterService
-            // We need to get the updated symbols after adding the parameters
-            var compilation = await solution.GetRequiredDocument(documentToUpdate.Id).Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var updatedConstructor = (IMethodSymbol?)compilation.GetSymbolsWithName(
-                _constructorCandidate.Constructor.Name,
-                SymbolFilter.Member,
-                cancellationToken).FirstOrDefault(s => s is IMethodSymbol method && method.ContainingType.Name == _containingType.Name);
-
-            if (updatedConstructor == null)
-                return solution;
-
-            // Add initializers for each missing member
-            var initializeParameterService = _document.GetLanguageService<IInitializeParameterService>();
-            if (initializeParameterService != null)
+            // Now add initializers to each member
+            for (var i = 0; i < _missingParameters.Length; ++i)
             {
-                for (var i = 0; i < _missingParameters.Length; ++i)
-                {
-                    var member = _constructorCandidate.MissingMembers[i];
-                    var newParameter = updatedConstructor.Parameters.FirstOrDefault(p => p.Name == _missingParameters[i].Name);
-                    
-                    if (newParameter != null)
-                    {
-                        // Use the service to add the assignment (will add as initializer for primary constructors)
-                        var memberDoc = solution.GetRequiredDocument(member.DeclaringSyntaxReferences[0].SyntaxTree);
-                        solution = await initializeParameterService.AddAssignmentAsync(
-                            memberDoc, newParameter, member, cancellationToken).ConfigureAwait(false);
-                    }
-                }
+                var member = _constructorCandidate.MissingMembers[i];
+                var parameter = _missingParameters[i];
+
+                await AddInitializerToMemberAsync(
+                    solutionEditor, member, parameter, cancellationToken).ConfigureAwait(false);
             }
 
-            return solution;
+            return solutionEditor.GetChangedSolution();
+        }
+
+        private async Task AddInitializerToMemberAsync(
+            SolutionEditor solutionEditor,
+            ISymbol member,
+            IParameterSymbol parameter,
+            CancellationToken cancellationToken)
+        {
+            var solution = solutionEditor.OriginalSolution;
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+
+            if (member is IPropertySymbol property)
+            {
+                foreach (var syntaxRef in property.DeclaringSyntaxReferences)
+                {
+                    var propertySyntax = syntaxRef.GetSyntax(cancellationToken);
+                    var propertyDocument = solution.GetRequiredDocument(propertySyntax.SyntaxTree);
+                    var propertyEditor = await solutionEditor.GetDocumentEditorAsync(propertyDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                    // Create the initializer expression using the parameter name
+                    var initializerExpression = generator.IdentifierName(parameter.Name);
+                    
+                    // Add the initializer to the property
+                    var newProperty = generator.WithInitializer(propertySyntax, initializerExpression);
+
+                    propertyEditor.ReplaceNode(propertySyntax, newProperty);
+                    break;
+                }
+            }
+            else if (member is IFieldSymbol field)
+            {
+                foreach (var syntaxRef in field.DeclaringSyntaxReferences)
+                {
+                    var fieldSyntax = syntaxRef.GetSyntax(cancellationToken);
+                    var fieldDocument = solution.GetRequiredDocument(fieldSyntax.SyntaxTree);
+                    var fieldEditor = await solutionEditor.GetDocumentEditorAsync(fieldDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                    // Create the initializer expression using the parameter name
+                    var initializerExpression = generator.IdentifierName(parameter.Name);
+                    
+                    // Add the initializer to the field
+                    var newField = generator.WithInitializer(fieldSyntax, initializerExpression);
+
+                    fieldEditor.ReplaceNode(fieldSyntax, newField);
+                    break;
+                }
+            }
         }
 
         private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
