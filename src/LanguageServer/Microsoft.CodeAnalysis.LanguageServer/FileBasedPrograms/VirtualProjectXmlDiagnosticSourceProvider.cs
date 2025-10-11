@@ -38,6 +38,11 @@ internal sealed class VirtualProjectXmlDiagnosticSourceProvider(VirtualProjectXm
     {
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
         {
+            // TODO2: remove virtual project build diagnostic provider
+            var b = true;
+            if (b)
+                return [];
+
             if (string.IsNullOrEmpty(document.FilePath))
                 return [];
 
