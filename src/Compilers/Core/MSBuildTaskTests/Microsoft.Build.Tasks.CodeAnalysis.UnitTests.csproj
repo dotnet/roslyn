@@ -40,6 +40,8 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" />
+    <PackageReference Include="Basic.CompilerLog.Util" />
+    <PackageReference Include="MessagePack" VersionOverride="3.1.4" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

@@ -184,7 +184,7 @@ static async Task<(TimeSpan BuildTime, TimeSpan TotalTime)> RunOneAsync(List<Com
 static List<CompilerCall> ReadAllCompilerCalls(string binlogPath)
 {
     using var stream = new FileStream(binlogPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-    return BinaryLogUtil.ReadAllCompilerCalls(stream, new List<string>());
+    return BinaryLogUtil.ReadAllCompilerCalls(stream);
 }
 
 static async IAsyncEnumerable<BuildData> BuildAllAsync(
@@ -250,7 +250,7 @@ static async Task<BuildData> BuildAsync(
     CompilerServerLogger compilerServerLogger,
     CancellationToken cancellationToken)
 {
-    var args = compilerCall.GetArguments();
+    var args = compilerCall.GetArguments().ToArray();
     var outputDirectory = Path.Combine(options.OutputDirectory, outputName);
     Directory.CreateDirectory(outputDirectory);
     RewriteOutputPaths(outputDirectory, args);

@@ -35,6 +35,11 @@
       <_NoWarnings Condition="'$(WarningLevel)' == '1'">false</_NoWarnings>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <!-- BC41997 is not relevant when targeting .NET Core because it ignores strong naming -->
+      <NoWarn>$(NoWarn);BC41997</NoWarn>
+    </PropertyGroup>
+
     <PropertyGroup>
       <!-- If we are targeting winmdobj we want to specifically the pdbFile property since we do not want it to collide with the output of winmdexp-->
       <PdbFile Condition="'$(PdbFile)' == '' AND '$(OutputType)' == 'winmdobj' AND '$(DebugSymbols)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
