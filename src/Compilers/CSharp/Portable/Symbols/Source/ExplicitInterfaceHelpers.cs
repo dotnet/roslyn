@@ -21,18 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static string GetMemberName(
             Binder binder,
+            SyntaxTokenList modifiers,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             string name)
         {
             TypeSymbol discardedExplicitInterfaceType;
             string discardedAliasOpt;
-            string methodName = GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, BindingDiagnosticBag.Discarded, out discardedExplicitInterfaceType, out discardedAliasOpt);
+            string methodName = GetMemberNameAndInterfaceSymbol(binder, modifiers, explicitInterfaceSpecifierOpt, name, BindingDiagnosticBag.Discarded, out discardedExplicitInterfaceType, out discardedAliasOpt);
 
             return methodName;
         }
 
         public static string GetMemberNameAndInterfaceSymbol(
             Binder binder,
+            SyntaxTokenList modifiers,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             string name,
             BindingDiagnosticBag diagnostics,
@@ -49,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Avoid checking constraints context when binding explicit interface type since
             // that might result in a recursive attempt to bind the containing class.
             binder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+
+            binder = binder.SetOrClearUnsafeRegionIfNecessary(modifiers);
 
             NameSyntax explicitInterfaceName = explicitInterfaceSpecifierOpt.Name;
             explicitInterfaceTypeOpt = binder.BindType(explicitInterfaceName, diagnostics).Type;
