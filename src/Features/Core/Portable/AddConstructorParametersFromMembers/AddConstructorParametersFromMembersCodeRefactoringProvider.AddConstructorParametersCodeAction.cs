@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
+using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -43,7 +44,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         /// </summary>
         private readonly bool _useSubMenuName = useSubMenuName;
 
-        protected override Task<Solution?> GetChangedSolutionAsync(
+        protected override async Task<Solution?> GetChangedSolutionAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var services = _document.Project.Solution.Services;
@@ -51,21 +52,111 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             var constructor = declarationService.GetDeclarations(
                 _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
+            // Check if this is a primary constructor by checking if any parameter is a primary constructor parameter
+            var isPrimaryConstructor = _constructorCandidate.Constructor.Parameters.Length > 0 &&
+                IsPrimaryConstructor(_constructorCandidate.Constructor, cancellationToken);
+
             var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
 
             var newConstructor = constructor;
             newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, _info, cancellationToken);
-            newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
-                                                  .WithAdditionalAnnotations(Formatter.Annotation);
 
-            var syntaxTree = constructor.SyntaxTree;
-            var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
+            if (!isPrimaryConstructor)
+            {
+                // For regular constructors, add assignment statements
+                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
+                                                      .WithAdditionalAnnotations(Formatter.Annotation);
 
-            // Make sure we get the document that contains the constructor we just updated
-            var constructorDocument = _document.Project.GetDocument(syntaxTree);
-            Contract.ThrowIfNull(constructorDocument);
+                var syntaxTree = constructor.SyntaxTree;
+                var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
-            return Task.FromResult<Solution?>(constructorDocument.WithSyntaxRoot(newRoot).Project.Solution);
+                // Make sure we get the document that contains the constructor we just updated
+                var constructorDocument = _document.Project.GetDocument(syntaxTree);
+                Contract.ThrowIfNull(constructorDocument);
+
+                return constructorDocument.WithSyntaxRoot(newRoot).Project.Solution;
+            }
+            else
+            {
+                // For primary constructors, we need to:
+                // 1. Update the primary constructor with new parameters
+                // 2. Add initializers to the properties/fields
+                var solution = await AddParametersAndInitializersToPrimaryConstructorAsync(
+                    newConstructor, cancellationToken).ConfigureAwait(false);
+                return solution;
+            }
+        }
+
+        private bool IsPrimaryConstructor(IMethodSymbol constructor, CancellationToken cancellationToken)
+        {
+            // Check if the constructor syntax is a TypeDeclarationSyntax (primary constructor pattern)
+            if (constructor.DeclaringSyntaxReferences.Length > 0)
+            {
+                var syntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                // Check language-agnostically by getting the syntax kind
+                var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
+                
+                // In C#, primary constructors have their declaration on the type declaration itself
+                // TypeDeclarationSyntax, RecordDeclarationSyntax etc
+                // Regular constructors have ConstructorDeclarationSyntax
+                // We can check if it's NOT a constructor declaration
+                return !syntaxFacts.IsConstructorDeclaration(syntax);
+            }
+            return false;
+        }
+
+        private async Task<Solution> AddParametersAndInitializersToPrimaryConstructorAsync(
+            SyntaxNode newConstructor,
+            CancellationToken cancellationToken)
+        {
+            var solution = _document.Project.Solution;
+            var solutionEditor = new SolutionEditor(solution);
+
+            // First, update the primary constructor declaration with the new parameters
+            var oldConstructor = _document.GetRequiredLanguageService<ISymbolDeclarationService>()
+                .GetDeclarations(_constructorCandidate.Constructor)
+                .Select(r => r.GetSyntax(cancellationToken))
+                .First();
+
+            var syntaxTree = oldConstructor.SyntaxTree;
+            var documentToUpdate = solution.GetRequiredDocument(syntaxTree);
+            var editor = await solutionEditor.GetDocumentEditorAsync(documentToUpdate.Id, cancellationToken).ConfigureAwait(false);
+            editor.ReplaceNode(oldConstructor, newConstructor.WithAdditionalAnnotations(Formatter.Annotation));
+
+            // Get the updated solution with the constructor changes
+            solution = solutionEditor.GetChangedSolution();
+
+            // Now add initializers to each member using the InitializeParameterService
+            // We need to get the updated symbols after adding the parameters
+            var compilation = await solution.GetRequiredDocument(documentToUpdate.Id).Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var updatedConstructor = (IMethodSymbol?)compilation.GetSymbolsWithName(
+                _constructorCandidate.Constructor.Name,
+                SymbolFilter.Member,
+                cancellationToken).FirstOrDefault(s => s is IMethodSymbol method && method.ContainingType.Name == _containingType.Name);
+
+            if (updatedConstructor == null)
+                return solution;
+
+            // Add initializers for each missing member
+            var initializeParameterService = _document.GetLanguageService<IInitializeParameterService>();
+            if (initializeParameterService != null)
+            {
+                for (var i = 0; i < _missingParameters.Length; ++i)
+                {
+                    var member = _constructorCandidate.MissingMembers[i];
+                    var newParameter = updatedConstructor.Parameters.FirstOrDefault(p => p.Name == _missingParameters[i].Name);
+                    
+                    if (newParameter != null)
+                    {
+                        // Use the service to add the assignment (will add as initializer for primary constructors)
+                        var memberDoc = solution.GetRequiredDocument(member.DeclaringSyntaxReferences[0].SyntaxTree);
+                        solution = await initializeParameterService.AddAssignmentAsync(
+                            memberDoc, newParameter, member, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return solution;
         }
 
         private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
