@@ -1305,4 +1305,71 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
         var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
         CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics();
     }
+
+    [Fact]
+    public void LangVersion_PointerInNestedLocalFunction_InUnsafeClass()
+    {
+        // This test demonstrates the issue: in C# 12, pointers are allowed in nested local functions
+        // because the iterator inherits the unsafe context (spec violation).
+        // But in C# 13 we get an error saying we need an unsafe context because iterators establish a safe context.
+        // The fix is to report the unsafe context error in C# 12 as well, to avoid the confusing upgrade path.
+        var source = """
+            using System.Collections.Generic;
+            unsafe class C
+            {
+                IEnumerable<int> M()
+                {
+                    yield return 1;
+                    local();
+                    void local()
+                    {
+                        int* p = null;
+                    }
+                }
+            }
+            """;
+
+        // After fix: should get ERR_UnsafeNeeded
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (10,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //             int* p = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 13));
+
+        // In C# 13, we should get the same error
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (10,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //             int* p = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 13));
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (10,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //             int* p = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 13));
+    }
+
+    [Fact]
+    public void LangVersion_PointerInNestedLocalFunction_InUnsafeClass_WithUnsafeModifier()
+    {
+        // This test shows that adding the unsafe modifier to the local function fixes the issue
+        var source = """
+            using System.Collections.Generic;
+            unsafe class C
+            {
+                IEnumerable<int> M()
+                {
+                    yield return 1;
+                    local();
+                    unsafe void local()
+                    {
+                        int* p = null;
+                    }
+                }
+            }
+            """;
+
+        // This should work in all language versions
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+    }
 }
