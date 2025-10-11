@@ -6820,6 +6820,9 @@ public class C
         throw null;
     }
 }").VerifyDiagnostics(
+                // (10,18): hidden CS9335: The pattern is redundant.
+                //             case {} and Span<int> inner:
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(10, 18),
                 // (12,28): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 return ref inner[5];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(12, 28));
@@ -6926,6 +6929,7 @@ public class C
         public void CasePatternMatchingDoesNotCopyEscapeScopes_04()
         {
             CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+#pragma warning disable CS9335 // hidden CS9335: The pattern is redundant.
 using System;
 public ref struct R
 {
@@ -6993,27 +6997,27 @@ public class C
     }
 }
 ").VerifyDiagnostics(
-                // (16,76): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                // (17,76): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and { Prop: var _ and {} and var x }: return x; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(16, 76),
-                // (24,74): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 76),
+                // (25,74): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and { Prop: var _ and {} and R x }: return x; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 74),
-                // (32,92): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(25, 74),
+                // (33,92): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 92),
-                // (40,88): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(33, 92),
+                // (41,88): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(40, 88),
-                // (48,54): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(41, 88),
+                // (49,54): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and var (x, y): return x; // error 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(48, 54),
-                // (56,49): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(49, 54),
+                // (57,49): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and { } x: return x; // error 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(56, 49),
-                // (64,86): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(57, 49),
+                // (65,86): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // error 7
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(64, 86)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(65, 86)
                 );
         }
 
@@ -8872,6 +8876,18 @@ class C
 ";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
+                    // (13,55): hidden CS9335: The pattern is redundant.
+                    //         Console.WriteLine("1." + (chars is "" and not " "));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" """).WithLocation(13, 55),
+                    // (14,52): hidden CS9335: The pattern is redundant.
+                    //         Console.WriteLine("2." + (chars is "" and (" " or "")));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" """).WithLocation(14, 52),
+                    // (14,52): hidden CS9335: The pattern is redundant.
+                    //         Console.WriteLine("2." + (chars is "" and (" " or "")));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" "" or """"").WithLocation(14, 52),
+                    // (15,50): hidden CS9335: The pattern is redundant.
+                    //         Console.WriteLine("3." + (chars is "" or ""));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @"""""").WithLocation(15, 50),
                     // (16,35): warning CS8794: An expression of type 'ReadOnlySpan<char>' always matches the provided pattern.
                     //         Console.WriteLine("4." + (chars is "" or not ""));
                     Diagnostic(ErrorCode.WRN_IsPatternAlways, @"chars is """" or not """"").WithArguments("System.ReadOnlySpan<char>").WithLocation(16, 35));
@@ -10475,6 +10491,18 @@ class C
 ";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
+                    // (15,55): hidden CS9335: The pattern is redundant.
+                    //         Console.WriteLine("1." + (chars is "" and not " "));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" """).WithLocation(15, 55),
+                    // (16,52): hidden CS9335: The pattern is redundant.
+                    //         Console.WriteLine("2." + (chars is "" and (" " or "")));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" """).WithLocation(16, 52),
+                    // (16,52): hidden CS9335: The pattern is redundant.
+                    //         Console.WriteLine("2." + (chars is "" and (" " or "")));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" "" or """"").WithLocation(16, 52),
+                    // (17,50): hidden CS9335: The pattern is redundant.
+                    //         Console.WriteLine("3." + (chars is "" or ""));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @"""""").WithLocation(17, 50),
                     // (18,35): warning CS8794: An expression of type 'Span<char>' always matches the provided pattern.
                     //         Console.WriteLine("4." + (chars is "" or not ""));
                     Diagnostic(ErrorCode.WRN_IsPatternAlways, @"chars is """" or not """"").WithArguments("System.Span<char>").WithLocation(18, 35));

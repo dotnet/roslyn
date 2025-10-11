@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -26,9 +25,6 @@ internal interface IBackgroundWorkIndicatorFactory : IWorkspaceService
     /// user that background work is happening.  The work is always cancellable the user hitting the 'escape' key.
     /// Any attempt to set <see cref="IUIThreadOperationScope.AllowCancellation"/> to <see langword="false"/> is
     /// simply ignored.
-    /// <para/> This should be used from with in <c>await using</c> block to ensure proper disposal of context object
-    /// regardless of what thread disposes it.  If a normal <c>using</c> is used, then <see cref="IDisposable.Dispose"/>
-    /// must be called on the UI thread.
     /// </summary>
     /// <remarks>
     /// Default cancellation behavior can also be specified through <paramref name="cancelOnEdit"/> and <paramref

@@ -30,6 +30,8 @@ internal sealed class WhereKeywordRecommender() : AbstractSyntacticSingleKeyword
         //   delegate void D<T> where T : IGoo |
         //   void Goo<T>() |
         //   void Goo<T>() where T : IGoo |
+        //   extension<T>(T value) |
+        //   extension<T>(T value) where T : IGoo |
 
         var token = context.TargetToken;
 
@@ -41,42 +43,29 @@ internal sealed class WhereKeywordRecommender() : AbstractSyntacticSingleKeyword
             if (typeParameters != null && token == typeParameters.GetLastToken(includeSkipped: true))
             {
                 var decl = typeParameters.GetAncestorOrThis<TypeDeclarationSyntax>();
-                if (decl != null && decl.TypeParameterList == typeParameters)
+
+                // Don't offer 'where' after extension<T> | without a parameter list
+                // It should only be offered after extension<T>(...) |
+                if (decl is not ExtensionBlockDeclarationSyntax &&
+                    decl?.TypeParameterList == typeParameters)
                 {
                     return true;
                 }
-            }
-        }
-
-        // delegate void D<T>() |
-        if (token.Kind() == SyntaxKind.CloseParenToken &&
-            token.Parent.IsKind(SyntaxKind.ParameterList) &&
-            token.Parent.IsParentKind(SyntaxKind.DelegateDeclaration))
-        {
-            var decl = token.GetAncestor<DelegateDeclarationSyntax>();
-            if (decl != null && decl.TypeParameterList != null)
-            {
-                return true;
             }
         }
 
         // void Goo<T>() |
+        // extension<T>(T value) |
+        // delegate void D<T>() |
 
         if (token.Kind() == SyntaxKind.CloseParenToken &&
-            token.Parent.IsKind(SyntaxKind.ParameterList))
+            token.Parent is ParameterListSyntax &&
+            token.Parent.Parent is MethodDeclarationSyntax { TypeParameterList: not null }
+                                or LocalFunctionStatementSyntax { TypeParameterList: not null }
+                                or ExtensionBlockDeclarationSyntax { TypeParameterList: not null }
+                                or DelegateDeclarationSyntax { TypeParameterList: not null })
         {
-            var tokenParent = token.Parent;
-            if (tokenParent.IsParentKind<MethodDeclarationSyntax>(SyntaxKind.MethodDeclaration, out var methodDeclaration))
-            {
-                if (methodDeclaration.Arity > 0)
-                {
-                    return true;
-                }
-            }
-            else if (tokenParent.Parent is LocalFunctionStatementSyntax { TypeParameterList.Parameters.Count: > 0 })
-            {
-                return true;
-            }
+            return true;
         }
 
         // class C<T> : IGoo |

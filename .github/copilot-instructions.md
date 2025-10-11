@@ -14,7 +14,7 @@
 **Building**:
 - `build.sh` - Full solution build
 - `dotnet build Compilers.slnf` - Compiler-only build  
-- Run `dotnet msbuild <path to csproj> /t:UpdateXlf` when .resx files are modified to update corresponding .xlf files
+- `dotnet msbuild <path to csproj> /t:UpdateXlf` - Update .xlf files when their corresponding .resx file is modified
 
 **Testing**:
 - `test.sh` - Run all tests
@@ -24,7 +24,8 @@
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
-- Run `dotnet format whitespace -f . --include ` followed by the relative paths to changed .cs and .vb files to apply formatting preferences
+- When running `dotnet format whitespace` use the `--folder .` option followed by `--include <relative path to file>` to avoid a design-time build.
+- `dotnet format whitespace --folder . --include <relative path to file>` - Applies formatting preferences to a particular .cs or .vb file
 
 ## Code Patterns
 

@@ -9,11 +9,12 @@
     "vs": {
       "version": "17.14.0"
     },
-    "vswhere": "3.1.7"
+    "vswhere": "3.1.7",
+    "xcopy-msbuild": "17.14.16"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "11.0.0-beta.25508.3",
-    "Microsoft.DotNet.Helix.Sdk": "11.0.0-beta.25508.3",
+    "Microsoft.DotNet.Arcade.Sdk": "11.0.0-beta.25509.1",
+    "Microsoft.DotNet.Helix.Sdk": "11.0.0-beta.25509.1",
     "Microsoft.Build.Traversal": "3.4.0"
   }
 }
