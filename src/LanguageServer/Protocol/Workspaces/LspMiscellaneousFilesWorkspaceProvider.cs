@@ -83,7 +83,7 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
     /// Calls to this method and <see cref="AddMiscellaneousDocument(DocumentUri, SourceText, string, ILspLogger)"/> are made
     /// from LSP text sync request handling which do not run concurrently.
     /// </summary>
-    public ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
+    public ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
     {
         // We'll only ever have a single document matching this URI in the misc solution.
         var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
@@ -102,9 +102,11 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
             // so it should never have other documents in it.
             var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
             OnProjectRemoved(project.Id);
+
+            return ValueTask.FromResult(true);
         }
 
-        return ValueTask.CompletedTask;
+        return ValueTask.FromResult(false);
     }
 
     public ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
