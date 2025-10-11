@@ -43,7 +43,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         /// </summary>
         private readonly bool _useSubMenuName = useSubMenuName;
 
-        protected override Task<Solution?> GetChangedSolutionAsync(
+        protected override async Task<Solution?> GetChangedSolutionAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var services = _document.Project.Solution.Services;
@@ -51,21 +51,190 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             var constructor = declarationService.GetDeclarations(
                 _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
+            // Check if this is a primary constructor by checking if any parameter is a primary constructor parameter
+            var isPrimaryConstructor = _constructorCandidate.Constructor.Parameters.Length > 0 &&
+                IsPrimaryConstructor(_constructorCandidate.Constructor, cancellationToken);
+
             var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
 
             var newConstructor = constructor;
             newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, _info, cancellationToken);
-            newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
-                                                  .WithAdditionalAnnotations(Formatter.Annotation);
 
-            var syntaxTree = constructor.SyntaxTree;
-            var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
+            if (!isPrimaryConstructor)
+            {
+                // For regular constructors, add assignment statements
+                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
+                                                      .WithAdditionalAnnotations(Formatter.Annotation);
 
-            // Make sure we get the document that contains the constructor we just updated
-            var constructorDocument = _document.Project.GetDocument(syntaxTree);
-            Contract.ThrowIfNull(constructorDocument);
+                var syntaxTree = constructor.SyntaxTree;
+                var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
-            return Task.FromResult<Solution?>(constructorDocument.WithSyntaxRoot(newRoot).Project.Solution);
+                // Make sure we get the document that contains the constructor we just updated
+                var constructorDocument = _document.Project.GetDocument(syntaxTree);
+                Contract.ThrowIfNull(constructorDocument);
+
+                return constructorDocument.WithSyntaxRoot(newRoot).Project.Solution;
+            }
+            else
+            {
+                // For primary constructors, we need to:
+                // 1. Update the primary constructor with new parameters
+                // 2. Add initializers to the properties/fields
+                var solution = await AddParametersAndInitializersToPrimaryConstructorAsync(
+                    newConstructor, cancellationToken).ConfigureAwait(false);
+                return solution;
+            }
+        }
+
+        private bool IsPrimaryConstructor(IMethodSymbol constructor, CancellationToken cancellationToken)
+        {
+            // Check if the constructor syntax is a TypeDeclarationSyntax (primary constructor pattern)
+            if (constructor.DeclaringSyntaxReferences.Length > 0)
+            {
+                var syntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                // Check language-agnostically by getting the syntax kind
+                var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
+                
+                // In C#, primary constructors have their declaration on the type declaration itself
+                // TypeDeclarationSyntax, RecordDeclarationSyntax etc
+                // Regular constructors have ConstructorDeclarationSyntax
+                // We can check if it's NOT a constructor declaration
+                return !syntaxFacts.IsConstructorDeclaration(syntax);
+            }
+            return false;
+        }
+
+        private async Task<Solution> AddParametersAndInitializersToPrimaryConstructorAsync(
+            SyntaxNode newConstructor,
+            CancellationToken cancellationToken)
+        {
+            var solution = _document.Project.Solution;
+            var solutionEditor = new SolutionEditor(solution);
+
+            // First, update the primary constructor declaration with the new parameters
+            var oldConstructor = _document.GetRequiredLanguageService<ISymbolDeclarationService>()
+                .GetDeclarations(_constructorCandidate.Constructor)
+                .Select(r => r.GetSyntax(cancellationToken))
+                .First();
+
+            var syntaxTree = oldConstructor.SyntaxTree;
+            var documentToUpdate = solution.GetRequiredDocument(syntaxTree);
+            var editor = await solutionEditor.GetDocumentEditorAsync(documentToUpdate.Id, cancellationToken).ConfigureAwait(false);
+            editor.ReplaceNode(oldConstructor, newConstructor.WithAdditionalAnnotations(Formatter.Annotation));
+
+            // Now add initializers to each member
+            for (var i = 0; i < _missingParameters.Length; ++i)
+            {
+                var member = _constructorCandidate.MissingMembers[i];
+                var parameter = _missingParameters[i];
+
+                await AddInitializerToMemberAsync(
+                    solutionEditor, member, parameter, cancellationToken).ConfigureAwait(false);
+            }
+
+            return solutionEditor.GetChangedSolution();
+        }
+
+        private async Task AddInitializerToMemberAsync(
+            SolutionEditor solutionEditor,
+            ISymbol member,
+            IParameterSymbol parameter,
+            CancellationToken cancellationToken)
+        {
+            var solution = solutionEditor.OriginalSolution;
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+
+            if (member is IPropertySymbol property)
+            {
+                foreach (var syntaxRef in property.DeclaringSyntaxReferences)
+                {
+                    var propertySyntax = syntaxRef.GetSyntax(cancellationToken);
+                    var propertyDocument = solution.GetRequiredDocument(propertySyntax.SyntaxTree);
+                    var propertyEditor = await solutionEditor.GetDocumentEditorAsync(propertyDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                    // Create the initializer expression using the parameter name
+                    var initializerExpression = generator.IdentifierName(parameter.Name);
+                    
+                    // For properties with initializers, we need language-specific handling
+                    // Since VB doesn't have primary constructors, we only need to handle C# here
+                    if (propertySyntax.Language == LanguageNames.CSharp)
+                    {
+                        // Use editor to add the initializer, which will work for C# properties
+                        var newProperty = AddPropertyInitializerCSharp(propertySyntax, parameter.Name);
+                        if (newProperty != null)
+                        {
+                            propertyEditor.ReplaceNode(propertySyntax, newProperty);
+                        }
+                    }
+                    break;
+                }
+            }
+            else if (member is IFieldSymbol field)
+            {
+                foreach (var syntaxRef in field.DeclaringSyntaxReferences)
+                {
+                    var fieldSyntax = syntaxRef.GetSyntax(cancellationToken);
+                    var fieldDocument = solution.GetRequiredDocument(fieldSyntax.SyntaxTree);
+                    var fieldEditor = await solutionEditor.GetDocumentEditorAsync(fieldDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                    // Create the initializer expression using the parameter name
+                    var initializerExpression = generator.IdentifierName(parameter.Name);
+                    
+                    // Add the initializer to the field - works for both C# and VB via WithInitializer
+                    var newField = generator.WithInitializer(fieldSyntax, initializerExpression);
+
+                    fieldEditor.ReplaceNode(fieldSyntax, newField);
+                    break;
+                }
+            }
+        }
+
+        private static SyntaxNode? AddPropertyInitializerCSharp(SyntaxNode propertySyntax, string parameterName)
+        {
+            // Use duck typing to call C# syntax methods without a direct assembly reference
+            // This works because we're checking the language is C# first
+            var propertyType = propertySyntax.GetType();
+            var withInitializerMethod = propertyType.GetMethod("WithInitializer");
+            var withSemicolonTokenMethod = propertyType.GetMethod("WithSemicolonToken");
+            
+            if (withInitializerMethod != null && withSemicolonTokenMethod != null)
+            {
+                // Get the C# SyntaxFactory from the syntax node's assembly
+                var syntaxFactoryType = propertySyntax.GetType().Assembly.GetType("Microsoft.CodeAnalysis.CSharp.SyntaxFactory");
+                if (syntaxFactoryType != null)
+                {
+                    // Create IdentifierName(parameterName)
+                    var identifierNameMethod = syntaxFactoryType.GetMethod("IdentifierName", new[] { typeof(string) });
+                    var identifierName = identifierNameMethod?.Invoke(null, new object[] { parameterName });
+                    
+                    if (identifierName != null)
+                    {
+                        // Create EqualsValueClause
+                        var expressionSyntaxType = propertySyntax.GetType().Assembly.GetType("Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax");
+                        var equalsValueClauseMethod = syntaxFactoryType.GetMethod("EqualsValueClause", new[] { expressionSyntaxType! });
+                        var equalsClause = equalsValueClauseMethod?.Invoke(null, new[] { identifierName });
+                        
+                        if (equalsClause != null)
+                        {
+                            // Get SemicolonToken
+                            var tokenMethod = syntaxFactoryType.GetMethod("Token", new[] { propertySyntax.GetType().Assembly.GetType("Microsoft.CodeAnalysis.CSharp.SyntaxKind")! });
+                            var syntaxKindType = propertySyntax.GetType().Assembly.GetType("Microsoft.CodeAnalysis.CSharp.SyntaxKind");
+                            var semicolonKind = Enum.Parse(syntaxKindType!, "SemicolonToken");
+                            var semicolonToken = tokenMethod?.Invoke(null, new[] { semicolonKind });
+                            
+                            if (semicolonToken != null)
+                            {
+                                // Call WithInitializer and WithSemicolonToken
+                                var newProperty = withInitializerMethod.Invoke(propertySyntax, new[] { equalsClause });
+                                newProperty = withSemicolonTokenMethod.Invoke(newProperty, new[] { semicolonToken });
+                                return (SyntaxNode?)newProperty;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return null;
         }
 
         private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
