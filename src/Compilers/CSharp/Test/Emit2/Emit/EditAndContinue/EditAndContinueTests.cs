@@ -22076,5 +22076,79 @@ file class C
                     })
                 .Verify();
         }
+
+        [Fact]
+        public void NullableContextAttribute_UnmodifiedTypeCompletion()
+        {
+            // Regression test for https://github.com/dotnet/roslyn/issues/79320
+            // When compiling an EnC delta, if a modified method calls an unmodified method,
+            // the unmodified type may need to be completed. During completion, nullable attributes
+            // may need to be generated, but the _needsGeneratedAttributes_IsFrozen flag may already be set.
+            // This test verifies that this scenario doesn't cause an assertion failure.
+
+            var source0 = """
+                class UnmodifiedType
+                {
+                    public static void UnmodifiedMethod() { }
+                }
+
+                class ModifiedType
+                {
+                    public static void Method1()
+                    {
+                    }
+                }
+                """;
+
+            var source1 = """
+                #nullable enable
+
+                class UnmodifiedType
+                {
+                    public static void UnmodifiedMethod() { }
+                }
+
+                class ModifiedType
+                {
+                    public static void Method1()
+                    {
+                        UnmodifiedType.UnmodifiedMethod();
+                    }
+
+                    public static void Method2(string? s) { }
+                }
+                """;
+
+            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var method1_v0 = compilation0.GetMember<MethodSymbol>("ModifiedType.Method1");
+            var method1_v1 = compilation1.GetMember<MethodSymbol>("ModifiedType.Method1");
+            var method2_v1 = compilation1.GetMember<MethodSymbol>("ModifiedType.Method2");
+
+            using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
+            var generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider);
+
+            // This emits a delta where:
+            // 1. Method1 is updated to call UnmodifiedMethod (triggering completion of UnmodifiedType)
+            // 2. Method2 is added with nullable annotations (requiring NullableContextAttribute)
+            // During compilation, when Method1 calls UnmodifiedMethod, we need to check if UnmodifiedMethod
+            // is virtual, which triggers completion of UnmodifiedType. This happens after the
+            // _needsGeneratedAttributes_IsFrozen flag might have been set.
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, method1_v0, method1_v1),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, method2_v1)));
+
+            // Verify the emit succeeded (no assertion failure)
+            diff1.EmitResult.Diagnostics.Verify();
+
+            // Verify that nullable attributes were generated for Method2
+            diff1.VerifySynthesizedMembers(
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute");
+        }
     }
 }
