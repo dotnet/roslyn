@@ -1585,7 +1585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             Debug.Assert(symbol.GetIsNewExtensionMember());
-                            if (SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(this.Compilation, symbol, receiverType) is { } compatibleSubstitutedMember)
+                            if (SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(this.Compilation, symbol, receiverType, wasExtensionFullyInferred: out _) is { } compatibleSubstitutedMember)
                             {
                                 if (compatibleSubstitutedMember.IsStatic)
                                 {

@@ -8768,12 +8768,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         bool inapplicable = false;
                         if (method.IsExtensionMethod
-                            && (object)method.ReduceExtensionMethod(receiverType, binder.Compilation) == null)
+                            && method.ReduceExtensionMethod(receiverType, binder.Compilation) is null)
                         {
                             inapplicable = true;
                         }
                         else if (method.GetIsNewExtensionMember()
-                            && SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(binder.Compilation, method, receiverType) == null)
+                            && SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(binder.Compilation, method, receiverType, wasExtensionFullyInferred: out _) is null)
                         {
                             inapplicable = true;
                         }

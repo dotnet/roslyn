@@ -35177,5 +35177,467 @@ static class E
             Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
         );
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_01()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t) where T : class
+    {
+        public void M() { }
+        public int Property { get => 0; set { } }
+        public void operator +=(T t2) { }
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.M()", method.ToTestDisplayString());
+        Assert.Null(method.ReduceExtensionMember(receiverType: null));
+
+        var substitutedMethod = method.ReduceExtensionMember(systemObject);
+        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.M()",
+            substitutedMethod.ToTestDisplayString());
+
+        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.M()",
+            substitutedMethod.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        AssertEx.Equal("System.Int32 E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.Property { get; set; }", property.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        var getter = property.GetMethod;
+        AssertEx.Equal("System.Int32 E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.Property.get", getter.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.Property.get",
+            getter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        var setter = property.SetMethod;
+        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.Property.set", setter.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.Property.set",
+            setter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        var op_AdditionAssignment = extension.GetMember<MethodSymbol>("op_AdditionAssignment").GetPublicSymbol();
+        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.op_AdditionAssignment(T t2)", op_AdditionAssignment.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.op_AdditionAssignment(System.Object t2)",
+            op_AdditionAssignment.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        // broken constraint
+        INamedTypeSymbol systemInt32 = comp.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+        Assert.Null(method.ReduceExtensionMember(systemInt32));
+        Assert.Null(property.ReduceExtensionMember(systemInt32));
+        Assert.Null(getter.ReduceExtensionMember(systemInt32));
+        Assert.Null(setter.ReduceExtensionMember(systemInt32));
+        Assert.Null(op_AdditionAssignment.ReduceExtensionMember(systemInt32));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_02()
+    {
+        // not fully inferred
+        var src = """
+public static class E
+{
+    extension<T, U>(T t) where T : class
+    {
+        public void M(U u) { }
+        public void operator +=(U u) { }
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+        var extensionMethod = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("M").GetPublicSymbol();
+        AssertEx.Equal("void System.Object.M<System.Object, U>(U u)", extensionMethod.ReduceExtensionMethod(systemObject).ToTestDisplayString());
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var substitutedMethod = method.ReduceExtensionMember(systemObject);
+        AssertEx.Equal("void E.<G>$EFE563D6389F084705E4ACFD3AFA030A<System.Object, U>.M(U u)", substitutedMethod.ToTestDisplayString());
+
+        AssertEx.Equal("void E.<G>$EFE563D6389F084705E4ACFD3AFA030A<System.Object, U>.M(U u)",
+            substitutedMethod.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        var op_AdditionAssignment = extension.GetMember<MethodSymbol>("op_AdditionAssignment").GetPublicSymbol();
+        AssertEx.Equal("void E.<G>$EFE563D6389F084705E4ACFD3AFA030A<System.Object, U>.op_AdditionAssignment(U u)",
+            op_AdditionAssignment.ReduceExtensionMember(systemObject).ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_03()
+    {
+        // not fully inferred, property
+        var src = """
+public static class E
+{
+    extension<T, U>(T t)
+    {
+        public int Property { get => 0; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS9295: The type parameter `U` is not referenced by either the extension parameter or a parameter of this member
+            //         public int Property { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "Property").WithArguments("U").WithLocation(5, 20));
+
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        AssertEx.Equal("System.Int32 E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        var getter = property.GetMethod;
+        AssertEx.Equal("System.Int32 E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.Property.get",
+            getter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        var setter = property.SetMethod;
+        AssertEx.Equal("void E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.Property.set",
+            setter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_04()
+    {
+        // member is generic
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U>(U u) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<U>(U u)",
+            method.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()).ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_05()
+    {
+        // void and error types
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        INamedTypeSymbol systemVoid = comp.GetSpecialType(SpecialType.System_Void).GetPublicSymbol();
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.ReduceExtensionMember(systemVoid));
+
+        var error = comp.CreateErrorTypeSymbol(null, name: "Error", arity: 0);
+        Assert.Null(method.ReduceExtensionMember(error));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_06()
+    {
+        // non-extension members
+        var src = """
+public class C
+{
+    public void M() { }
+    public int Property => 0;
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var systemInt32 = comp.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+        var extension = comp.GlobalNamespace.GetTypeMember("C");
+
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.ReduceExtensionMember(systemInt32));
+
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        Assert.Null(property.ReduceExtensionMember(systemInt32));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_07()
+    {
+        // indexer
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public int this[int i] { get => 0; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS9282: This member is not allowed in an extension block
+            //         public int this[int i] { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var indexer = extension.GetMember<PropertySymbol>("this[]").GetPublicSymbol();
+        Assert.Null(indexer.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_08()
+    {
+        // conversion operator
+        var src = """
+public static class E
+{
+    extension<T>(T)
+    {
+        public static explicit operator int(T t) => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,41): error CS9282: This member is not allowed in an extension block
+            //         public static explicit operator int(T t) => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "int").WithLocation(5, 41));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var op_Explicit = extension.GetMember<MethodSymbol>("op_Explicit").GetPublicSymbol();
+        Assert.Null(op_Explicit.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_09()
+    {
+        // non-generic
+        var src = """
+public static class E
+{
+    extension(Base b)
+    {
+        public void M() { }
+        public int Property { get => 0; set { } }
+        public void operator +=(int i) { }
+    }
+}
+
+public class Base { }
+public class Derived : Base { }
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        var getter = property.GetMethod;
+        var setter = property.SetMethod;
+        var op_AdditionAssignment = extension.GetMember<MethodSymbol>("op_AdditionAssignment").GetPublicSymbol();
+
+        // object
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        Assert.Null(method.ReduceExtensionMember(systemObject));
+        Assert.Null(property.ReduceExtensionMember(systemObject));
+        Assert.Null(getter.ReduceExtensionMember(systemObject));
+        Assert.Null(setter.ReduceExtensionMember(systemObject));
+        Assert.Null(op_AdditionAssignment.ReduceExtensionMember(systemObject));
+
+        // Base
+        INamedTypeSymbol baseType = comp.GlobalNamespace.GetTypeMember("Base").GetPublicSymbol();
+
+        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.M()",
+            method.ReduceExtensionMember(baseType).ToTestDisplayString());
+
+        AssertEx.Equal("System.Int32 E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property { get; set; }",
+            property.ReduceExtensionMember(baseType).ToTestDisplayString());
+
+        AssertEx.Equal("System.Int32 E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property.get",
+            getter.ReduceExtensionMember(baseType).ToTestDisplayString());
+
+        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property.set",
+            setter.ReduceExtensionMember(baseType).ToTestDisplayString());
+
+        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.op_AdditionAssignment(System.Int32 i)",
+            op_AdditionAssignment.ReduceExtensionMember(baseType).ToTestDisplayString());
+
+        // Derived
+        INamedTypeSymbol derivedType = comp.GlobalNamespace.GetTypeMember("Derived").GetPublicSymbol();
+
+        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.M()",
+            method.ReduceExtensionMember(derivedType).ToTestDisplayString());
+
+        AssertEx.Equal("System.Int32 E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property { get; set; }",
+            property.ReduceExtensionMember(derivedType).ToTestDisplayString());
+
+        AssertEx.Equal("System.Int32 E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property.get",
+            getter.ReduceExtensionMember(derivedType).ToTestDisplayString());
+
+        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property.set",
+            setter.ReduceExtensionMember(derivedType).ToTestDisplayString());
+
+        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.op_AdditionAssignment(System.Int32 i)",
+            op_AdditionAssignment.ReduceExtensionMember(derivedType).ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_10()
+    {
+        // static members
+        var src = """
+public static class E
+{
+    extension(object)
+    {
+        public static void M() { }
+        public static int Property { get => 0; set { } }
+        public static object operator +(object o1, object o2) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        var getter = property.GetMethod;
+        var setter = property.SetMethod;
+        var op_Addition = extension.GetMember<MethodSymbol>("op_Addition").GetPublicSymbol();
+
+        // object
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()",
+            method.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
+            getter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.set",
+            setter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        AssertEx.Equal("System.Object E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.op_Addition(System.Object o1, System.Object o2)",
+            op_Addition.ReduceExtensionMember(systemObject).ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_11()
+    {
+        // static members, generic extension block
+        var src = """
+public static class E
+{
+    extension<T>(T)
+    {
+        public static void M() { }
+        public static int Property { get => 0; set { } }
+        public static T operator +(T t1, T t2) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        var getter = property.GetMethod;
+        var setter = property.SetMethod;
+        var op_Addition = extension.GetMember<MethodSymbol>("op_Addition").GetPublicSymbol();
+
+        // object
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()",
+            method.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        AssertEx.Equal("System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        AssertEx.Equal("System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property.get",
+            getter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property.set",
+            setter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+
+        AssertEx.Equal("System.Object E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.op_Addition(System.Object t1, System.Object t2)",
+            op_Addition.ReduceExtensionMember(systemObject).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ReduceExtensionMember_12()
+    {
+        // probe handling of wasExtensionFullyinferred
+        var src = """
+_ = object.M;
+_ = nameof(object.M);
+
+static class E
+{
+    extension<T>(T)
+    {
+        public static void M<U>() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8183: Cannot infer the type of implicitly-typed discard.
+            // _ = object.M;
+            Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(1, 1),
+            // (2,12): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // _ = nameof(object.M);
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "object.M").WithLocation(2, 12));
+    }
+
+    [Fact]
+    public void ReduceExtensionMember_13()
+    {
+        // probe handling of wasExtensionFullyinferred
+        var src = """
+_ = object.M;
+_ = nameof(object.M);
+
+static class E
+{
+    extension<T, U>(T)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8183: Cannot infer the type of implicitly-typed discard.
+            // _ = object.M;
+            Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(1, 1),
+            // (2,12): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // _ = nameof(object.M);
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "object.M").WithLocation(2, 12));
+    }
 }
 

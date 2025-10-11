@@ -1681,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             Debug.Assert(symbol.GetIsNewExtensionMember());
-                            if (SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(binder.Compilation, symbol, receiverType) is { } compatibleSubstitutedMember)
+                            if (SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(binder.Compilation, symbol, receiverType, wasExtensionFullyInferred: out _) is { } compatibleSubstitutedMember)
                             {
                                 results.Add(compatibleSubstitutedMember.GetPublicSymbol());
                             }
