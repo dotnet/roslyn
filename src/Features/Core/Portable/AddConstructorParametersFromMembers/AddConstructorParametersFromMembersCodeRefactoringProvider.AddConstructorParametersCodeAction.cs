@@ -155,10 +155,17 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                     // Create the initializer expression using the parameter name
                     var initializerExpression = generator.IdentifierName(parameter.Name);
                     
-                    // Add the initializer to the property
-                    var newProperty = generator.WithInitializer(propertySyntax, initializerExpression);
-
-                    propertyEditor.ReplaceNode(propertySyntax, newProperty);
+                    // For properties with initializers, we need language-specific handling
+                    // Since VB doesn't have primary constructors, we only need to handle C# here
+                    if (propertySyntax.Language == LanguageNames.CSharp)
+                    {
+                        // Use editor to add the initializer, which will work for C# properties
+                        var newProperty = AddPropertyInitializerCSharp(propertySyntax, parameter.Name);
+                        if (newProperty != null)
+                        {
+                            propertyEditor.ReplaceNode(propertySyntax, newProperty);
+                        }
+                    }
                     break;
                 }
             }
@@ -173,13 +180,61 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                     // Create the initializer expression using the parameter name
                     var initializerExpression = generator.IdentifierName(parameter.Name);
                     
-                    // Add the initializer to the field
+                    // Add the initializer to the field - works for both C# and VB via WithInitializer
                     var newField = generator.WithInitializer(fieldSyntax, initializerExpression);
 
                     fieldEditor.ReplaceNode(fieldSyntax, newField);
                     break;
                 }
             }
+        }
+
+        private static SyntaxNode? AddPropertyInitializerCSharp(SyntaxNode propertySyntax, string parameterName)
+        {
+            // Use duck typing to call C# syntax methods without a direct assembly reference
+            // This works because we're checking the language is C# first
+            var propertyType = propertySyntax.GetType();
+            var withInitializerMethod = propertyType.GetMethod("WithInitializer");
+            var withSemicolonTokenMethod = propertyType.GetMethod("WithSemicolonToken");
+            
+            if (withInitializerMethod != null && withSemicolonTokenMethod != null)
+            {
+                // Get the C# SyntaxFactory from the syntax node's assembly
+                var syntaxFactoryType = propertySyntax.GetType().Assembly.GetType("Microsoft.CodeAnalysis.CSharp.SyntaxFactory");
+                if (syntaxFactoryType != null)
+                {
+                    // Create IdentifierName(parameterName)
+                    var identifierNameMethod = syntaxFactoryType.GetMethod("IdentifierName", new[] { typeof(string) });
+                    var identifierName = identifierNameMethod?.Invoke(null, new object[] { parameterName });
+                    
+                    if (identifierName != null)
+                    {
+                        // Create EqualsValueClause
+                        var expressionSyntaxType = propertySyntax.GetType().Assembly.GetType("Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax");
+                        var equalsValueClauseMethod = syntaxFactoryType.GetMethod("EqualsValueClause", new[] { expressionSyntaxType! });
+                        var equalsClause = equalsValueClauseMethod?.Invoke(null, new[] { identifierName });
+                        
+                        if (equalsClause != null)
+                        {
+                            // Get SemicolonToken
+                            var tokenMethod = syntaxFactoryType.GetMethod("Token", new[] { propertySyntax.GetType().Assembly.GetType("Microsoft.CodeAnalysis.CSharp.SyntaxKind")! });
+                            var syntaxKindType = propertySyntax.GetType().Assembly.GetType("Microsoft.CodeAnalysis.CSharp.SyntaxKind");
+                            var semicolonKind = Enum.Parse(syntaxKindType!, "SemicolonToken");
+                            var semicolonToken = tokenMethod?.Invoke(null, new[] { semicolonKind });
+                            
+                            if (semicolonToken != null)
+                            {
+                                // Call WithInitializer and WithSemicolonToken
+                                var newProperty = withInitializerMethod.Invoke(propertySyntax, new[] { equalsClause });
+                                newProperty = withSemicolonTokenMethod.Invoke(newProperty, new[] { semicolonToken });
+                                return (SyntaxNode?)newProperty;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return null;
         }
 
         private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
