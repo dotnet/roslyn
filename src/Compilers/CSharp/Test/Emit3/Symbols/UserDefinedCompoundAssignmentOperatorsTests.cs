@@ -15706,11 +15706,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                     }
                 }
                 """;
-            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
-                // (6,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
-                //         return c += c1;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(6, 16)
-                );
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
         }
 
         [Fact]
@@ -15732,6 +15728,9 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "c += c1").WithArguments("C.operator +=(C)", "right").WithLocation(6, 16),
                 // (6,21): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 21),
+                // (6,21): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c += c1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 21)
                 );
         }
@@ -15749,7 +15748,10 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                     }
                 }
                 """;
-            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (6,21): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 21));
         }
 
         [Fact]
@@ -15766,9 +15768,9 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 }
                 """;
             CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
-                // (6,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                // (6,21): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return c += c1;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 21)
                 );
         }
 
@@ -15790,9 +15792,9 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 // (7,16): error CS8347: Cannot use a result of 'C.X(C)' in this context because it may expose variables referenced by parameter 'c' outside of their declaration scope
                 //         return X(c += c1);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "X(c += c1)").WithArguments("C.X(C)", "c").WithLocation(7, 16),
-                // (7,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                // (7,23): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return X(c += c1);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 23)
                 );
         }
 

@@ -3894,7 +3894,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    return GetRefEscape(assignment.Left, localScopeDepth);
+                    // The result of a ref assignment is its right-hand side.
+                    return GetRefEscape(assignment.Right, localScopeDepth);
 
                 case BoundKind.Conversion:
                     Debug.Assert(expr is BoundConversion conversion &&
@@ -4228,9 +4229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                    // The result of a ref assignment is its right-hand side.
                     return CheckRefEscape(
                         node,
-                        assignment.Left,
+                        assignment.Right,
                         escapeFrom,
                         escapeTo,
                         checkingReceiver: false,
@@ -4615,13 +4617,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(conversion.Operand, localScopeDepth);
 
                 case BoundKind.AssignmentOperator:
-                    // https://github.com/dotnet/roslyn/issues/73549:
-                    // We do not have a test that demonstrates that the statement below makes a difference.
-                    // If 'localScopeDepth' is always returned, not a single test fails.
-                    // Same for the 'case BoundKind.NullCoalescingAssignmentOperator:' below.
+                    // The result of an assignment is its right-hand side.
                     return GetValEscape(((BoundAssignmentOperator)expr).Right, localScopeDepth);
 
                 case BoundKind.NullCoalescingAssignmentOperator:
+                    // https://github.com/dotnet/roslyn/issues/73549:
+                    // We do not have a test that demonstrates that the statement below makes a difference.
+                    // If 'localScopeDepth' is always returned, not a single test fails.
+
+                    // The result of a null-coalescing assignment is its right-hand side.
                     return GetValEscape(((BoundNullCoalescingAssignmentOperator)expr).RightOperand, localScopeDepth);
 
                 case BoundKind.IncrementOperator:
@@ -4662,7 +4666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            return GetValEscape(compound.Left, localScopeDepth);
+                            // The result of a compound assignment is its right-hand side.
+                            return GetValEscape(compound.Right, localScopeDepth);
                         }
                     }
 
@@ -5376,11 +5381,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expr;
-                    return CheckValEscape(node, assignment.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    // The result of an assignment is its right-hand side.
+                    return CheckValEscape(node, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.NullCoalescingAssignmentOperator:
                     var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
-                    return CheckValEscape(node, nullCoalescingAssignment.LeftOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    // The result of a null-coalescing assignment is its right-hand side.
+                    return CheckValEscape(node, nullCoalescingAssignment.RightOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
@@ -5426,7 +5433,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            return CheckValEscape(compound.Left.Syntax, compound.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                            // The result of a compound assignment is its right-hand side.
+                            return CheckValEscape(compound.Right.Syntax, compound.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
                         }
                     }
 

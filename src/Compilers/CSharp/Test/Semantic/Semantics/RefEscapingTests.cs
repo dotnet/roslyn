@@ -10697,9 +10697,18 @@ public struct Vec4
                 // (8,23): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return Y(c += c1);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 23),
+                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
                 // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(12, 22),
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(12, 22),
+                // (12,27): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 27),
                 // (12,27): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 27)
@@ -10842,9 +10851,12 @@ public struct Vec4
                 // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
-                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "left").WithLocation(12, 22),
+                // (12,24): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(12, 24)
                 );
         }
 
@@ -10880,13 +10892,16 @@ public struct Vec4
                 // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
-                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, scoped C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, scoped C)", "left").WithLocation(12, 22),
+                // (12,24): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(12, 24)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79054")]
         public void UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_04()
         {
             var source = """
@@ -10905,14 +10920,7 @@ public struct Vec4
                     }
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
-                //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
-                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
-                //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
-                );
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
@@ -12692,6 +12700,30 @@ public struct Vec4
                 Console.WriteLine(x.Length);
                 """;
             CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79054"), WorkItem("https://github.com/dotnet/roslyn/issues/73549")]
+        public void Assignment()
+        {
+            var source = """
+                ref struct C
+                {
+                    static C M1(C c1, scoped C c2)
+                    {
+                        var c3 = (c2 = c1);
+                        return c3; // 1
+                    }
+                    static C M2(C c1, scoped C c2)
+                    {
+                        var c3 = c2;
+                        return c3; // 2
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,16): error CS8352: Cannot use variable 'c3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c3; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c3").WithArguments("c3").WithLocation(11, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
