@@ -53,7 +53,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - Use `UseExportProvider` for MEF services
 - Test utilities in `Microsoft.CodeAnalysis.Test.Utilities`
 - Language-specific test bases: `CSharpTestBase`, `VisualBasicTestBase`
-- Add `[WorkItem(issueNumber, "https://github.com/dotnet/roslyn/issues/issueNumber")]` attribute to tests that fix specific GitHub issues
+- Add `[WorkItem("https://github.com/dotnet/roslyn/issues/issueNumber")]` attribute to tests that fix specific GitHub issues
 
 ## Critical Integration Points
 
