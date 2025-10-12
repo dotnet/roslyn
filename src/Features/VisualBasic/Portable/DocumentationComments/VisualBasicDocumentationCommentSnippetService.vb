@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Return count
         End Function
 
-        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax, existingCommentText As String, ByRef options As DocumentationCommentOptions) As List(Of String)
+        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax, existingCommentText As String, options As DocumentationCommentOptions) As List(Of String)
             ' When collapsed mode is enabled, generate single-line summary tags
             Dim useSingleLine = options.CollapsedXmlDocCommentGeneration
 
