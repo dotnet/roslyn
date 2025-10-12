@@ -2045,4 +2045,30 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 public void M() { }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78108")]
+    public Task TestNotWithNullabilityDifferenceInTaskReturnType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System;
+            using System.Threading.Tasks;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    AcceptAsyncDelegate(async () => await GetNonNullStringAsync());
+                }
+
+                private static void AcceptAsyncDelegate(Func<Task<string?>> _)
+                {
+                }
+
+                private static Task<string> GetNonNullStringAsync()
+                {
+                    return Task.FromResult("Fallback Value");
+                }
+            }
+            """);
 }
