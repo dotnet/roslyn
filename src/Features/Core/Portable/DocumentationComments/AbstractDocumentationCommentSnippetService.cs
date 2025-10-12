@@ -134,11 +134,10 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         if (options.GenerateSummaryTagOnSingleLine)
         {
             // For single-line mode, position caret inside <summary></summary>
-            // The format is: /// <summary></summary>
+            // The format after shaving off "///" is: " <summary></summary>"
             // We want the caret between > and <
-            // ExteriorTriviaText is "///" and there's a space after it, then "<summary>"
             var summaryOpenTagLength = "<summary>".Length;
-            caretOffset = indentText.Length + ExteriorTriviaText.Length + " ".Length + summaryOpenTagLength;
+            caretOffset = indentText.Length + " ".Length + summaryOpenTagLength;
         }
         else
         {
@@ -164,10 +163,10 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         if (options.GenerateSummaryTagOnSingleLine)
         {
             // For single-line mode, position caret inside <summary></summary>
-            // The format is: /// <summary></summary>
+            // The format after shaving off "///" is: " <summary></summary>"
             // We want the caret between > and <
             var summaryOpenTagLength = "<summary>".Length;
-            caretOffset = ExteriorTriviaText.Length + " ".Length + summaryOpenTagLength;
+            caretOffset = " ".Length + summaryOpenTagLength;
         }
         else
         {
