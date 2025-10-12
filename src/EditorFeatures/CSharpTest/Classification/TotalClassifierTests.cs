@@ -3112,4 +3112,78 @@ Punctuation.CloseCurly);
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
+    public Task DocCommentCodeBlockWithCSharpLang(TestHost testHost)
+        => TestAsync(
+            """
+            /// <summary>
+            /// Test method
+            /// </summary>
+            /// <code lang="C#">
+            /// using System;
+            /// var x = 5;
+            /// Console.WriteLine(x);
+            /// </code>
+            class Program
+            {
+                void Test() { }
+            }
+            """,
+            testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" Test method"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("code"),
+            XmlDoc.AttributeName("lang"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeValue("C#"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            Keyword("using"),
+            Namespace("System"),
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            Keyword("var"),
+            Identifier("x"),
+            Operators.Equals,
+            Number("5"),
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("WriteLine"),
+            Punctuation.OpenParen,
+            Identifier("x"),
+            Punctuation.CloseParen,
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("code"),
+            XmlDoc.Delimiter(">"),
+            Keyword("class"),
+            Class("Program"),
+            Punctuation.OpenCurly,
+            Keyword("void"),
+            Method("Test"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly);
 }
