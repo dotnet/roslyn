@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing;
@@ -326,7 +327,7 @@ public class C
 """);
     }
 
-    [Fact]
+    [Fact, WorkItem(78860, "https://github.com/dotnet/roslyn/issues/78860")]
     public void TestInsertDelegateIntoInterface()
     {
         var code = """
