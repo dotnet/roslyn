@@ -2527,7 +2527,7 @@ public sealed class AddConstructorParametersFromMembersTests
             """,
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80564")]
     public Task TestAddParameterToPrimaryConstructor_Property()
         => new VerifyCS.Test
         {
@@ -2552,7 +2552,7 @@ public sealed class AddConstructorParametersFromMembersTests
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80564")]
     public Task TestAddParameterToPrimaryConstructor_Field()
         => new VerifyCS.Test
         {
@@ -2577,7 +2577,7 @@ public sealed class AddConstructorParametersFromMembersTests
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80564")]
     public Task TestAddParameterToPrimaryConstructor_MultipleProperties()
         => new VerifyCS.Test
         {
@@ -2604,7 +2604,7 @@ public sealed class AddConstructorParametersFromMembersTests
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80564")]
     public Task TestAddParameterToPrimaryConstructor_EmptyParameterList()
         => new VerifyCS.Test
         {
