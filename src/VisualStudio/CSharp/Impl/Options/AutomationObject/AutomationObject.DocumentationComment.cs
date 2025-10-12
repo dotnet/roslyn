@@ -14,13 +14,13 @@ public partial class AutomationObject
         set { SetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, value); }
     }
 
-    public int AutoCommentSingleLine
+    public int GenerateSummaryTagOnSingleLine
     {
         get { return GetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine); }
         set { SetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, value); }
     }
 
-    public int AutoCommentOnlySummary
+    public int GenerateOnlySummaryTag
     {
         get { return GetBooleanOption(DocumentationCommentOptionsStorage.GenerateOnlySummaryTag); }
         set { SetBooleanOption(DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, value); }
