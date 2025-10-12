@@ -25777,7 +25777,7 @@ record B
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 c.VerifyDiagnostics(
-                    // (8,12): error CS9335: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
+                    // (8,12): error CS9338: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
                     //     record C : X<C.D.E>
                     Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 12),
                     // (8,12): error CS0051: Inconsistent accessibility: parameter type 'X<B.C.D.E>' is less accessible than method 'B.C.Equals(X<B.C.D.E>?)'
@@ -25788,7 +25788,7 @@ record B
             else
             {
                 c.VerifyDiagnostics(
-                    // (8,12): error CS9335: Inconsistant accessibility: type 'B.C.D' is less accessible than class 'B.C'
+                    // (8,12): error CS9338: Inconsistant accessibility: type 'B.C.D' is less accessible than class 'B.C'
                     //     record C : X<C.D.E>
                     Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 12),
                     // (8,12): error CS0050: Inconsistent accessibility: return type 'X<B.C.D.E>' is less accessible than method 'B.C.<Clone>$()'

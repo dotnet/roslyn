@@ -429,7 +429,7 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS9335: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
+                // (8,11): error CS9338: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
                 //     class C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 11));
         }
@@ -593,7 +593,7 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS9335: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
+                // (8,11): error CS9338: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
                 //     class C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 11));
         }

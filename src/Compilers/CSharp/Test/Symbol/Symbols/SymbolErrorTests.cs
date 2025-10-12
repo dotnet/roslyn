@@ -739,13 +739,13 @@ public class C2 : B<object>.C<A> { }
 public class C3 : B<A>.C<object> { }
 public class C4 : B<B<A>>.C<object> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,14): error CS9335: Inconsistent accessibility: type 'A' is less accessible than class 'C1'
+                // (6,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C1'
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C1").WithArguments("C1", "A").WithLocation(6, 14),
-                // (7,14): error CS9335: Inconsistent accessibility: type 'A' is less accessible than class 'C2'
+                // (7,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C2'
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C2").WithArguments("C2", "A").WithLocation(7, 14),
-                // (8,14): error CS9335: Inconsistent accessibility: type 'A' is less accessible than class 'C3'
+                // (8,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C3'
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C3").WithArguments("C3", "A").WithLocation(8, 14),
-                // (9,14): error CS9335: Inconsistent accessibility: type 'A' is less accessible than class 'C4'
+                // (9,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C4'
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C4").WithArguments("C4", "A").WithLocation(9, 14));
         }
 
@@ -763,7 +763,7 @@ public class C4 : B<B<A>>.C<object> { }";
 public class B<T> : A { }
 public class C : B<A.B.C> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,14): error CS9335: Inconsistent accessibility: type 'A.B' is less accessible than class 'C'
+                // (9,14): error CS9338: Inconsistent accessibility: type 'A.B' is less accessible than class 'C'
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("C", "A.B").WithLocation(9, 14));
         }
 
