@@ -2603,4 +2603,25 @@ public sealed class AddConstructorParametersFromMembersTests
             """,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
+
+    [Fact]
+    public Task TestAddParameterToPrimaryConstructor_EmptyParameterList()
+        => new VerifyCS.Test
+        {
+            TestCode =
+            """
+            public class MyClass()
+            {
+                [|public int MyProperty { get; set; }|]
+            }
+            """,
+            FixedCode =
+            """
+            public class MyClass(int myProperty)
+            {
+                public int MyProperty { get; set; } = myProperty;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12
+        }.RunAsync();
 }
