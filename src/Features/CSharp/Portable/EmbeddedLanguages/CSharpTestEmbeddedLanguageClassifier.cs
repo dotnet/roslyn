@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
@@ -41,9 +42,12 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         // the token has diagnostics).
 
         cancellationToken.ThrowIfCancellationRequested();
+        using var _ = ArrayBuilder<VirtualChar>.GetInstance(virtualCharsWithMarkup.Length, out var virtualCharsBuilder);
+        foreach (var vc in virtualCharsWithMarkup)
+            virtualCharsBuilder.Add(vc);
 
         // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
-        var (virtualCharsWithoutMarkup, markdownSpans) = StripMarkupCharacters(virtualCharsWithMarkup, cancellationToken);
+        var (virtualCharsWithoutMarkup, markdownSpans) = StripMarkupCharacters(virtualCharsBuilder, cancellationToken);
         foreach (var span in markdownSpans)
             context.AddClassification(ClassificationTypeNames.TestCodeMarkdown, span);
 
