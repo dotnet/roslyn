@@ -67,8 +67,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function WithPropertyInitializer(propertyDeclaration As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
-            ' VB doesn't have primary constructors, so this should never be called
-            ' But we need to implement it to satisfy the abstract base class
             Throw New NotSupportedException("VB does not support primary constructors.")
         End Function
 
