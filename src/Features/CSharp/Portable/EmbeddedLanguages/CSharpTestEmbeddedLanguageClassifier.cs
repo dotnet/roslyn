@@ -257,31 +257,4 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
             currentStartIndexInclusive = currentEndIndexExclusive;
         }
     }
-
-    /// <summary>
-    /// Trivial implementation of a <see cref="SourceText"/> that directly maps over a <see
-    /// cref="VirtualCharSequence"/>.
-    /// </summary>
-    private sealed class VirtualCharSequenceSourceText : SourceText
-    {
-        private readonly ImmutableSegmentedList<VirtualChar> _virtualChars;
-
-        public override Encoding? Encoding { get; }
-
-        public VirtualCharSequenceSourceText(ImmutableSegmentedList<VirtualChar> virtualChars, Encoding? encoding)
-        {
-            _virtualChars = virtualChars;
-            Encoding = encoding;
-        }
-
-        public override int Length => _virtualChars.Count;
-
-        public override char this[int position] => _virtualChars[position];
-
-        public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
-        {
-            for (int i = sourceIndex, n = sourceIndex + count; i < n; i++)
-                destination[destinationIndex + i] = this[i];
-        }
-    }
 }
