@@ -12,8 +12,8 @@ using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.CSharp.Utilities.CSharpTypeStyleHelper;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 
@@ -38,14 +38,33 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         if (syntax is not XmlElementSyntax xmlElement)
             return;
 
+        if (!ClassificationHelpers.IsCodeBlockWithCSharpLang(xmlElement))
+            return;
+
         // Try to classify as C# code. If it fails for any reason, fall back to regular syntactic classification
         if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, options, result, cancellationToken))
             return;
 
-        // Fall back to syntactic classification of the element content.  Pass in skipXmlTextTokens to ensure it
-        // actually classifies the text within the XML element as it will not do that by default (since it is normally
-        // deffering to us to do it.
-        Worker.CollectClassifiedSpans(xmlElement, textSpan, result, skipXmlTextTokens: false, cancellationToken);
+        // Normal syntactic classifier will have classified everything but the xml text tokens.  Recurse ourselves to
+        // take case of that.
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.Push(xmlElement);
+
+        while (stack.TryPop(out var currentNode))
+        {
+            foreach (var child in currentNode.ChildNodesAndTokens())
+            {
+                if (child.AsNode(out var childNode))
+                {
+                    stack.Push(childNode);
+                }
+                else if (child.Kind() == SyntaxKind.XmlText)
+                {
+                    if (child.Span.OverlapsWith(textSpan))
+                        result.Add(new(child.Span, ClassificationTypeNames.XmlDocCommentText));
+                }
+            }
+        }
     }
 
     private static bool TryClassifyCodeBlock(
@@ -57,8 +76,6 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         CancellationToken cancellationToken)
     {
         // Check if this is a C# code block
-        if (!ClassificationHelpers.IsCodeBlockWithCSharpLang(xmlElement))
-            return false;
 
         // Extract the code content from the XML element
         using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var virtualCharsBuilder);
@@ -70,7 +87,7 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         var (virtualCharsWithoutMarkup, markdownSpans) = StripMarkupCharacters(virtualCharsBuilder, cancellationToken);
 
         foreach (var span in markdownSpans)
-            result.Add(new(ClassificationTypeNames.TestCodeMarkdown, span);
+            result.Add(new(ClassificationTypeNames.TestCodeMarkdown, span));
 
         var classifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
             solutionServices: null, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
