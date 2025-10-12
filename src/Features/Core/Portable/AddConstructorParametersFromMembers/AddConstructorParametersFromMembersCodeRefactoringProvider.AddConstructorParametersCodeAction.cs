@@ -51,9 +51,9 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             var constructor = declarationService.GetDeclarations(
                 _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
-            // Check if this is a primary constructor by checking if any parameter is a primary constructor parameter
+            // Check if this is a primary constructor
             var isPrimaryConstructor = _constructorCandidate.Constructor.Parameters.Length > 0 &&
-                IsPrimaryConstructor(_constructorCandidate.Constructor, cancellationToken);
+                _constructorCandidate.Constructor.IsPrimaryConstructor();
 
             var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
 
@@ -84,24 +84,6 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                     newConstructor, cancellationToken).ConfigureAwait(false);
                 return solution;
             }
-        }
-
-        private bool IsPrimaryConstructor(IMethodSymbol constructor, CancellationToken cancellationToken)
-        {
-            // Check if the constructor syntax is a TypeDeclarationSyntax (primary constructor pattern)
-            if (constructor.DeclaringSyntaxReferences.Length > 0)
-            {
-                var syntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                // Check language-agnostically by getting the syntax kind
-                var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-                
-                // In C#, primary constructors have their declaration on the type declaration itself
-                // TypeDeclarationSyntax, RecordDeclarationSyntax etc
-                // Regular constructors have ConstructorDeclarationSyntax
-                // We can check if it's NOT a constructor declaration
-                return !syntaxFacts.IsConstructorDeclaration(syntax);
-            }
-            return false;
         }
 
         private async Task<Solution> AddParametersAndInitializersToPrimaryConstructorAsync(
