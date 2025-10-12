@@ -134,13 +134,11 @@ internal static partial class IMethodSymbolExtensions
         if (constructor.IsImplicitlyDeclared)
             return false;
 
-        if (constructor.DeclaringSyntaxReferences.Length == 0)
+        if (constructor.DeclaringSyntaxReferences is not [{ SyntaxTree: var constructorSyntaxTree, Span: var constructorSpan }])
             return false;
 
         // Primary constructors have their declaring syntax on the containing type's declaration
-        var constructorSyntax = constructor.DeclaringSyntaxReferences[0].SyntaxTree;
-        var containingType = constructor.ContainingType;
-        
+        var containingType = constructor.ContainingType;        
         if (containingType.DeclaringSyntaxReferences.Length == 0)
             return false;
 
@@ -148,8 +146,7 @@ internal static partial class IMethodSymbolExtensions
         // and are at the same location (same syntax node)
         foreach (var typeRef in containingType.DeclaringSyntaxReferences)
         {
-            if (typeRef.SyntaxTree == constructorSyntax && 
-                typeRef.Span == constructor.DeclaringSyntaxReferences[0].Span)
+            if (typeRef.SyntaxTree == constructorSyntaxTree && typeRef.Span == constructorSpan)
             {
                 return true;
             }
