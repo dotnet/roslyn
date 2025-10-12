@@ -164,7 +164,7 @@ internal ref partial struct Worker
             switch (token.Parent.Kind())
             {
                 case SyntaxKind.XmlText:
-                    if (!_skipXmlTextTokens)
+                    if (_skipXmlTextTokens is true)
                         AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
 
                     break;
@@ -211,9 +211,12 @@ internal ref partial struct Worker
         var isCodeBlock = ClassificationHelpers.IsCodeBlockWithCSharpLang(node);
 
         var oldSkipXmlTextTokens = _skipXmlTextTokens;
-        _skipXmlTextTokens = true;
+        if (_skipXmlTextTokens is null)
+            _skipXmlTextTokens = true;
+
         foreach (var xmlNode in node.Content)
             ClassifyXmlNode(xmlNode);
+
         _skipXmlTextTokens = oldSkipXmlTextTokens;
 
         ClassifyXmlElementEndTag(node.EndTag);

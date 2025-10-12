@@ -21,25 +21,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification;
 /// artifacts T T is normally either ClassificationSpan or a Tuple (for testing purposes) 
 /// and constructed via provided factory.
 /// </summary>
-internal readonly ref partial struct Worker
+internal ref partial struct Worker
 {
     private readonly TextSpan _textSpan;
     private readonly SegmentedList<ClassifiedSpan> _result;
     private readonly CancellationToken _cancellationToken;
 
-    private bool _skipXmlTextTokens;
+    private bool? _skipXmlTextTokens;
 
-    private Worker(TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+    private Worker(TextSpan textSpan, SegmentedList<ClassifiedSpan> result, bool? skipXmlTextTokens, CancellationToken cancellationToken)
     {
         _result = result;
         _textSpan = textSpan;
+        _skipXmlTextTokens = skipXmlTextTokens;
         _cancellationToken = cancellationToken;
     }
 
     internal static void CollectClassifiedSpans(
         IEnumerable<SyntaxToken> tokens, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {
-        var worker = new Worker(textSpan, result, cancellationToken);
+        CollectClassifiedSpans(tokens, textSpan, result, skipXmlTextTokens: null, cancellationToken);
+    }
+
+    internal static void CollectClassifiedSpans(
+        IEnumerable<SyntaxToken> tokens, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, bool? skipXmlTextTokens, CancellationToken cancellationToken)
+    {
+        var worker = new Worker(textSpan, result, skipXmlTextTokens, cancellationToken);
         foreach (var tk in tokens)
             worker.ClassifyToken(tk);
     }
@@ -47,16 +54,20 @@ internal readonly ref partial struct Worker
     internal static void CollectClassifiedSpans(
         SyntaxNode node, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {
-        var worker = new Worker(textSpan, result, cancellationToken);
+        CollectClassifiedSpans(node, textSpan, result, skipXmlTextTokens: null, cancellationToken);
+
+
+    internal static void CollectClassifiedSpans(
+        SyntaxNode node, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, bool? skipXmlTextTokens, CancellationToken cancellationToken)
+    {
+        var worker = new Worker(textSpan, result, skipXmlTextTokens, cancellationToken);
         worker.ClassifyNode(node);
     }
 
     private void AddClassification(TextSpan span, string type)
     {
         if (ShouldAddSpan(span))
-        {
             _result.Add(new ClassifiedSpan(type, span));
-        }
     }
 
     private bool ShouldAddSpan(TextSpan span)
