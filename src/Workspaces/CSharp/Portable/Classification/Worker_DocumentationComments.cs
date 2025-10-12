@@ -57,7 +57,7 @@ internal ref partial struct Worker
                 ClassifyXmlComment((XmlCommentSyntax)node);
                 break;
             case SyntaxKind.XmlCDataSection:
-                ClassifyXmlCDataSection((XmlCDataSectionSyntax)node, classifyText: true);
+                ClassifyXmlCDataSection((XmlCDataSectionSyntax)node);
                 break;
             case SyntaxKind.XmlProcessingInstruction:
                 ClassifyXmlProcessingInstruction((XmlProcessingInstructionSyntax)node);
@@ -152,8 +152,11 @@ internal ref partial struct Worker
         }
     }
 
-    private void ClassifyXmlTextToken(SyntaxToken token)
+    private readonly void ClassifyXmlTextToken(SyntaxToken token)
     {
+        if (_skipXmlTextTokens)
+            return;
+
         if (token.Kind() == SyntaxKind.XmlEntityLiteralToken)
         {
             AddClassification(token, ClassificationTypeNames.XmlDocCommentEntityReference);
@@ -164,9 +167,7 @@ internal ref partial struct Worker
             switch (token.Parent.Kind())
             {
                 case SyntaxKind.XmlText:
-                    if (!_skipXmlTextTokens)
-                        AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
-
+                    AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
                     break;
                 case SyntaxKind.XmlTextAttribute:
                     AddClassification(token, ClassificationTypeNames.XmlDocCommentAttributeValue);
@@ -333,11 +334,10 @@ internal ref partial struct Worker
         AddXmlClassification(node.MinusMinusGreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter);
     }
 
-    private void ClassifyXmlCDataSection(XmlCDataSectionSyntax node, bool classifyText)
+    private void ClassifyXmlCDataSection(XmlCDataSectionSyntax node)
     {
         AddXmlClassification(node.StartCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter);
-        if (classifyText)
-            ClassifyXmlTextTokens(node.TextTokens);
+        ClassifyXmlTextTokens(node.TextTokens);
         AddXmlClassification(node.EndCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter);
     }
 
