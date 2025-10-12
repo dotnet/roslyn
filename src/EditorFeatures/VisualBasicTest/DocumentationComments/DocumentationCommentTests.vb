@@ -1354,8 +1354,7 @@ End Class
 "
             Const expected = "
 ''' <summary>
-''' $$
-''' </summary>
+''' $$</summary>
 Class C
 End Class
 "
