@@ -130,34 +130,19 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             // Wrap the initializer expression in an EqualsValueClause
             var equalsValueClause = generator.SyntaxGeneratorInternal.EqualsValueClause(default, initializerExpression);
 
-            if (member is IPropertySymbol property)
+            foreach (var syntaxRef in member.DeclaringSyntaxReferences)
             {
-                foreach (var syntaxRef in property.DeclaringSyntaxReferences)
-                {
-                    var propertySyntax = syntaxRef.GetSyntax(cancellationToken);
-                    var propertyDocument = solution.GetRequiredDocument(propertySyntax.SyntaxTree);
-                    var propertyEditor = await solutionEditor.GetDocumentEditorAsync(propertyDocument.Id, cancellationToken).ConfigureAwait(false);
+                var memberSyntax = syntaxRef.GetSyntax(cancellationToken);
+                var memberDocument = solution.GetRequiredDocument(memberSyntax.SyntaxTree);
+                var memberEditor = await solutionEditor.GetDocumentEditorAsync(memberDocument.Id, cancellationToken).ConfigureAwait(false);
 
-                    // Add the initializer to the property using SyntaxGeneratorInternal
-                    var newProperty = generator.SyntaxGeneratorInternal.WithPropertyInitializer(propertySyntax, equalsValueClause);
-                    propertyEditor.ReplaceNode(propertySyntax, newProperty);
-                    break;
-                }
-            }
-            else if (member is IFieldSymbol field)
-            {
-                foreach (var syntaxRef in field.DeclaringSyntaxReferences)
-                {
-                    var fieldSyntax = syntaxRef.GetSyntax(cancellationToken);
-                    var fieldDocument = solution.GetRequiredDocument(fieldSyntax.SyntaxTree);
-                    var fieldEditor = await solutionEditor.GetDocumentEditorAsync(fieldDocument.Id, cancellationToken).ConfigureAwait(false);
+                // Add the initializer to the member - use different methods for properties vs fields
+                var newMemberSyntax = member is IPropertySymbol
+                    ? generator.SyntaxGeneratorInternal.WithPropertyInitializer(memberSyntax, equalsValueClause)
+                    : generator.WithInitializer(memberSyntax, equalsValueClause);
 
-                    // Add the initializer to the field - works for both C# and VB via WithInitializer
-                    var newField = generator.WithInitializer(fieldSyntax, equalsValueClause);
-
-                    fieldEditor.ReplaceNode(fieldSyntax, newField);
-                    break;
-                }
+                memberEditor.ReplaceNode(memberSyntax, newMemberSyntax);
+                break;
             }
         }
 
