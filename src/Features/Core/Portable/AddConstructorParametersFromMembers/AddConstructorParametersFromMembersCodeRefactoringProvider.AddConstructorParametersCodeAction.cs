@@ -124,6 +124,12 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             var solution = solutionEditor.OriginalSolution;
             var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
 
+            // Create the initializer expression using the parameter name
+            var initializerExpression = generator.IdentifierName(parameter.Name);
+            
+            // Wrap the initializer expression in an EqualsValueClause
+            var equalsValueClause = generator.SyntaxGeneratorInternal.EqualsValueClause(default, initializerExpression);
+
             if (member is IPropertySymbol property)
             {
                 foreach (var syntaxRef in property.DeclaringSyntaxReferences)
@@ -132,12 +138,6 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                     var propertyDocument = solution.GetRequiredDocument(propertySyntax.SyntaxTree);
                     var propertyEditor = await solutionEditor.GetDocumentEditorAsync(propertyDocument.Id, cancellationToken).ConfigureAwait(false);
 
-                    // Create the initializer expression using the parameter name
-                    var initializerExpression = generator.IdentifierName(parameter.Name);
-                    
-                    // Wrap the initializer expression in an EqualsValueClause
-                    var equalsValueClause = generator.SyntaxGeneratorInternal.EqualsValueClause(default, initializerExpression);
-                    
                     // Add the initializer to the property using SyntaxGeneratorInternal
                     var newProperty = generator.SyntaxGeneratorInternal.WithPropertyInitializer(propertySyntax, equalsValueClause);
                     propertyEditor.ReplaceNode(propertySyntax, newProperty);
@@ -152,12 +152,6 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                     var fieldDocument = solution.GetRequiredDocument(fieldSyntax.SyntaxTree);
                     var fieldEditor = await solutionEditor.GetDocumentEditorAsync(fieldDocument.Id, cancellationToken).ConfigureAwait(false);
 
-                    // Create the initializer expression using the parameter name
-                    var initializerExpression = generator.IdentifierName(parameter.Name);
-                    
-                    // Wrap the initializer expression in an EqualsValueClause for fields
-                    var equalsValueClause = generator.SyntaxGeneratorInternal.EqualsValueClause(default, initializerExpression);
-                    
                     // Add the initializer to the field - works for both C# and VB via WithInitializer
                     var newField = generator.WithInitializer(fieldSyntax, equalsValueClause);
 
