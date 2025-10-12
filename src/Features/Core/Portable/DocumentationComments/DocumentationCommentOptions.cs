@@ -14,6 +14,7 @@ internal readonly record struct DocumentationCommentOptions
 
     [DataMember] public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
     [DataMember] public bool AutoXmlDocCommentGeneration { get; init; } = true;
+    [DataMember] public bool CollapsedXmlDocCommentGeneration { get; init; } = false;
 
     public DocumentationCommentOptions()
     {

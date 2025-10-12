@@ -13,4 +13,10 @@ public partial class AutomationObject
         get { return GetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration); }
         set { SetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, value); }
     }
+
+    public int AutoCommentSingleLine
+    {
+        get { return GetBooleanOption(DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration); }
+        set { SetBooleanOption(DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, value); }
+    }
 }
