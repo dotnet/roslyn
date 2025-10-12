@@ -8,6 +8,7 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -88,31 +89,9 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         // components. Note: markdown components may be in between individual language components.  For example
         // `ret$$urn`.  This will break the `return` classification into two individual classifications around the
         // `$$` classification.
-        var testFileClassifiedSpans = GetTestFileClassifiedSpans(context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
+        var testFileClassifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
         foreach (var testClassifiedSpan in testFileClassifiedSpans)
             AddClassifications(context, virtualCharsWithoutMarkup, testClassifiedSpan);
-    }
-
-    private static IEnumerable<ClassifiedSpan> GetTestFileClassifiedSpans(
-        Host.SolutionServices solutionServices, SemanticModel semanticModel,
-        ImmutableSegmentedList<VirtualChar> virtualCharsWithoutMarkup, CancellationToken cancellationToken)
-    {
-        var compilation = semanticModel.Compilation;
-        var encoding = semanticModel.SyntaxTree.Encoding;
-        var testFileSourceText = new VirtualCharSequenceSourceText(virtualCharsWithoutMarkup, encoding);
-
-        var testFileTree = SyntaxFactory.ParseSyntaxTree(testFileSourceText, semanticModel.SyntaxTree.Options, cancellationToken: cancellationToken);
-        var compilationWithTestFile = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(testFileTree);
-        var semanticModeWithTestFile = compilationWithTestFile.GetSemanticModel(testFileTree);
-
-        var testFileClassifiedSpans = Classifier.GetClassifiedSpans(
-            solutionServices,
-            project: null,
-            semanticModeWithTestFile,
-            new TextSpan(0, virtualCharsWithoutMarkup.Count),
-            ClassificationOptions.Default,
-            cancellationToken);
-        return testFileClassifiedSpans;
     }
 
     private static void AddClassifications(

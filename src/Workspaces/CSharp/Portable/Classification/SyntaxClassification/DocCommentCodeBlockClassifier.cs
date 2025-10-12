@@ -26,10 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 /// </summary>
 internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
 {
-    public override ImmutableArray<Type> SyntaxNodeTypes { get; } =
-    [
-        typeof(XmlElementSyntax)
-    ];
+    public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(XmlElementSyntax)];
 
     public override void AddClassifications(
         SyntaxNode syntax,
@@ -42,16 +39,12 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         if (syntax is not XmlElementSyntax xmlElement)
             return;
 
-        // Check if this is a C# code block
-        if (!ClassificationHelpers.IsCodeBlockWithCSharpLang(xmlElement))
+        // Try to classify as C# code. If it fails for any reason, fall back to regular syntactic classification
+        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, options, result, cancellationToken))
             return;
 
-        // Try to classify as C# code. If it fails for any reason, fall back to regular syntactic classification
-        if (!TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, options, result, cancellationToken))
-        {
-            // Fall back to syntactic classification of the element content
-            ClassifyElementContentSyntactically(xmlElement, textSpan, result, cancellationToken);
-        }
+        // Fall back to syntactic classification of the element content
+        Worker.CollectClassifiedSpans(xmlElement, textSpan, result, cancellationToken);
     }
 
     private static bool TryClassifyCodeBlock(
@@ -62,12 +55,18 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
     {
+        // Check if this is a C# code block
+        if (!ClassificationHelpers.IsCodeBlockWithCSharpLang(xmlElement))
+            return false;
+
         // Extract the code content from the XML element
         if (!TryExtractCodeContent(xmlElement, semanticModel.SyntaxTree, out var virtualChars, out var contentSpan))
             return false;
 
         // Create a source text from the virtual chars
         var sourceText = new VirtualCharSequenceSourceText(virtualChars, semanticModel.SyntaxTree.Encoding);
+
+        CSharpTestEmbeddedLanguageUtilities
 
         // Parse the C# code
         var testFileTree = SyntaxFactory.ParseSyntaxTree(sourceText, semanticModel.SyntaxTree.Options, cancellationToken: cancellationToken);
@@ -95,29 +94,6 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         }
 
         return true;
-    }
-
-    private static void ClassifyElementContentSyntactically(
-        XmlElementSyntax xmlElement,
-        TextSpan textSpan,
-        SegmentedList<ClassifiedSpan> result,
-        CancellationToken cancellationToken)
-    {
-        // Fall back to basic syntactic classification for the element content
-        // This uses the same logic the syntactic classifier would have used
-        foreach (var content in xmlElement.Content)
-        {
-            if (content is XmlTextSyntax xmlText)
-            {
-                foreach (var token in xmlText.TextTokens)
-                {
-                    if (token.Span.IntersectsWith(textSpan))
-                    {
-                        result.Add(new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentText, token.Span));
-                    }
-                }
-            }
-        }
     }
 
     private static bool TryExtractCodeContent(
