@@ -164,7 +164,7 @@ internal ref partial struct Worker
             switch (token.Parent.Kind())
             {
                 case SyntaxKind.XmlText:
-                    if (_skipXmlTextTokens is true)
+                    if (!_skipXmlTextTokens)
                         AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
 
                     break;
@@ -208,11 +208,10 @@ internal ref partial struct Worker
         ClassifyXmlElementStartTag(node.StartTag);
 
         // For C# code blocks, still recurse into content but only classify the /// trivia
-        var isCodeBlock = ClassificationHelpers.IsCodeBlockWithCSharpLang(node);
+        var isCSharpCodeBlock = ClassificationHelpers.IsCodeBlockWithCSharpLang(node);
 
         var oldSkipXmlTextTokens = _skipXmlTextTokens;
-        if (_skipXmlTextTokens is null)
-            _skipXmlTextTokens = true;
+        _skipXmlTextTokens = isCSharpCodeBlock;
 
         foreach (var xmlNode in node.Content)
             ClassifyXmlNode(xmlNode);
