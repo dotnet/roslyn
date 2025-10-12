@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Xml;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -67,28 +69,26 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         TArgs arg,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
-        stack.Push(xmlElement);
+        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
+        for (var i = xmlElement.Content.Count - 1; i >= 0; i--)
+            stack.Push(xmlElement.Content[i]);
 
-        while (stack.TryPop(out var currentNode))
+        while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            foreach (var child in currentNode.ChildNodesAndTokens())
+            if (current.AsNode(out var currentNode))
             {
-                if (child.AsNode(out var childNode))
-                {
-                    if (childNode.Span.OverlapsWith(textSpan))
-                        stack.Push(childNode);
-                }
-                else if (child.Kind() == SyntaxKind.XmlText)
+                foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
                 {
                     if (child.Span.OverlapsWith(textSpan))
-                    {
-                        if (!processToken(arg, child.AsToken()))
-                            return false;
-                    }
+                        stack.Push(child);
                 }
+            }
+            else if (current.Kind() is SyntaxKind.XmlEntityLiteralToken or SyntaxKind.XmlTextLiteralToken)
+            {
+                if (!processToken(arg, current.AsToken()))
+                    return false;
             }
         }
 
@@ -99,7 +99,6 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         XmlElementSyntax xmlElement,
         TextSpan textSpan,
         SemanticModel semanticModel,
-        // ClassificationOptions options,
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
     {
@@ -138,7 +137,24 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
             textSpan,
             static (virtualCharsBuilder, token) =>
             {
-                return true;
+                if (token.Kind() == SyntaxKind.XmlEntityLiteralToken)
+                {
+                    // We only know how to deal with single character entities like: &lt;  &gt;  &amp;  &apos;  &quot;
+                    if (token.ValueText.Length != 1)
+                        return false;
+
+                    // Make a virtual char from that single char (but spanning the whole entity).
+                    virtualCharsBuilder.Add(new(new(token.ValueText[0], offset: 0, token.Text.Length), token.SpanStart));
+                    return true;
+                }
+                else
+                {
+                    // All other xml text token characters are treated like a normal C# character.
+                    for (var i = 0; i < token.Text.Length; i++)
+                        virtualCharsBuilder.Add(new(new(token.Text[i], offset: i, width: 1), token.SpanStart));
+
+                    return true;
+                }
             },
             virtualCharsBuilder,
             cancellationToken);
