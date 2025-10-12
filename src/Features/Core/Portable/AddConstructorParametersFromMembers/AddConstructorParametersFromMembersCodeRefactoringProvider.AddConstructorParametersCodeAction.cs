@@ -79,9 +79,8 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                 // For primary constructors, we need to:
                 // 1. Update the primary constructor with new parameters
                 // 2. Add initializers to the properties/fields
-                var solution = await AddParametersAndInitializersToPrimaryConstructorAsync(
+                return await AddParametersAndInitializersToPrimaryConstructorAsync(
                     newConstructor, cancellationToken).ConfigureAwait(false);
-                return solution;
             }
         }
 
