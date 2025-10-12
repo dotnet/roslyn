@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -203,12 +204,37 @@ internal ref partial struct Worker
     {
         ClassifyXmlElementStartTag(node.StartTag);
 
-        foreach (var xmlNode in node.Content)
+        // Skip classifying content for <code lang="C#"> or <code lang="C#-test"> blocks
+        // The semantic classifier (DocCommentCodeBlockClassifier) will handle those
+        if (!IsCodeBlockWithCSharpLang(node))
         {
-            ClassifyXmlNode(xmlNode);
+            foreach (var xmlNode in node.Content)
+            {
+                ClassifyXmlNode(xmlNode);
+            }
         }
 
         ClassifyXmlElementEndTag(node.EndTag);
+    }
+
+    private static bool IsCodeBlockWithCSharpLang(XmlElementSyntax node)
+    {
+        // Check if this is a <code> element
+        if (node.StartTag.Name.LocalName.Text != DocumentationCommentXmlNames.CodeElementName)
+            return false;
+
+        // Check if it has lang="C#" or lang="C#-test" attribute
+        foreach (var attribute in node.StartTag.Attributes)
+        {
+            if (attribute is XmlTextAttributeSyntax textAttribute &&
+                attribute.Name.LocalName.Text == "lang")
+            {
+                var langValue = string.Join("", textAttribute.TextTokens.Select(t => t.Text));
+                return langValue is "C#" or "C#-test";
+            }
+        }
+
+        return false;
     }
 
     private void ClassifyXmlElementStartTag(XmlElementStartTagSyntax node)

@@ -28,6 +28,7 @@ internal sealed class CSharpSyntaxClassificationService() : AbstractSyntaxClassi
         new UsingDirectiveSyntaxClassifier(),
         new DiscardSyntaxClassifier(),
         new FunctionPointerUnmanagedCallingConventionClassifier(),
+        new DocCommentCodeBlockClassifier(),
     ];
 
     public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
