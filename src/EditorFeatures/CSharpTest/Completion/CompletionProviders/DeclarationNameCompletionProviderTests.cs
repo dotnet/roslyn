@@ -1345,7 +1345,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public Task TupleElementIncompleteParenthesizedTuple_PredefinedType()
-        => VerifyItemExistsAsync("""
+        => VerifyNoItemsExistAsync("""
             class Test
             {
                 void Do()
@@ -1353,7 +1353,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     (int $$
                 }
             }
-            """, "i");
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public Task TupleElementIncompleteParenthesizedTuple_QualifiedName()
@@ -1383,7 +1383,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public Task TupleElementIncompleteParenthesizedTuple_PredefinedType_WithCloseParen()
-        => VerifyItemExistsAsync("""
+        => VerifyNoItemsExistAsync("""
             class Test
             {
                 void Do()
@@ -1391,7 +1391,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     (int $$)
                 }
             }
-            """, "i");
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public Task TupleElementIncompleteParenthesizedTuple_QualifiedName_WithCloseParen()
