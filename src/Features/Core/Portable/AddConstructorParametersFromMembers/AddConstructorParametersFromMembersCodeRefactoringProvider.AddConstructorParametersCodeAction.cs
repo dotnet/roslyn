@@ -25,14 +25,14 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
     private sealed class AddConstructorParametersCodeAction(
         Document document,
         CodeGenerationContextInfo info,
-        ConstructorCandidate constructorCandidate,
+        IMethodSymbol constructor,
         ISymbol containingType,
         ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrPropert)> missingParameters,
         bool useSubMenuName) : CodeAction
     {
         private readonly Document _document = document;
         private readonly CodeGenerationContextInfo _info = info;
-        private readonly ConstructorCandidate _constructorCandidate = constructorCandidate;
+        private readonly IMethodSymbol _constructor = constructor;
         private readonly ISymbol _containingType = containingType;
         private readonly ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrPropert)> _missingParameters = missingParameters;
 
@@ -49,10 +49,10 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             var services = _document.Project.Solution.Services;
             var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
             var constructor = declarationService.GetDeclarations(
-                _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
+                _constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
             // Check if this is a primary constructor
-            var isPrimaryConstructor = _constructorCandidate.Constructor.IsPrimaryConstructor();
+            var isPrimaryConstructor = _constructor.IsPrimaryConstructor();
 
             var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
 
