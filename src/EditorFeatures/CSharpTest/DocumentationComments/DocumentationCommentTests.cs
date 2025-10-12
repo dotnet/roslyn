@@ -2210,8 +2210,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             """, """
             /// <summary>
-            /// $$
-            /// </summary>
+            /// $$</summary>
             class C
             {
             }
