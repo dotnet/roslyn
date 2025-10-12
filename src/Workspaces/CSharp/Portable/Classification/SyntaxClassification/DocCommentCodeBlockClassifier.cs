@@ -81,14 +81,18 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
             {
                 foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
                 {
-                    if (child.Span.OverlapsWith(textSpan))
+                    if (child.FullSpan.OverlapsWith(textSpan))
                         stack.Push(child);
                 }
             }
-            else if (current.Kind() is SyntaxKind.XmlEntityLiteralToken or SyntaxKind.XmlTextLiteralToken)
+            else if (current.Kind() is SyntaxKind.XmlEntityLiteralToken or SyntaxKind.XmlTextLiteralToken or SyntaxKind.XmlTextLiteralNewLineToken)
             {
                 if (!processToken(arg, current.AsToken()))
                     return false;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -151,11 +155,7 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
                 {
                     // All other xml text token characters are treated like a normal C# character.
                     for (var i = 0; i < token.Text.Length; i++)
-                    {
-                        var ch = token.Text[i];
-                        if (ch != ' ')
-                            virtualCharsBuilder.Add(new(new(ch, offset: i, width: 1), token.SpanStart));
-                    }
+                        virtualCharsBuilder.Add(new(new(token.Text[i], offset: i, width: 1), token.SpanStart));
 
                     return true;
                 }
