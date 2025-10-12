@@ -53,7 +53,7 @@ internal sealed class CSharpReassignedVariableService : AbstractReassignedVariab
                     return true;
 
                 // For foreach (var (x, y) in ...) or similar
-                if (current is ForEachStatementSyntax or ForEachVariableStatementSyntax)
+                if (current is ForEachVariableStatementSyntax)
                     return true;
 
                 // Don't search beyond statement boundaries
