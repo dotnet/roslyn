@@ -868,6 +868,10 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                     return AsInterfaceMember(
                         PropertyDeclaration(GetName(f), ClearTrivia(f.Declaration.Type), acc, modifiers, getAccessorStatements: null, setAccessorStatements: null));
 
+                // delegate declarations are valid in interfaces without modification
+                case SyntaxKind.DelegateDeclaration:
+                    return member;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind());
             }
