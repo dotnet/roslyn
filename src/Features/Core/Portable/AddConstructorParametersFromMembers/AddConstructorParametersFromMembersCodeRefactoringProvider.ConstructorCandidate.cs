@@ -8,10 +8,10 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 
 internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider
 {
-    private readonly struct ConstructorCandidate(IMethodSymbol constructor, ImmutableArray<ISymbol> missingMembers, ImmutableArray<IParameterSymbol> missingParameters)
+    private readonly struct ConstructorCandidate(
+        IMethodSymbol constructor, ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrProperty)> missingMembers)
     {
         public readonly IMethodSymbol Constructor = constructor;
-        public readonly ImmutableArray<ISymbol> MissingMembers = missingMembers;
-        public readonly ImmutableArray<IParameterSymbol> MissingParameters = missingParameters;
+        public readonly ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrProperty)> MissingParametersAndMembers = missingMembers;
     }
 }
