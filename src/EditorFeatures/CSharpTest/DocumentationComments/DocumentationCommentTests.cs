@@ -2059,7 +2059,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
     {
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
-            { DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, true }
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
         };
 
         VerifyTypingCharacter("""
@@ -2080,7 +2080,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
     {
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
-            { DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, true }
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
         };
 
         VerifyTypingCharacter("""
@@ -2103,7 +2103,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
     {
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
-            { DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, true }
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
         };
 
         VerifyTypingCharacter("""
@@ -2128,7 +2128,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
     {
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
-            { DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, true }
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
         };
 
         VerifyTypingCharacter("""

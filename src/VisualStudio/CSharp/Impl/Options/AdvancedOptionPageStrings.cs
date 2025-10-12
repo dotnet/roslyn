@@ -187,7 +187,7 @@ internal static class AdvancedOptionPageStrings
         => CSharpVSResources.Generate_XML_documentation_comments_for;
 
     public static string Option_GenerateXmlDocCommentsOnSingleLine
-        => CSharpVSResources.Generate_XML_documentation_comments_on_single_line;
+        => ServicesVSResources.Generate_summary_on_single_line;
 
     public static string Option_InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments
         => CSharpVSResources.Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments;

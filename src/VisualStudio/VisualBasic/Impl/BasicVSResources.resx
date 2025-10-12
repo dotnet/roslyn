@@ -136,9 +136,6 @@
     <value>_Generate XML documentation comments for '''</value>
     <comment>{Locked="'''"} "'''" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="Generate_XML_documentation_comments_on_single_line" xml:space="preserve">
-    <value>Generate &lt;summary&gt; on single _line</value>
-  </data>
   <data name="Navigate_to_Object_Browser_for_symbols_defined_in_metadata" xml:space="preserve">
     <value>_Navigate to Object Browser for symbols defined in metadata</value>
   </data>

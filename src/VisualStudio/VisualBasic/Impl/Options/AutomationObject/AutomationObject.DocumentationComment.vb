@@ -17,10 +17,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property AutoCommentSingleLine As Boolean
             Get
-                Return GetBooleanOption(DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration)
+                Return GetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, value)
+                SetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, value)
             End Set
         End Property
     End Class

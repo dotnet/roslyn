@@ -88,14 +88,15 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
     protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText, DocumentationCommentOptions options)
     {
         // When collapsed mode is enabled, generate single-line summary tags
-        var useSingleLine = options.CollapsedXmlDocCommentGeneration;
+        var useSingleLine = options.GenerateSummaryTagOnSingleLine;
 
         var list = new List<string>();
 
         if (useSingleLine)
         {
             // Single-line: /// <summary></summary>
-            list.Add("/// <summary>" + (existingCommentText.StartsWith(" ") ? existingCommentText : string.IsNullOrEmpty(existingCommentText) ? "" : $" {existingCommentText}") + "</summary>");
+            var trimmedText = existingCommentText.Trim();
+            list.Add($"/// <summary>{trimmedText}</summary>");
         }
         else
         {
