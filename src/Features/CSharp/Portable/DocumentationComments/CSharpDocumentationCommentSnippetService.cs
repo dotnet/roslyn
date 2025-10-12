@@ -96,8 +96,7 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
         if (useSingleLine)
         {
             // Single-line: /// <summary></summary>
-            var trimmedText = existingCommentText.Trim();
-            list.Add($"/// <summary>{trimmedText}</summary>");
+            list.Add($"/// <summary>{existingCommentText.Trim()}</summary>");
         }
         else
         {
