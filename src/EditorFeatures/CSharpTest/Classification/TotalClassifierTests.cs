@@ -3203,7 +3203,7 @@ Punctuation.CloseCurly);
             /// Test method
             /// </summary>
             [|/// <code lang="C#">
-            /// using System.Collection.Generic;
+            /// using System.Collections.Generic;
             /// IList&lt;int&gt; x = 5;
             /// </code>|]
             class Program
