@@ -2054,7 +2054,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             """);
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
     public void TypingCharacter_Class_Collapsed()
     {
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -2075,7 +2075,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             """, globalOptions: globalOptions);
     }
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
     public void TypingCharacter_Method_Collapsed()
     {
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -2098,7 +2098,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             """, globalOptions: globalOptions);
     }
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
     public void TypingCharacter_MethodWithParameters_Collapsed()
     {
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -2123,7 +2123,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             """, globalOptions: globalOptions);
     }
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
     public void TypingCharacter_Property_Collapsed()
     {
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
