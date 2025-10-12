@@ -147,9 +147,7 @@ internal static partial class IMethodSymbolExtensions
         foreach (var typeRef in containingType.DeclaringSyntaxReferences)
         {
             if (typeRef.SyntaxTree == constructorSyntaxTree && typeRef.Span == constructorSpan)
-            {
                 return true;
-            }
         }
 
         return false;
