@@ -1343,6 +1343,30 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """, "people");
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_PredefinedType()
+        => VerifyItemExistsAsync("""
+            class Test
+            {
+                void Do()
+                {
+                    (int $$
+                }
+            }
+            """, "i");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_QualifiedName()
+        => VerifyItemExistsAsync("""
+            class Test
+            {
+                void Do()
+                {
+                    (System.Action $$
+                }
+            }
+            """, "action");
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
     public Task Pluralize1()
         => VerifyItemExistsAsync("""
