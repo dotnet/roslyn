@@ -30,7 +30,7 @@ using static GenerateFromMembersHelpers;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider()
-        : CodeRefactoringProvider, IIntentProvider
+    : CodeRefactoringProvider, IIntentProvider
 {
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -127,7 +127,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                     useSubMenuName: useSubMenu));
             }
 
-            optionalParametersActions.Add(GetOptionalContructorParametersCodeAction(
+            optionalParametersActions.Add(GetOptionalConstructorParametersCodeAction(
                 document,
                 info,
                 constructorCandidate,
@@ -141,7 +141,8 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         static bool CanHaveRequiredParameters(ImmutableArray<IParameterSymbol> parameters)
                => parameters.Length == 0 || !parameters.Last().IsOptional;
 
-        static AddConstructorParametersCodeAction GetOptionalContructorParametersCodeAction(Document document, CodeGenerationContextInfo info, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
+        static AddConstructorParametersCodeAction GetOptionalConstructorParametersCodeAction(
+            Document document, CodeGenerationContextInfo info, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
         {
             var missingOptionalParameters = constructorCandidate.MissingParameters.SelectAsArray(
                 p => CodeGenerationSymbolFactory.CreateParameterSymbol(
