@@ -4,16 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
-using System.Xml;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -26,8 +24,10 @@ using static VirtualCharUtilities;
 /// Classifier that provides syntax highlighting for C# code within &lt;code&gt; blocks in documentation comments.
 /// This classifier works on the semantic level to properly classify C# code within doc comments.
 /// </summary>
-internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
+internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionServices) : AbstractSyntaxClassifier
 {
+    private readonly SolutionServices _solutionServices = solutionServices;
+
     public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(XmlElementSyntax)];
 
     public override void AddClassifications(
@@ -95,7 +95,7 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         return true;
     }
 
-    private static bool TryClassifyCodeBlock(
+    private bool TryClassifyCodeBlock(
         XmlElementSyntax xmlElement,
         TextSpan textSpan,
         SemanticModel semanticModel,
@@ -118,7 +118,7 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
             result.Add(new(ClassificationTypeNames.TestCodeMarkdown, span));
 
         var classifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
-            solutionServices: null, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
+            _solutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
 
         CSharpTestEmbeddedLanguageUtilities.AddClassifications(
             virtualCharsWithoutMarkup,
