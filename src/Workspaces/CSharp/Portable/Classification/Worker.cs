@@ -27,6 +27,8 @@ internal readonly ref partial struct Worker
     private readonly SegmentedList<ClassifiedSpan> _result;
     private readonly CancellationToken _cancellationToken;
 
+    private bool _skipXmlTextTokens;
+
     private Worker(TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {
         _result = result;
