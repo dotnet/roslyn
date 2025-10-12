@@ -14,5 +14,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 SetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, value)
             End Set
         End Property
+
+        Public Property AutoCommentSingleLine As Boolean
+            Get
+                Return GetBooleanOption(DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, value)
+            End Set
+        End Property
     End Class
 End Namespace

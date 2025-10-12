@@ -316,6 +316,9 @@
   <data name="Generate_XML_documentation_comments_for" xml:space="preserve">
     <value>_Generate XML documentation comments for ///</value>
   </data>
+  <data name="Generate_XML_documentation_comments_on_single_line" xml:space="preserve">
+    <value>Generate &lt;summary&gt; on single _line</value>
+  </data>
   <data name="Insert_at_the_start_of_new_lines_when_writing_comments" xml:space="preserve">
     <value>_Insert * at the start of new lines when writing /* */ comments</value>
   </data>

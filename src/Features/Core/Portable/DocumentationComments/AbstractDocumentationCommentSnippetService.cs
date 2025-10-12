@@ -22,7 +22,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
     protected abstract bool SupportsDocumentationComments(TMemberNode member);
     protected abstract bool HasDocumentationComment(TMemberNode member);
     protected abstract int GetPrecedingDocumentationCommentCount(TMemberNode member);
-    protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member, string existingCommentText);
+    protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member, string existingCommentText, in DocumentationCommentOptions options);
 
     protected abstract SyntaxToken GetTokenToRight(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
     protected abstract SyntaxToken GetTokenToLeft(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -130,9 +130,21 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
 
         IndentLines(lines, indentText);
 
-        // We always want the caret text to be on the second line, with one space after the doc comment XML
-        // GetDocumentationCommentStubLines ensures that space is always there
-        caretOffset = lines[0].Length + indentText.Length + ExteriorTriviaText.Length + 1;
+        // Calculate caret offset based on whether we're using collapsed (single-line) mode
+        if (options.CollapsedXmlDocCommentGeneration)
+        {
+            // For single-line mode, position caret inside <summary></summary>
+            // The format is: /// <summary></summary>
+            // After shaving off "///" and adding indent, we want the caret between > and <
+            var summaryOpenTagLength = "<summary>".Length;
+            caretOffset = lines[0].Length + indentText.Length + ExteriorTriviaText.Length + summaryOpenTagLength;
+        }
+        else
+        {
+            // Multi-line mode: caret goes on the second line, with one space after the doc comment XML
+            // GetDocumentationCommentStubLines ensures that space is always there
+            caretOffset = lines[0].Length + indentText.Length + ExteriorTriviaText.Length + 1;
+        }
         spanToReplaceLength = existingCommentText!.Length;
 
         return lines;
@@ -147,9 +159,19 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             return lines;
         }
 
-        // We always want the caret text to be on the second line, with one space after the doc comment XML
-        // GetDocumentationCommentStubLines ensures that space is always there
-        caretOffset = lines[0].Length + ExteriorTriviaText.Length + 1;
+        // Calculate caret offset based on whether we're using collapsed (single-line) mode
+        if (options.CollapsedXmlDocCommentGeneration)
+        {
+            // For single-line mode, position caret inside <summary></summary>
+            var summaryOpenTagLength = "<summary>".Length;
+            caretOffset = lines[0].Length + ExteriorTriviaText.Length + summaryOpenTagLength;
+        }
+        else
+        {
+            // Multi-line mode: caret goes on the second line, with one space after the doc comment XML
+            // GetDocumentationCommentStubLines ensures that space is always there
+            caretOffset = lines[0].Length + ExteriorTriviaText.Length + 1;
+        }
         spanToReplaceLength = existingCommentText!.Length;
 
         return lines;
@@ -182,8 +204,8 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             return null;
         }
 
-        var lines = GetDocumentationCommentStubLines(targetMember, existingCommentText);
-        Debug.Assert(lines.Count > 2);
+        var lines = GetDocumentationCommentStubLines(targetMember, existingCommentText, options);
+        Debug.Assert(lines.Count >= 1);
 
         AddLineBreaks(lines, options.NewLine);
 
@@ -340,8 +362,8 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         var line = text.Lines.GetLineFromPosition(startPosition);
         Debug.Assert(!line.IsEmptyOrWhitespace());
 
-        var lines = GetDocumentationCommentStubLines(targetMember, string.Empty);
-        Debug.Assert(lines.Count > 2);
+        var lines = GetDocumentationCommentStubLines(targetMember, string.Empty, options);
+        Debug.Assert(lines.Count >= 1);
 
         var newLine = options.NewLine;
         AddLineBreaks(lines, newLine);

@@ -85,14 +85,25 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
         return count;
     }
 
-    protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText)
+    protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText, in DocumentationCommentOptions options)
     {
-        var list = new List<string>
+        // When collapsed mode is enabled, generate single-line summary tags
+        var useSingleLine = options.CollapsedXmlDocCommentGeneration;
+
+        var list = new List<string>();
+
+        if (useSingleLine)
         {
-            "/// <summary>",
-            "///" + (existingCommentText.StartsWith(" ") ? existingCommentText : $" {existingCommentText}"),
-            "/// </summary>"
-        };
+            // Single-line: /// <summary></summary>
+            list.Add("/// <summary>" + (existingCommentText.StartsWith(" ") ? existingCommentText : string.IsNullOrEmpty(existingCommentText) ? "" : $" {existingCommentText}") + "</summary>");
+        }
+        else
+        {
+            // Multi-line (original behavior)
+            list.Add("/// <summary>");
+            list.Add("///" + (existingCommentText.StartsWith(" ") ? existingCommentText : $" {existingCommentText}"));
+            list.Add("/// </summary>");
+        }
 
         var typeParameterList = member.GetTypeParameterList();
         if (typeParameterList != null)

@@ -15,9 +15,13 @@ internal static class DocumentationCommentOptionsStorage
       {
           LineFormatting = lineFormatting,
           AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, language),
+          CollapsedXmlDocCommentGeneration = globalOptions.GetOption(CollapsedXmlDocCommentGeneration, language),
       };
 
     public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(
         "dotnet_auto_xml_doc_comment_generation", DocumentationCommentOptions.Default.AutoXmlDocCommentGeneration);
+
+    public static readonly PerLanguageOption2<bool> CollapsedXmlDocCommentGeneration = new(
+        "dotnet_collapsed_xml_doc_comment_generation", DocumentationCommentOptions.Default.CollapsedXmlDocCommentGeneration);
 
 }

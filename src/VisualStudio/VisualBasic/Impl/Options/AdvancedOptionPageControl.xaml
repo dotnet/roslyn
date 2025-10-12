@@ -172,6 +172,9 @@
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
+                    <CheckBox x:Name="GenerateXmlDocCommentsOnSingleLine"
+                                  Margin="15,0,0,0"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsOnSingleLine}" />
                     <CheckBox x:Name="InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments}" />
                 </StackPanel>

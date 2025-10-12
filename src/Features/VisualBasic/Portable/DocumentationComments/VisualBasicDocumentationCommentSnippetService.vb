@@ -109,12 +109,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Return count
         End Function
 
-        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax, existingCommentText As String) As List(Of String)
-            Dim list = New List(Of String) From {
-                "''' <summary>",
-                "'''" & If(existingCommentText.StartsWith(" "), existingCommentText, " " + existingCommentText),
-                "''' </summary>"
-            }
+        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax, existingCommentText As String, ByRef options As DocumentationCommentOptions) As List(Of String)
+            ' When collapsed mode is enabled, generate single-line summary tags
+            Dim useSingleLine = options.CollapsedXmlDocCommentGeneration
+
+            Dim list As New List(Of String)
+
+            If useSingleLine Then
+                ' Single-line: ''' <summary></summary>
+                list.Add("''' <summary>" & If(existingCommentText.StartsWith(" "), existingCommentText, If(String.IsNullOrEmpty(existingCommentText), "", " " & existingCommentText)) & "</summary>")
+            Else
+                ' Multi-line (original behavior)
+                list.Add("''' <summary>")
+                list.Add("'''" & If(existingCommentText.StartsWith(" "), existingCommentText, " " + existingCommentText))
+                list.Add("''' </summary>")
+            End If
 
             Dim typeParameterList = member.GetTypeParameterList()
             If typeParameterList IsNot Nothing Then
