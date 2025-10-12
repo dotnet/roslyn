@@ -42,8 +42,10 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, options, result, cancellationToken))
             return;
 
-        // Fall back to syntactic classification of the element content
-        Worker.CollectClassifiedSpans(xmlElement, textSpan, result, cancellationToken);
+        // Fall back to syntactic classification of the element content.  Pass in skipXmlTextTokens to ensure it
+        // actually classifies the text within the XML element as it will not do that by default (since it is normally
+        // deffering to us to do it.
+        Worker.CollectClassifiedSpans(xmlElement, textSpan, result, skipXmlTextTokens: false, cancellationToken);
     }
 
     private static bool TryClassifyCodeBlock(
