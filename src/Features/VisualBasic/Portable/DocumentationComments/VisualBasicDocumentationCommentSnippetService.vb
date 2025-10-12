@@ -112,6 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
         Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax, existingCommentText As String, options As DocumentationCommentOptions) As List(Of String)
             ' When collapsed mode is enabled, generate single-line summary tags
             Dim useSingleLine = options.GenerateSummaryTagOnSingleLine
+            Dim onlySummary = options.GenerateOnlySummaryTag
 
             Dim list As New List(Of String)
 
@@ -124,6 +125,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
                 list.Add("''' <summary>")
                 list.Add("'''" & If(existingCommentText.StartsWith(" "), existingCommentText, " " + existingCommentText))
                 list.Add("''' </summary>")
+            End If
+
+            ' If onlySummary is true, skip generating other tags
+            If onlySummary Then
+                Return list
             End If
 
             Dim typeParameterList = member.GetTypeParameterList()
