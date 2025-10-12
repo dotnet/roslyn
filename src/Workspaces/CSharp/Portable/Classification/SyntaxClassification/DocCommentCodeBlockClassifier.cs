@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Xml;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
@@ -42,36 +43,63 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
             return;
 
         // Try to classify as C# code. If it fails for any reason, fall back to regular syntactic classification
-        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, options, result, cancellationToken))
+        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, /*options,*/ result, cancellationToken))
             return;
 
         // Normal syntactic classifier will have classified everything but the xml text tokens.  Recurse ourselves to
         // take case of that.
+        ProcessTextTokens(
+            xmlElement,
+            textSpan,
+            static (result, token) =>
+            {
+                result.Add(new(token.Span, ClassificationTypeNames.XmlDocCommentText));
+                return true;
+            },
+            result,
+            cancellationToken);
+    }
+
+    private static bool ProcessTextTokens<TArgs>(
+        XmlElementSyntax xmlElement,
+        TextSpan textSpan,
+        Func<TArgs, SyntaxToken, bool> processToken,
+        TArgs arg,
+        CancellationToken cancellationToken)
+    {
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
         stack.Push(xmlElement);
 
         while (stack.TryPop(out var currentNode))
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             foreach (var child in currentNode.ChildNodesAndTokens())
             {
                 if (child.AsNode(out var childNode))
                 {
-                    stack.Push(childNode);
+                    if (childNode.Span.OverlapsWith(textSpan))
+                        stack.Push(childNode);
                 }
                 else if (child.Kind() == SyntaxKind.XmlText)
                 {
                     if (child.Span.OverlapsWith(textSpan))
-                        result.Add(new(child.Span, ClassificationTypeNames.XmlDocCommentText));
+                    {
+                        if (!processToken(arg, child.AsToken()))
+                            return false;
+                    }
                 }
             }
         }
+
+        return true;
     }
 
     private static bool TryClassifyCodeBlock(
         XmlElementSyntax xmlElement,
         TextSpan textSpan,
         SemanticModel semanticModel,
-        ClassificationOptions options,
+        // ClassificationOptions options,
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
     {
@@ -80,6 +108,7 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         // Extract the code content from the XML element
         using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var virtualCharsBuilder);
 
+        ExtractTextTokenVirtualChars(xmlElement, textSpan, virtualCharsBuilder, cancellationToken);
         if (virtualCharsBuilder.Count == 0)
             return false;
 
@@ -101,55 +130,17 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         return true;
     }
 
-    private static bool TryExtractCodeContent(
-        XmlElementSyntax xmlElement,
-        SyntaxTree syntaxTree,
-        out ImmutableSegmentedList<VirtualChar> virtualChars,
-        out TextSpan contentSpan)
+    private static bool ExtractTextTokenVirtualChars(
+        XmlElementSyntax xmlElement, TextSpan textSpan, ArrayBuilder<VirtualChar> virtualCharsBuilder, CancellationToken cancellationToken)
     {
-        virtualChars = default;
-        contentSpan = default;
-
-        var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
-
-        // Get the text content between the start and end tags
-        foreach (var content in xmlElement.Content)
-        {
-            if (content is not XmlTextSyntax xmlText)
-                continue;
-
-            foreach (var token in xmlText.TextTokens)
+        return ProcessTextTokens(
+            xmlElement,
+            textSpan,
+            static (virtualCharsBuilder, token) =>
             {
-                // Get the token text
-                var tokenText = token.Text;
-                var tokenStart = token.Span.Start;
-
-                // For each line in a doc comment, we need to skip the leading trivia (///)
-                var leadingTrivia = token.LeadingTrivia;
-                var offset = 0;
-                foreach (var trivia in leadingTrivia)
-                {
-                    if (trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
-                    {
-                        // Skip the /// part in our offset calculation
-                        offset += trivia.Span.Length;
-                    }
-                }
-
-                // Add each character as a virtual char with its original span
-                for (int i = 0; i < tokenText.Length; i++)
-                {
-                    var ch = tokenText[i];
-                    builder.Add(new VirtualChar(new VirtualCharGreen(ch, offset + i, 1), tokenStart));
-                }
-            }
-        }
-
-        if (builder.Count == 0)
-            return false;
-
-        virtualChars = builder.ToImmutable();
-        contentSpan = TextSpan.FromBounds(virtualChars[0].Span.Start, virtualChars[^1].Span.End);
-        return true;
+                return true;
+            },
+            virtualCharsBuilder,
+            cancellationToken);
     }
 }
