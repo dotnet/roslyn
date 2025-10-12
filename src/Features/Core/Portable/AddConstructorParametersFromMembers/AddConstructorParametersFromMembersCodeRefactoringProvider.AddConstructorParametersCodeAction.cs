@@ -135,8 +135,11 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                     // Create the initializer expression using the parameter name
                     var initializerExpression = generator.IdentifierName(parameter.Name);
                     
+                    // Wrap the initializer expression in an EqualsValueClause
+                    var equalsValueClause = generator.SyntaxGeneratorInternal.EqualsValueClause(default, initializerExpression);
+                    
                     // Add the initializer to the property using SyntaxGeneratorInternal
-                    var newProperty = generator.SyntaxGeneratorInternal.WithPropertyInitializer(propertySyntax, initializerExpression);
+                    var newProperty = generator.SyntaxGeneratorInternal.WithPropertyInitializer(propertySyntax, equalsValueClause);
                     propertyEditor.ReplaceNode(propertySyntax, newProperty);
                     break;
                 }
@@ -152,8 +155,11 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                     // Create the initializer expression using the parameter name
                     var initializerExpression = generator.IdentifierName(parameter.Name);
                     
+                    // Wrap the initializer expression in an EqualsValueClause for fields
+                    var equalsValueClause = generator.SyntaxGeneratorInternal.EqualsValueClause(default, initializerExpression);
+                    
                     // Add the initializer to the field - works for both C# and VB via WithInitializer
-                    var newField = generator.WithInitializer(fieldSyntax, initializerExpression);
+                    var newField = generator.WithInitializer(fieldSyntax, equalsValueClause);
 
                     fieldEditor.ReplaceNode(fieldSyntax, newField);
                     break;
