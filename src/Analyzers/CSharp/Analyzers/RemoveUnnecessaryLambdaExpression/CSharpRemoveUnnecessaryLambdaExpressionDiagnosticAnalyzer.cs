@@ -280,14 +280,10 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
         // When the types are the same except for nullability annotations, we need to check
         // if they're truly compatible. This prevents suggesting conversions that would introduce
         // nullability warnings, such as converting Task<string> to Task<string?> on an invariant type.
-        if (type1.Equals(type2, SymbolEqualityComparer.Default) &&
-            !type1.Equals(type2, SymbolEqualityComparer.IncludeNullability))
-        {
-            // Types are the same except for nullability. For safety, require exact match.
-            return false;
-        }
-
-        return true;
+        // For types that differ (e.g., string vs object), we allow the conversion as that's proper
+        // covariance/contravariance and won't produce nullability warnings.
+        return !type1.Equals(type2, SymbolEqualityComparer.Default) ||
+               type1.Equals(type2, SymbolEqualityComparer.IncludeNullability);
     }
 
     private static bool MayHaveSideEffects(ExpressionSyntax expression)
