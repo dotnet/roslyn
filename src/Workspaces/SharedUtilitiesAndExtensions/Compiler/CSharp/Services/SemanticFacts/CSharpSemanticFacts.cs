@@ -62,22 +62,23 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
 
         foreach (var ancestor in token.GetAncestors<SyntaxNode>())
         {
-            //// In a conversion declaration, you can have `public static implicit operator X<T>` Being inside the type
-            //// argumentl is a reference location, and not a token that declares 
-            //if (ancestor is TypeArgumentListSyntax)
-            //    return null;
+            // In a conversion declaration, you can have `public static implicit operator X<T>` Being inside the type
+            // argument is a reference location, and not a token we want to think of as declaring the conversion
+            // operator.
+            if (ancestor is TypeArgumentListSyntax)
+                return null;
 
             var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
             if (symbol != null)
             {
-                //if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion })
-                //{
-                //    // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
-                //    // So check if the symbol's location encompasses the span of the token we're asking about.
-                //    if (symbol.Locations.Any(static (loc, location) => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan), location))
-                //        return symbol;
-                //}
-                //else
+                if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion })
+                {
+                    // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
+                    // So check if the symbol's location encompasses the span of the token we're asking about.
+                    if (symbol.Locations.Any(static (loc, location) => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan), location))
+                        return symbol;
+                }
+                else
                 {
                     // For any other symbols, we only care if the name directly matches the span of the token
                     if (symbol.Locations.Contains(location))
