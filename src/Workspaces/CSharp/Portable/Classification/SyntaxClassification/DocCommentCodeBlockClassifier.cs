@@ -111,11 +111,40 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         if (virtualCharsBuilder.Count == 0)
             return false;
 
-        // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
+        // Break the full sequence of virtual chars into the actual C# code and the markup
         var (virtualCharsWithoutMarkup, markdownSpans) = StripMarkupCharacters(virtualCharsBuilder, cancellationToken);
 
+        // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
         foreach (var span in markdownSpans)
             result.Add(new(ClassificationTypeNames.TestCodeMarkdown, span));
+
+        // Next, fill in everything with the "TestCode" classification.  This will ensure it gets the right background
+        // highlighting, making it easier to distinguish for normal C# code. 
+        var skipFirstSpace = true;
+        for (var i = 0; i < virtualCharsBuilder.Count;)
+        {
+            var ch = virtualCharsBuilder[i++];
+
+            if (ch == ' ' && skipFirstSpace)
+            {
+                skipFirstSpace = false;
+                continue;
+            }
+
+            var start = ch.Span.Start;
+            var end = ch.Span.End;
+
+            while (i < virtualCharsBuilder.Count && virtualCharsBuilder[i] is var nextCh && nextCh.Span.Start == end)
+            {
+                i++;
+                end = nextCh.Span.End;
+                skipFirstSpace = true;
+            }
+
+            result.Add(new(
+                ClassificationTypeNames.TestCode,
+                TextSpan.FromBounds(start, end)));
+        }
 
         var classifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
             _solutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
