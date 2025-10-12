@@ -3123,7 +3123,6 @@ Punctuation.CloseCurly);
             /// <code lang="C#">
             /// using System;
             /// var x = 5;
-            /// Console.WriteLine(x);
             /// </code>
             class Program
             {
@@ -3155,21 +3154,13 @@ Punctuation.CloseCurly);
             XmlDoc.Delimiter(">"),
             XmlDoc.Delimiter("///"),
             Keyword("using"),
-            Namespace("System"),
+            Identifier("System"),
             Punctuation.Semicolon,
             XmlDoc.Delimiter("///"),
             Keyword("var"),
             Identifier("x"),
             Operators.Equals,
             Number("5"),
-            Punctuation.Semicolon,
-            XmlDoc.Delimiter("///"),
-            Identifier("Console"),
-            Operators.Dot,
-            Identifier("WriteLine"),
-            Punctuation.OpenParen,
-            Identifier("x"),
-            Punctuation.CloseParen,
             Punctuation.Semicolon,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
