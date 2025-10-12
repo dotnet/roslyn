@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -204,9 +203,12 @@ internal ref partial struct Worker
     {
         ClassifyXmlElementStartTag(node.StartTag);
 
-        // Skip classifying content for <code lang="C#"> or <code lang="C#-test"> blocks
-        // The semantic classifier (DocCommentCodeBlockClassifier) will handle those
-        if (!ClassificationHelpers.IsCodeBlockWithCSharpLang(node))
+        // For C# code blocks, still recurse into content but only classify the /// trivia
+        if (ClassificationHelpers.IsCodeBlockWithCSharpLang(node))
+        {
+            ClassifyCodeBlockContentTrivia(node.Content);
+        }
+        else
         {
             foreach (var xmlNode in node.Content)
             {
@@ -215,6 +217,28 @@ internal ref partial struct Worker
         }
 
         ClassifyXmlElementEndTag(node.EndTag);
+    }
+
+    private void ClassifyCodeBlockContentTrivia(SyntaxList<XmlNodeSyntax> content)
+    {
+        // For code blocks, we only classify the leading /// DocumentationCommentExteriorTrivia
+        // The semantic classifier will handle the actual C# code content
+        foreach (var xmlNode in content)
+        {
+            if (xmlNode is XmlTextSyntax xmlText)
+            {
+                foreach (var token in xmlText.TextTokens)
+                {
+                    foreach (var trivia in token.LeadingTrivia)
+                    {
+                        if (trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
+                        {
+                            AddClassification(trivia.Span, ClassificationTypeNames.XmlDocCommentDelimiter);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void ClassifyXmlElementStartTag(XmlElementStartTagSyntax node)
