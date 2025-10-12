@@ -342,11 +342,10 @@ public class C
 
         var editor = GetEditor(cu);
 
-        // Create a delegate declaration with public modifier (should be removed for interfaces)
+        // Create a delegate declaration
         var delegateDecl = SyntaxFactory.DelegateDeclaration(
             SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
             SyntaxFactory.Identifier("MyDelegate"))
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(SyntaxFactory.ParameterList());
 
         editor.InsertMembers(interfaceDecl, 0, new[] { delegateDecl });
