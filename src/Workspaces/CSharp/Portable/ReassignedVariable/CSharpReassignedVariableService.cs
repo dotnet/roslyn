@@ -31,7 +31,41 @@ internal sealed class CSharpReassignedVariableService : AbstractReassignedVariab
         => variable.Identifier;
 
     protected override bool HasInitializer(SyntaxNode variable)
-        => (variable as VariableDeclaratorSyntax)?.Initializer != null;
+    {
+        // For regular variable declarators like `var x = 0`
+        if (variable is VariableDeclaratorSyntax declarator)
+            return declarator.Initializer != null;
+
+        // For deconstruction like `var (b, c) = (0, 0)`, pattern matching like `is var x`, or `out var x`
+        if (variable is SingleVariableDesignationSyntax designation)
+        {
+            // Walk up the tree to find if this is part of an initialized declaration
+            var current = designation.Parent;
+
+            while (current != null)
+            {
+                // For out var, the variable is always initialized by the call
+                if (current is ArgumentSyntax { RefOrOutKeyword.RawKind: (int)SyntaxKind.OutKeyword })
+                    return true;
+
+                // For deconstruction assignment like (x, y) = ... or var (x, y) = ...
+                if (current is AssignmentExpressionSyntax)
+                    return true;
+
+                // For foreach (var (x, y) in ...) or similar
+                if (current is ForEachStatementSyntax or ForEachVariableStatementSyntax)
+                    return true;
+
+                // Don't search beyond statement boundaries
+                if (current is StatementSyntax)
+                    break;
+
+                current = current.Parent;
+            }
+        }
+
+        return false;
+    }
 
     protected override SyntaxNode GetMemberBlock(SyntaxNode methodOrPropertyDeclaration)
         => methodOrPropertyDeclaration;

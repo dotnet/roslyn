@@ -363,6 +363,30 @@ public sealed class CSharpReassignedVariableTests : AbstractReassignedVariableTe
             """);
 
     [Fact]
+    public Task TestOutVarReassignedInLocalFunction()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    Goo(out var [|v|]);
+                    
+                    LocalFunc();
+                    Console.WriteLine([|v|]);
+                    
+                    void LocalFunc()
+                    {
+                        [|v|] = 1;
+                    }
+                }
+
+                void Goo(out int v) => v = 0;
+            }
+            """);
+
+    [Fact]
     public Task TestOutParameterCausingReassignment()
         => TestAsync(
             """
@@ -763,6 +787,60 @@ public sealed class CSharpReassignedVariableTests : AbstractReassignedVariableTe
                 }
 
                 (int x, int y) Goo() => default;
+            }
+            """);
+
+    [Fact]
+    public Task TestDeconstructionReassignedInLocalFunction()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    var ([|b|], [|c|]) = (0, 0);
+                    
+                    Foo();
+                    Console.WriteLine($"{[|b|]} {[|c|]}");
+                    
+                    void Foo()
+                    {
+                        [|b|] = 2;
+                        if (Environment.TickCount > 12345)
+                            [|c|] = 1;
+                        else
+                            [|c|] = 2;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestDeconstructionReassignedInLocalFunction_MixedWithRegular()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    var [|a|] = 0;
+                    var ([|b|], [|c|]) = (0, 0);
+                    
+                    Foo();
+                    Console.WriteLine($"{[|a|]} {[|b|]} {[|c|]}");
+                    
+                    void Foo()
+                    {
+                        [|a|] = 1;
+                        [|b|] = 2;
+                        if (Environment.TickCount > 12345)
+                            [|c|] = 1;
+                        else
+                            [|c|] = 2;
+                    }
+                }
             }
             """);
 
