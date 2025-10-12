@@ -3153,4 +3153,86 @@ Punctuation.CloseCurly);
             XmlDoc.Delimiter("</"),
             XmlDoc.Name("code"),
             XmlDoc.Delimiter(">"));
+
+    [Theory, CombinatorialData]
+    public Task DocCommentCodeBlockWithCSharpLangCData(TestHost testHost)
+        => TestAsync(
+            """
+            /// <summary>
+            /// Test method
+            /// </summary>
+            [|/// <code lang="C#"><![CDATA[
+            /// using System;
+            /// IList<int> x = 5;
+            /// ]]></code>|]
+            class Program
+            {
+                void Test() { }
+            }
+            """,
+            testHost,
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("code"),
+            XmlDoc.AttributeName("lang"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeValue("C#"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            Keyword("using"),
+            Identifier("System"),
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            Keyword("var"),
+            Identifier("x"),
+            Operators.Equals,
+            Number("5"),
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("code"),
+            XmlDoc.Delimiter(">"));
+
+    [Theory, CombinatorialData]
+    public Task DocCommentCodeBlockWithCSharpLangGenerics(TestHost testHost)
+        => TestAsync(
+            """
+            /// <summary>
+            /// Test method
+            /// </summary>
+            [|/// <code lang="C#">
+            /// using System;
+            /// IList&lt;int&gt; x = 5;
+            /// </code>|]
+            class Program
+            {
+                void Test() { }
+            }
+            """,
+            testHost,
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("code"),
+            XmlDoc.AttributeName("lang"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeValue("C#"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            Keyword("using"),
+            Identifier("System"),
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            Keyword("var"),
+            Identifier("x"),
+            Operators.Equals,
+            Number("5"),
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("code"),
+            XmlDoc.Delimiter(">"));
 }
