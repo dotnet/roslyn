@@ -4,20 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 
@@ -64,24 +58,14 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         if (!TryExtractCodeContent(xmlElement, semanticModel.SyntaxTree, out var virtualChars, out var contentSpan))
             return false;
 
-        foreach (var classifiedSpan in CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
-                    solutionServices: null,
-                    semanticModel,
-                    virtualChars,
-                    cancellationToken))
-        {
+        var classifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
+            solutionServices: null, semanticModel, virtualChars, cancellationToken);
 
-        }
-
-        // Map the classifications back to the original document positions
-        foreach (var classifiedSpan in classifiedSpans)
-        {
-            if (classifiedSpan.TextSpan.Start >= virtualChars.Count)
-                continue;
-
-            // Map the classified span back to the original document
-            AddMappedClassifications(virtualChars, classifiedSpan, textSpan, result);
-        }
+        CSharpTestEmbeddedLanguageUtilities.AddClassifications(
+            virtualChars,
+            classifiedSpans,
+            static (result, classificationType, span) => result.Add(new(classificationType, span)),
+            result);
 
         return true;
     }
@@ -136,46 +120,5 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         virtualChars = builder.ToImmutable();
         contentSpan = TextSpan.FromBounds(virtualChars[0].Span.Start, virtualChars[^1].Span.End);
         return true;
-    }
-
-    private static void AddMappedClassifications(
-        ImmutableSegmentedList<VirtualChar> virtualChars,
-        ClassifiedSpan classifiedSpan,
-        TextSpan requestedSpan,
-        SegmentedList<ClassifiedSpan> result)
-    {
-        if (classifiedSpan.TextSpan.IsEmpty)
-            return;
-
-        var classificationType = classifiedSpan.ClassificationType;
-        var startIndexInclusive = classifiedSpan.TextSpan.Start;
-        var endIndexExclusive = classifiedSpan.TextSpan.End;
-
-        // The classified span may map to discontinuous regions in the original doc comment
-        // (e.g., if there are line breaks with /// prefixes)
-        var currentStartIndexInclusive = startIndexInclusive;
-        while (currentStartIndexInclusive < endIndexExclusive)
-        {
-            var currentEndIndexExclusive = currentStartIndexInclusive + 1;
-
-            // Find contiguous span
-            while (currentEndIndexExclusive < endIndexExclusive &&
-                   virtualChars[currentEndIndexExclusive - 1].Span.End == virtualChars[currentEndIndexExclusive].Span.Start)
-            {
-                currentEndIndexExclusive++;
-            }
-
-            var mappedSpan = TextSpan.FromBounds(
-                virtualChars[currentStartIndexInclusive].Span.Start,
-                virtualChars[currentEndIndexExclusive - 1].Span.End);
-
-            // Only add if it intersects with the requested span
-            if (mappedSpan.IntersectsWith(requestedSpan))
-            {
-                result.Add(new ClassifiedSpan(classificationType, mappedSpan));
-            }
-
-            currentStartIndexInclusive = currentEndIndexExclusive;
-        }
     }
 }

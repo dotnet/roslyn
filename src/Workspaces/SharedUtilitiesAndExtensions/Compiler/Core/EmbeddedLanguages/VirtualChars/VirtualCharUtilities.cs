@@ -24,7 +24,7 @@ internal static class VirtualCharUtilities
     /// document for classification.
     /// </summary>
     public static (ImmutableSegmentedList<VirtualChar> sourceCode, ImmutableArray<TextSpan> markdownSpans) StripMarkupCharacters(
-        VirtualCharSequence virtualChars, CancellationToken cancellationToken)
+        ArrayBuilder<VirtualChar> virtualChars, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<TextSpan>.GetInstance(out var markdownSpans);
         var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
@@ -32,7 +32,7 @@ internal static class VirtualCharUtilities
         var nestedAnonymousSpanCount = 0;
         var nestedNamedSpanCount = 0;
 
-        for (int i = 0, n = virtualChars.Length; i < n;)
+        for (int i = 0, n = virtualChars.Count; i < n;)
         {
             var vc1 = virtualChars[i];
             var vc2 = i + 1 < n ? virtualChars[i + 1] : default;
