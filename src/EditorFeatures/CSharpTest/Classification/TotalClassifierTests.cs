@@ -3222,7 +3222,7 @@ Punctuation.CloseCurly);
             XmlDoc.Delimiter(">"),
             XmlDoc.Delimiter("///"),
             Keyword("using"),
-            Identifier("System"),
+            Namespace("System"),
             Punctuation.Semicolon,
             XmlDoc.Delimiter("///"),
             Keyword("var"),
