@@ -89,6 +89,7 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
     {
         // When collapsed mode is enabled, generate single-line summary tags
         var useSingleLine = options.GenerateSummaryTagOnSingleLine;
+        var onlySummary = options.GenerateOnlySummaryTag;
 
         var list = new List<string>();
 
@@ -104,6 +105,12 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
             list.Add("/// <summary>");
             list.Add("///" + (existingCommentText.StartsWith(" ") ? existingCommentText : $" {existingCommentText}"));
             list.Add("/// </summary>");
+        }
+
+        // If onlySummary is true, skip generating other tags
+        if (onlySummary)
+        {
+            return list;
         }
 
         var typeParameterList = member.GetTypeParameterList();

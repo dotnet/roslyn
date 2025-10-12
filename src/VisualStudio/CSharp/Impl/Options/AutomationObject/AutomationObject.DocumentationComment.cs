@@ -19,4 +19,10 @@ public partial class AutomationObject
         get { return GetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine); }
         set { SetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, value); }
     }
+
+    public int AutoCommentOnlySummary
+    {
+        get { return GetBooleanOption(DocumentationCommentOptionsStorage.GenerateOnlySummaryTag); }
+        set { SetBooleanOption(DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, value); }
+    }
 }

@@ -23,5 +23,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 SetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, value)
             End Set
         End Property
+
+        Public Property AutoCommentOnlySummary As Boolean
+            Get
+                Return GetBooleanOption(DocumentationCommentOptionsStorage.GenerateOnlySummaryTag)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, value)
+            End Set
+        End Property
     End Class
 End Namespace

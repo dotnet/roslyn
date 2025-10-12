@@ -190,6 +190,9 @@
                     <CheckBox x:Name="GenerateXmlDocCommentsOnSingleLine"
                               Margin="15,0,0,0"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsOnSingleLine}" />
+                    <CheckBox x:Name="GenerateOnlySummaryTag"
+                              Margin="15,0,0,0"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateOnlySummaryTag}" />
                     <CheckBox x:Name="InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments}"/>
                     <CheckBox x:Name="InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments"

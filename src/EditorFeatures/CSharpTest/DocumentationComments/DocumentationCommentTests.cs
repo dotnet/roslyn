@@ -2146,6 +2146,78 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             """, globalOptions: globalOptions);
     }
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void TypingCharacter_MethodWithParameters_OnlySummary()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                void M(int x, string y) { }
+            }
+            """, """
+            class C
+            {
+                /// <summary>
+                /// $$
+                /// </summary>
+                void M(int x, string y) { }
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void TypingCharacter_MethodWithParameters_OnlySummaryAndSingleLine()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true },
+            { DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                void M(int x, string y) { }
+            }
+            """, """
+            class C
+            {
+                /// <summary>$$</summary>
+                void M(int x, string y) { }
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")]
+    public void PressingEnter_InsideSingleLineSummary_Expands()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, true }
+        };
+
+        VerifyPressingEnter("""
+            /// <summary>$$</summary>
+            class C
+            {
+            }
+            """, """
+            /// <summary>
+            /// $$
+            /// </summary>
+            class C
+            {
+            }
+            """, globalOptions: globalOptions);
+    }
+
     protected override char DocumentationCommentCharacter
     {
         get { return '/'; }

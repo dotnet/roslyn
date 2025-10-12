@@ -16,6 +16,7 @@ internal static class DocumentationCommentOptionsStorage
           LineFormatting = lineFormatting,
           AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, language),
           GenerateSummaryTagOnSingleLine = globalOptions.GetOption(GenerateSummaryTagOnSingleLine, language),
+          GenerateOnlySummaryTag = globalOptions.GetOption(GenerateOnlySummaryTag, language),
       };
 
     public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(
@@ -23,5 +24,8 @@ internal static class DocumentationCommentOptionsStorage
 
     public static readonly PerLanguageOption2<bool> GenerateSummaryTagOnSingleLine = new(
         "dotnet_generate_summary_tag_on_single_line", DocumentationCommentOptions.Default.GenerateSummaryTagOnSingleLine);
+
+    public static readonly PerLanguageOption2<bool> GenerateOnlySummaryTag = new(
+        "dotnet_generate_only_summary_tag", DocumentationCommentOptions.Default.GenerateOnlySummaryTag);
 
 }

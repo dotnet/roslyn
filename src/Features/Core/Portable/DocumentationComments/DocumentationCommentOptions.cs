@@ -21,6 +21,12 @@ internal readonly record struct DocumentationCommentOptions
     /// </summary>
     [DataMember] public bool GenerateSummaryTagOnSingleLine { get; init; } = false;
 
+    /// <summary>
+    /// When true, only generates the &lt;summary&gt; tag and omits other tags like
+    /// &lt;param&gt;, &lt;typeparam&gt;, &lt;returns&gt;, and &lt;exception&gt;.
+    /// </summary>
+    [DataMember] public bool GenerateOnlySummaryTag { get; init; } = false;
+
     public DocumentationCommentOptions()
     {
     }
