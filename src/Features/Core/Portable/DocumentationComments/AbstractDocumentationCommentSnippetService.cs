@@ -131,7 +131,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         IndentLines(lines, indentText);
 
         // Calculate caret offset based on whether we're using collapsed (single-line) mode
-        if (options.CollapsedXmlDocCommentGeneration)
+        if (options.GenerateSummaryTagOnSingleLine)
         {
             // For single-line mode, position caret inside <summary></summary>
             // The format is: /// <summary></summary>
@@ -160,7 +160,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         }
 
         // Calculate caret offset based on whether we're using collapsed (single-line) mode
-        if (options.CollapsedXmlDocCommentGeneration)
+        if (options.GenerateSummaryTagOnSingleLine)
         {
             // For single-line mode, position caret inside <summary></summary>
             var summaryOpenTagLength = "<summary>".Length;

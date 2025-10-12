@@ -16,7 +16,7 @@ public partial class AutomationObject
 
     public int AutoCommentSingleLine
     {
-        get { return GetBooleanOption(DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration); }
-        set { SetBooleanOption(DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, value); }
+        get { return GetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine); }
+        set { SetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, value); }
     }
 }
