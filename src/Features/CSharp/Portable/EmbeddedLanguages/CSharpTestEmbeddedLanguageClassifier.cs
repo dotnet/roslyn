@@ -89,43 +89,11 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         // components. Note: markdown components may be in between individual language components.  For example
         // `ret$$urn`.  This will break the `return` classification into two individual classifications around the
         // `$$` classification.
-        var testFileClassifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
-        foreach (var testClassifiedSpan in testFileClassifiedSpans)
-            AddClassifications(context, virtualCharsWithoutMarkup, testClassifiedSpan);
-    }
-
-    private static void AddClassifications(
-        EmbeddedLanguageClassificationContext context,
-        ImmutableSegmentedList<VirtualChar> virtualChars,
-        ClassifiedSpan classifiedSpan)
-    {
-        if (classifiedSpan.TextSpan.IsEmpty)
-            return;
-
-        // The classified span in C# may actually spread over discontinuous chunks when mapped back to the original
-        // virtual chars in the C#-Test content.  For example: `yield ret$$urn;`  There will be a classified span
-        // for `return` that has span [6, 12) (exactly the 6 characters corresponding to the contiguous 'return'
-        // seen). However, those positions will map to the two virtual char spans [6, 9) and [11, 14).
-
-        var classificationType = classifiedSpan.ClassificationType;
-        var startIndexInclusive = classifiedSpan.TextSpan.Start;
-        var endIndexExclusive = classifiedSpan.TextSpan.End;
-
-        var currentStartIndexInclusive = startIndexInclusive;
-        while (currentStartIndexInclusive < endIndexExclusive)
-        {
-            var currentEndIndexExclusive = currentStartIndexInclusive + 1;
-
-            while (currentEndIndexExclusive < endIndexExclusive &&
-                   virtualChars[currentEndIndexExclusive - 1].Span.End == virtualChars[currentEndIndexExclusive].Span.Start)
-            {
-                currentEndIndexExclusive++;
-            }
-
-            context.AddClassification(
-                classificationType,
-                FromBounds(virtualChars[currentStartIndexInclusive], virtualChars[currentEndIndexExclusive - 1]));
-            currentStartIndexInclusive = currentEndIndexExclusive;
-        }
+        var testFileClassifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
+            context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
+        CSharpTestEmbeddedLanguageUtilities.AddClassifications(
+            virtualCharsWithoutMarkup, testFileClassifiedSpans,
+            static (context, classificationType, span) => context.AddClassification(classificationType, span),
+            context);
     }
 }

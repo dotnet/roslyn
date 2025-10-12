@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -63,25 +64,14 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         if (!TryExtractCodeContent(xmlElement, semanticModel.SyntaxTree, out var virtualChars, out var contentSpan))
             return false;
 
-        // Create a source text from the virtual chars
-        var sourceText = new VirtualCharSequenceSourceText(virtualChars, semanticModel.SyntaxTree.Encoding);
+        foreach (var classifiedSpan in CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
+                    solutionServices: null,
+                    semanticModel,
+                    virtualChars,
+                    cancellationToken))
+        {
 
-        CSharpTestEmbeddedLanguageUtilities
-
-        // Parse the C# code
-        var testFileTree = SyntaxFactory.ParseSyntaxTree(sourceText, semanticModel.SyntaxTree.Options, cancellationToken: cancellationToken);
-        var compilationWithTestFile = semanticModel.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(testFileTree);
-        var semanticModelWithTestFile = compilationWithTestFile.GetSemanticModel(testFileTree);
-
-        // Classify using syntactic classification only for now
-        using var _ = Classifier.GetPooledList(out var classifiedSpans);
-
-        // Add syntactic classifications
-        Worker.CollectClassifiedSpans(
-            testFileTree.GetRoot(cancellationToken),
-            new TextSpan(0, virtualChars.Count),
-            classifiedSpans,
-            cancellationToken);
+        }
 
         // Map the classifications back to the original document positions
         foreach (var classifiedSpan in classifiedSpans)
