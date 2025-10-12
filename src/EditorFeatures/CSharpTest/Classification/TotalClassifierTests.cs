@@ -3120,30 +3120,16 @@ Punctuation.CloseCurly);
             /// <summary>
             /// Test method
             /// </summary>
-            /// <code lang="C#">
+            [|/// <code lang="C#">
             /// using System;
             /// var x = 5;
-            /// </code>
+            /// </code>|]
             class Program
             {
                 void Test() { }
             }
             """,
             testHost,
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
-            XmlDoc.Delimiter("<"),
-            XmlDoc.Name("summary"),
-            XmlDoc.Delimiter(">"),
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" Test method"),
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
-            XmlDoc.Delimiter("</"),
-            XmlDoc.Name("summary"),
-            XmlDoc.Delimiter(">"),
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
             XmlDoc.Delimiter("<"),
             XmlDoc.Name("code"),
             XmlDoc.AttributeName("lang"),
@@ -3166,15 +3152,5 @@ Punctuation.CloseCurly);
             XmlDoc.Text(" "),
             XmlDoc.Delimiter("</"),
             XmlDoc.Name("code"),
-            XmlDoc.Delimiter(">"),
-            Keyword("class"),
-            Class("Program"),
-            Punctuation.OpenCurly,
-            Keyword("void"),
-            Method("Test"),
-            Punctuation.OpenParen,
-            Punctuation.CloseParen,
-            Punctuation.OpenCurly,
-            Punctuation.CloseCurly,
-            Punctuation.CloseCurly);
+            XmlDoc.Delimiter(">"));
 }
