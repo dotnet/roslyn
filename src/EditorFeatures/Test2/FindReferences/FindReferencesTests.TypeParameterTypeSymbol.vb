@@ -329,7 +329,7 @@ class A : I
                         <Document><![CDATA[
 public readonly record struct Wrapper<{|Definition:T|}>([|T|] Value)
 {
-    public static implicit Operator Wrapper<$$[|T|]>([|T|] value) => new(value);
+    public static implicit operator Wrapper<$$[|T|]>([|T|] value) => new(value);
 }
                         ]]></Document>
                     </Project>
