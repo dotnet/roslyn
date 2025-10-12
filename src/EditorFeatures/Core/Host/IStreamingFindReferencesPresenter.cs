@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -175,20 +174,11 @@ internal static class IStreamingFindUsagesPresenterExtensions
             {
                 var document = sourceSpan.Document;
 
-                // Check if this document is generated code
-                var generatedCodeService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
-                if (generatedCodeService != null)
+                // Check if this document is generated code using the extension method
+                var isGenerated = await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false);
+                if (!isGenerated)
                 {
-                    var isGenerated = await generatedCodeService.IsGeneratedCodeAsync(document, cancellationToken).ConfigureAwait(false);
-                    if (!isGenerated)
-                    {
-                        // Found a non-generated location, return it
-                        return location;
-                    }
-                }
-                else
-                {
-                    // If there's no generated code service, assume it's not generated and use this location
+                    // Found a non-generated location, return it
                     return location;
                 }
             }
