@@ -20,18 +20,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
 [ExportLanguageService(typeof(IDocumentationCommentSnippetService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpDocumentationCommentSnippetService() : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
 {
     public override string DocumentationCommentCharacter => "/";
 
     protected override bool AddIndent => true;
     protected override string ExteriorTriviaText => "///";
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpDocumentationCommentSnippetService()
-    {
-    }
 
     protected override MemberDeclarationSyntax? GetContainingMember(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
     {

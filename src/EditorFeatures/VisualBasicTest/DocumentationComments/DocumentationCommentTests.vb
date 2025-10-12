@@ -1282,6 +1282,7 @@ End Class
             Const expected = "
 Class C
     ''' <summary>$$</summary>
+    ''' <returns></returns>
     Public Property P As Integer
 End Class
 "
