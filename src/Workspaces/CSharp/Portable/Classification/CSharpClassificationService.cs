@@ -7,20 +7,30 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
-[ExportLanguageService(typeof(IClassificationService), LanguageNames.CSharp), Shared]
+[ExportLanguageServiceFactory(typeof(IClassificationService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpEditorClassificationService(
-    CSharpSyntaxClassificationService syntaxClassificationService) : AbstractClassificationService(syntaxClassificationService)
+internal sealed class CSharpEditorClassificationServiceFactory() : ILanguageServiceFactory
 {
-    public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
-        => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+    {
+        var classificationService = languageServices.GetRequiredService<ISyntaxClassificationService>();
+        return new CSharpEditorClassificationService(classificationService);
+    }
 
-    public override ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
-        => ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan);
+    private sealed class CSharpEditorClassificationService(ISyntaxClassificationService syntaxClassificationService)
+        : AbstractClassificationService(syntaxClassificationService)
+    {
+        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+            => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
+
+        public override ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
+            => ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan);
+    }
 }
