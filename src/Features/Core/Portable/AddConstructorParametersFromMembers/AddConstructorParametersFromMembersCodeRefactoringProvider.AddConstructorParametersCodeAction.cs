@@ -62,8 +62,9 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             if (!isPrimaryConstructor)
             {
                 // For regular constructors, add assignment statements
-                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
-                                                      .WithAdditionalAnnotations(Formatter.Annotation);
+                newConstructor = codeGenerator
+                    .AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
                 var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
