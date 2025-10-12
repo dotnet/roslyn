@@ -90,10 +90,6 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
                 if (!processToken(arg, current.AsToken()))
                     return false;
             }
-            else
-            {
-                return false;
-            }
         }
 
         return true;
