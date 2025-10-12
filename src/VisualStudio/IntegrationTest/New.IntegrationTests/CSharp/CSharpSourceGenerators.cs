@@ -179,4 +179,50 @@ public sealed class CSharpSourceGenerators()
         Assert.Equal($"{HelloWorldGenerator.GeneratedFolderName}/{HelloWorldGenerator.GeneratedFolderClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
         Assert.Equal(HelloWorldGenerator.GeneratedFolderClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
     }
+
+    [IdeFact]
+    public async Task GoToDefinitionWithPartialUserAndGeneratedCode()
+    {
+        // This test verifies that when a type has both user code and generated code definitions,
+        // Go To Definition shows all results in the tool window but automatically navigates to the user code.
+        await TestServices.Editor.SetTextAsync($$"""
+            using System;
+
+            // User code partial declaration
+            partial class {{HelloWorldGenerator.GeneratedEnglishClassName}}
+            {
+                public static string GetUserMessage() => "User code";
+            }
+
+            internal static class Program
+            {
+                public static void Main()
+                {
+                    // Reference the partial class that has both user and generated code
+                    Console.WriteLine($${{HelloWorldGenerator.GeneratedEnglishClassName}}.GetMessage());
+                }
+            }
+            """, HangMitigatingCancellationToken);
+
+        await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+
+        // The tool window should open showing both locations
+        Assert.Equal("'HelloWorld' declarations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+
+        // Verify the tool window contains both the user code and generated code locations
+        var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
+
+        // Should have 2 results: one from user code, one from generated code
+        Assert.Equal(2, results.Length);
+
+        // The current active document should be the user code file (not the generated file)
+        // This is the key improvement: we automatically navigate to the user's code
+        var activeDocumentName = await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken);
+        Assert.EndsWith(".cs", activeDocumentName);
+        Assert.DoesNotContain("generated", activeDocumentName.ToLower());
+
+        // Verify we're at the user's partial class declaration
+        var currentLineText = await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken);
+        Assert.Contains(HelloWorldGenerator.GeneratedEnglishClassName, currentLineText);
+    }
 }
