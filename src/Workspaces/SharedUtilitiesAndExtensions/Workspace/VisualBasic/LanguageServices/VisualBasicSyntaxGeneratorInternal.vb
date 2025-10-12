@@ -70,6 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotSupportedException("VB does not support primary constructors.")
         End Function
 
+        Public Overrides Function EqualsValueClause(value As SyntaxNode) As SyntaxNode
+            Return EqualsValueClause(SyntaxFactory.Token(SyntaxKind.EqualsToken), value)
+        End Function
+
         Public Overrides Function EqualsValueClause(operatorToken As SyntaxToken, value As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
         End Function
