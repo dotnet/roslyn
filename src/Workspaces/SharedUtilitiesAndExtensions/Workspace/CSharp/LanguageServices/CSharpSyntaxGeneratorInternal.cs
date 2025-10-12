@@ -67,6 +67,9 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
+    public override SyntaxNode EqualsValueClause(SyntaxNode value)
+        => EqualsValueClause(EqualsToken, value);
+
     public override SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
         => SyntaxFactory.EqualsValueClause(operatorToken, (ExpressionSyntax)value);
 

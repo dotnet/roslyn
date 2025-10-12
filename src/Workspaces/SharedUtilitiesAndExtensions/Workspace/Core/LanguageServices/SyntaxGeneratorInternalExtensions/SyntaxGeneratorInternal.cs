@@ -50,6 +50,7 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
     /// </summary>
     public abstract SyntaxNode WithPropertyInitializer(SyntaxNode propertyDeclaration, SyntaxNode initializer);
 
+    public abstract SyntaxNode EqualsValueClause(SyntaxNode value);
     public abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
 
     public abstract SyntaxToken Identifier(string identifier);

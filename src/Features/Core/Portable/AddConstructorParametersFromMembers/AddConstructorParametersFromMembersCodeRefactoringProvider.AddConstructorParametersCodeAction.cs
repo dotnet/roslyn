@@ -126,9 +126,9 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
 
             // Create the initializer expression using the parameter name
             var initializerExpression = generator.IdentifierName(parameter.Name);
-            
+
             // Wrap the initializer expression in an EqualsValueClause
-            var equalsValueClause = generator.SyntaxGeneratorInternal.EqualsValueClause(default, initializerExpression);
+            var equalsValueClause = generator.SyntaxGeneratorInternal.EqualsValueClause(initializerExpression);
 
             foreach (var syntaxRef in member.DeclaringSyntaxReferences)
             {
