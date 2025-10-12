@@ -118,8 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
 
             If useSingleLine Then
                 ' Single-line: ''' <summary></summary>
-                Dim trimmedText = existingCommentText.Trim()
-                list.Add($"''' <summary>{trimmedText}</summary>")
+                list.Add($"''' <summary>{existingCommentText.Trim()}</summary>")
             Else
                 ' Multi-line (original behavior)
                 list.Add("''' <summary>")
