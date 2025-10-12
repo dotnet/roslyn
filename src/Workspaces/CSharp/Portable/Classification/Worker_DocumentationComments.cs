@@ -164,7 +164,9 @@ internal ref partial struct Worker
             switch (token.Parent.Kind())
             {
                 case SyntaxKind.XmlText:
-                    AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
+                    if (!_skipXmlTextTokens)
+                        AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
+
                     break;
                 case SyntaxKind.XmlTextAttribute:
                     AddClassification(token, ClassificationTypeNames.XmlDocCommentAttributeValue);
@@ -206,49 +208,15 @@ internal ref partial struct Worker
         ClassifyXmlElementStartTag(node.StartTag);
 
         // For C# code blocks, still recurse into content but only classify the /// trivia
-        if (ClassificationHelpers.IsCodeBlockWithCSharpLang(node))
-        {
-            foreach (var xmlNode in node.Content)
-                ClassifyCodeBlockContentTrivia(xmlNode);
-        }
-        else
-        {
-            foreach (var xmlNode in node.Content)
-                ClassifyXmlNode(xmlNode);
-        }
+        var isCodeBlock = ClassificationHelpers.IsCodeBlockWithCSharpLang(node);
+
+        var oldSkipXmlTextTokens = _skipXmlTextTokens;
+        _skipXmlTextTokens = true;
+        foreach (var xmlNode in node.Content)
+            ClassifyXmlNode(xmlNode);
+        _skipXmlTextTokens = oldSkipXmlTextTokens;
 
         ClassifyXmlElementEndTag(node.EndTag);
-    }
-
-    private void ClassifyCodeBlockContentTrivia(SyntaxNode node)
-    {
-        // For code blocks, we only classify the leading /// DocumentationCommentExteriorTrivia
-        // The semantic classifier will handle the actual C# code content
-        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
-        stack.Push(node);
-
-        while (stack.TryPop(out var current))
-        {
-            if (current.AsNode(out var currentNode))
-            {
-                if (currentNode is XmlCommentSyntax xmlData)
-                {
-
-                }
-
-                foreach (var child in currentNode.ChildNodesAndTokens())
-                    stack.Push(child);
-            }
-            else if (current.IsToken)
-            {
-                var token = current.AsToken();
-                foreach (var trivia in token.LeadingTrivia)
-                {
-                    if (trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
-                        AddClassification(trivia.Span, ClassificationTypeNames.XmlDocCommentDelimiter);
-                }
-            }
-        }
     }
 
     private void ClassifyXmlElementStartTag(XmlElementStartTagSyntax node)
