@@ -2054,6 +2054,98 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             """);
 
+    [WpfFact]
+    public void TypingCharacter_Class_Collapsed()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, true }
+        };
+
+        VerifyTypingCharacter("""
+            //$$
+            class C
+            {
+            }
+            """, """
+            /// <summary>$$</summary>
+            class C
+            {
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact]
+    public void TypingCharacter_Method_Collapsed()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                void M() { }
+            }
+            """, """
+            class C
+            {
+                /// <summary>$$</summary>
+                void M() { }
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact]
+    public void TypingCharacter_MethodWithParameters_Collapsed()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                void M(int x, string y) { }
+            }
+            """, """
+            class C
+            {
+                /// <summary>$$</summary>
+                /// <param name="x"></param>
+                /// <param name="y"></param>
+                void M(int x, string y) { }
+            }
+            """, globalOptions: globalOptions);
+    }
+
+    [WpfFact]
+    public void TypingCharacter_Property_Collapsed()
+    {
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { DocumentationCommentOptionsStorage.CollapsedXmlDocCommentGeneration, true }
+        };
+
+        VerifyTypingCharacter("""
+            class C
+            {
+                //$$
+                public int P { get; set; }
+            }
+            """, """
+            class C
+            {
+                /// <summary>$$</summary>
+                public int P { get; set; }
+            }
+            """, globalOptions: globalOptions);
+    }
+
     protected override char DocumentationCommentCharacter
     {
         get { return '/'; }
