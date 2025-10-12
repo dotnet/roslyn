@@ -22,7 +22,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
     protected abstract bool SupportsDocumentationComments(TMemberNode member);
     protected abstract bool HasDocumentationComment(TMemberNode member);
     protected abstract int GetPrecedingDocumentationCommentCount(TMemberNode member);
-    protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member, string existingCommentText, in DocumentationCommentOptions options);
+    protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member, string existingCommentText, DocumentationCommentOptions options);
 
     protected abstract SyntaxToken GetTokenToRight(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
     protected abstract SyntaxToken GetTokenToLeft(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);

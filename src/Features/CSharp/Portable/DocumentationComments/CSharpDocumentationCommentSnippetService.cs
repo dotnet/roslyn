@@ -85,7 +85,7 @@ internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumen
         return count;
     }
 
-    protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText, in DocumentationCommentOptions options)
+    protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText, DocumentationCommentOptions options)
     {
         // When collapsed mode is enabled, generate single-line summary tags
         var useSingleLine = options.CollapsedXmlDocCommentGeneration;
