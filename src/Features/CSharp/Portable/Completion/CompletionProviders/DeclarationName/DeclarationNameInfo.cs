@@ -81,6 +81,7 @@ internal readonly struct NameDeclarationInfo(
             || IsPropertyDeclaration(token, semanticModel, cancellationToken, out result)
             || IsPossibleOutVariableDeclaration(token, semanticModel, typeInferenceService, cancellationToken, out result)
             || IsTupleLiteralElement(token, semanticModel, cancellationToken, out result)
+            || IsIncompleteParenthesizedTuple(token, semanticModel, typeInferenceService, cancellationToken, out result)
             || IsPossibleLocalVariableOrFunctionDeclaration(token, semanticModel, cancellationToken, out result)
             || IsPatternMatching(token, semanticModel, cancellationToken, out result))
         {
@@ -126,6 +127,61 @@ internal readonly struct NameDeclarationInfo(
         }
 
         result = default;
+        return false;
+    }
+
+    private static bool IsIncompleteParenthesizedTuple(
+        SyntaxToken token, SemanticModel semanticModel, ITypeInferenceService typeInferenceService,
+        CancellationToken cancellationToken, out NameDeclarationInfo result)
+    {
+        // When the user types something like:
+        //   (List<Person> $$
+        // in a method body, the parser creates a ParenthesizedExpressionSyntax instead of a TupleExpressionSyntax.
+        // We need to check if the expression inside the parentheses looks like a type.
+        
+        result = default;
+
+        if (!IsPossibleTypeToken(token))
+            return false;
+
+        // Check if we're in a ParenthesizedExpressionSyntax
+        var parenthesizedExpr = token.GetAncestor<ParenthesizedExpressionSyntax>();
+        if (parenthesizedExpr == null)
+            return false;
+
+        // The expression inside the parentheses should be something that looks like a type
+        var expression = parenthesizedExpr.Expression;
+        if (expression == null)
+            return false;
+
+        // The token should be the last token of the expression
+        if (token != expression.GetLastToken())
+            return false;
+
+        // First, check if the expression resolves to a type symbol
+        var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+        if (symbolInfo.Symbol is ITypeSymbol typeSymbol)
+        {
+            result = new NameDeclarationInfo(
+                [new SymbolKindOrTypeKind(SymbolKind.Local)],
+                Accessibility.NotApplicable,
+                type: typeSymbol,
+                alias: semanticModel.GetAliasInfo(expression, cancellationToken));
+            return true;
+        }
+
+        // If not a type symbol, try GetTypeInfo as a fallback
+        var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+        if (typeInfo.Type != null)
+        {
+            result = new NameDeclarationInfo(
+                [new SymbolKindOrTypeKind(SymbolKind.Local)],
+                Accessibility.NotApplicable,
+                type: typeInfo.Type,
+                alias: semanticModel.GetAliasInfo(expression, cancellationToken));
+            return true;
+        }
+
         return false;
     }
 

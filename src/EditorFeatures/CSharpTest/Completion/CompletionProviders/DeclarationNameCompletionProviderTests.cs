@@ -1329,6 +1329,20 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple()
+        => VerifyItemExistsAsync("""
+            using System.Collections.Generic;
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (List<Person> $$
+                }
+            }
+            """, "people");
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
     public Task Pluralize1()
         => VerifyItemExistsAsync("""
