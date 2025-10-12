@@ -166,25 +166,17 @@ internal static class IStreamingFindUsagesPresenterExtensions
         ArrayBuilder<(DefinitionItem item, INavigableLocation location)> builder,
         CancellationToken cancellationToken)
     {
-        // Look through all definition items to find the first one that comes from a non-generated document
         foreach (var (item, location) in builder)
         {
-            // Check each source span in the definition item
             foreach (var sourceSpan in item.SourceSpans)
             {
                 var document = sourceSpan.Document;
-
-                // Check if this document is generated code using the extension method
                 var isGenerated = await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false);
                 if (!isGenerated)
-                {
-                    // Found a non-generated location, return it
                     return location;
-                }
             }
         }
 
-        // No non-generated location found, return null
         return null;
     }
 }
