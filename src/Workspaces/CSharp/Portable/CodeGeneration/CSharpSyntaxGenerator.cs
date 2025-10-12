@@ -813,7 +813,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
             DeclarationModifiers modifiers;
 
             // return any nested member "as is" without any additional changes
-            if (member is BaseTypeDeclarationSyntax)
+            if (member is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax)
                 return member;
 
             switch (member.Kind())
@@ -873,10 +873,6 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
                     return AsInterfaceMember(
                         PropertyDeclaration(GetName(f), ClearTrivia(type), acc, modifiers, getAccessorStatements: null, setAccessorStatements: null));
-
-                case SyntaxKind.DelegateDeclaration:
-                    var delegateDecl = (DelegateDeclarationSyntax)member;
-                    return delegateDecl.WithModifiers(default);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind());
