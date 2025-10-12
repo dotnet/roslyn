@@ -4,6 +4,8 @@
 
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -206,36 +208,39 @@ internal ref partial struct Worker
         // For C# code blocks, still recurse into content but only classify the /// trivia
         if (ClassificationHelpers.IsCodeBlockWithCSharpLang(node))
         {
-            ClassifyCodeBlockContentTrivia(node.Content);
+            foreach (var xmlNode in node.Content)
+                ClassifyCodeBlockContentTrivia(xmlNode);
         }
         else
         {
             foreach (var xmlNode in node.Content)
-            {
                 ClassifyXmlNode(xmlNode);
-            }
         }
 
         ClassifyXmlElementEndTag(node.EndTag);
     }
 
-    private void ClassifyCodeBlockContentTrivia(SyntaxList<XmlNodeSyntax> content)
+    private void ClassifyCodeBlockContentTrivia(SyntaxNode node)
     {
         // For code blocks, we only classify the leading /// DocumentationCommentExteriorTrivia
         // The semantic classifier will handle the actual C# code content
-        foreach (var xmlNode in content)
+        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
+        stack.Push(node);
+
+        while (stack.TryPop(out var current))
         {
-            if (xmlNode is XmlTextSyntax xmlText)
+            if (current.AsNode(out var currentNode))
             {
-                foreach (var token in xmlText.TextTokens)
+                foreach (var child in currentNode.ChildNodesAndTokens())
+                    stack.Push(child);
+            }
+            else if (current.IsToken)
+            {
+                var token = current.AsToken();
+                foreach (var trivia in token.LeadingTrivia)
                 {
-                    foreach (var trivia in token.LeadingTrivia)
-                    {
-                        if (trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
-                        {
-                            AddClassification(trivia.Span, ClassificationTypeNames.XmlDocCommentDelimiter);
-                        }
-                    }
+                    if (trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
+                        AddClassification(trivia.Span, ClassificationTypeNames.XmlDocCommentDelimiter);
                 }
             }
         }
