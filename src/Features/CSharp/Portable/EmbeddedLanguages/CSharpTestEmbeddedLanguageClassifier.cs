@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
