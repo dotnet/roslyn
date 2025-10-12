@@ -138,7 +138,7 @@ internal static partial class IMethodSymbolExtensions
             return false;
 
         // Primary constructors have their declaring syntax on the containing type's declaration
-        var containingType = constructor.ContainingType;        
+        var containingType = constructor.ContainingType;
         if (containingType.DeclaringSyntaxReferences.Length == 0)
             return false;
 
