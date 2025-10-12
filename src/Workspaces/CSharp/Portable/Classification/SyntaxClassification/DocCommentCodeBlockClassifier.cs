@@ -117,7 +117,7 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         // Otherwise, process the code as-is.
         var (virtualCharsWithoutMarkup, markdownSpans) = isTest
             ? StripMarkupCharacters(virtualCharsBuilder, cancellationToken)
-            : ([.. virtualCharsBuilder], []);
+            : (ImmutableSegmentedList.CreateRange(virtualCharsBuilder), []);
 
         // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
         foreach (var span in markdownSpans)
