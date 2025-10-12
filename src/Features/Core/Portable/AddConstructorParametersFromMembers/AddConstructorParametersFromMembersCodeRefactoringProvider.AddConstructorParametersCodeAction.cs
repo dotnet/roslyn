@@ -27,14 +27,14 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         CodeGenerationContextInfo info,
         ConstructorCandidate constructorCandidate,
         ISymbol containingType,
-        ImmutableArray<IParameterSymbol> missingParameters,
+        ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrPropert)> missingParameters,
         bool useSubMenuName) : CodeAction
     {
         private readonly Document _document = document;
         private readonly CodeGenerationContextInfo _info = info;
         private readonly ConstructorCandidate _constructorCandidate = constructorCandidate;
         private readonly ISymbol _containingType = containingType;
-        private readonly ImmutableArray<IParameterSymbol> _missingParameters = missingParameters;
+        private readonly ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrPropert)> _missingParameters = missingParameters;
 
         /// <summary>
         /// If there is more than one constructor, the suggested actions will be split into two sub menus,
@@ -57,7 +57,8 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
 
             var newConstructor = constructor;
-            newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, _info, cancellationToken);
+            newConstructor = codeGenerator.AddParameters(
+                newConstructor, _missingParameters.SelectAsArray(t => t.parameter), _info, cancellationToken);
 
             if (!isPrimaryConstructor)
             {
@@ -104,11 +105,8 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             editor.ReplaceNode(oldConstructor, newConstructor.WithAdditionalAnnotations(Formatter.Annotation));
 
             // Now add initializers to each member
-            for (var i = 0; i < _missingParameters.Length; ++i)
+            foreach (var (parameter, member) in _missingParameters)
             {
-                var member = _constructorCandidate.MissingMembers[i];
-                var parameter = _missingParameters[i];
-
                 await AddInitializerToMemberAsync(
                     solutionEditor, member, parameter, cancellationToken).ConfigureAwait(false);
             }
@@ -150,10 +148,10 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
         {
             var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
-            for (var i = 0; i < _missingParameters.Length; ++i)
+            foreach (var (parameter, fieldOrProperty) in _missingParameters)
             {
-                var memberName = constructorCandidate.MissingMembers[i].Name;
-                var parameterName = _missingParameters[i].Name;
+                var memberName = fieldOrProperty.Name;
+                var parameterName = parameter.Name;
                 yield return factory.ExpressionStatement(
                     factory.AssignmentStatement(
                         factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(memberName)),
