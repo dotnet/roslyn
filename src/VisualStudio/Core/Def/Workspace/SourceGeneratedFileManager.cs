@@ -508,9 +508,13 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 Contract.ThrowIfNull(infoBarMessage);
                 infoBarMessage.Remove();
 
-                _currentInfoBarMessage = _fileManager._threadingContext.JoinableTaskFactory.Run(() =>
-                    _infoBar.ShowInfoBarMessageAsync(
-                        ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation));
+                // Show the "Generator running" message asynchronously to avoid blocking the UI thread
+                // and potential reentrancy issues.
+                _ = _fileManager._threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    _currentInfoBarMessage = await _infoBar.ShowInfoBarMessageAsync(
+                        ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation).ConfigureAwait(true);
+                });
 
                 // Force regeneration here.  Nothing has actually changed, so the incremental generator architecture
                 // would normally just return the same values all over again.  By forcing things, we drop the
