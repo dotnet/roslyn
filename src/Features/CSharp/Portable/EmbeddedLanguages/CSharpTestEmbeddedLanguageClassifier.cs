@@ -46,9 +46,10 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         foreach (var vc in virtualCharsWithMarkup)
             virtualCharsBuilder.Add(vc);
 
-        // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
+        // Break the full sequence of virtual chars into the actual C# code and the markup
         var (virtualCharsWithoutMarkup, markdownSpans) = StripMarkupCharacters(virtualCharsBuilder, cancellationToken);
 
+        // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
         foreach (var span in markdownSpans)
             context.AddClassification(ClassificationTypeNames.TestCodeMarkdown, span);
 
