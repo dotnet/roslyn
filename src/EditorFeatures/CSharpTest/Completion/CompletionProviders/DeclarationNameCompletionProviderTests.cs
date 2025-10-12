@@ -1405,6 +1405,58 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """, "action");
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_FullyQualifiedGenericType()
+        => VerifyItemExistsAsync("""
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (System.Collections.Generic.List<Person> $$
+                }
+            }
+            """, "people");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_FullyQualifiedGenericType_WithCloseParen()
+        => VerifyItemExistsAsync("""
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (System.Collections.Generic.List<Person> $$)
+                }
+            }
+            """, "people");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_ArrayType()
+        => VerifyItemExistsAsync("""
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (Person[] $$
+                }
+            }
+            """, "people");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_ArrayType_WithCloseParen()
+        => VerifyItemExistsAsync("""
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (Person[] $$)
+                }
+            }
+            """, "people");
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
     public Task Pluralize1()
         => VerifyItemExistsAsync("""
