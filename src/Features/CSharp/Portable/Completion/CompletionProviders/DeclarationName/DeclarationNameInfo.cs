@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -63,7 +65,9 @@ internal readonly struct NameDeclarationInfo(
     private static async Task<NameDeclarationInfo> GetDeclarationInfoWorkerAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
+        var token = tree
+            .FindTokenOnLeftOfPosition(position, cancellationToken)
+            .GetPreviousTokenIfTouchingWord(position);
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.SpanStart, cancellationToken).ConfigureAwait(false);
         var typeInferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
 
@@ -130,57 +134,70 @@ internal readonly struct NameDeclarationInfo(
         return false;
     }
 
-    private static bool IsIncompleteParenthesizedTuple(
-        SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out NameDeclarationInfo result)
+    private static bool CheckType(
+        SemanticModel semanticModel, SyntaxToken token, TypeSyntax type, out NameDeclarationInfo result)
     {
-        // When the user types something like:
-        //   (List<Person> $$
-        // in a method body, the parser creates a ParenthesizedExpressionSyntax instead of a TupleExpressionSyntax. We
-        // need to check if the expression inside the parentheses looks like a type.
-        result = default;
-
-        if (!IsPossibleTypeToken(token))
-            return false;
-
-        // Check if we're in a ParenthesizedExpressionSyntax
-        var parenthesizedExpr = token.GetAncestor<ParenthesizedExpressionSyntax>();
-        if (parenthesizedExpr == null)
-            return false;
-
-        // The expression inside the parentheses should be something that looks like a type
-        var expression = parenthesizedExpr.Expression;
-        if (expression == null)
-            return false;
-
-        // The token should be the last token of the expression
-        if (token != expression.GetLastToken())
-            return false;
-
-        // First, check if the expression resolves to a type symbol
-        var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+        var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(token.SpanStart, type, SpeculativeBindingOption.BindAsTypeOrNamespace);
         if (symbolInfo.Symbol is ITypeSymbol typeSymbol)
         {
             result = new NameDeclarationInfo(
                 [new SymbolKindOrTypeKind(SymbolKind.Local)],
                 Accessibility.NotApplicable,
-                type: typeSymbol,
-                alias: semanticModel.GetAliasInfo(expression, cancellationToken));
+                type: typeSymbol);
             return true;
         }
 
         // If not a type symbol, try GetTypeInfo as a fallback
-        var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+        var typeInfo = semanticModel.GetSpeculativeTypeInfo(type.SpanStart, type, SpeculativeBindingOption.BindAsTypeOrNamespace);
         if (typeInfo.Type != null)
         {
             result = new NameDeclarationInfo(
                 [new SymbolKindOrTypeKind(SymbolKind.Local)],
                 Accessibility.NotApplicable,
-                type: typeInfo.Type,
-                alias: semanticModel.GetAliasInfo(expression, cancellationToken));
+                type: typeInfo.Type);
             return true;
         }
 
+        result = default;
         return false;
+    }
+
+    private static bool IsIncompleteParenthesizedTuple(
+        SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out NameDeclarationInfo result)
+    {
+        // When the user types something like: `(List<Person> $$` in a method body, the parser can create a
+        // ParenthesizedExpressionSyntax or CastExpressionSyntax instead of a TupleExpressionSyntax. We need to check if
+        // the expression inside the parentheses looks like a type.
+        result = default;
+
+        if (!IsPossibleTypeToken(token))
+            return false;
+
+        var castExpression = token.GetAncestor<CastExpressionSyntax>();
+        if (castExpression?.Type.GetLastToken() == token)
+            return CheckType(semanticModel, token, castExpression.Type, out result);
+
+        var parenthesizedExpr = token.GetAncestor<ParenthesizedExpressionSyntax>();
+        if (parenthesizedExpr == null)
+            return false;
+
+        var start = parenthesizedExpr.Expression.SpanStart;
+        var end = token.Span.End;
+        if (start >= end)
+            return false;
+
+        var sourceText = semanticModel.SyntaxTree.GetText(cancellationToken);
+
+        var subSpan = TextSpan.FromBounds(start, end);
+        var type = SyntaxFactory.ParseTypeName(sourceText.ToString(subSpan));
+
+        if (type.Span.Length != subSpan.Length)
+            return false;
+
+        if (type.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            return false;
+
+        return CheckType(semanticModel, token, type, out result);
     }
 
     private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel,
