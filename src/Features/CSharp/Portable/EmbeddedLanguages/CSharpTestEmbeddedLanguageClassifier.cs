@@ -48,6 +48,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
 
         // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
         var (virtualCharsWithoutMarkup, markdownSpans) = StripMarkupCharacters(virtualCharsBuilder, cancellationToken);
+
         foreach (var span in markdownSpans)
             context.AddClassification(ClassificationTypeNames.TestCodeMarkdown, span);
 
@@ -93,6 +94,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         // `$$` classification.
         var testFileClassifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
             context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
+
         CSharpTestEmbeddedLanguageUtilities.AddClassifications(
             virtualCharsWithoutMarkup, testFileClassifiedSpans,
             static (context, classificationType, span) => context.AddClassification(classificationType, span),

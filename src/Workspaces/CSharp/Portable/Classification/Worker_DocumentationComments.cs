@@ -57,7 +57,7 @@ internal ref partial struct Worker
                 ClassifyXmlComment((XmlCommentSyntax)node);
                 break;
             case SyntaxKind.XmlCDataSection:
-                ClassifyXmlCDataSection((XmlCDataSectionSyntax)node);
+                ClassifyXmlCDataSection((XmlCDataSectionSyntax)node, classifyText: true);
                 break;
             case SyntaxKind.XmlProcessingInstruction:
                 ClassifyXmlProcessingInstruction((XmlProcessingInstructionSyntax)node);
@@ -231,6 +231,11 @@ internal ref partial struct Worker
         {
             if (current.AsNode(out var currentNode))
             {
+                if (currentNode is XmlCommentSyntax xmlData)
+                {
+
+                }
+
                 foreach (var child in currentNode.ChildNodesAndTokens())
                     stack.Push(child);
             }
@@ -358,10 +363,11 @@ internal ref partial struct Worker
         AddXmlClassification(node.MinusMinusGreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter);
     }
 
-    private void ClassifyXmlCDataSection(XmlCDataSectionSyntax node)
+    private void ClassifyXmlCDataSection(XmlCDataSectionSyntax node, bool classifyText)
     {
         AddXmlClassification(node.StartCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter);
-        ClassifyXmlTextTokens(node.TextTokens);
+        if (classifyText)
+            ClassifyXmlTextTokens(node.TextTokens);
         AddXmlClassification(node.EndCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter);
     }
 

@@ -11,9 +11,13 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CSharp.Utilities.CSharpTypeStyleHelper;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
+
+using static VirtualCharUtilities;
 
 /// <summary>
 /// Classifier that provides syntax highlighting for C# code within &lt;code&gt; blocks in documentation comments.
@@ -55,14 +59,22 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
             return false;
 
         // Extract the code content from the XML element
-        if (!TryExtractCodeContent(xmlElement, semanticModel.SyntaxTree, out var virtualChars, out var contentSpan))
+        using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var virtualCharsBuilder);
+
+        if (virtualCharsBuilder.Count == 0)
             return false;
 
+        // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
+        var (virtualCharsWithoutMarkup, markdownSpans) = StripMarkupCharacters(virtualCharsBuilder, cancellationToken);
+
+        foreach (var span in markdownSpans)
+            result.Add(new(ClassificationTypeNames.TestCodeMarkdown, span);
+
         var classifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
-            solutionServices: null, semanticModel, virtualChars, cancellationToken);
+            solutionServices: null, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
 
         CSharpTestEmbeddedLanguageUtilities.AddClassifications(
-            virtualChars,
+            virtualCharsWithoutMarkup,
             classifiedSpans,
             static (result, classificationType, span) => result.Add(new(classificationType, span)),
             result);
