@@ -66,6 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return DirectCast(variableDeclarator, VariableDeclaratorSyntax).WithInitializer(DirectCast(initializer, EqualsValueSyntax))
         End Function
 
+        Public Overrides Function WithPropertyInitializer(propertyDeclaration As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
+            ' VB doesn't have primary constructors, so this should never be called
+            ' But we need to implement it to satisfy the abstract base class
+            Throw New NotSupportedException("VB does not support primary constructors.")
+        End Function
+
         Public Overrides Function EqualsValueClause(operatorToken As SyntaxToken, value As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
         End Function
