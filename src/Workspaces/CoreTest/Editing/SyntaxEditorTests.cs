@@ -325,4 +325,40 @@ public class C
 }
 """);
     }
+
+    [Fact]
+    public void TestInsertDelegateIntoInterface()
+    {
+        var code = """
+            public interface ITest
+            {
+                void Method();
+            }
+            """;
+
+        var cu = SyntaxFactory.ParseCompilationUnit(code);
+        var interfaceDecl = (InterfaceDeclarationSyntax)cu.Members[0];
+
+        var editor = GetEditor(cu);
+
+        // Create a delegate declaration
+        var delegateDecl = SyntaxFactory.DelegateDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
+            SyntaxFactory.Identifier("MyDelegate"))
+            .WithParameterList(SyntaxFactory.ParameterList());
+
+        editor.InsertMembers(interfaceDecl, 0, new[] { delegateDecl });
+        var newRoot = editor.GetChangedRoot();
+
+        VerifySyntax<CompilationUnitSyntax>(
+            newRoot,
+            """
+            public interface ITest
+            {
+                delegate void MyDelegate();
+
+                void Method();
+            }
+            """);
+    }
 }
