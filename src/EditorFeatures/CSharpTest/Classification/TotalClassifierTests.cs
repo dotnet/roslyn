@@ -3122,7 +3122,7 @@ Punctuation.CloseCurly);
             /// </summary>
             [|/// <code lang="C#">
             /// using System;
-            /// var x = 5;
+            /// class C { int x = 5; }
             /// </code>|]
             class Program
             {
@@ -3145,11 +3145,15 @@ Punctuation.CloseCurly);
             Namespace("System"),
             Punctuation.Semicolon,
             XmlDoc.Delimiter("///"),
-            Keyword("var"),
-            Local("x"),
+            Keyword("class"),
+            Class("C"),
+            Punctuation.OpenCurly,
+            Keyword("int"),
+            Field("x"),
             Operators.Equals,
             Number("5"),
             Punctuation.Semicolon,
+            Punctuation.CloseCurly,
             XmlDoc.Delimiter("///"),
             XmlDoc.Delimiter("</"),
             XmlDoc.Name("code"),
@@ -3164,7 +3168,7 @@ Punctuation.CloseCurly);
             /// </summary>
             [|/// <code lang="C#"><![CDATA[
             /// using System.Collections.Generic;
-            /// IList<int> x = 5;
+            /// class C { IList<int> x = 5; }
             /// ]]></code>|]
             class Program
             {
@@ -3205,7 +3209,7 @@ Punctuation.CloseCurly);
             /// </summary>
             [|/// <code lang="C#">
             /// using System.Collections.Generic;
-            /// IList&lt;int&gt; x = 5;
+            /// class C { IList&lt;int&gt; x = 5; }
             /// </code>|]
             class Program
             {
@@ -3232,14 +3236,18 @@ Punctuation.CloseCurly);
             Namespace("Generic"),
             Punctuation.Semicolon,
             XmlDoc.Delimiter("///"),
+            Keyword("class"),
+            Class("C"),
+            Punctuation.OpenCurly,
             Interface("IList"),
             Punctuation.XmlOpenAngle,
             Keyword("int"),
             Punctuation.XmlCloseAngle,
-            Local("x"),
+            Field("x"),
             Operators.Equals,
             Number("5"),
             Punctuation.Semicolon,
+            Punctuation.CloseCurly,
             XmlDoc.Delimiter("///"),
             XmlDoc.Delimiter("</"),
             XmlDoc.Name("code"),
