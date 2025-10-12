@@ -62,8 +62,9 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
     public override SyntaxNode WithPropertyInitializer(SyntaxNode propertyDeclaration, SyntaxNode initializer)
     {
         var property = (PropertyDeclarationSyntax)propertyDeclaration;
+        var equalsValueClause = SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer);
         return property
-            .WithInitializer((EqualsValueClauseSyntax)initializer)
+            .WithInitializer(equalsValueClause)
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
