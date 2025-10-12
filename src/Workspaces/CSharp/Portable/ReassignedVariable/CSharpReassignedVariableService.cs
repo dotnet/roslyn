@@ -12,18 +12,14 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable;
 
 [ExportLanguageService(typeof(IReassignedVariableService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpReassignedVariableService : AbstractReassignedVariableService<
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpReassignedVariableService() : AbstractReassignedVariableService<
     ParameterSyntax,
     VariableDeclaratorSyntax,
     SingleVariableDesignationSyntax,
     IdentifierNameSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpReassignedVariableService()
-    {
-    }
-
     protected override SyntaxToken GetIdentifierOfVariable(VariableDeclaratorSyntax variable)
         => variable.Identifier;
 
@@ -54,6 +50,10 @@ internal sealed class CSharpReassignedVariableService : AbstractReassignedVariab
 
                 // For foreach (var (x, y) in ...) or similar
                 if (current is ForEachVariableStatementSyntax)
+                    return true;
+
+                // Variables in patterns are always consider assigned by virtue off the pattern itself matching.
+                if (current is PatternSyntax)
                     return true;
 
                 // Don't search beyond statement boundaries
