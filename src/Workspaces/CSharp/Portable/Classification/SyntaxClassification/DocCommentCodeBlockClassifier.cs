@@ -41,11 +41,12 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         if (syntax is not XmlElementSyntax xmlElement)
             return;
 
-        if (!ClassificationHelpers.IsCodeBlockWithCSharpLang(xmlElement))
+        var (isCSharp, isCSharpTest) = ClassificationHelpers.IsCodeBlockWithCSharpLang(xmlElement);
+        if (!isCSharp && !isCSharpTest)
             return;
 
         // Try to classify as C# code. If it fails for any reason, fall back to regular syntactic classification
-        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, /*options,*/ result, cancellationToken))
+        if (TryClassifyCodeBlock(xmlElement, textSpan, semanticModel, result, isTest: isCSharpTest, cancellationToken))
             return;
 
         // Normal syntactic classifier will have classified everything but the xml text tokens.  Recurse ourselves to
@@ -100,6 +101,7 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         TextSpan textSpan,
         SemanticModel semanticModel,
         SegmentedList<ClassifiedSpan> result,
+        bool isTest,
         CancellationToken cancellationToken)
     {
         // Check if this is a C# code block
@@ -111,8 +113,11 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         if (virtualCharsBuilder.Count == 0)
             return false;
 
-        // Break the full sequence of virtual chars into the actual C# code and the markup
-        var (virtualCharsWithoutMarkup, markdownSpans) = StripMarkupCharacters(virtualCharsBuilder, cancellationToken);
+        // If this is C#-test break the full sequence of virtual chars into the actual C# code and the markup.
+        // Otherwise, process the code as-is.
+        var (virtualCharsWithoutMarkup, markdownSpans) = isTest
+            ? StripMarkupCharacters(virtualCharsBuilder, cancellationToken)
+            : ([.. virtualCharsBuilder], []);
 
         // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
         foreach (var span in markdownSpans)
@@ -120,6 +125,22 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
 
         // Next, fill in everything with the "TestCode" classification.  This will ensure it gets the right background
         // highlighting, making it easier to distinguish for normal C# code. 
+        AddTestCodeBackgroundClassification(result, virtualCharsBuilder);
+
+        var classifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
+            _solutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
+
+        CSharpTestEmbeddedLanguageUtilities.AddClassifications(
+            virtualCharsWithoutMarkup,
+            classifiedSpans,
+            static (result, classificationType, span) => result.Add(new(classificationType, span)),
+            result);
+
+        return true;
+    }
+
+    private static void AddTestCodeBackgroundClassification(SegmentedList<ClassifiedSpan> result, ArrayBuilder<VirtualChar> virtualCharsBuilder)
+    {
         var skipFirstSpace = true;
         for (var i = 0; i < virtualCharsBuilder.Count;)
         {
@@ -145,17 +166,6 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
                 ClassificationTypeNames.TestCode,
                 TextSpan.FromBounds(start, end)));
         }
-
-        var classifiedSpans = CSharpTestEmbeddedLanguageUtilities.GetTestFileClassifiedSpans(
-            _solutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
-
-        CSharpTestEmbeddedLanguageUtilities.AddClassifications(
-            virtualCharsWithoutMarkup,
-            classifiedSpans,
-            static (result, classificationType, span) => result.Add(new(classificationType, span)),
-            result);
-
-        return true;
     }
 
     private static bool ExtractTextTokenVirtualChars(
