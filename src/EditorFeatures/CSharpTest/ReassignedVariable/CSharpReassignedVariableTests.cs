@@ -868,6 +868,56 @@ public sealed class CSharpReassignedVariableTests : AbstractReassignedVariableTe
             """);
 
     [Fact]
+    public Task TestDeconstructionReassignedInLocalFunction_ExplicitType()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    (int [|b|], int [|c|]) = (0, 0);
+                    
+                    Foo();
+                    Console.WriteLine($"{[|b|]} {[|c|]}");
+                    
+                    void Foo()
+                    {
+                        [|b|] = 2;
+                        if (Environment.TickCount > 12345)
+                            [|c|] = 1;
+                        else
+                            [|c|] = 2;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestDeconstructionReassignedInLocalFunction_Nested()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    var ([|a|], ([|b|], [|c|])) = (1, (2, 3));
+                    
+                    Foo();
+                    Console.WriteLine($"{[|a|]} {[|b|]} {[|c|]}");
+                    
+                    void Foo()
+                    {
+                        [|a|] = 10;
+                        [|b|] = 20;
+                        [|c|] = 30;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
     public Task TestTopLevelNotReassigned()
         => TestAsync(
             """
