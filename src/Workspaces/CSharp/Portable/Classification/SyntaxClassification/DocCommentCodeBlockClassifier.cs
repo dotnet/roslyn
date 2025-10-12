@@ -42,19 +42,8 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
         if (syntax is not XmlElementSyntax xmlElement)
             return;
 
-        // Check if this is a <code> element
-        if (xmlElement.StartTag.Name.LocalName.Text != DocumentationCommentXmlNames.CodeElementName)
-            return;
-
-        // Check if it has lang="C#" or lang="C#-test" attribute
-        var langAttribute = xmlElement.StartTag.Attributes.OfType<XmlTextAttributeSyntax>()
-            .FirstOrDefault(attr => attr.Name.LocalName.Text == "lang");
-
-        if (langAttribute is null)
-            return;
-
-        var langValue = GetAttributeValue(langAttribute);
-        if (langValue is not ("C#" or "C#-test"))
+        // Check if this is a C# code block
+        if (!ClassificationHelpers.IsCodeBlockWithCSharpLang(xmlElement))
             return;
 
         // Extract the code content from the XML element
@@ -88,11 +77,6 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
             // Map the classified span back to the original document
             AddMappedClassifications(virtualChars, classifiedSpan, textSpan, result);
         }
-    }
-
-    private static string? GetAttributeValue(XmlTextAttributeSyntax attribute)
-    {
-        return string.Join("", attribute.TextTokens.Select(t => t.Text));
     }
 
     private static bool TryExtractCodeContent(
@@ -192,33 +176,6 @@ internal sealed class DocCommentCodeBlockClassifier : AbstractSyntaxClassifier
             }
 
             currentStartIndexInclusive = currentEndIndexExclusive;
-        }
-    }
-
-    /// <summary>
-    /// Trivial implementation of a <see cref="SourceText"/> that directly maps over a <see
-    /// cref="VirtualCharSequence"/>.
-    /// </summary>
-    private sealed class VirtualCharSequenceSourceText : SourceText
-    {
-        private readonly ImmutableSegmentedList<VirtualChar> _virtualChars;
-
-        public override Encoding? Encoding { get; }
-
-        public VirtualCharSequenceSourceText(ImmutableSegmentedList<VirtualChar> virtualChars, Encoding? encoding)
-        {
-            _virtualChars = virtualChars;
-            Encoding = encoding;
-        }
-
-        public override int Length => _virtualChars.Count;
-
-        public override char this[int position] => _virtualChars[position];
-
-        public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
-        {
-            for (int i = sourceIndex, n = sourceIndex + count; i < n; i++)
-                destination[destinationIndex + (i - sourceIndex)] = this[i];
         }
     }
 }

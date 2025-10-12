@@ -206,7 +206,7 @@ internal ref partial struct Worker
 
         // Skip classifying content for <code lang="C#"> or <code lang="C#-test"> blocks
         // The semantic classifier (DocCommentCodeBlockClassifier) will handle those
-        if (!IsCodeBlockWithCSharpLang(node))
+        if (!ClassificationHelpers.IsCodeBlockWithCSharpLang(node))
         {
             foreach (var xmlNode in node.Content)
             {
@@ -215,26 +215,6 @@ internal ref partial struct Worker
         }
 
         ClassifyXmlElementEndTag(node.EndTag);
-    }
-
-    private static bool IsCodeBlockWithCSharpLang(XmlElementSyntax node)
-    {
-        // Check if this is a <code> element
-        if (node.StartTag.Name.LocalName.Text != DocumentationCommentXmlNames.CodeElementName)
-            return false;
-
-        // Check if it has lang="C#" or lang="C#-test" attribute
-        foreach (var attribute in node.StartTag.Attributes)
-        {
-            if (attribute is XmlTextAttributeSyntax textAttribute &&
-                attribute.Name.LocalName.Text == "lang")
-            {
-                var langValue = string.Join("", textAttribute.TextTokens.Select(t => t.Text));
-                return langValue is "C#" or "C#-test";
-            }
-        }
-
-        return false;
     }
 
     private void ClassifyXmlElementStartTag(XmlElementStartTagSyntax node)
