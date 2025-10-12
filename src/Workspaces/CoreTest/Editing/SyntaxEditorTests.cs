@@ -327,7 +327,7 @@ public class C
 """);
     }
 
-    [Fact, WorkItem(78860, "https://github.com/dotnet/roslyn/issues/78860")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78860")]
     public void TestInsertDelegateIntoInterface()
     {
         var code = """
