@@ -3130,6 +3130,8 @@ Punctuation.CloseCurly);
             }
             """,
             testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
             XmlDoc.Delimiter("<"),
             XmlDoc.Name("code"),
             XmlDoc.AttributeName("lang"),
@@ -3140,16 +3142,15 @@ Punctuation.CloseCurly);
             XmlDoc.Delimiter(">"),
             XmlDoc.Delimiter("///"),
             Keyword("using"),
-            Identifier("System"),
+            Namespace("System"),
             Punctuation.Semicolon,
             XmlDoc.Delimiter("///"),
             Keyword("var"),
-            Identifier("x"),
+            Local("x"),
             Operators.Equals,
             Number("5"),
             Punctuation.Semicolon,
             XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
             XmlDoc.Delimiter("</"),
             XmlDoc.Name("code"),
             XmlDoc.Delimiter(">"));
@@ -3162,7 +3163,7 @@ Punctuation.CloseCurly);
             /// Test method
             /// </summary>
             [|/// <code lang="C#"><![CDATA[
-            /// using System;
+            /// using System.Collections.Generic;
             /// IList<int> x = 5;
             /// ]]></code>|]
             class Program
@@ -3226,12 +3227,12 @@ Punctuation.CloseCurly);
             Keyword("using"),
             Namespace("System"),
             Operators.Dot,
-            Identifier("Collection"),
+            Namespace("Collections"),
             Operators.Dot,
-            Identifier("Generic"),
+            Namespace("Generic"),
             Punctuation.Semicolon,
             XmlDoc.Delimiter("///"),
-            Identifier("IList"),
+            Interface("IList"),
             Punctuation.XmlOpenAngle,
             Keyword("int"),
             Punctuation.XmlCloseAngle,
