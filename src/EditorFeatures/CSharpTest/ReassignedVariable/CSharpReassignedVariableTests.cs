@@ -345,6 +345,29 @@ public sealed class CSharpReassignedVariableTests : AbstractReassignedVariableTe
             """);
 
     [Fact]
+    public Task TestPatternMatchingReassignedInLocalFunction()
+        => TestAsync(
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    if (0 is var [|p|])
+                    {
+                        LocalFunc();
+                        Console.WriteLine([|p|]);
+                    }
+                    
+                    void LocalFunc()
+                    {
+                        [|p|] = 1;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
     public Task TestLocalDeclaredByOutVar()
         => TestAsync(
             """
