@@ -198,7 +198,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 openFile = new OpenSourceGeneratedFile(this, textBuffer, documentIdentity);
                 _openFiles.Add(moniker, openFile);
 
-                _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None).AsTask());
+                // Don't block the UI thread during initial file refresh to avoid potential reentrancy issues.
+                _ = _threadingContext.JoinableTaskFactory.RunAsync(async () => await openFile.RefreshFileAsync(CancellationToken.None));
 
                 // Update the RDT flags to ensure the file can't be saved or appears in any MRUs as it's a temporary generated file name.
                 var runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_threadingContext.JoinableTaskFactory);
@@ -212,8 +213,9 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     {
         if (_openFiles.TryGetValue(moniker, out var openFile))
         {
-            // Use RunAsync instead of Run to avoid blocking the UI thread and potential reentrancy issues
-            // that could cause the windowFrame to be used incorrectly.
+            // Don't block the UI thread to avoid potential reentrancy issues during window frame setup.
+            // Blocking here could allow other events to be processed, potentially causing the window frame
+            // to be associated with the wrong document.
             _ = _threadingContext.JoinableTaskFactory.RunAsync(() => openFile.SetWindowFrameAsync(windowFrame));
         }
     }
@@ -512,13 +514,9 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 Contract.ThrowIfNull(infoBarMessage);
                 infoBarMessage.Remove();
 
-                // Show the "Generator running" message asynchronously to avoid blocking the UI thread
-                // and potential reentrancy issues.
-                _ = _fileManager._threadingContext.JoinableTaskFactory.RunAsync(async () =>
-                {
-                    _currentInfoBarMessage = await _infoBar.ShowInfoBarMessageAsync(
-                        ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation).ConfigureAwait(true);
-                });
+                _currentInfoBarMessage = _fileManager._threadingContext.JoinableTaskFactory.Run(() =>
+                    _infoBar.ShowInfoBarMessageAsync(
+                        ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation));
 
                 // Force regeneration here.  Nothing has actually changed, so the incremental generator architecture
                 // would normally just return the same values all over again.  By forcing things, we drop the
