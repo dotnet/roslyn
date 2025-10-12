@@ -209,7 +209,9 @@ internal ref partial struct Worker
         ClassifyXmlElementStartTag(node.StartTag);
 
         // For C# code blocks, still recurse into content but only classify the /// trivia
-        var isCSharpCodeBlock = ClassificationHelpers.IsCodeBlockWithCSharpLang(node);
+        var (isCSharp, isCSharpTest) = ClassificationHelpers.IsCodeBlockWithCSharpLang(node);
+
+        var isCSharpCodeBlock = isCSharp || isCSharpTest;
 
         var oldSkipXmlTextTokens = _skipXmlTextTokens;
         _skipXmlTextTokens = isCSharpCodeBlock;
