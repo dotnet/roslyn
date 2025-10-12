@@ -81,7 +81,7 @@ internal readonly struct NameDeclarationInfo(
             || IsPropertyDeclaration(token, semanticModel, cancellationToken, out result)
             || IsPossibleOutVariableDeclaration(token, semanticModel, typeInferenceService, cancellationToken, out result)
             || IsTupleLiteralElement(token, semanticModel, cancellationToken, out result)
-            || IsIncompleteParenthesizedTuple(token, semanticModel, typeInferenceService, cancellationToken, out result)
+            || IsIncompleteParenthesizedTuple(token, semanticModel, cancellationToken, out result)
             || IsPossibleLocalVariableOrFunctionDeclaration(token, semanticModel, cancellationToken, out result)
             || IsPatternMatching(token, semanticModel, cancellationToken, out result))
         {
@@ -131,14 +131,12 @@ internal readonly struct NameDeclarationInfo(
     }
 
     private static bool IsIncompleteParenthesizedTuple(
-        SyntaxToken token, SemanticModel semanticModel, ITypeInferenceService typeInferenceService,
-        CancellationToken cancellationToken, out NameDeclarationInfo result)
+        SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out NameDeclarationInfo result)
     {
         // When the user types something like:
         //   (List<Person> $$
-        // in a method body, the parser creates a ParenthesizedExpressionSyntax instead of a TupleExpressionSyntax.
-        // We need to check if the expression inside the parentheses looks like a type.
-        
+        // in a method body, the parser creates a ParenthesizedExpressionSyntax instead of a TupleExpressionSyntax. We
+        // need to check if the expression inside the parentheses looks like a type.
         result = default;
 
         if (!IsPossibleTypeToken(token))
@@ -736,8 +734,7 @@ internal readonly struct NameDeclarationInfo(
     {
         // There's no special glyph for local functions.
         // We don't need to differentiate them at this point.
-        return symbolKindOrTypeKind.SymbolKind.HasValue ? symbolKindOrTypeKind.SymbolKind.Value :
-            symbolKindOrTypeKind.MethodKind.HasValue ? SymbolKind.Method :
-            throw ExceptionUtilities.Unreachable();
+        return symbolKindOrTypeKind.SymbolKind ??
+            (symbolKindOrTypeKind.MethodKind.HasValue ? SymbolKind.Method : throw ExceptionUtilities.Unreachable());
     }
 }
