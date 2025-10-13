@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     projectionCall.Expanded ||
                     projectionCall.Method is not SynthesizedCollectionBuilderProjectedMethodSymbol { UnderlyingMethod: var underlyingMethod })
                 {
-                    // PROTOTYPE: give error when in expanded form.  This means we had something like `Foo(params int[]
+                    // PROTOTYPE: give error when in expanded form.  This means we had something like `Goo(params int[]
                     // x, ReadOnlySpan<int> y)` which is already extremely strange.
                     collectionCreation = null;
                     collectionBuilderMethod = null;
