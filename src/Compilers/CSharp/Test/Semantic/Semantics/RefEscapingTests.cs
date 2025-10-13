@@ -12726,6 +12726,82 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c3").WithArguments("c3").WithLocation(11, 16));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79054")]
+        public void Assignment_Invocation()
+        {
+            var source = """
+                ref struct C
+                {
+                    static C M1(C c1, scoped C c2)
+                    {
+                        return X(c2 = c1);
+                    }
+                    static C M2(C c1, scoped C c2)
+                    {
+                        return X(c2);
+                    }
+                    static C X(C c) => c;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,18): error CS8352: Cannot use variable 'scoped C c2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return X(c2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c2").WithArguments("scoped C c2").WithLocation(9, 18),
+                // (9,16): error CS8347: Cannot use a result of 'C.X(C)' in this context because it may expose variables referenced by parameter 'c' outside of their declaration scope
+                //         return X(c2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c2)").WithArguments("C.X(C)", "c").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79054")]
+        public void RefAssignment()
+        {
+            var source = """
+                ref struct C
+                {
+                    static ref C M1(ref C c1, scoped ref C c2)
+                    {
+                        ref C c3 = ref (c2 = ref c1);
+                        return ref c3; // 1
+                    }
+                    static ref C M2(ref C c1, scoped ref C c2)
+                    {
+                        ref C c3 = ref c2;
+                        return ref c3; // 2
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,20): error CS8157: Cannot return 'c3' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref c3; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "c3").WithArguments("c3").WithLocation(11, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79054")]
+        public void RefAssignment_Invocation()
+        {
+            var source = """
+                ref struct C
+                {
+                    static ref C M1(ref C c1, scoped ref C c2)
+                    {
+                        return ref X(ref (c2 = ref c1));
+                    }
+                    static ref C M2(ref C c1, scoped ref C c2)
+                    {
+                        return ref X(ref c2);
+                    }
+                    static ref C X(ref C c) => ref c;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,26): error CS9075: Cannot return a parameter by reference 'c2' because it is scoped to the current method
+                //         return ref X(ref c2);
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "c2").WithArguments("c2").WithLocation(9, 26),
+                // (9,20): error CS8347: Cannot use a result of 'C.X(ref C)' in this context because it may expose variables referenced by parameter 'c' outside of their declaration scope
+                //         return ref X(ref c2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(ref c2)").WithArguments("C.X(ref C)", "c").WithLocation(9, 20));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
         public void SelfAssignment_ReturnOnly()
         {

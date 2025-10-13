@@ -4621,9 +4621,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(((BoundAssignmentOperator)expr).Right, localScopeDepth);
 
                 case BoundKind.NullCoalescingAssignmentOperator:
-                    // https://github.com/dotnet/roslyn/issues/73549:
-                    // We do not have a test that demonstrates that the statement below makes a difference.
-                    // If 'localScopeDepth' is always returned, not a single test fails.
                     var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
                     return GetValEscape(nullCoalescingAssignment.LeftOperand, localScopeDepth)
                         .Intersect(GetValEscape(nullCoalescingAssignment.RightOperand, localScopeDepth));
