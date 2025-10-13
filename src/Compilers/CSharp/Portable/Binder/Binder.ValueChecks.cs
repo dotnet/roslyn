@@ -4624,9 +4624,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/73549:
                     // We do not have a test that demonstrates that the statement below makes a difference.
                     // If 'localScopeDepth' is always returned, not a single test fails.
-
-                    // The result of a null-coalescing assignment is its right-hand side.
-                    return GetValEscape(((BoundNullCoalescingAssignmentOperator)expr).RightOperand, localScopeDepth);
+                    var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
+                    return GetValEscape(nullCoalescingAssignment.LeftOperand, localScopeDepth)
+                        .Intersect(GetValEscape(nullCoalescingAssignment.RightOperand, localScopeDepth));
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
@@ -4666,8 +4666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // The result of a compound assignment is its right-hand side.
-                            return GetValEscape(compound.Right, localScopeDepth);
+                            return GetValEscape(compound.Left, localScopeDepth);
                         }
                     }
 
@@ -5386,8 +5385,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.NullCoalescingAssignmentOperator:
                     var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
-                    // The result of a null-coalescing assignment is its right-hand side.
-                    return CheckValEscape(node, nullCoalescingAssignment.RightOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    return CheckValEscape(node, nullCoalescingAssignment.LeftOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                        CheckValEscape(node, nullCoalescingAssignment.RightOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
@@ -5433,8 +5432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // The result of a compound assignment is its right-hand side.
-                            return CheckValEscape(compound.Right.Syntax, compound.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                            return CheckValEscape(compound.Left.Syntax, compound.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
                         }
                     }
 
