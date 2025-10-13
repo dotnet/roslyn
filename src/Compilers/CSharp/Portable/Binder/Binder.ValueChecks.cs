@@ -4793,6 +4793,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // expr.CollectionCreation contains this call, including anything affected by its 'with(...)'
                     // element, and the place-holder representing the elements.
+
+                    // PROTOTYPE: We probably need to update CheckValEscape/CheckRefEscape and GetValEscape/GetRefEscape to account for collection creation portion too.
+                    // For instance, I'd expect CheckValEscape to run CheckInvocationEscape on the call in CollectionCreation.
+
                     Debug.Assert(expr.CollectionCreation is { });
                     var context = GetValEscape(expr.CollectionCreation, _localScopeDepth);
                     return !context.IsReturnable;
