@@ -7270,6 +7270,29 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
+    public void NullableAnalysis_02()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            class Program
+            {
+                static IEqualityComparer<T> Create<T>()
+                {
+                    IEqualityComparer<T>? e = null;
+                    HashSet<string> s = ["", with(e = Create<T>())];
+                    return e;
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (8,34): error CS9400: 'with(...)' element must be the first element
+            //         HashSet<string> s = ["", with(e = Create<T>())];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 34));
+    }
+
+    [Fact]
     public void ParamsCycle_ParamsConstructorOnly()
     {
         string sourceA = """
