@@ -178,7 +178,12 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
             {
                 if (token.Kind() == SyntaxKind.XmlEntityLiteralToken)
                 {
-                    // We only know how to deal with single character entities like: &lt;  &gt;  &amp;  &apos;  &quot;
+                    // We only know how to deal with single character entities like:
+                    //
+                    //      &lt;  &gt;  &amp;  &apos;  &quot;       corresponding to:
+                    //
+                    //       <    >     &      '       "
+
                     if (token.ValueText.Length != 1)
                         return false;
 
