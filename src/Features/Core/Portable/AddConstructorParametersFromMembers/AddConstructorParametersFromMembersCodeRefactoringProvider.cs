@@ -36,15 +36,11 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
     {
         var (document, textSpan, cancellationToken) = context;
         if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
-        {
             return;
-        }
 
         var result = await AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         if (result == null)
-        {
             return;
-        }
 
         var actions = GetGroupedActions(result.Value);
         context.RegisterRefactorings(actions);
@@ -168,15 +164,11 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
     {
         var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, cancellationToken).ConfigureAwait(false);
         if (addConstructorParametersResult == null)
-        {
             return [];
-        }
 
         var actions = addConstructorParametersResult.Value.RequiredParameterActions.Concat(addConstructorParametersResult.Value.OptionalParameterActions);
         if (actions.IsEmpty)
-        {
             return [];
-        }
 
         var results = new FixedSizeArrayBuilder<IntentProcessorResult>(actions.Length);
         foreach (var action in actions)
