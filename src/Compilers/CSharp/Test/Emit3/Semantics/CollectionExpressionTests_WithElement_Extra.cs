@@ -1456,9 +1456,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (15,52): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            // (15,53): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(t), t]").WithArguments("Create", "1").WithLocation(15, 52));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(t)").WithArguments("Create", "1").WithLocation(15, 53));
     }
 
     [Fact]
@@ -1582,9 +1582,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (4,46): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
+            // (4,47): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[with()]").WithArguments("arg", "MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(4, 46),
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("arg", "MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(4, 47),
             // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 38));
@@ -2760,12 +2760,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            // (5,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(ref x)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(ref x)]").WithArguments("Create", "1").WithLocation(5, 5),
-            // (8,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(ref x)").WithArguments("Create", "1").WithLocation(5, 6),
+            // (8,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(ref r)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(ref r)]").WithArguments("Create", "1").WithLocation(8, 5));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(ref r)").WithArguments("Create", "1").WithLocation(8, 6));
 
         string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
@@ -2943,15 +2943,15 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            // (5,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(in x)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(in x)]").WithArguments("Create", "1").WithLocation(5, 5),
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(in x)").WithArguments("Create", "1").WithLocation(5, 6),
             // (6,15): error CS1510: A ref or out value must be an assignable variable
             // c = [with(ref ro)];
             Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(6, 15),
-            // (7,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            // (7,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(out x)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(out x)]").WithArguments("Create", "1").WithLocation(7, 5));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(out x)").WithArguments("Create", "1").WithLocation(7, 6));
     }
 
     [Fact]
@@ -3212,12 +3212,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            // (5,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(out x)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(out x)]").WithArguments("Create", "1").WithLocation(5, 5),
-            // (8,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(out x)").WithArguments("Create", "1").WithLocation(5, 6),
+            // (8,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(out r), 3];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(out r), 3]").WithArguments("Create", "1").WithLocation(8, 5));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(out r)").WithArguments("Create", "1").WithLocation(8, 6));
 
         string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
@@ -3230,18 +3230,18 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (4,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            // (4,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(1)]").WithArguments("Create", "1").WithLocation(4, 5),
-            // (5,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(1)").WithArguments("Create", "1").WithLocation(4, 6),
+            // (5,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(x)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(x)]").WithArguments("Create", "1").WithLocation(5, 5),
-            // (6,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(x)").WithArguments("Create", "1").WithLocation(5, 6),
+            // (6,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(ref x)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(ref x)]").WithArguments("Create", "1").WithLocation(6, 5),
-            // (7,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(ref x)").WithArguments("Create", "1").WithLocation(6, 6),
+            // (7,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(in x)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(in x)]").WithArguments("Create", "1").WithLocation(7, 5));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(in x)").WithArguments("Create", "1").WithLocation(7, 6));
     }
 
     [Fact]
@@ -3359,18 +3359,18 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            // (5,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(in x)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(in x)]").WithArguments("Create", "1").WithLocation(5, 5),
-            // (7,5): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(in x)").WithArguments("Create", "1").WithLocation(5, 6),
+            // (7,6): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             // c = [with(1), 3];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(1), 3]").WithArguments("Create", "1").WithLocation(7, 5),
-            // (9,5): error CS9405: No overload for method 'Create' takes 2 'with(...)' element arguments
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(1)").WithArguments("Create", "1").WithLocation(7, 6),
+            // (9,6): error CS9405: No overload for method 'Create' takes 2 'with(...)' element arguments
             // c = [with(x, ref y)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(x, ref y)]").WithArguments("Create", "2").WithLocation(9, 5),
-            // (11,5): error CS9405: No overload for method 'Create' takes 2 'with(...)' element arguments
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(x, ref y)").WithArguments("Create", "2").WithLocation(9, 6),
+            // (11,6): error CS9405: No overload for method 'Create' takes 2 'with(...)' element arguments
             // c = [with(out x, y), 3];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(out x, y), 3]").WithArguments("Create", "2").WithLocation(11, 5));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(out x, y)").WithArguments("Create", "2").WithLocation(11, 6));
     }
 
     [Fact]
@@ -3530,9 +3530,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (6,19): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
             // c = [with(arg: 4, items: default)];
             Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(6, 19),
-            // (7,5): error CS9405: No overload for method 'Create' takes 2 'with(...)' element arguments
+            // (7,6): error CS9405: No overload for method 'Create' takes 2 'with(...)' element arguments
             // c = [with(default, 5)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(default, 5)]").WithArguments("Create", "2").WithLocation(7, 5),
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(default, 5)").WithArguments("Create", "2").WithLocation(7, 6),
             // (8,20): error CS1744: Named argument 'arg' specifies a parameter for which a positional argument has already been given
             // c = [with(default, arg: 6)];
             Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "arg").WithArguments("arg").WithLocation(8, 20));
@@ -3578,9 +3578,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB, sourceC, CollectionBuilderAttributeDefinition]);
         comp.VerifyEmitDiagnostics(
-            // (5,51): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            // (5,52): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //     static MyCollection<T> WithArg<T>(int arg) => [with(arg)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(arg)]").WithArguments("Create", "1").WithLocation(5, 51),
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(arg)").WithArguments("Create", "1").WithLocation(5, 52),
             // (13,61): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
             //     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
             Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "items").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(13, 61));
@@ -3845,9 +3845,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (8,13): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+            // (8,14): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         c = [with(default)];
-            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "[with(default)]").WithArguments("Create", "1").WithLocation(8, 13));
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(default)").WithArguments("Create", "1").WithLocation(8, 14));
     }
 
     [Fact]
