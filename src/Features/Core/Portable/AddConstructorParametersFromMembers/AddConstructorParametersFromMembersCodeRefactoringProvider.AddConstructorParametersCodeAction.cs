@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
@@ -106,42 +105,25 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
 
             var oldConstructorSyntaxTree = oldConstructor.SyntaxTree;
 
-            // First, update the members in different files.  This is trivial as we're not editing that file as well to
-            // adjust the primary constructor, and thus do not have to worry about order of syntax editing operations.
+            // First, update the members.  That way we see the adjustment to them when we're updating the primary
+            // constructor that wraps them all.
             foreach (var (parameter, member) in _missingParameters)
             {
-                if (member.DeclaringSyntaxReferences is [var syntaxRef, ..] &&
-                    syntaxRef.SyntaxTree != oldConstructorSyntaxTree)
-                {
-                    await AddInitializerToMemberAsync(
-                        solutionEditor, member, parameter, syntaxRef.GetSyntax(cancellationToken), cancellationToken).ConfigureAwait(false);
-                }
+                await AddInitializerToMemberAsync(
+                    solutionEditor, member, parameter, cancellationToken).ConfigureAwait(false);
             }
 
             var syntaxTree = oldConstructor.SyntaxTree;
             var documentToUpdate = solution.GetRequiredDocument(syntaxTree);
             var editor = await solutionEditor.GetDocumentEditorAsync(documentToUpdate.Id, cancellationToken).ConfigureAwait(false);
 
-            // Now: 
-            foreach (var (parameter, member) in _missingParameters)
-            {
-                if (member.DeclaringSyntaxReferences is [var syntaxRef, ..] &&
-                    syntaxRef.SyntaxTree == oldConstructorSyntaxTree)
+            editor.ReplaceNode(
+                oldConstructor,
+                (currentOldConstructor, _) =>
                 {
-                    nodesToTrack.Add(syntaxRef.GetSyntax(cancellationToken));
-                }
-            }
-
-            var trackedRoot = root.TrackNodes(nodesToTrack);
-
-            editor.ReplaceNode(oldConstructor, newConstructor.WithAdditionalAnnotations(Formatter.Annotation));
-
-            // Now add initializers to each member
-            foreach (var (parameter, member) in _missingParameters)
-            {
-                await AddInitializerToMemberAsync(
-                    solutionEditor, member, parameter, cancellationToken).ConfigureAwait(false);
-            }
+                    var newConstructor = GetNewConstructor(currentOldConstructor, cancellationToken);
+                    return newConstructor.WithAdditionalAnnotations(Formatter.Annotation);
+                });
 
             return solutionEditor.GetChangedSolution();
         }
@@ -150,12 +132,15 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             SolutionEditor solutionEditor,
             ISymbol member,
             IParameterSymbol parameter,
-            SyntaxNode memberSyntax,
             CancellationToken cancellationToken)
         {
             var solution = solutionEditor.OriginalSolution;
             var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
 
+            if (member.DeclaringSyntaxReferences is not [var syntaxRef, ..])
+                return;
+
+            var memberSyntax = syntaxRef.GetSyntax(cancellationToken);
             var memberDocument = solution.GetRequiredDocument(memberSyntax.SyntaxTree);
             var memberEditor = await solutionEditor.GetDocumentEditorAsync(memberDocument.Id, cancellationToken).ConfigureAwait(false);
 
