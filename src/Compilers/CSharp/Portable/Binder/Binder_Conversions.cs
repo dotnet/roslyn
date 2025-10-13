@@ -1234,7 +1234,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string? methodName,
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-
                 if (!SourceNamedTypeSymbol.IsValidCollectionBuilderType(builderType))
                 {
                     return [];
