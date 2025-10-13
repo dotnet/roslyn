@@ -21,13 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification;
 /// artifacts T T is normally either ClassificationSpan or a Tuple (for testing purposes) 
 /// and constructed via provided factory.
 /// </summary>
-internal ref partial struct Worker
+internal readonly ref partial struct Worker
 {
     private readonly TextSpan _textSpan;
     private readonly SegmentedList<ClassifiedSpan> _result;
     private readonly CancellationToken _cancellationToken;
-
-    private bool _skipXmlTextTokens;
 
     private Worker(TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {

@@ -4,8 +4,6 @@
 
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -32,7 +30,7 @@ internal ref partial struct Worker
                 continue;
             }
 
-            ClassifyXmlNode(xmlNode);
+            ClassifyXmlNode(xmlNode, skipXmlTextTokens: false);
         }
 
         // NOTE: the "EndOfComment" token is a special, zero width token.  However, if it's a multi-line xml doc comment
@@ -40,7 +38,7 @@ internal ref partial struct Worker
         ClassifyXmlTrivia(documentationComment.EndOfComment.LeadingTrivia);
     }
 
-    private void ClassifyXmlNode(XmlNodeSyntax node)
+    private void ClassifyXmlNode(XmlNodeSyntax node, bool skipXmlTextTokens)
     {
         switch (node.Kind())
         {
@@ -51,13 +49,13 @@ internal ref partial struct Worker
                 ClassifyXmlEmptyElement((XmlEmptyElementSyntax)node);
                 break;
             case SyntaxKind.XmlText:
-                ClassifyXmlText((XmlTextSyntax)node);
+                ClassifyXmlText((XmlTextSyntax)node, skipXmlTextTokens);
                 break;
             case SyntaxKind.XmlComment:
                 ClassifyXmlComment((XmlCommentSyntax)node);
                 break;
             case SyntaxKind.XmlCDataSection:
-                ClassifyXmlCDataSection((XmlCDataSectionSyntax)node);
+                ClassifyXmlCDataSection((XmlCDataSectionSyntax)node, skipXmlTextTokens);
                 break;
             case SyntaxKind.XmlProcessingInstruction:
                 ClassifyXmlProcessingInstruction((XmlProcessingInstructionSyntax)node);
@@ -138,23 +136,24 @@ internal ref partial struct Worker
             ClassifyXmlTrivia(token.TrailingTrivia);
     }
 
-    private void ClassifyXmlTextTokens(SyntaxTokenList textTokens)
+    private void ClassifyXmlTextTokens(
+        SyntaxTokenList textTokens, bool skipXmlTextTokens)
     {
         foreach (var token in textTokens)
         {
             if (token.HasLeadingTrivia)
                 ClassifyXmlTrivia(token.LeadingTrivia);
 
-            ClassifyXmlTextToken(token);
+            ClassifyXmlTextToken(token, skipXmlTextTokens);
 
             if (token.HasTrailingTrivia)
                 ClassifyXmlTrivia(token.TrailingTrivia);
         }
     }
 
-    private readonly void ClassifyXmlTextToken(SyntaxToken token)
+    private readonly void ClassifyXmlTextToken(SyntaxToken token, bool skipXmlTextTokens)
     {
-        if (_skipXmlTextTokens)
+        if (skipXmlTextTokens)
             return;
 
         if (token.Kind() == SyntaxKind.XmlEntityLiteralToken)
@@ -213,13 +212,8 @@ internal ref partial struct Worker
 
         var isCSharpCodeBlock = isCSharp || isCSharpTest;
 
-        var oldSkipXmlTextTokens = _skipXmlTextTokens;
-        _skipXmlTextTokens = isCSharpCodeBlock;
-
         foreach (var xmlNode in node.Content)
-            ClassifyXmlNode(xmlNode);
-
-        _skipXmlTextTokens = oldSkipXmlTextTokens;
+            ClassifyXmlNode(xmlNode, skipXmlTextTokens: isCSharpCodeBlock);
 
         ClassifyXmlElementEndTag(node.EndTag);
     }
@@ -271,7 +265,7 @@ internal ref partial struct Worker
                 if (IsLangWordAttribute(attribute))
                     ClassifyLangWordTextTokenList(((XmlTextAttributeSyntax)attribute).TextTokens);
                 else
-                    ClassifyXmlTextTokens(((XmlTextAttributeSyntax)attribute).TextTokens);
+                    ClassifyXmlTextTokens(((XmlTextAttributeSyntax)attribute).TextTokens, skipXmlTextTokens: false);
 
                 break;
             case SyntaxKind.XmlCrefAttribute:
@@ -318,7 +312,7 @@ internal ref partial struct Worker
 
         if (kind is SyntaxKind.None)
         {
-            ClassifyXmlTextToken(token);
+            ClassifyXmlTextToken(token, skipXmlTextTokens: false);
             return;
         }
 
@@ -326,20 +320,20 @@ internal ref partial struct Worker
         AddClassification(token, isControlKeyword ? ClassificationTypeNames.ControlKeyword : ClassificationTypeNames.Keyword);
     }
 
-    private void ClassifyXmlText(XmlTextSyntax node)
-        => ClassifyXmlTextTokens(node.TextTokens);
+    private void ClassifyXmlText(XmlTextSyntax node, bool skipXmlTextTokens)
+        => ClassifyXmlTextTokens(node.TextTokens, skipXmlTextTokens);
 
     private void ClassifyXmlComment(XmlCommentSyntax node)
     {
         AddXmlClassification(node.LessThanExclamationMinusMinusToken, ClassificationTypeNames.XmlDocCommentDelimiter);
-        ClassifyXmlTextTokens(node.TextTokens);
+        ClassifyXmlTextTokens(node.TextTokens, skipXmlTextTokens: false);
         AddXmlClassification(node.MinusMinusGreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter);
     }
 
-    private void ClassifyXmlCDataSection(XmlCDataSectionSyntax node)
+    private void ClassifyXmlCDataSection(XmlCDataSectionSyntax node, bool skipXmlTextTokens)
     {
         AddXmlClassification(node.StartCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter);
-        ClassifyXmlTextTokens(node.TextTokens);
+        ClassifyXmlTextTokens(node.TextTokens, skipXmlTextTokens);
         AddXmlClassification(node.EndCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter);
     }
 
@@ -347,7 +341,7 @@ internal ref partial struct Worker
     {
         AddXmlClassification(node.StartProcessingInstructionToken, ClassificationTypeNames.XmlDocCommentProcessingInstruction);
         ClassifyXmlName(node.Name);
-        ClassifyXmlTextTokens(node.TextTokens);
+        ClassifyXmlTextTokens(node.TextTokens, skipXmlTextTokens: false);
         AddXmlClassification(node.EndProcessingInstructionToken, ClassificationTypeNames.XmlDocCommentProcessingInstruction);
     }
 }
