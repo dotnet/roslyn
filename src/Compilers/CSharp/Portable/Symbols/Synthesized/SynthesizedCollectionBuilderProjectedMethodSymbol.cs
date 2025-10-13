@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -86,11 +85,14 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
         {
             if (_lazyParameters.IsDefault)
             {
-                var parameters = this.UnderlyingMethod.Parameters
-                    .Take(this.ParameterCount)
-                    .SelectAsArray(
-                        static (p, @this) => (ParameterSymbol)new SynthesizedCollectionBuilderProjectedParameterSymbol(@this, p), this);
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, parameters);
+                // Grab all but the last parameter from the underlying method.
+                var parameters = this.UnderlyingMethod.Parameters;
+                var parameterCount = parameters.Length - 1;
+                var builder = ArrayBuilder<ParameterSymbol>.GetInstance(parameterCount);
+                for (int i = 0; i < parameterCount; i++)
+                    builder.Add(new SynthesizedCollectionBuilderProjectedParameterSymbol(this, parameters[i]));
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, builder.ToImmutableAndFree());
             }
             return _lazyParameters;
         }
