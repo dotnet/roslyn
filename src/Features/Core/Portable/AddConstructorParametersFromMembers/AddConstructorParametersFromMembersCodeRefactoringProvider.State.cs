@@ -88,7 +88,9 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                 if (await IsApplicableConstructorAsync(
                         constructor, document, parametersForSelectedMembers.SelectAsArray(p => p.parameter.Name), cancellationToken).ConfigureAwait(false))
                 {
-                    applicableConstructors.Add(new(constructor, parametersForSelectedMembers));
+                    applicableConstructors.Add(new(
+                        constructor,
+                        parametersForSelectedMembers.WhereAsArray(t => !constructor.Parameters.Any(p => t.parameter.Name == p.Name))));
                 }
             }
 
