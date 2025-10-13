@@ -121,9 +121,9 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                 requiredParametersActions.Add(new AddConstructorParametersCodeAction(
                     document,
                     info,
-                    constructorCandidate,
+                    constructorCandidate.Constructor,
                     containingType,
-                    constructorCandidate.MissingParameters,
+                    constructorCandidate.MissingParametersAndMembers,
                     useSubMenuName: useSubMenu));
             }
 
@@ -144,18 +144,18 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         static AddConstructorParametersCodeAction GetOptionalConstructorParametersCodeAction(
             Document document, CodeGenerationContextInfo info, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
         {
-            var missingOptionalParameters = constructorCandidate.MissingParameters.SelectAsArray(
-                p => CodeGenerationSymbolFactory.CreateParameterSymbol(
+            var missingOptionalParameters = constructorCandidate.MissingParametersAndMembers.SelectAsArray(
+                t => (CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default,
-                    refKind: p.RefKind,
-                    isParams: p.IsParams,
-                    type: p.Type,
-                    name: p.Name,
+                    refKind: t.parameter.RefKind,
+                    isParams: t.parameter.IsParams,
+                    type: t.parameter.Type,
+                    name: t.parameter.Name,
                     isOptional: true,
-                    hasDefaultValue: true));
+                    hasDefaultValue: true), t.fieldOrProperty));
 
             return new AddConstructorParametersCodeAction(
-                document, info, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
+                document, info, constructorCandidate.Constructor, containingType, missingOptionalParameters, useSubMenuName);
         }
     }
 

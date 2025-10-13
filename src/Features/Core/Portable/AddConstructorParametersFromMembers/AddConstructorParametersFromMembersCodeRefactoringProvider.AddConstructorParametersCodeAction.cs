@@ -64,7 +64,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             {
                 // For regular constructors, add assignment statements
                 newConstructor = codeGenerator
-                    .AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
+                    .AddStatements(newConstructor, CreateAssignStatements(), _info, cancellationToken)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
@@ -95,7 +95,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
 
             // First, update the primary constructor declaration with the new parameters
             var oldConstructor = _document.GetRequiredLanguageService<ISymbolDeclarationService>()
-                .GetDeclarations(_constructorCandidate.Constructor)
+                .GetDeclarations(_constructor)
                 .Select(r => r.GetSyntax(cancellationToken))
                 .First();
 
@@ -145,7 +145,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             }
         }
 
-        private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
+        private IEnumerable<SyntaxNode> CreateAssignStatements()
         {
             var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
             foreach (var (parameter, fieldOrProperty) in _missingParameters)
@@ -163,7 +163,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         {
             get
             {
-                var parameters = _constructorCandidate.Constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                var parameters = _constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                 var parameterString = string.Join(", ", parameters);
                 var signature = $"{_containingType.Name}({parameterString})";
 
@@ -173,7 +173,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                 }
                 else
                 {
-                    return _missingParameters[0].IsOptional
+                    return _missingParameters[0].parameter.IsOptional
                         ? string.Format(FeaturesResources.Add_optional_parameters_to_0, signature)
                         : string.Format(FeaturesResources.Add_parameters_to_0, signature);
                 }
@@ -186,7 +186,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         /// 
         /// In this case we don't want to use the title as it depends on the class name for the ctor.
         /// </summary>
-        internal string ActionName => _missingParameters[0].IsOptional
+        internal string ActionName => _missingParameters[0].parameter.IsOptional
             ? nameof(FeaturesResources.Add_optional_parameters_to_0)
             : nameof(FeaturesResources.Add_parameters_to_0);
     }
