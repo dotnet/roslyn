@@ -1702,7 +1702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (collectionBuilderMethods is not [var collectionBuilderMethod])
                             {
-                                Debug.Assert(diagnostics.HasAnyErrors(), "GetAndValidateCollectionBuilderMethods should have reported an error in this case");
+                                Debug.Assert(diagnostics.HasAnyErrors(), $"{nameof(binder.GetCollectionBuilderMethods)} should have reported an error in this case");
                                 return;
                             }
 
