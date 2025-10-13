@@ -26398,6 +26398,43 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 26));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80107")]
+        public void SpanAssignment_NestedScope_IssueExample()
+        {
+            // Test case from the issue description
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        scoped Span<int> items1 = default;
+                        scoped Span<int> items2 = default;
+                        foreach (var x in new[] { 1, 2 })
+                        {
+                            Span<int> items = [x];
+                            if (x == 1)
+                                items1 = items;
+
+                            if (x == 2)
+                                items2 = items;
+                        }
+
+                        Console.Write(items1[0]);
+                        Console.Write(items2[0]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (12,26): error CS8352: Cannot use variable 'items' in this context because it may expose referenced variables outside of their declaration scope
+                //                 items1 = items;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "items").WithArguments("items").WithLocation(12, 26),
+                // (15,26): error CS8352: Cannot use variable 'items' in this context because it may expose referenced variables outside of their declaration scope
+                //                 items2 = items;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "items").WithArguments("items").WithLocation(15, 26));
+        }
+
         [Fact]
         public void SpanAssignment_NestedScope_05()
         {
