@@ -290,6 +290,32 @@ internal class SnippetExpansionClient : IVsExpansionClient
                 SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
                 _ = SubjectBuffer.CurrentSnapshot.GetSpan(new Span(line.Start.Position, 0));
             }
+            else
+            {
+                // If the line is not entirely whitespace, check if there's trailing whitespace
+                // before the $end$ position that should be removed. This handles cases where
+                // snippet templates have "$selected$ $end$" pattern, leaving unwanted trailing
+                // whitespace after the selected text.
+                var endPositionInLine = endSnapshotSpan.Start.Position - line.Start.Position;
+                if (endPositionInLine > 0 && endPositionInLine <= lineText.Length)
+                {
+                    // Check if there's whitespace immediately before the $end$ position
+                    var startOfTrailingWhitespace = endPositionInLine;
+                    while (startOfTrailingWhitespace > 0 && char.IsWhiteSpace(lineText[startOfTrailingWhitespace - 1]))
+                    {
+                        startOfTrailingWhitespace--;
+                    }
+
+                    // Only remove whitespace if we found some, but not if it's leading indentation
+                    // (i.e., there must be non-whitespace content before it on the same line)
+                    if (startOfTrailingWhitespace < endPositionInLine && startOfTrailingWhitespace > 0)
+                    {
+                        var trailingWhitespaceStart = line.Start.Position + startOfTrailingWhitespace;
+                        var trailingWhitespaceLength = endPositionInLine - startOfTrailingWhitespace;
+                        SubjectBuffer.Delete(new Span(trailingWhitespaceStart, trailingWhitespaceLength));
+                    }
+                }
+            }
         }
     }
 
