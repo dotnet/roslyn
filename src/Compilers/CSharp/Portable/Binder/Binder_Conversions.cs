@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultKind: LookupResultKind.Viable).MakeCompilerGenerated();
 
                 var projectionInvocationExpression = @this.BindInvocationExpression(
-                    syntax, node.Syntax, methodName, methodGroup,
+                    syntax, syntax, methodName, methodGroup,
                     analyzedArguments, diagnostics, acceptOnlyMethods: true);
 
                 BoundExpression? collectionCreation;
