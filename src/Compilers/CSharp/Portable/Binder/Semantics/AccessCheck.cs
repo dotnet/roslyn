@@ -243,6 +243,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Check if the type has the EmbeddedAttribute and is in a different assembly
+            if (type.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            {
+                var withinAssembly = within is AssemblySymbol assembly ? assembly : ((NamedTypeSymbol)within).ContainingAssembly;
+                if ((object)type.ContainingAssembly != (object)withinAssembly)
+                {
+                    return false;
+                }
+            }
+
             var containingType = type.ContainingType;
             return (object)containingType == null
                 ? IsNonNestedTypeAccessible(type.ContainingAssembly, type.DeclaredAccessibility, within)
