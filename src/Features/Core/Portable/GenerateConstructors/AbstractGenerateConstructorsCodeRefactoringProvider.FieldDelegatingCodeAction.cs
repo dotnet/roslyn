@@ -39,7 +39,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             // parameters into fields.
             var parameterToExistingFieldMap = ImmutableDictionary.CreateBuilder<string, ISymbol>();
             for (var i = 0; i < _state.Parameters.Length; i++)
-                parameterToExistingFieldMap[_state.Parameters[i].fieldOrProperty.Name] = _state.Parameters[i].fieldOrProperty;
+                parameterToExistingFieldMap[_state.Parameters[i].parameter.Name] = _state.Parameters[i].fieldOrProperty;
 
             var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
 
