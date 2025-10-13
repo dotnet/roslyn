@@ -6485,7 +6485,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.WasTargetTyped = wasTargetTyped;
             this.HasWithElement = hasWithElement;
             this.UnconvertedCollectionExpression = unconvertedCollectionExpression;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public new TypeSymbol Type => base.Type!;
         public CollectionExpressionTypeKind CollectionTypeKind { get; }
