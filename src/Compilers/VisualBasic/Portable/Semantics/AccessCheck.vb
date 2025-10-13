@@ -161,11 +161,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Check if the type has the EmbeddedAttribute and is in a different assembly
-            If typeSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
-                Dim withinAssembly As AssemblySymbol = If(TryCast(within, AssemblySymbol), DirectCast(within, NamedTypeSymbol).ContainingAssembly)
-                If typeSym.ContainingAssembly IsNot withinAssembly Then
-                    Return AccessCheckResult.Inaccessible
-                End If
+            ' Skip this check if the type itself is the EmbeddedAttribute to avoid infinite recursion
+            ' Also only check if the type is from a different assembly to avoid unnecessary binding
+            Dim withinAssembly As AssemblySymbol = If(TryCast(within, AssemblySymbol), DirectCast(within, NamedTypeSymbol).ContainingAssembly)
+            If typeSym.ContainingAssembly IsNot withinAssembly AndAlso
+               Not typeSym.IsMicrosoftCodeAnalysisEmbeddedAttribute() AndAlso
+               typeSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+                Return AccessCheckResult.Inaccessible
             End If
 
             Dim containingType As NamedTypeSymbol = typeSym.ContainingType
