@@ -1190,11 +1190,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        /// <param name="forParams">Determines if this is finding collection builder methods for the <c>params
-        /// SomeCollectionType</c> case, or for the general <c>SomeCollection c = [...]</c> case.  The former differs
-        /// from the latter in that the collection builder method itself can only contain a single <see
-        /// cref="ReadOnlySpan{T}"/> parameter, while the latter can be any method that <em>ends</em> with a <see
-        /// cref="ReadOnlySpan{T}"/> parameter, but otherwise follows the collection builder method pattern.</param>
+        /// <param name="forParams">Specifies whether this is finding collection builder methods for the <c>params
+        /// SomeCollectionType</c> case, or for the general <c>SomeCollection c = [...]</c> case.  
+        /// For the <c>params</c> case, the collection builder method itself can only contain a single <see cref="ReadOnlySpan{T}"/> parameter.
+        /// In the general case, any method that <em>ends</em> with a <see cref="ReadOnlySpan{T}"/> parameter,
+        /// but otherwise follows the collection builder method pattern.</param>
         /// <remarks>
         /// This method does not validate the collection builder methods it returns (for example, checking for obsolete
         /// errors and the like).  The caller should use <see cref="CheckCollectionBuilderMethod"/> to do so. Once they
