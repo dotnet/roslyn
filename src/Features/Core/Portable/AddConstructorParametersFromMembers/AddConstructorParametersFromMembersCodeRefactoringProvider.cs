@@ -115,12 +115,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             if (CanHaveRequiredParameters(constructorCandidate.Constructor.Parameters))
             {
                 requiredParametersActions.Add(new AddConstructorParametersCodeAction(
-                    document,
-                    info,
-                    constructorCandidate.Constructor,
-                    containingType,
-                    constructorCandidate.MissingParametersAndMembers,
-                    useSubMenuName: useSubMenu));
+                    document, info, constructorCandidate, useSubMenuName: useSubMenu));
             }
 
             optionalParametersActions.Add(GetOptionalConstructorParametersCodeAction(
@@ -135,7 +130,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
 
         // local functions
         static bool CanHaveRequiredParameters(ImmutableArray<IParameterSymbol> parameters)
-               => parameters.Length == 0 || !parameters.Last().IsOptional;
+            => parameters.Length == 0 || !parameters.Last().IsOptional;
 
         static AddConstructorParametersCodeAction GetOptionalConstructorParametersCodeAction(
             Document document, CodeGenerationContextInfo info, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
@@ -151,7 +146,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
                     hasDefaultValue: true), t.fieldOrProperty));
 
             return new AddConstructorParametersCodeAction(
-                document, info, constructorCandidate.Constructor, containingType, missingOptionalParameters, useSubMenuName);
+                document, info, constructorCandidate with { MissingParametersAndMembers = missingOptionalParameters }, useSubMenuName);
         }
     }
 
