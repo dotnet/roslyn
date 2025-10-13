@@ -89,9 +89,12 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             CancellationToken cancellationToken)
         {
             // For primary constructors, we need to:
-            // 1. Update the primary constructor with new parameters
-            // 2. Add initializers to the properties/fields
-
+            //
+            // 1. Add initializers to the properties/fields
+            // 2. Update the primary constructor with new parameters
+            //
+            // We need to do it in this order so that we see the adjustment to the properties/fields when we're updating
+            // the primary constructor that wraps them all.
             var newConstructor = GetNewConstructor(constructor, cancellationToken);
 
             var solution = _document.Project.Solution;
@@ -105,8 +108,6 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
 
             var oldConstructorSyntaxTree = oldConstructor.SyntaxTree;
 
-            // First, update the members.  That way we see the adjustment to them when we're updating the primary
-            // constructor that wraps them all.
             foreach (var (parameter, member) in _missingParameters)
             {
                 await AddInitializerToMemberAsync(
