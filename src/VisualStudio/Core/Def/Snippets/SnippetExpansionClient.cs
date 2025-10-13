@@ -299,16 +299,21 @@ internal class SnippetExpansionClient : IVsExpansionClient
                 var endPositionInLine = endSnapshotSpan.Start.Position - line.Start.Position;
                 if (endPositionInLine > 0 && endPositionInLine <= lineText.Length)
                 {
-                    // Check if there's whitespace immediately before the $end$ position
+                    // Scan backwards from the $end$ position to find any trailing whitespace
                     var startOfTrailingWhitespace = endPositionInLine;
                     while (startOfTrailingWhitespace > 0 && char.IsWhiteSpace(lineText[startOfTrailingWhitespace - 1]))
                     {
                         startOfTrailingWhitespace--;
                     }
 
-                    // Only remove whitespace if we found some, but not if it's leading indentation
-                    // (i.e., there must be non-whitespace content before it on the same line)
-                    if (startOfTrailingWhitespace < endPositionInLine && startOfTrailingWhitespace > 0)
+                    // Only remove whitespace if:
+                    // 1. We found trailing whitespace (startOfTrailingWhitespace < endPositionInLine)
+                    // 2. There's non-whitespace content before it (startOfTrailingWhitespace > 0)
+                    // This ensures we don't remove leading indentation.
+                    var hasTrailingWhitespace = startOfTrailingWhitespace < endPositionInLine;
+                    var hasContentBeforeWhitespace = startOfTrailingWhitespace > 0;
+                    
+                    if (hasTrailingWhitespace && hasContentBeforeWhitespace)
                     {
                         var trailingWhitespaceStart = line.Start.Position + startOfTrailingWhitespace;
                         var trailingWhitespaceLength = endPositionInLine - startOfTrailingWhitespace;
