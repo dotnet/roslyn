@@ -7,7 +7,7 @@ applyTo: "src/{Compilers,Dependencies,ExpressionEvaluator,Tools}/**/*.{cs,vb}"
 ## Architecture Overview
 
 Roslyn follows a **layered compiler architecture**:
-- **Lexer → Parser → Syntax Trees → Semantic Analysis → Symbol Tables → Emit**
+- **Lexer → Parser → Syntax Trees → Semantic Analysis → Lowering/Rewriting → Symbol Tables → Emit**
 - Core abstraction: `Compilation` is immutable and reusable. Create new compilations via `AddSyntaxTrees()`, `RemoveSyntaxTrees()`, `ReplaceSyntaxTree()` for incremental changes
 - **Internal vs Public APIs**: Use `InternalSyntax` namespace for performance-critical parsing; `Microsoft.CodeAnalysis` for public consumption
 
@@ -35,18 +35,6 @@ public class MyTests : CSharpTestBase
 }
 ```
 
-### Compilation Creation Pattern
-```cs
-// Immutable compilation with incremental changes
-var compilation = CSharpCompilation.Create("TestAssembly", 
-    syntaxTrees: new[] { syntaxTree },
-    references: new[] { TestBase.MscorlibRef });
-
-// Efficient incremental updates
-compilation = compilation.AddSyntaxTrees(newTree);
-compilation = compilation.ReplaceSyntaxTree(oldTree, newTree);
-```
-
 ### Memory Management
 - **Avoid LINQ in hot paths** - use manual enumeration or `struct` enumerators
 - **Avoid `foreach` over collections without struct enumerators** 
@@ -69,7 +57,7 @@ dotnet run --file eng/generate-compiler-code.cs
 ```
 
 ### Testing Strategy
-- **Unit tests**: Test individual compiler phases (lexing, parsing, binding)
+- **Unit tests**: Test individual compiler phases (lexing, parsing)
 - **Compilation tests**: Create `Compilation` objects and verify symbols/diagnostics
 - **Cross-language patterns**: Many test patterns work for both C# and VB with minor syntax changes
 
