@@ -25,16 +25,14 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
     private sealed class AddConstructorParametersCodeAction(
         Document document,
         CodeGenerationContextInfo info,
-        IMethodSymbol constructor,
-        ISymbol containingType,
-        ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrPropert)> missingParameters,
+        ConstructorCandidate constructorCandidate,
         bool useSubMenuName) : CodeAction
     {
         private readonly Document _document = document;
         private readonly CodeGenerationContextInfo _info = info;
-        private readonly IMethodSymbol _constructor = constructor;
-        private readonly ISymbol _containingType = containingType;
-        private readonly ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrPropert)> _missingParameters = missingParameters;
+
+        private IMethodSymbol Constructor => constructorCandidate.Constructor;
+        private ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrPropert)> MissingParameters => constructorCandidate.MissingParametersAndMembers;
 
         /// <summary>
         /// If there is more than one constructor, the suggested actions will be split into two sub menus,
@@ -48,9 +46,9 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         {
             var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
             var constructor = declarationService.GetDeclarations(
-                _constructor).Select(r => r.GetSyntax(cancellationToken)).First();
+                Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
-            return !_constructor.IsPrimaryConstructor()
+            return !Constructor.IsPrimaryConstructor()
                 ? AddParametersToRegularConstructor(constructor, cancellationToken)
                 : await AddParametersAndInitializersToPrimaryConstructorAsync(constructor, cancellationToken).ConfigureAwait(false);
         }
@@ -59,7 +57,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         {
             var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
             var newConstructor = codeGenerator.AddParameters(
-                oldConstructor, _missingParameters.SelectAsArray(t => t.parameter), _info, cancellationToken);
+                oldConstructor, MissingParameters.SelectAsArray(t => t.parameter), _info, cancellationToken);
 
             return newConstructor;
         }
@@ -102,13 +100,13 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
 
             // First, update the primary constructor declaration with the new parameters
             var oldConstructor = _document.GetRequiredLanguageService<ISymbolDeclarationService>()
-                .GetDeclarations(_constructor)
+                .GetDeclarations(Constructor)
                 .Select(r => r.GetSyntax(cancellationToken))
                 .First();
 
             var oldConstructorSyntaxTree = oldConstructor.SyntaxTree;
 
-            foreach (var (parameter, member) in _missingParameters)
+            foreach (var (parameter, member) in MissingParameters)
             {
                 await AddInitializerToMemberAsync(
                     solutionEditor, member, parameter, cancellationToken).ConfigureAwait(false);
@@ -159,7 +157,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         private IEnumerable<SyntaxNode> CreateAssignStatements()
         {
             var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
-            foreach (var (parameter, fieldOrProperty) in _missingParameters)
+            foreach (var (parameter, fieldOrProperty) in MissingParameters)
             {
                 yield return factory.ExpressionStatement(
                     factory.AssignmentStatement(
@@ -174,14 +172,14 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         {
             get
             {
-                var parameters = _constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                var parameters = Constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                 var parameterString = string.Join(", ", parameters);
-                var signature = $"{_containingType.Name}({parameterString})";
+                var signature = $"{this.Constructor.ContainingType.Name}({parameterString})";
 
                 if (_useSubMenuName)
                     return string.Format(CodeFixesResources.Add_to_0, signature);
 
-                return _missingParameters[0].parameter.IsOptional
+                return MissingParameters[0].parameter.IsOptional
                     ? string.Format(FeaturesResources.Add_optional_parameters_to_0, signature)
                     : string.Format(FeaturesResources.Add_parameters_to_0, signature);
             }
@@ -193,7 +191,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         /// 
         /// In this case we don't want to use the title as it depends on the class name for the ctor.
         /// </summary>
-        internal string ActionName => _missingParameters[0].parameter.IsOptional
+        internal string ActionName => MissingParameters[0].parameter.IsOptional
             ? nameof(FeaturesResources.Add_optional_parameters_to_0)
             : nameof(FeaturesResources.Add_parameters_to_0);
     }
