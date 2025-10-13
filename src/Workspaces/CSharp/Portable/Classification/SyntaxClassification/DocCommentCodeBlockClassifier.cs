@@ -104,8 +104,6 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
         bool isTest,
         CancellationToken cancellationToken)
     {
-        // Check if this is a C# code block
-
         // Extract the code content from the XML element
         using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var virtualCharsBuilder);
 
