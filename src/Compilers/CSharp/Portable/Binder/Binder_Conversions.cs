@@ -1123,10 +1123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionBuilderMethod = underlyingMethod;
                     @this.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics);
 
-                    // Take our successful call to the projection method and rewrite it to call the actual call to the
-                    // real collection builder.  Because we don't know how the actual elements will be converted to the
-                    // final ReadOnlySpan (that happens in LocalRewriter.VisitCollectionBuilderCollectionExpression), we
-                    // create a placeholder to stand in for them.
+                    // Take our successful call to the projection method and rewrite it to call the original collection
+                    // builder method it was projected from. Because we don't know how the actual elements will be
+                    // converted to the final ReadOnlySpan (that happens in LocalRewriter
+                    // VisitCollectionBuilderCollectionExpression), we create a placeholder to stand in for them.
                     //
                     // In other words, given `[with(a, b, c), x, y, z]` we will first have figured out how to call
                     // CollectionBuilder.Create<T1, T2, ..>(a, b, c, <placeholder for [x, y, z]>).
