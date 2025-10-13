@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: element.LengthOrCount);
             }
 
-            static (BoundExpression? collectionCreate, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder)
+            static (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder)
                 bindCollectionBuilderInfo(
                     Binder @this,
                     BoundUnconvertedCollectionExpression node,
