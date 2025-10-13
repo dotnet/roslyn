@@ -4,6 +4,8 @@ This document lists known breaking changes in Roslyn after .NET 10 general relea
 
 ## The *safe-context* of a collection expression of Span/ReadOnlySpan type is now *declaration-block*
 
+***Introduced in Visual Studio 2026 version 18.3***
+
 The C# compiler made a breaking change in order to properly adhere to the [ref safety rules](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/collection-expressions.md#ref-safety) in the *collection expressions* feature specification. Specifically, the following clause:
 
 > * If the target type is a *span type* `System.Span<T>` or `System.ReadOnlySpan<T>`, the safe-context of the collection expression is the *declaration-block*.
