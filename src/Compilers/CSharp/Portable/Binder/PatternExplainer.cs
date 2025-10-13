@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         }
 
-                        continue;  
+                        continue;
                     }
 
                     pathBuilder.Push(currentNode);
