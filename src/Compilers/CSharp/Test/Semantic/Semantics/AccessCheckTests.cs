@@ -1553,7 +1553,7 @@ internal class Sample { }
             var comp2 = CreateCompilation("class OtherClass { }", references: new[] { comp1.ToMetadataReference() }, assemblyName: "Assembly2");
 
             // Get the Sample type from the referenced assembly
-            var assembly1Symbol = ((CSharpCompilation)comp2).GetReferencedAssemblySymbol(comp1.ToMetadataReference());
+            var assembly1Symbol = comp2.GetReferencedAssemblySymbol(comp1.ToMetadataReference());
             var sampleSymbol = assembly1Symbol.GetTypeByMetadataName("Sample");
             Assert.NotNull(sampleSymbol);
             
@@ -1595,7 +1595,7 @@ internal class OuterSample
             var comp2 = CreateCompilation("class OtherClass { }", references: new[] { comp1.ToMetadataReference() }, assemblyName: "Assembly2");
 
             // Get types from the referenced assembly
-            var assembly1Symbol = ((CSharpCompilation)comp2).GetReferencedAssemblySymbol(comp1.ToMetadataReference());
+            var assembly1Symbol = comp2.GetReferencedAssemblySymbol(comp1.ToMetadataReference());
             var outerSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample");
             var nestedPublicSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+NestedPublic");
             Assert.NotNull(outerSymbol);
