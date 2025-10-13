@@ -1337,8 +1337,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
 
-            collectionBuilderMethod.CheckConstraints(
-                new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
+            // Do not include nullability constraint checking.  That will be done in the nullable-walker when it checks
+            // the actual call to the collection builder method.
+            collectionBuilderMethod.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(
+                Compilation, Conversions, includeNullability: false, syntax.Location, diagnostics));
 
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
