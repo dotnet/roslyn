@@ -1335,13 +1335,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterType = (NamedTypeSymbol)collectionBuilderMethod.Parameters.Last().Type;
             Debug.Assert(parameterType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
-            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
-
             // Do not include nullability constraint checking.  That will be done in the nullable-walker when it checks
             // the actual call to the collection builder method.
             collectionBuilderMethod.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(
                 Compilation, Conversions, includeNullability: false, syntax.Location, diagnostics));
 
+            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 
