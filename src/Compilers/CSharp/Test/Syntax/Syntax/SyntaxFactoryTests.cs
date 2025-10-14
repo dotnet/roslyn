@@ -715,11 +715,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(parseOptions, typeName.SyntaxTree.Options);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8699")]
         public void TestParseAttributeArgumentListWithInvalidString()
         {
             // Regression test for issue where ParseAttributeArgumentList would throw NullReferenceException
-            // when given an invalid string without brackets
+            // when given an invalid string without brackets (parentheses)
             var result = SyntaxFactory.ParseAttributeArgumentList("somethingWithoutBrackets");
             
             Assert.NotNull(result);
