@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(parseOptions, typeName.SyntaxTree.Options);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23877")]
         public void TestParseAttributeArgumentListWithInvalidString()
         {
             // Regression test for issue where ParseAttributeArgumentList would throw NullReferenceException
