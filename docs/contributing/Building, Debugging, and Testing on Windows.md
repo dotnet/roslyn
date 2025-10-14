@@ -98,14 +98,20 @@ will start a new Visual Studio instance using those VSIX which override our inst
 binaries.  This means trying out a change to the language, IDE or debugger is as
 simple as hitting F5. Note that for changes to the compiler, out-of-process builds won't use the privately built version of the compiler.
 
-The startup project needs to be set to `RoslynDeployment`.  This should be
-the default but in some cases will need to be set explicitly.
+The startup project needs to be set to **RoslynDeployment**.  This should be
+the default but in some cases will need to be set explicitly. To set it, right-click 
+the RoslynDeployment project in Solution Explorer and select "Set as Startup Project".
 
-Here are what is deployed with each extension, by project that builds it. If
-you're working on a particular area, you probably want to set the appropriate
-project as your startup project to optimize building and deploying only the relevant bits.
+**RoslynDeployment** is a container project located in the `src/Deployment` folder that 
+bundles and deploys all the main Roslyn extensions together. When you press F5 with 
+RoslynDeployment set as the startup project, it will deploy all of the following extensions 
+at once, giving you a complete debugging experience with all Roslyn components.
 
-- **Roslyn.VisualStudio.Setup**: this project can be found inside the VisualStudio folder
+If you're working on a specific area and want to optimize build times by deploying only 
+the relevant extension, you can set one of the individual projects below as your startup 
+project instead:
+
+- **Roslyn.VisualStudio.Setup**: this project can be found inside the VisualStudio\Setup folder
   from the Solution Explorer, and builds Roslyn.VisualStudio.Setup.vsix. It
   contains the core language services that provide C# and VB editing. It also
   contains the copy of the compiler that is used to drive IntelliSense and
@@ -114,10 +120,7 @@ project as your startup project to optimize building and deploying only the rele
   compiler used to actually produce your final .exe or .dll when you do a
   build. If you're working on fixing an IDE bug, this is the project you want
   to use.
-- **Roslyn.VisualStudio.InteractiveComponents**: this project can be found in the
-  Interactive\Setup folder from the Solution Explorer, and builds
-  Roslyn.VisualStudio.InteractiveComponents.vsix.
-- **Roslyn.Compilers.Extension**: this project can be found inside the Compilers\Packages folder
+- **Roslyn.Compilers.Extension**: this project can be found inside the Compilers\Extension folder
   from the Solution Explorer, and builds Roslyn.Compilers.Extension.vsix.
   This deploys a copy of the command line compilers that are used to do actual
   builds in the IDE. It only affects builds triggered from the Visual Studio
@@ -128,7 +131,7 @@ project as your startup project to optimize building and deploying only the rele
   CompilerExtension and VisualStudioSetup projects to ensure the real build and
   live analysis are synchronized.
 - **ExpressionEvaluatorPackage**: this project can be found inside the
-  ExpressionEvaluator\Setup folder from the Solution Explorer, and builds
+  ExpressionEvaluator\Package folder from the Solution Explorer, and builds
   ExpressionEvaluatorPackage.vsix. This deploys the expression evaluator and
   result providers, the components that are used by the debugger to parse and
   evaluate C# and VB expressions in the Watch window, Immediate window, and
