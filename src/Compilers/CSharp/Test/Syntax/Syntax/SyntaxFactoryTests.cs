@@ -720,5 +720,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Throws<ArgumentNullException>(() => SyntaxFactory.Identifier(null));
         }
+
+        [Fact]
+        public void Identifier_WithTrivia_NullText_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => 
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), null, SyntaxFactory.TriviaList()));
+        }
+
+        [Fact]
+        public void Identifier_WithContextualKind_NullText_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => 
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, null, "value", SyntaxFactory.TriviaList()));
+        }
+
+        [Fact]
+        public void Identifier_WithContextualKind_NullValueText_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => 
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, "text", null, SyntaxFactory.TriviaList()));
+        }
+
+        [Fact]
+        public void VerbatimIdentifier_NullText_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => 
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), null, "value", SyntaxFactory.TriviaList()));
+        }
+
+        [Fact]
+        public void VerbatimIdentifier_NullValueText_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => 
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), "text", null, SyntaxFactory.TriviaList()));
+        }
     }
 }
