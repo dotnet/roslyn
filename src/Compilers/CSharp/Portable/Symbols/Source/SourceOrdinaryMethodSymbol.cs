@@ -217,11 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var loc = parameterSyntax.Type.Location;
                     diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type.Type);
                 }
-                else if (parameter0RefKind == RefKind.Ref && !parameter0Type.Type.IsValueType)
+                else if (parameter0RefKind is RefKind.Ref or RefKind.RefReadOnlyParameter && !parameter0Type.Type.IsValueType)
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, _location, Name);
                 }
-                else if (parameter0RefKind is RefKind.In or RefKind.RefReadOnlyParameter && parameter0Type.TypeKind != TypeKind.Struct)
+                else if (parameter0RefKind == RefKind.In && (!parameter0Type.Type.IsValueType || parameter0Type.TypeKind == TypeKind.TypeParameter))
                 {
                     diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, _location, Name);
                 }

@@ -5829,7 +5829,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</value>
   </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
-    <value>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
+    <value>The first 'in' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
   </data>
   <data name="ERR_InExtensionParameterMustBeValueType" xml:space="preserve">
     <value>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</value>
@@ -5850,7 +5850,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Conversion of a stackalloc expression of type '{0}' to type '{1}' is not possible.</value>
   </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
-    <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
+    <value>The first parameter of a 'ref' or 'ref readonly' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>
   <data name="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</value>
