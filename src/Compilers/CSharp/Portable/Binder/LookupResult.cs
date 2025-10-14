@@ -313,17 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool PreferGenericOverNonGeneric(Symbol currentSymbol, Symbol newSymbol)
         {
-            // Prefer a generic type (arity > 0) over a non-generic type (arity == 0)
-            // when both are NamedTypeSymbols with WrongArity
-            if (currentSymbol is NamedTypeSymbol currentType && newSymbol is NamedTypeSymbol newType)
-            {
-                // Prefer the one with arity > 0 (generic) over arity == 0 (non-generic)
-                if (currentType.Arity == 0 && newType.Arity > 0)
-                {
-                    return true; // prefer new symbol (generic) over current (non-generic)
-                }
-            }
-            return false;
+            return currentSymbol is NamedTypeSymbol { Arity: 0 } && newSymbol is NamedTypeSymbol { Arity: > 0 };
         }
 
         // global pool
