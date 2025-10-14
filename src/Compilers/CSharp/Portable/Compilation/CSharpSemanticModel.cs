@@ -1916,9 +1916,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we receive a BadExpression that represents an object creation expression, and the expression
             // is contained within a conversion expression, we want to match a candidate constructor and avoid
             // returning the conversion symbol, the higher bound node, which could be a conversion operator method.
-            // However, we do want to preserve the behavior for lambdas and method groups so we filter against those.
+            // Without this, we have an inconsistency where the conversion operator method becomes visible
+            // only through the resolution failure, neglecting the possible symbols that would appear without it
             var overloadResolutionSuffices = resultKind == LookupResultKind.OverloadResolutionFailure
-                && boundExpr.Kind is not BoundKind.Lambda and not BoundKind.MethodGroup && highestBoundNode.Kind == BoundKind.Conversion;
+                && boundExpr.Kind is BoundKind.BadExpression
+                && highestBoundNode is BoundConversion { Conversion.Method: not null };
             if (!overloadResolutionSuffices && highestBoundNode is BoundExpression highestBoundExpr)
             {
                 LookupResultKind highestResultKind;
