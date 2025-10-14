@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
 internal static class DeclarationConflictHelpers
 {
-    public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IMethodSymbol renamedMethod, bool trimOptionalParameters)
+    public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IMethodSymbol renamedMethod, bool trimOptionalParameters, bool distinguishRefKind = true)
     {
         var potentiallyConflictingMethods =
             renamedMethod.ContainingType.GetMembers(renamedMethod.Name)
@@ -20,10 +20,10 @@ internal static class DeclarationConflictHelpers
                                         .Where(m => !m.Equals(renamedMethod) && m.Arity == renamedMethod.Arity);
 
         return GetConflictLocations(renamedMethod, potentiallyConflictingMethods, isMethod: true,
-            method => GetAllSignatures(((IMethodSymbol)method).Parameters, trimOptionalParameters));
+            method => GetAllSignatures(((IMethodSymbol)method).Parameters, trimOptionalParameters, distinguishRefKind));
     }
 
-    public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IPropertySymbol renamedProperty, bool trimOptionalParameters)
+    public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IPropertySymbol renamedProperty, bool trimOptionalParameters, bool distinguishRefKind = true)
     {
         var potentiallyConflictingProperties =
             renamedProperty.ContainingType.GetMembers(renamedProperty.Name)
@@ -31,7 +31,7 @@ internal static class DeclarationConflictHelpers
                                         .Where(m => !m.Equals(renamedProperty) && m.Parameters.Length == renamedProperty.Parameters.Length);
 
         return GetConflictLocations(renamedProperty, potentiallyConflictingProperties, isMethod: false,
-            property => GetAllSignatures(((IPropertySymbol)property).Parameters, trimOptionalParameters));
+            property => GetAllSignatures(((IPropertySymbol)property).Parameters, trimOptionalParameters, distinguishRefKind));
     }
 
     private readonly record struct ParameterSignature(ITypeSymbol Type, RefKind RefKind);
@@ -94,7 +94,7 @@ internal static class DeclarationConflictHelpers
         }
     }
 
-    private static ImmutableArray<ImmutableArray<ParameterSignature>> GetAllSignatures(ImmutableArray<IParameterSymbol> parameters, bool trimOptionalParameters)
+    private static ImmutableArray<ImmutableArray<ParameterSignature>> GetAllSignatures(ImmutableArray<IParameterSymbol> parameters, bool trimOptionalParameters, bool distinguishRefKind)
     {
         var resultBuilder = ArrayBuilder<ImmutableArray<ParameterSignature>>.GetInstance();
 
@@ -110,7 +110,8 @@ internal static class DeclarationConflictHelpers
                 resultBuilder.Add(signatureBuilder.ToImmutable());
             }
 
-            signatureBuilder.Add(new ParameterSignature(parameter.Type, parameter.RefKind));
+            var refKind = distinguishRefKind ? parameter.RefKind : RefKind.None;
+            signatureBuilder.Add(new ParameterSignature(parameter.Type, refKind));
         }
 
         resultBuilder.Add(signatureBuilder.ToImmutableAndFree());
