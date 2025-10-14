@@ -2243,6 +2243,10 @@
   <!-- Statements -->
   <Node Name="GlobalStatementSyntax" Base="MemberDeclarationSyntax">
     <Kind Name="GlobalStatement"/>
+    <TypeComment>
+      <summary>Represents a global statement in a compilation unit. Global statements are top-level statements that can appear in a C# program or script. In regular C# programs (C# 9.0+), they are synthesized into a Main method. In C# scripts, they are executed as top-level code.</summary>
+      <remarks>See https://github.com/dotnet/csharplang/blob/main/proposals/top-level-statements.md for the top-level statements proposal.</remarks>
+    </TypeComment>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
       <summary>Always empty on a global statement.</summary>
     </Field>
