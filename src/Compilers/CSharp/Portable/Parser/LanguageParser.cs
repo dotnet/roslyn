@@ -13906,18 +13906,11 @@ done:
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword);
             var letKeyword = this.EatContextualToken(SyntaxKind.LetKeyword);
             
-            // If we see a keyword followed by '=', use EatTokenEvenWithIncorrectKind to produce
+            // If we see a keyword followed by '=', use EatTokenAsKind to produce
             // a better error message (ERR_IdentifierExpectedKW) and recover well.
-            SyntaxToken identifier;
-            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.EqualsToken)
-            {
-                var keyword = this.EatTokenEvenWithIncorrectKind(SyntaxKind.IdentifierToken);
-                identifier = ConvertToIdentifier(keyword);
-            }
-            else
-            {
-                identifier = this.ParseIdentifierToken();
-            }
+            var identifier = SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.EqualsToken
+                ? this.EatTokenAsKind(SyntaxKind.IdentifierToken)
+                : this.ParseIdentifierToken();
             
             return _syntaxFactory.LetClause(
                 letKeyword,

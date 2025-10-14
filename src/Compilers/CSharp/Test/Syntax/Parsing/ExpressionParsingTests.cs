@@ -7359,7 +7359,7 @@ select t";
                     N(SyntaxKind.LetClause);
                     {
                         N(SyntaxKind.LetKeyword);
-                        N(SyntaxKind.IdentifierToken, "params");
+                        M(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.EqualsToken);
                         N(SyntaxKind.InvocationExpression);
                         {
