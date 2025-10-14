@@ -134,8 +134,8 @@ public sealed class CSharpInlineRenameServiceTests
                 static void Main(string[] args)
                 {
                     var obj = new MyClass { Member = 42 };
-                    var x = new { obj.M$$ember };
-                    Console.WriteLine(x.Member);
+                    var x = new { obj.Member };
+                    Console.WriteLine(x.M$$ember);
                 }
             }
 

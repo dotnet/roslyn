@@ -7047,36 +7047,6 @@ class Program
 
         <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
-        Public Sub RenameAnonymousTypeInferredMemberFromPropertyAccess(host As RenameTestHost)
-            Using result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-using System;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        var obj = new MyClass { Member = 42 };
-        var x = new { obj.[|$$Member|] };
-        
-        Console.WriteLine(x.[|Member|]);
-    }
-}
-
-class MyClass
-{
-    public int Member { get; set; }
-}
-                        </Document>
-                    </Project>
-                </Workspace>, host:=host, renameTo:="Property")
-            End Using
-        End Sub
-
-        <Theory, CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
         Public Sub RenameAnonymousTypeInferredMemberFromPropertyAccessAtUseSite(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -7154,9 +7124,9 @@ class Program
     static void Main(string[] args)
     {
         var obj = new MyClass { Name = "Test", Age = 30 };
-        var x = new { obj.[|$$Name|], obj.Age };
+        var x = new { obj.[|Name|], obj.Age };
         
-        Console.WriteLine(x.[|Name|]);
+        Console.WriteLine(x.[|$$Name|]);
         Console.WriteLine(x.Age);
     }
 }
