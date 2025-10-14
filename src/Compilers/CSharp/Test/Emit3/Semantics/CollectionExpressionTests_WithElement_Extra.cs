@@ -2996,10 +2996,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(in ro)];
                 c.Report();
                 """;
-        var comp = CreateCompilation(
+        CompileAndVerify(
             [sourceA, sourceB1, s_collectionExtensions],
-            targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics(
+            targetFramework: TargetFramework.Net80,
+            expectedOutput: IncludeExpectedOutput("[0], [1], [2], [3], [4], ")).VerifyDiagnostics(
             // (6,11): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             // c = [with(0)];
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "0").WithArguments("1").WithLocation(6, 11),
@@ -3016,7 +3016,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(ref ro)];
                 c = [with(out x)];
                 """;
-        comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+        var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
             // (6,15): error CS1510: A ref or out value must be an assignable variable
             // c = [with(ref ro)];
