@@ -1556,7 +1556,7 @@ internal class Sample { }
             var assembly1Symbol = comp2.GetReferencedAssemblySymbol(comp1.ToMetadataReference());
             var sampleSymbol = assembly1Symbol.GetTypeByMetadataName("Sample");
             Assert.NotNull(sampleSymbol);
-            
+
             var otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass");
             var assembly2Symbol = comp2.Assembly.GetPublicSymbol();
 
@@ -1600,7 +1600,7 @@ internal class OuterSample
             var nestedPublicSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+NestedPublic");
             Assert.NotNull(outerSymbol);
             Assert.NotNull(nestedPublicSymbol);
-            
+
             var otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass");
             var assembly2Symbol = comp2.Assembly.GetPublicSymbol();
 

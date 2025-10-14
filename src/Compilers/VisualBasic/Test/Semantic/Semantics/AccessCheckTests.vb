@@ -2316,7 +2316,7 @@ End Class
             Dim assembly1Symbol = DirectCast(comp2, VisualBasicCompilation).GetReferencedAssemblySymbol(comp1.ToMetadataReference())
             Dim sampleSymbol = assembly1Symbol.GetTypeByMetadataName("Sample")
             Assert.NotNull(sampleSymbol)
-            
+
             Dim otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass")
             Dim assembly2Symbol = comp2.Assembly
 
@@ -2361,7 +2361,7 @@ End Class
             Dim nestedPublicSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+NestedPublic")
             Assert.NotNull(outerSymbol)
             Assert.NotNull(nestedPublicSymbol)
-            
+
             Dim otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass")
             Dim assembly2Symbol = comp2.Assembly
 
