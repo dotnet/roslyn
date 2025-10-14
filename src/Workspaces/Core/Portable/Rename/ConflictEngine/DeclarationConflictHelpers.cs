@@ -34,12 +34,14 @@ internal static class DeclarationConflictHelpers
             property => GetAllSignatures(((IPropertySymbol)property).Parameters, trimOptionalParameters));
     }
 
+    private readonly record struct ParameterSignature(ITypeSymbol Type, RefKind RefKind);
+
     private static ImmutableArray<Location> GetConflictLocations(ISymbol renamedMember,
         IEnumerable<ISymbol> potentiallyConflictingMembers,
         bool isMethod,
-        Func<ISymbol, ImmutableArray<ImmutableArray<ITypeSymbol>>> getAllSignatures)
+        Func<ISymbol, ImmutableArray<ImmutableArray<ParameterSignature>>> getAllSignatures)
     {
-        var signatureToConflictingMember = new Dictionary<ImmutableArray<ITypeSymbol>, ISymbol>(ConflictingSignatureComparer.Instance);
+        var signatureToConflictingMember = new Dictionary<ImmutableArray<ParameterSignature>, ISymbol>(ConflictingSignatureComparer.Instance);
 
         foreach (var member in potentiallyConflictingMembers)
         {
@@ -74,29 +76,29 @@ internal static class DeclarationConflictHelpers
         return builder.ToImmutableAndFree();
     }
 
-    private sealed class ConflictingSignatureComparer : IEqualityComparer<ImmutableArray<ITypeSymbol>>
+    private sealed class ConflictingSignatureComparer : IEqualityComparer<ImmutableArray<ParameterSignature>>
     {
         public static readonly ConflictingSignatureComparer Instance = new();
 
         private ConflictingSignatureComparer() { }
 
-        public bool Equals(ImmutableArray<ITypeSymbol> x, ImmutableArray<ITypeSymbol> y)
+        public bool Equals(ImmutableArray<ParameterSignature> x, ImmutableArray<ParameterSignature> y)
             => x.SequenceEqual(y);
 
-        public int GetHashCode(ImmutableArray<ITypeSymbol> obj)
+        public int GetHashCode(ImmutableArray<ParameterSignature> obj)
         {
             // This is a very simple GetHashCode implementation. Doing something "fancier" here
             // isn't really worth it, since to compute a proper hash we'd end up walking all the
-            // ITypeSymbols anyways.
+            // ParameterSignatures anyways.
             return obj.Length;
         }
     }
 
-    private static ImmutableArray<ImmutableArray<ITypeSymbol>> GetAllSignatures(ImmutableArray<IParameterSymbol> parameters, bool trimOptionalParameters)
+    private static ImmutableArray<ImmutableArray<ParameterSignature>> GetAllSignatures(ImmutableArray<IParameterSymbol> parameters, bool trimOptionalParameters)
     {
-        var resultBuilder = ArrayBuilder<ImmutableArray<ITypeSymbol>>.GetInstance();
+        var resultBuilder = ArrayBuilder<ImmutableArray<ParameterSignature>>.GetInstance();
 
-        var signatureBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
+        var signatureBuilder = ArrayBuilder<ParameterSignature>.GetInstance();
 
         foreach (var parameter in parameters)
         {
@@ -108,7 +110,7 @@ internal static class DeclarationConflictHelpers
                 resultBuilder.Add(signatureBuilder.ToImmutable());
             }
 
-            signatureBuilder.Add(parameter.Type);
+            signatureBuilder.Add(new ParameterSignature(parameter.Type, parameter.RefKind));
         }
 
         resultBuilder.Add(signatureBuilder.ToImmutableAndFree());
