@@ -81,7 +81,7 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
         return base.ConstructLspServices();
     }
 
-    private void _clientRpc_Disconnected(object sender, JsonRpcDisconnectedEventArgs e)
+    private void _clientRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
     {
         throw new NotImplementedException();
     }

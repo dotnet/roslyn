@@ -32075,7 +32075,7 @@ namespace N1
 {
     static class E1
     {
-        public static void M1(this object o) { }
+        public static void M1(this object o) { System.Console.Write("ran"); }
     }
 }
 
@@ -32085,14 +32085,398 @@ namespace N2
     {
         extension(object o)
         {
-            public void M2() { }
+            public void M2() => throw null;
         }
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining used imports logic
-        comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_13()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_14()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension<T>(T t)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_15()
+    {
+        // tracking unnecessary imports, invocable
+        var src = """
+using N1;
+using N2;
+
+new object().P1();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public System.Action P1 { get { System.Console.Write("ran"); return () => { }; } }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_16()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_17()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+            public int M<T>() => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(object).M<T>()' and 'N2.E2.extension(object).M<T>()'
+            // _ = new object().M<int>();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("N1.E1.extension(object).M<T>()", "N2.E2.extension(object).M<T>()").WithLocation(4, 18));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var opNode = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<int>");
+        var symbolInfo = model.GetSymbolInfo(opNode);
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        AssertEx.SetEqual([
+            "System.Int32 N1.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()",
+            "System.Int32 N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()"
+            ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Using_18()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_19()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M<T>(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_20()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M<U>(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_21()
+    {
+        // tracking unnecessary imports, value receiver
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object)
+        {
+            public static int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_22()
+    {
+        // tracking unnecessary imports, type receiver
+        var src = """
+using N1;
+using N2;
+
+_ = object.M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object)
+        {
+            public static int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -33514,6 +33898,11 @@ public static class E
         var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
         AssertEx.Equal("void E.M<T, System.Int64, System.String>(this T t, System.Int64 u, System.String v)",
             method.AssociatedExtensionImplementation.ToTestDisplayString());
+
+        // The T in associated implementation is from the extension definition
+        var t = method.AssociatedExtensionImplementation.TypeArguments[0];
+        Assert.Equal("T", t.ToTestDisplayString());
+        Assert.True(t.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
     }
 
     [Fact]
@@ -33577,6 +33966,45 @@ public static class E<T0>
         var constructedMethod = constructedE.GetTypeMembers("").Single().GetMethod("M").GetPublicSymbol();
         AssertEx.Equal("void E<System.Int32>.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", constructedMethod.ToTestDisplayString());
         AssertEx.Equal("void E<System.Int32>.M(this System.Int32 i)", constructedMethod.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_11()
+    {
+        // not a definition, generic extension and method, partially constructed with type parameters
+        var src = """
+public static class E
+{
+    extension<T1, T2>(T1 t1)
+    {
+        public void M<U1, U2>(T2 t2, U1 u1, U2 u2)
+        {
+            t1.M(42, u1, "");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t1.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.M<T1, System.Int32, U1, System.String>(this T1 t1, System.Int32 t2, U1 u1, System.String u2)",
+            method.AssociatedExtensionImplementation.ToTestDisplayString());
+
+        // The T1 in associated implementation is from the extension definition 
+        var t1 = method.AssociatedExtensionImplementation.TypeArguments[0];
+        Assert.Equal("T1", t1.ToTestDisplayString());
+        Assert.True(t1.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
+
+        // The U1 in associated implementation is from the extension member definition 
+        var u1 = method.AssociatedExtensionImplementation.TypeArguments[2];
+        Assert.Equal("U1", u1.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$B7F0343159FB3A22D67EC9801612841A<T1, T2>.M<U1, U2>(T2 t2, U1 u1, U2 u2)",
+            u1.ContainingSymbol.ToTestDisplayString());
+        Assert.True(u1.ContainingSymbol.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
@@ -34583,6 +35011,171 @@ public static class E
                 // string.Extension(str); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "str").WithArguments("values", "void extension(string).Extension(params string[] values)").WithLocation(7, 18)
                 );
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_01()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        public static void Main() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+        validate(comp);
+
+        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics();
+        validate(comp2);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var groupingName = "<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69";
+            var markerName = "<M>$F4B4FFE41AB49E80A4ECF390CF6EB372";
+
+            var extension = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            AssertEx.Equal(groupingName, extension.ExtensionGroupingName);
+            AssertEx.Equal(markerName, extension.ExtensionMarkerName);
+            Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}"));
+            Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}+{markerName}"));
+            Assert.Null(comp.GetTypeByMetadataName($"E+{markerName}"));
+        }
+    }
+
+    [Fact]
+    public void ParameterSyntax_01()
+    {
+        string src = """
+static class E
+{
+    extension(int i)
+    {
+    }
+}
+""";
+        var tree = CSharpSyntaxTree.ParseText(src);
+        var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        Assert.Equal("int i", parameter.ToFullString());
+
+        var withoutType = parameter.WithType(null);
+        Assert.Equal("i", withoutType.ToFullString());
+
+        var withoutIdentifer = parameter.WithIdentifier(default);
+        Assert.Equal("int ", withoutIdentifer.ToFullString());
+
+        // Type and identifier cannot both be missing
+        Assert.Throws<ArgumentException>(() => SyntaxFactory.Parameter(identifier: default));
+        Assert.Throws<ArgumentException>(() => withoutType.WithIdentifier(default));
+    }
+
+    [Fact]
+    public void SyntaxFacts_01()
+    {
+        Assert.Equal(SyntaxKind.ExtensionBlockDeclaration, SyntaxFacts.GetTypeDeclarationKind(SyntaxKind.ExtensionKeyword));
+        Assert.Equal(SyntaxKind.ExtensionBlockDeclaration, SyntaxFacts.GetBaseTypeDeclarationKind(SyntaxKind.ExtensionKeyword));
+        Assert.True(SyntaxFacts.IsTypeDeclaration(SyntaxKind.ExtensionBlockDeclaration));
+        Assert.Equal(SyntaxKind.ExtensionKeyword, SyntaxFacts.GetContextualKeywordKind("extension"));
+        Assert.Equal(SyntaxKind.None, SyntaxFacts.GetKeywordKind("extension"));
+        Assert.True(SyntaxFacts.IsContextualKeyword(SyntaxKind.ExtensionKeyword));
+
+        Assert.Equal("extension", SyntaxFacts.GetText(SyntaxKind.ExtensionKeyword));
+    }
+
+    [Theory, WorkItem("https://developercommunity.visualstudio.com/t/NRE-in-Roslyn-v500-225451107/10979295")]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersion.Latest)]
+    public void InvalidReceiverWithOldExtensionInFileClass(LanguageVersion languageVersion)
+    {
+        var code = """
+            #nullable enable
+            using System.Threading.Tasks;
+            using N2;
+            namespace N1
+            {
+                class C
+                {
+                    async Task M(object o)
+                    {
+                        await using var test = await nonExistent.ExtensionMethod(o);
+                    }
+                }
+            }
+            """;
+
+        var code2 = """
+            namespace N2;
+
+            file static class E
+            {
+                public static void ExtensionMethod(this object o) { }
+            }
+            """;
+
+        var comp = CreateCompilation([(code, "file1.cs"), (code2, "file2.cs")], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        if (languageVersion == LanguageVersion.CSharp10)
+        {
+            comp.VerifyEmitDiagnostics(
+                // file2.cs(3,19): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // file static class E
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "E").WithArguments("file types", "11.0").WithLocation(3, 19),
+                // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+                //             await using var test = await nonExistent.ExtensionMethod(o);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+            );
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics(
+                    // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+                    //             await using var test = await nonExistent.ExtensionMethod(o);
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+                );
+        }
+    }
+
+    [Fact, WorkItem("https://developercommunity.visualstudio.com/t/NRE-in-Roslyn-v500-225451107/10979295")]
+    public void InvalidReceiverWithNewExtensionInFileClass()
+    {
+        var code = """
+            #nullable enable
+            using System.Threading.Tasks;
+            using N2;
+            namespace N1
+            {
+                class C
+                {
+                    async Task M(object o)
+                    {
+                        await using var test = await nonExistent.ExtensionMethod(o);
+                    }
+                }
+            }
+            """;
+
+        var code2 = """
+            namespace N2;
+
+            file static class E
+            {
+                extension(object o)
+                {
+                    public void ExtensionMethod(object o2) { }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([(code, "file1.cs"), (code2, "file2.cs")]);
+        comp.VerifyEmitDiagnostics(
+            // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+            //             await using var test = await nonExistent.ExtensionMethod(o);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+        );
     }
 }
 

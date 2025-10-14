@@ -10,7 +10,7 @@
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Index))]
 #pragma warning restore RS0016 // Add public types and members to the declared API
 
-#else
+#elif !ROSLYN_NO_INDEXRANGE
 
 using System.Runtime.CompilerServices;
 

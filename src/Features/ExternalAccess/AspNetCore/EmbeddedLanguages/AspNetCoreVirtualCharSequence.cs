@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -31,25 +32,26 @@ internal readonly struct AspNetCoreVirtualCharSequence
     /// <inheritdoc cref="VirtualCharSequence.this"/>
     public AspNetCoreVirtualChar this[int index] => new(_virtualCharSequence[index]);
 
-    /// <inheritdoc cref="VirtualCharSequence.GetSubSequence"/>
-    public AspNetCoreVirtualCharSequence GetSubSequence(TextSpan span) => new(_virtualCharSequence.GetSubSequence(span));
+    /// <inheritdoc cref="VirtualCharSequence.Slice"/>
+    public AspNetCoreVirtualCharSequence GetSubSequence(TextSpan span) => new(_virtualCharSequence[span.Start..span.End]);
 
-    /// <inheritdoc cref="VirtualCharSequence.Find"/>
+    /// <inheritdoc cref="VirtualCharSequenceExtensions.Find"/>
     public AspNetCoreVirtualChar? Find(int position) => (_virtualCharSequence.Find(position) is VirtualChar c) ? new(c) : null;
 
-    /// <inheritdoc cref="VirtualCharSequence.CreateString"/>
+    /// <inheritdoc cref="VirtualCharSequenceExtensions.CreateString(VirtualCharSequence)"/>
     public string CreateString() => _virtualCharSequence.CreateString();
 
     /// <inheritdoc cref="VirtualCharSequence.FromBounds"/>
+    [Obsolete("Do not use anymore.", error: false)]
     public static AspNetCoreVirtualCharSequence FromBounds(
         AspNetCoreVirtualCharSequence chars1, AspNetCoreVirtualCharSequence chars2)
         => new(VirtualCharSequence.FromBounds(chars1._virtualCharSequence, chars2._virtualCharSequence));
 
-    /// <inheritdoc cref="VirtualCharSequence.IndexOf"/>
+    /// <inheritdoc cref="VirtualCharSequenceExtensions.IndexOf"/>
     public int IndexOf(AspNetCoreVirtualChar @char)
         => _virtualCharSequence.IndexOf(@char.VirtualChar);
 
-    /// <inheritdoc cref="VirtualCharSequence.Contains"/>
+    /// <inheritdoc cref="VirtualCharSequenceExtensions.Contains"/>
     public bool Contains(AspNetCoreVirtualChar @char)
         => _virtualCharSequence.Contains(@char.VirtualChar);
 

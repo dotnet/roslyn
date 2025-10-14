@@ -45,6 +45,12 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
 
     public abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
 
+    /// <summary>
+    /// Adds an initializer to a property declaration.
+    /// </summary>
+    public abstract SyntaxNode WithPropertyInitializer(SyntaxNode propertyDeclaration, SyntaxNode initializer);
+
+    public abstract SyntaxNode EqualsValueClause(SyntaxNode value);
     public abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
 
     public abstract SyntaxToken Identifier(string identifier);

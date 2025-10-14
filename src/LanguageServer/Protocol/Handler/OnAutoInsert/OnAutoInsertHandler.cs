@@ -131,7 +131,7 @@ internal sealed class OnAutoInsertHandler(
 
         var result = character == "\n"
             ? service.GetDocumentationCommentSnippetOnEnterTyped(parsedDocument, position, options, cancellationToken)
-            : service.GetDocumentationCommentSnippetOnCharacterTyped(parsedDocument, position, options, cancellationToken, addIndentation: true);
+            : service.GetDocumentationCommentSnippetOnCharacterTyped(parsedDocument, position, options, cancellationToken);
 
         if (result == null)
             return null;
