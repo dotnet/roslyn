@@ -172,88 +172,90 @@ foreach (var printer in printers)
 }
 
 // Determine subscription changes.
-
-// Source -> VMR
-var existingSourceBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
-    flow.SourceRepoUrl == sourceRepoUrl &&
-    flow.SourceBranch == sourceBranchName &&
-    flow.TargetRepoUrl == vmrRepoUrl);
-var sourceChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should publish to darc channel",
-    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsDarcChannelName()));
-var sourceVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
-    defaultValueIfNotNullOrEmpty: existingSourceBranchFlow?.TargetBranch));
-suggestSubscriptionChange(existingFlow: existingSourceBranchFlow, expectedFlow: new Flow(
-    SourceRepoUrl: sourceRepoUrl,
-    SourceBranch: sourceBranchName,
-    Channel: sourceChannelAfterSnap,
-    TargetRepoUrl: vmrRepoUrl,
-    TargetBranch: sourceVmrBranchAfterSnap));
-
-// VMR -> Source
-var existingSourceBranchBackFlow = darc.FoundFlows.FirstOrDefault(flow =>
-    flow.SourceRepoUrl == vmrRepoUrl &&
-    flow.TargetRepoUrl == sourceRepoUrl &&
-    flow.SourceBranch == sourceVmrBranchAfterSnap);
-var suggestedSourceBranchBackFlowChannel = existingSourceBranchBackFlow?.Channel
-    ?? await darc.TryGetDefaultChannelAsync(vmrRepoUrl, sourceVmrBranchAfterSnap)
-    ?? console.Prompt(new TextPrompt<string>($"After snap, [teal]{sourceBranchName}[/] should flow back from VMR's [teal]{sourceVmrBranchAfterSnap}[/] via darc channel:"));
-suggestSubscriptionChange(existingFlow: existingSourceBranchBackFlow, expectedFlow: new Flow(
-    SourceRepoUrl: vmrRepoUrl,
-    SourceBranch: sourceVmrBranchAfterSnap,
-    Channel: suggestedSourceBranchBackFlowChannel,
-    TargetRepoUrl: sourceRepoUrl,
-    TargetBranch: sourceBranchName));
-
-// Target -> VMR
-var existingTargetBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
-    flow.SourceRepoUrl == sourceRepoUrl &&
-    flow.SourceBranch == targetBranchName &&
-    flow.TargetRepoUrl == vmrRepoUrl) ?? darc.FoundFlows.FirstOrDefault(flow =>
-    flow.SourceRepoUrl == sourceRepoUrl &&
-    flow.TargetRepoUrl == vmrRepoUrl);
-var targetChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should publish to darc channel",
-    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsDarcChannelName()));
-var targetVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
-    defaultValueIfNotNullOrEmpty: existingTargetBranchFlow?.TargetBranch));
-suggestSubscriptionChange(existingFlow: existingTargetBranchFlow, expectedFlow: new Flow(
-    SourceRepoUrl: sourceRepoUrl,
-    SourceBranch: targetBranchName,
-    Channel: targetChannelAfterSnap,
-    TargetRepoUrl: vmrRepoUrl,
-    TargetBranch: targetVmrBranchAfterSnap));
-
-// VMR -> Target
-var existingTargetBranchBackFlow = darc.FoundFlows.FirstOrDefault(flow =>
-    flow.SourceRepoUrl == vmrRepoUrl &&
-    flow.TargetRepoUrl == sourceRepoUrl &&
-    flow.SourceBranch == targetVmrBranchAfterSnap);
-var suggestedTargetBranchBackFlowChannel = existingTargetBranchBackFlow?.Channel
-    ?? await darc.TryGetDefaultChannelAsync(vmrRepoUrl, targetVmrBranchAfterSnap)
-    ?? console.Prompt(new TextPrompt<string>($"After snap, [teal]{targetBranchName}[/] should flow back from VMR's [teal]{targetVmrBranchAfterSnap}[/] via darc channel:"));
-suggestSubscriptionChange(existingFlow: existingTargetBranchBackFlow, expectedFlow: new Flow(
-    SourceRepoUrl: vmrRepoUrl,
-    SourceBranch: targetVmrBranchAfterSnap,
-    Channel: suggestedTargetBranchBackFlowChannel,
-    TargetRepoUrl: sourceRepoUrl,
-    TargetBranch: targetBranchName));
-
-void suggestSubscriptionChange(Flow? existingFlow, Flow expectedFlow)
+if (console.Confirm("Change some subscriptions in this snap script run?", defaultValue: true))
 {
-    if (darc.FoundFlows.Contains(expectedFlow))
-    {
-        console.MarkupLineInterpolated($"[green]Already exists:[/] Flow {expectedFlow.ToFullString()}");
-    }
-    else
-    {
-        if (existingFlow != null)
-        {
-            if (actions.Add($"Update flow {existingFlow.ToFullString()} {Flow.DescribeChanges(existingFlow, expectedFlow)}", () => expectedFlow.UpdateAsync(console, existingFlow)))
-            {
-                return;
-            }
-        }
+    // Source -> VMR
+    var existingSourceBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
+        flow.SourceRepoUrl == sourceRepoUrl &&
+        flow.SourceBranch == sourceBranchName &&
+        flow.TargetRepoUrl == vmrRepoUrl);
+    var sourceChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should publish to darc channel",
+        defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsDarcChannelName()));
+    var sourceVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
+        defaultValueIfNotNullOrEmpty: existingSourceBranchFlow?.TargetBranch));
+    suggestSubscriptionChange(existingFlow: existingSourceBranchFlow, expectedFlow: new Flow(
+        SourceRepoUrl: sourceRepoUrl,
+        SourceBranch: sourceBranchName,
+        Channel: sourceChannelAfterSnap,
+        TargetRepoUrl: vmrRepoUrl,
+        TargetBranch: sourceVmrBranchAfterSnap));
 
-        actions.Add($"Add flow {expectedFlow.ToFullString()}", () => expectedFlow.AddAsync(console));
+    // VMR -> Source
+    var existingSourceBranchBackFlow = darc.FoundFlows.FirstOrDefault(flow =>
+        flow.SourceRepoUrl == vmrRepoUrl &&
+        flow.TargetRepoUrl == sourceRepoUrl &&
+        flow.SourceBranch == sourceVmrBranchAfterSnap);
+    var suggestedSourceBranchBackFlowChannel = existingSourceBranchBackFlow?.Channel
+        ?? await darc.TryGetDefaultChannelAsync(vmrRepoUrl, sourceVmrBranchAfterSnap)
+        ?? console.Prompt(new TextPrompt<string>($"After snap, [teal]{sourceBranchName}[/] should flow back from VMR's [teal]{sourceVmrBranchAfterSnap}[/] via darc channel:"));
+    suggestSubscriptionChange(existingFlow: existingSourceBranchBackFlow, expectedFlow: new Flow(
+        SourceRepoUrl: vmrRepoUrl,
+        SourceBranch: sourceVmrBranchAfterSnap,
+        Channel: suggestedSourceBranchBackFlowChannel,
+        TargetRepoUrl: sourceRepoUrl,
+        TargetBranch: sourceBranchName));
+
+    // Target -> VMR
+    var existingTargetBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
+        flow.SourceRepoUrl == sourceRepoUrl &&
+        flow.SourceBranch == targetBranchName &&
+        flow.TargetRepoUrl == vmrRepoUrl) ?? darc.FoundFlows.FirstOrDefault(flow =>
+        flow.SourceRepoUrl == sourceRepoUrl &&
+        flow.TargetRepoUrl == vmrRepoUrl);
+    var targetChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should publish to darc channel",
+        defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsDarcChannelName()));
+    var targetVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
+        defaultValueIfNotNullOrEmpty: existingTargetBranchFlow?.TargetBranch));
+    suggestSubscriptionChange(existingFlow: existingTargetBranchFlow, expectedFlow: new Flow(
+        SourceRepoUrl: sourceRepoUrl,
+        SourceBranch: targetBranchName,
+        Channel: targetChannelAfterSnap,
+        TargetRepoUrl: vmrRepoUrl,
+        TargetBranch: targetVmrBranchAfterSnap));
+
+    // VMR -> Target
+    var existingTargetBranchBackFlow = darc.FoundFlows.FirstOrDefault(flow =>
+        flow.SourceRepoUrl == vmrRepoUrl &&
+        flow.TargetRepoUrl == sourceRepoUrl &&
+        flow.SourceBranch == targetVmrBranchAfterSnap);
+    var suggestedTargetBranchBackFlowChannel = existingTargetBranchBackFlow?.Channel
+        ?? await darc.TryGetDefaultChannelAsync(vmrRepoUrl, targetVmrBranchAfterSnap)
+        ?? console.Prompt(new TextPrompt<string>($"After snap, [teal]{targetBranchName}[/] should flow back from VMR's [teal]{targetVmrBranchAfterSnap}[/] via darc channel:"));
+    suggestSubscriptionChange(existingFlow: existingTargetBranchBackFlow, expectedFlow: new Flow(
+        SourceRepoUrl: vmrRepoUrl,
+        SourceBranch: targetVmrBranchAfterSnap,
+        Channel: suggestedTargetBranchBackFlowChannel,
+        TargetRepoUrl: sourceRepoUrl,
+        TargetBranch: targetBranchName));
+
+    void suggestSubscriptionChange(Flow? existingFlow, Flow expectedFlow)
+    {
+        if (darc.FoundFlows.Contains(expectedFlow))
+        {
+            console.MarkupLineInterpolated($"[green]Already exists:[/] Flow {expectedFlow.ToFullString()}");
+        }
+        else
+        {
+            if (existingFlow != null)
+            {
+                if (actions.Add($"Update flow {existingFlow.ToFullString()} {Flow.DescribeChanges(existingFlow, expectedFlow)}", () => expectedFlow.UpdateAsync(console, existingFlow)))
+                {
+                    return;
+                }
+            }
+
+            actions.Add($"Add flow {expectedFlow.ToFullString()}", () => expectedFlow.AddAsync(console));
+        }
     }
 }
 
