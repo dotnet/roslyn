@@ -15434,5 +15434,93 @@ class K
             var info = model.GetSemanticInfoSummary(syntax);
             Assert.Equal("C", info.Type.Name);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75147")]
+        public void GetTypeInfoOnObjectCreationExpressionType()
+        {
+            string sourceCode = @"
+class MyClass { }
+class Program
+{
+    static void Main()
+    {
+        var obj = new /*<bind>*/MyClass/*</bind>*/();
+    }
+}";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            // Verify that GetTypeInfo returns the type information for the Type node of ObjectCreationExpression
+            Assert.Equal("MyClass", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("MyClass", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("MyClass", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75147")]
+        public void GetTypeInfoOnObjectCreationExpressionTypeWithGeneric()
+        {
+            string sourceCode = @"
+using System.Collections.Generic;
+class Program
+{
+    static void Main()
+    {
+        var list = new /*<bind>*/List<int>/*</bind>*/();
+    }
+}";
+            var semanticInfo = GetSemanticInfoForTest<GenericNameSyntax>(sourceCode);
+
+            Assert.Equal("System.Collections.Generic.List<System.Int32>", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("System.Collections.Generic.List<System.Int32>", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("System.Collections.Generic.List<System.Int32>", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75147")]
+        public void GetTypeInfoOnObjectCreationExpressionTypeWithQualifiedName()
+        {
+            string sourceCode = @"
+namespace N
+{
+    class MyClass { }
+}
+class Program
+{
+    static void Main()
+    {
+        var obj = new /*<bind>*/N.MyClass/*</bind>*/();
+    }
+}";
+            var semanticInfo = GetSemanticInfoForTest<QualifiedNameSyntax>(sourceCode);
+
+            Assert.Equal("N.MyClass", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("N.MyClass", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("N.MyClass", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
     }
 }

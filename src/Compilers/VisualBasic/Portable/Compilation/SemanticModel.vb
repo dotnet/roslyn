@@ -129,6 +129,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return IsInCrefOrNameAttributeInterior(node)
             End If
 
+            ' Special case: Allow getting semantic info for the Type node of ObjectCreationExpression
+            ' even if it's marked as IsMissing, since simple identifier types are incorrectly marked as missing.
+            If node.IsMissing AndAlso TypeOf node Is ExpressionSyntax AndAlso node.Parent IsNot Nothing AndAlso
+               node.Parent.Kind = SyntaxKind.ObjectCreationExpression AndAlso
+               DirectCast(node.Parent, ObjectCreationExpressionSyntax).Type Is node Then
+                Return True
+            End If
+
             Return Not node.IsMissing AndAlso
                 (TypeOf (node) Is ExpressionSyntax AndAlso (allowNamedArgumentName OrElse Not SyntaxFacts.IsNamedArgumentName(node)) OrElse
                  TypeOf (node) Is AttributeSyntax OrElse
@@ -924,13 +932,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If lowestExpr Is Nothing Then
                 ' Only BoundExpressions have a type.
-                Return Nothing
-            End If
-
-            ' Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
-            If boundNodes.LowestBoundNodeOfSyntacticParent IsNot Nothing AndAlso
-               boundNodes.LowestBoundNodeOfSyntacticParent.Syntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso
-               DirectCast(boundNodes.LowestBoundNodeOfSyntacticParent.Syntax, ObjectCreationExpressionSyntax).Type Is lowestExpr.Syntax Then
                 Return Nothing
             End If
 
