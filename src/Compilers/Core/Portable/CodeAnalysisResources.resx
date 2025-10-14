@@ -436,7 +436,7 @@
     <value>A node in the list is not of the expected type.</value>
   </data>
   <data name="MissingListItem" xml:space="preserve">
-    <value>The item specified is not the element of a list.</value>
+    <value>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</value>
   </data>
   <data name="InvalidPublicKey" xml:space="preserve">
     <value>Invalid public key.</value>
