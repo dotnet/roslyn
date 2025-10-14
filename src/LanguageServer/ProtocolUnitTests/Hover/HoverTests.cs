@@ -236,8 +236,10 @@ $@"<Workspace>
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
-
-        var expectedMarkdown = @$"```csharp
+        var results = await RunGetHoverAsync(
+            testLspServer,
+            expectedLocation).ConfigureAwait(false);
+        Assert.Equal(@$"```csharp
 void A.AMethod(int i)
 ```
   
@@ -258,12 +260,7 @@ Remarks are cool too\.
   
 {WorkspacesResources.Exceptions_colon}  
 &nbsp;&nbsp;System\.NullReferenceException  
-";
-
-        var results = await RunGetHoverAsync(
-            testLspServer,
-            expectedLocation).ConfigureAwait(false);
-        Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
+", results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData]
@@ -306,8 +303,10 @@ Remarks are cool too\.
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
-
-        var expectedText = @$"void A.AMethod(int i)
+        var results = await RunGetHoverAsync(
+            testLspServer,
+            expectedLocation).ConfigureAwait(false);
+        Assert.Equal(@$"void A.AMethod(int i)
 A cref A.AMethod(int)
 strong text
 italic text
@@ -325,12 +324,7 @@ Remarks are cool too.
 
 {WorkspacesResources.Exceptions_colon}
   System.NullReferenceException
-";
-
-        var results = await RunGetHoverAsync(
-            testLspServer,
-            expectedLocation).ConfigureAwait(false);
-        Assert.Equal(expectedText, results.Contents.Fourth.Value);
+", results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData]
@@ -366,8 +360,10 @@ Remarks are cool too.
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
-
-        var expectedMarkdown = @"```csharp
+        var results = await RunGetHoverAsync(
+            testLspServer,
+            expectedLocation).ConfigureAwait(false);
+        Assert.Equal(@"```csharp
 void A.AMethod(int i)
 ```
   
@@ -379,12 +375,7 @@ Exclaim\!
 **strong\\\*\* text**  
 _italic\_ \*\*text\*\*_  
 [closing\] link](https://google.com)  
-";
-
-        var results = await RunGetHoverAsync(
-            testLspServer,
-            expectedLocation).ConfigureAwait(false);
-        Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
+", results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData]
@@ -410,18 +401,15 @@ _italic\_ \*\*text\*\*_
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
-
-        var expectedMarkdown = @"```csharp
+        var results = await RunGetHoverAsync(
+            testLspServer,
+            expectedLocation).ConfigureAwait(false);
+        Assert.Equal(@"```csharp
 void A.AMethod(int i)
 ```
   
 `if (true) { Console.WriteLine(""hello""); }`  
-";
-
-        var results = await RunGetHoverAsync(
-            testLspServer,
-            expectedLocation).ConfigureAwait(false);
-        Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
+", results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75181")]
@@ -447,8 +435,10 @@ void A.AMethod(int i)
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
-
-        var expectedMarkdown = @"```csharp
+        var results = await RunGetHoverAsync(
+            testLspServer,
+            expectedLocation).ConfigureAwait(false);
+        Assert.Equal(@"```csharp
 void A.AMethod(int i)
 ```
   
@@ -458,12 +448,7 @@ if (true) {
     Console.WriteLine(""hello"");
 }
 ```  
-";
-
-        var results = await RunGetHoverAsync(
-            testLspServer,
-            expectedLocation).ConfigureAwait(false);
-        Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
+", results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/1499")]
@@ -485,18 +470,15 @@ if (true) {
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
-
-        var expectedMarkdown = @"```csharp
+        var results = await RunGetHoverAsync(
+            testLspServer,
+            expectedLocation).ConfigureAwait(false);
+        Assert.Equal(@"```csharp
 void A.AMethod(int i)
 ```
   
 Hello&nbsp;``A`1[B,C]``  
-";
-
-        var results = await RunGetHoverAsync(
-            testLspServer,
-            expectedLocation).ConfigureAwait(false);
-        Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
+", results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
@@ -517,14 +499,11 @@ class C
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
-
-        var expectedMarkdown = $@"{string.Format(FeaturesResources.Awaited_task_returns_0, "`class System.String`")}  
-";
-
         var results = await RunGetHoverAsync(
             testLspServer,
             expectedLocation).ConfigureAwait(false);
-        Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
+        Assert.Equal($@"{string.Format(FeaturesResources.Awaited_task_returns_0, "`class System.String`")}  
+", results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData]
@@ -558,20 +537,6 @@ class C
                 </Project>
             </Workspace>
             """;
-
-        var expectedMarkdown = $"""
-            ```csharp
-            ({FeaturesResources.constant}) string WithConstant.Target = "Target in net472"
-            ```
-              
-              
-            &nbsp;&nbsp;&nbsp;&nbsp;{string.Format(FeaturesResources._0_1, "Net472", FeaturesResources.Available).Replace("-", "\\-")}  
-            &nbsp;&nbsp;&nbsp;&nbsp;{string.Format(FeaturesResources._0_1, "NetCoreApp3", FeaturesResources.Not_Available).Replace("-", "\\-")}  
-              
-            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts.Replace(".", "\\.")}  
-            
-            """;
-
         var clientCapabilities = new LSP.ClientCapabilities
         {
             TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
@@ -583,7 +548,18 @@ class C
         var result = await RunGetHoverAsync(testLspServer, location, project.Id);
 
         AssertEx.NotNull(result);
-        Assert.Equal(expectedMarkdown, result.Contents.Fourth.Value);
+        Assert.Equal($"""
+            ```csharp
+            ({FeaturesResources.constant}) string WithConstant.Target = "Target in net472"
+            ```
+              
+              
+            &nbsp;&nbsp;&nbsp;&nbsp;{string.Format(FeaturesResources._0_1, "Net472", FeaturesResources.Available).Replace("-", "\\-")}  
+            &nbsp;&nbsp;&nbsp;&nbsp;{string.Format(FeaturesResources._0_1, "NetCoreApp3", FeaturesResources.Not_Available).Replace("-", "\\-")}  
+              
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts.Replace(".", "\\.")}  
+            
+            """, result.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
@@ -609,8 +585,10 @@ class C
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
-
-        var expectedMarkdown = """
+        var results = await RunGetHoverAsync(
+            testLspServer,
+            expectedLocation).ConfigureAwait(false);
+        Assert.Equal("""
             ```csharp
             interface System.Collections.Generic.IDictionary<TKey, TValue>
             ```
@@ -619,12 +597,7 @@ class C
             TKey&nbsp;is&nbsp;string  
             TValue&nbsp;is&nbsp;ImmutableArray\<int\>  
             
-            """;
-
-        var results = await RunGetHoverAsync(
-            testLspServer,
-            expectedLocation).ConfigureAwait(false);
-        Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
+            """, results.Contents.Fourth.Value);
     }
 
     private static async Task<LSP.Hover> RunGetHoverAsync(

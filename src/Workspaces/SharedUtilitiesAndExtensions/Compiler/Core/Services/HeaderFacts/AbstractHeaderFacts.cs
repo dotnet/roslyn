@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -38,9 +39,17 @@ internal abstract class AbstractHeaderFacts : IHeaderFacts
     {
         Debug.Assert(ownerOfHeader.FullSpan.Contains(lastTokenOrNodeOfHeader.Span));
 
-        var headerSpan = TextSpan.FromBounds(
-            start: GetStartOfNodeExcludingAttributes(root, ownerOfHeader),
-            end: lastTokenOrNodeOfHeader.FullSpan.End);
+        // In error cases, we may have a full missing header, followed by attributes.  For example:
+        //
+        //  [X] else { }
+        //
+        // This will be an if-statement where the `if(...)` part is entirely missing.  In that case, just bail out
+        // as we aren't likely to produce a reasonable result here.
+        var startAfterAttributes = GetStartOfNodeExcludingAttributes(root, ownerOfHeader);
+        if (startAfterAttributes > lastTokenOrNodeOfHeader.FullSpan.End)
+            return false;
+
+        var headerSpan = TextSpan.FromBounds(startAfterAttributes, lastTokenOrNodeOfHeader.FullSpan.End);
 
         // Is in header check is inclusive, being on the end edge of an header still counts
         if (!headerSpan.IntersectsWith(position))
@@ -63,22 +72,26 @@ internal abstract class AbstractHeaderFacts : IHeaderFacts
     /// Tries to get an ancestor of a Token on current position or of Token directly to left:
     /// e.g.: tokenWithWantedAncestor[||]tokenWithoutWantedAncestor
     /// </summary>
-    protected TNode? TryGetAncestorForLocation<TNode>(SyntaxNode root, int position) where TNode : SyntaxNode
+    protected TNode? TryGetAncestorForLocation<TNode>(SyntaxNode root, int position, out SyntaxNode? untypedResult) where TNode : SyntaxNode
     {
         var tokenToRightOrIn = root.FindToken(position);
         var nodeToRightOrIn = tokenToRightOrIn.GetAncestor<TNode>();
         if (nodeToRightOrIn != null)
         {
+            untypedResult = nodeToRightOrIn;
             return nodeToRightOrIn;
         }
 
         // not at the beginning of a Token -> no (different) token to the left
         if (tokenToRightOrIn.FullSpan.Start != position && tokenToRightOrIn.RawKind != SyntaxFacts.SyntaxKinds.EndOfFileToken)
         {
+            untypedResult = null;
             return null;
         }
 
-        return tokenToRightOrIn.GetPreviousToken().GetAncestor<TNode>();
+        var result = tokenToRightOrIn.GetPreviousToken().GetAncestor<TNode>();
+        untypedResult = result;
+        return result;
     }
 
     protected int GetStartOfNodeExcludingAttributes(SyntaxNode root, SyntaxNode node)

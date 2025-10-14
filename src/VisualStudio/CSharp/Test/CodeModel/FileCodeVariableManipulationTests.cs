@@ -14,10 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel;
 public sealed class FileCodeVariableManipulationTests : AbstractFileCodeElementTests
 {
     public FileCodeVariableManipulationTests()
-        : base(@"class Goo
-{
-    private int bar;
-}")
+        : base("""
+            class Goo
+            {
+                private int bar;
+            }
+            """)
     {
     }
 
@@ -28,8 +30,10 @@ public sealed class FileCodeVariableManipulationTests : AbstractFileCodeElementT
         var c = (CodeClass)GetCodeElement("Goo");
         c.RemoveMember(c.Members.Item("bar"));
 
-        Assert.Equal(@"class Goo
-{
-}", GetFileText());
+        Assert.Equal("""
+            class Goo
+            {
+            }
+            """, GetFileText());
     }
 }

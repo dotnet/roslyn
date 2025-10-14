@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote;
 

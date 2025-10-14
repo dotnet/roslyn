@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -35,16 +36,20 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
             LanguageVersion.CSharp1,
         ];
 
-    private async Task TestWithLanguageVersionsAsync(string initialMarkup, string expectedMarkup, ImmutableArray<LanguageVersion> versions)
+    private async Task TestWithLanguageVersionsAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        ImmutableArray<LanguageVersion> versions)
     {
         foreach (var version in versions)
         {
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
-                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(version));
+                new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(version)));
         }
     }
 
-    private async Task TestMissingWithLanguageVersionsAsync(string initialMarkup, ImmutableArray<LanguageVersion> versions)
+    private async Task TestMissingWithLanguageVersionsAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, ImmutableArray<LanguageVersion> versions)
     {
         foreach (var version in versions)
         {
@@ -54,9 +59,8 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
     }
 
     [Fact]
-    public async Task TestCSharp7_1_InCaseSwitchLabel_Int()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCaseSwitchLabel_Int()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -75,12 +79,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCaseSwitchLabel_Int_InParentheses()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCaseSwitchLabel_Int_InParentheses()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -99,12 +101,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCaseSwitchLabel_Int_NotInsideCast()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCaseSwitchLabel_Int_NotInsideCast()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -114,12 +114,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCaseSwitchLabel_Int_NotOnDefaultExpression()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCaseSwitchLabel_Int_NotOnDefaultExpression()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -129,12 +127,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCaseSwitchLabel_Int_NotOnNumericLiteral()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCaseSwitchLabel_Int_NotOnNumericLiteral()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -144,13 +140,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCaseSwitchLabel_DateTime()
-    {
-        // Note that the default value of a struct type is not a constant, so this code is incorrect.
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCaseSwitchLabel_DateTime()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -169,13 +162,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCaseSwitchLabel_TupleType()
-    {
-        // Note that the default value of a tuple type is not a constant, so this code is incorrect.
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCaseSwitchLabel_TupleType()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -194,7 +184,6 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("value")]
@@ -202,9 +191,8 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
     [InlineData("default")]
     [InlineData("() => { }")]
     [InlineData("")]
-    public async Task TestCSharp7_1_InCaseSwitchLabel_NotForInvalidType(string expression)
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCaseSwitchLabel_NotForInvalidType(string expression)
+        => TestMissingWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -214,12 +202,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCasePatternSwitchLabel_Int()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCasePatternSwitchLabel_Int()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -238,12 +224,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCasePatternSwitchLabel_Int_InParentheses()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCasePatternSwitchLabel_Int_InParentheses()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -262,12 +246,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCasePatternSwitchLabel_Int_NotInsideCast()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCasePatternSwitchLabel_Int_NotInsideCast()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -277,12 +259,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCasePatternSwitchLabel_Int_NotOnDefaultExpression()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCasePatternSwitchLabel_Int_NotOnDefaultExpression()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -292,12 +272,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCasePatternSwitchLabel_Int_NotOnNumericLiteral()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCasePatternSwitchLabel_Int_NotOnNumericLiteral()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -307,13 +285,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCasePatternSwitchLabel_DateTime()
-    {
-        // Note that the default value of a struct type is not a constant, so this code is incorrect.
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCasePatternSwitchLabel_DateTime()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -332,13 +307,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InCasePatternSwitchLabel_TupleType()
-    {
-        // Note that the default value of a tuple type is not a constant, so this code is incorrect.
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCasePatternSwitchLabel_TupleType()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -357,7 +329,6 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("value")]
@@ -365,9 +336,8 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
     [InlineData("default")]
     [InlineData("() => { }")]
     [InlineData("")]
-    public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForInvalidType(string expression)
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InCasePatternSwitchLabel_NotForInvalidType(string expression)
+        => TestMissingWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -377,12 +347,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_Bool()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_Bool()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -401,12 +369,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_Bool_InParentheses()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_Bool_InParentheses()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -425,12 +391,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_Bool_NotInsideCast()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_Bool_NotInsideCast()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -440,12 +404,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_Bool_NotOnDefaultExpression()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_Bool_NotOnDefaultExpression()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -455,12 +417,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_Bool_NotOnFalseLiteral()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_Bool_NotOnFalseLiteral()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -470,7 +430,6 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("int", "0")]
@@ -487,9 +446,8 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
     [InlineData("char", "'\\0'")]
     [InlineData("string", "null")]
     [InlineData("object", "null")]
-    public async Task TestCSharp7_1_InIsPattern_BuiltInType(string type, string expectedLiteral)
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_BuiltInType(string type, string expectedLiteral)
+        => TestWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -508,13 +466,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_DateTime()
-    {
-        // Note that the default value of a struct type is not a constant, so this code is incorrect.
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_DateTime()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -533,13 +488,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_TupleType()
-    {
-        // Note that the default value of a tuple type is not a constant, so this code is incorrect.
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_TupleType()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -558,15 +510,13 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("class Type { }")]
     [InlineData("interface Type { }")]
     [InlineData("delegate void Type();")]
-    public async Task TestCSharp7_1_InIsPattern_CustomReferenceType(string typeDeclaration)
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_CustomReferenceType(string typeDeclaration)
+        => TestWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -587,7 +537,6 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("enum Enum { }")]
@@ -596,9 +545,8 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
     [InlineData("[System.Flags] enum Enum { None = 1 }")]
     [InlineData("[System.Flags] enum Enum { None = 1, None = 0 }")]
     [InlineData("[System.Flags] enum Enum { Some = 0 }")]
-    public async Task TestCSharp7_1_InIsPattern_CustomEnum_WithoutSpecialMember(string enumDeclaration)
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_CustomEnum_WithoutSpecialMember(string enumDeclaration)
+        => TestWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -619,7 +567,6 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("[System.Flags] enum Enum : int { None = 0 }")]
@@ -633,9 +580,8 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
     [InlineData("[System.Flags] enum Enum { None = default }")]
     [InlineData("[System.Flags] enum Enum { Some = 1, None = 0 }")]
     [InlineData("[System.FlagsAttribute] enum Enum { None = 0, Some = 1 }")]
-    public async Task TestCSharp7_1_InIsPattern_CustomEnum_WithSpecialMember(string enumDeclaration)
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_CustomEnum_WithSpecialMember(string enumDeclaration)
+        => TestWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -656,13 +602,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_CustomStruct()
-    {
-        // Note that the default value of a struct type is not a constant, so this code is incorrect.
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_CustomStruct()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -683,12 +626,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_AnonymousType()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_AnonymousType()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -707,15 +648,13 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("class Container<T> { }")]
     [InlineData("interface Container<T> { }")]
     [InlineData("delegate void Container<T>();")]
-    public async Task TestCSharp7_1_InIsPattern_CustomReferenceTypeOfAnonymousType(string typeDeclaration)
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_CustomReferenceTypeOfAnonymousType(string typeDeclaration)
+        => TestWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -738,12 +677,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_NotForCustomStructOfAnonymousType()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_NotForCustomStructOfAnonymousType()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -755,13 +692,11 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("System.Threading", "CancellationToken", "None")]
-    public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified1(string @namespace, string type, string member)
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_SpecialTypeQualified1(string @namespace, string type, string member)
+        => TestWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -780,14 +715,12 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("System", "IntPtr", "Zero")]
     [InlineData("System", "UIntPtr", "Zero")]
-    public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified2(string @namespace, string type, string member)
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_SpecialTypeQualified2(string @namespace, string type, string member)
+        => TestWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -806,13 +739,11 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, [LanguageVersion.CSharp7_1, LanguageVersion.CSharp10, LanguageVersion.CSharp11, LanguageVersion.Latest]);
-    }
 
     [Theory]
     [InlineData("System.Threading", "CancellationToken", "None")]
-    public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing1(string @namespace, string type, string member)
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing1(string @namespace, string type, string member)
+        => TestWithLanguageVersionsAsync(
             $$"""
             using {{@namespace}};
             class C
@@ -833,14 +764,12 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("System", "IntPtr", "Zero")]
     [InlineData("System", "UIntPtr", "Zero")]
-    public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing2(string @namespace, string type, string member)
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing2(string @namespace, string type, string member)
+        => TestWithLanguageVersionsAsync(
             $$"""
             using {{@namespace}};
             class C
@@ -861,15 +790,13 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, [LanguageVersion.CSharp7_1, LanguageVersion.CSharp10, LanguageVersion.CSharp11, LanguageVersion.Latest]);
-    }
 
     [Theory]
     [InlineData("CancellationToken")]
     [InlineData("IntPtr")]
     [InlineData("UIntPtr")]
-    public async Task TestCSharp7_1_InIsPattern_NotForSpecialTypeUnqualifiedWithoutUsing(string type)
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_NotForSpecialTypeUnqualifiedWithoutUsing(string type)
+        => TestMissingWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -879,12 +806,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_NotForInvalidType1()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_NotForInvalidType1()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -895,16 +820,14 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("value")]
     [InlineData("null")]
     [InlineData("default")]
     [InlineData("")]
-    public async Task TestCSharp7_1_InIsPattern_NotForInvalidType2(string expression)
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_NotForInvalidType2(string expression)
+        => TestMissingWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -915,7 +838,6 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Theory]
     [InlineData("value")]
@@ -923,9 +845,8 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
     [InlineData("default")]
     [InlineData("() => { }")]
     [InlineData("")]
-    public async Task TestCSharp7_1_InIsPattern_NotForInvalidType3(string expression)
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_NotForInvalidType3(string expression)
+        => TestMissingWithLanguageVersionsAsync(
             $$"""
             class C
             {
@@ -935,12 +856,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_Lambda()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_Lambda()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -951,12 +870,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, [LanguageVersion.CSharp7_1]);
-    }
 
     [Fact]
-    public async Task TestCSharpLatest_InIsPattern_Lambda()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharpLatest_InIsPattern_Lambda()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -977,12 +894,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, [LanguageVersion.Latest]);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_Bool_Trivia()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_Bool_Trivia()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -1003,12 +918,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_InIsPattern_DateTime_Trivia()
-    {
-        await TestWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_InIsPattern_DateTime_Trivia()
+        => TestWithLanguageVersionsAsync(
             """
             class C
             {
@@ -1029,12 +942,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_NotInsideExpression()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_NotInsideExpression()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -1044,12 +955,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7_1_NotInsideExpression_InvalidType()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7_1_NotInsideExpression_InvalidType()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -1059,12 +968,10 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7_1above);
-    }
 
     [Fact]
-    public async Task TestCSharp7Lower_NotInsideExpression()
-    {
-        await TestMissingWithLanguageVersionsAsync(
+    public Task TestCSharp7Lower_NotInsideExpression()
+        => TestMissingWithLanguageVersionsAsync(
             """
             class C
             {
@@ -1074,5 +981,4 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                 }
             }
             """, s_csharp7below);
-    }
 }

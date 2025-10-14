@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -30,8 +31,8 @@ internal sealed class LanguageServerWorkspaceFactory
         IFileChangeWatcher fileChangeWatcher,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ProjectTargetFrameworkManager projectTargetFrameworkManager,
-        ServerConfigurationFactory serverConfigurationFactory,
         ExtensionAssemblyManager extensionManager,
+        [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
         ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerWorkspaceFactory));
@@ -55,18 +56,16 @@ internal sealed class LanguageServerWorkspaceFactory
 
         // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
         // 'CreateSolutionLevelAnalyzerReferencesForWorkspace' needs to be broken out into its own service for us to be able to move this.
-        var fileBasedProgramsWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
-        fileBasedProgramsWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(fileBasedProgramsWorkspace)), WorkspaceChangeKind.SolutionChanged);
+        var miscellaneousFilesWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
+        miscellaneousFilesWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(miscellaneousFilesWorkspace)), WorkspaceChangeKind.SolutionChanged);
 
-        FileBasedProgramsProjectFactory = new ProjectSystemProjectFactory(
-            fileBasedProgramsWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
-        fileBasedProgramsWorkspace.ProjectSystemProjectFactory = FileBasedProgramsProjectFactory;
+        MiscellaneousFilesWorkspaceProjectFactory = new ProjectSystemProjectFactory(
+            miscellaneousFilesWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
+        miscellaneousFilesWorkspace.ProjectSystemProjectFactory = MiscellaneousFilesWorkspaceProjectFactory;
 
-        var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: [.. dynamicFileInfoProviders],
-            new HostDiagnosticAnalyzerProvider(razorSourceGenerator),
-            AnalyzerAssemblyRedirectors: []);
+            AnalyzerAssemblyRedirectors: [.. assemblyRedirectors]);
 
         TargetFrameworkManager = projectTargetFrameworkManager;
     }
@@ -74,7 +73,7 @@ internal sealed class LanguageServerWorkspaceFactory
     public Workspace HostWorkspace => HostProjectFactory.Workspace;
 
     public ProjectSystemProjectFactory HostProjectFactory { get; }
-    public ProjectSystemProjectFactory FileBasedProgramsProjectFactory { get; }
+    public ProjectSystemProjectFactory MiscellaneousFilesWorkspaceProjectFactory { get; }
 
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
     public ProjectTargetFrameworkManager TargetFrameworkManager { get; }

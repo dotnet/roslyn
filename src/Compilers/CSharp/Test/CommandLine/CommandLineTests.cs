@@ -913,210 +913,196 @@ class C
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        public void ParseResources()
+        public void TryParseResourceDescription()
         {
             var diags = new List<Diagnostic>();
+            CommandLineResource resource;
 
-            ResourceDescription desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,someName", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,someName", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("someName", desc.ResourceName);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someName", resource.ResourceName);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\s""ome Fil""e.goo.bar,someName", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\s""ome Fil""e.goo.bar,someName", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"some File.goo.bar", desc.FileName);
-            Assert.Equal("someName", desc.ResourceName);
+            Assert.Equal(@"some File.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someName", resource.ResourceName);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,""some Name"",public", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,""some Name"",public", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("some Name", desc.ResourceName);
-            Assert.True(desc.IsPublic);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("some Name", resource.ResourceName);
+            Assert.True(resource.IsPublic);
 
             // Use file name in place of missing resource name.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,private", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,private", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
             // Quoted accessibility is fine.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,""private""", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,""private""", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
             // Leading commas are not ignored...
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @",,\somepath\someFile.goo.bar,,private", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@",,\somepath\someFile.goo.bar,,private", out resource));
             diags.Verify(
                 // error CS1906: Invalid option '\somepath\someFile.goo.bar'; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.goo.bar"));
             diags.Clear();
-            Assert.Null(desc);
 
             // ...even if there's whitespace between them.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @", ,\somepath\someFile.goo.bar,,private", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@", ,\somepath\someFile.goo.bar,,private", out resource));
             diags.Verify(
                 // error CS1906: Invalid option '\somepath\someFile.goo.bar'; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.goo.bar"));
             diags.Clear();
-            Assert.Null(desc);
 
             // Trailing commas are ignored...
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,private", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,private", out resource));
             diags.Verify();
             diags.Clear();
-            Assert.Equal("someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
             // ...even if there's whitespace between them.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,private, ,", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,private, ,", out resource));
             diags.Verify();
             diags.Clear();
-            Assert.Equal("someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,someName,publi", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@"\somepath\someFile.goo.bar,someName,publi", out resource));
             diags.Verify(Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments("publi"));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"D:rive\relative\path,someName,public", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@"D:rive\relative\path,someName,public", out resource));
             diags.Verify(Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"D:rive\relative\path"));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"inva\l*d?path,someName,public", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@"inva\l*d?path,someName,public", out resource));
             diags.Verify(Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"inva\l*d?path"));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", (string)null, WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse((string)null, out resource));
             diags.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments(""));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("", out resource));
             diags.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments(""));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" ", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " , ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" , ", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path, ", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse("path, ", out resource));
             diags.Verify();
             diags.Clear();
-            Assert.Equal("path", desc.FileName);
-            Assert.Equal("path", desc.ResourceName);
-            Assert.True(desc.IsPublic);
+            Assert.Equal("path", resource.LinkedResourceFileName);
+            Assert.Equal("path", resource.ResourceName);
+            Assert.True(resource.IsPublic);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" ,name", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " , , ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" , , ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ' '; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path, , ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("path, , ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ' '; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name, ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" ,name, ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ' '; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " , ,private", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" , ,private", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path,name,", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("path,name,", out resource));
             diags.Verify(
                 // CONSIDER: Dev10 actually prints "Invalid option '|'" (note the pipe)
                 // error CS1906: Invalid option ''; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(""));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path,name,,", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("path,name,,", out resource));
             diags.Verify(
                 // CONSIDER: Dev10 actually prints "Invalid option '|'" (note the pipe)
                 // error CS1906: Invalid option ''; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(""));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path,name, ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("path,name, ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ''; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path, ,private", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse("path, ,private", out resource));
             diags.Verify();
             diags.Clear();
-            Assert.Equal("path", desc.FileName);
-            Assert.Equal("path", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal("path", resource.LinkedResourceFileName);
+            Assert.Equal("path", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name,private", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" ,name,private", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
             var longE = new String('e', 1024);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", String.Format("path,{0},private", longE), WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse($"path,{longE},private", out resource));
             diags.Verify(); // Now checked during emit.
             diags.Clear();
-            Assert.Equal("path", desc.FileName);
-            Assert.Equal(longE, desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal("path", resource.LinkedResourceFileName);
+            Assert.Equal(longE, resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
             var longI = new String('i', 260);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", String.Format("{0},e,private", longI), WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse($"{longI},e,private", out resource));
             diags.Verify(
-                // error CS2021: File name 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1));
+                // error CS2021: File name '...' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(longI).WithLocation(1, 1));
+
+            bool TryParse(string value, out CommandLineResource resource) =>
+               CSharpCommandLineParser.TryParseResourceDescription(argName: "", value.AsMemory(), WorkingDirectory, diags, isEmbedded: false, out resource);
         }
 
         [Fact]
@@ -1675,7 +1661,7 @@ class C
         [InlineData("iso1")]
         [InlineData("8.1")]
         [InlineData("10.1")]
-        [InlineData("14")]
+        [InlineData("15")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1683,6 +1669,9 @@ class C
                 // error CS1617: Invalid option 'XXX' for /langversion. Use '/langversion:?' to list supported values.
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments(value).WithLocation(1, 1)
                 );
+
+            // The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary();
         }
 
         [Theory]
@@ -1726,14 +1715,20 @@ class C
         [Fact]
         public void LanguageVersionAdded_Canary()
         {
-            // When a new version is added, this test will break. This list must be checked:
-            // 1. update the "UpgradeProject" codefixer
-            // 2. update all the tests that call this canary
-            // 3. update _MaxAvailableLangVersion (a relevant test should break when new version is introduced)
-            // 4. email release management to add to the release notes (see csharp-version in release.json in previous example: https://github.com/dotnet/core/pull/9493)
-            // 5. make csharplang updates documented at https://github.com/dotnet/csharplang/blob/main/Design-Process.md#steps-to-move-a-triaged-feature-to-an-implemented-feature
-            // 6. push the list of specs to Codex. See previous example: https://devdiv.visualstudio.com/OnlineServices/_git/CodexV2Data/pullrequest/618779
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "latest", "latestmajor", "preview" },
+            // When a new version is added, this test will break.
+            // This list must be checked for this repo:
+            // - [ ] update the feature status page
+            // - [ ] update all the tests that call this canary
+            // - [ ] replace all references to C# "Next" (such as `TestOptions.RegularNext` or `LanguageVersionFacts.CSharpNext`) with the new version and fix failing tests
+            // - [ ] update _MaxAvailableLangVersion cap (a relevant test should break when new version is introduced)
+            // - [ ] update the "UpgradeProject" codefixer
+            // - [ ] test VS insertion and deal with breaking changes. (note: the runtime repo uses "preview" so breaks are resolved sooner)
+            //
+            // Other repos also need updates:
+            // - [ ] email release management to add to the release notes. See csharp-version in release.json in previous example: https://github.com/dotnet/core/pull/9493
+            // - [ ] make csharplang updates documented at https://github.com/dotnet/csharplang/blob/main/Design-Process.md#steps-to-move-a-triaged-feature-to-an-implemented-feature
+            // - [ ] push the list of specs to Codex. See previous example: https://devdiv.visualstudio.com/OnlineServices/_git/CodexV2Data/pullrequest/618779
+            AssertEx.SetEqual(["default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0", "latest", "latestmajor", "preview"],
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
@@ -1769,6 +1764,7 @@ class C
                 ErrorCode.ERR_FeatureNotAvailableInVersion11,
                 ErrorCode.ERR_FeatureNotAvailableInVersion12,
                 ErrorCode.ERR_FeatureNotAvailableInVersion13,
+                ErrorCode.ERR_FeatureNotAvailableInVersion14,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1794,9 +1790,10 @@ class C
             InlineData(LanguageVersion.CSharp11, LanguageVersion.CSharp11),
             InlineData(LanguageVersion.CSharp12, LanguageVersion.CSharp12),
             InlineData(LanguageVersion.CSharp13, LanguageVersion.CSharp13),
-            InlineData(LanguageVersion.CSharp13, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp13, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp13, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp14, LanguageVersion.CSharp14),
+            InlineData(LanguageVersion.CSharp14, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp14, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp14, LanguageVersion.Default),
             InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
@@ -6674,7 +6671,7 @@ class myClass
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        private void SourceFileQuoting()
+        public void SourceFileQuoting()
         {
             string[] responseFile = new string[] {
                 @"d:\\""abc def""\baz.cs ab""c d""e.cs",
@@ -8644,7 +8641,7 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact(), WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79351"), WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res_01()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
@@ -8720,9 +8717,7 @@ static void Main() { }
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
 class Program
 {
-#pragma warning disable 1998
         public static void Main() { }
-#pragma warning restore 1998
 } ").Path;
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -11520,16 +11515,16 @@ class C {
 
             parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("K1" + s, "V1" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("K1" + s, "V1" + s), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { $"/pathmap:abc{s}=/", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("abc" + s, "/"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("abc" + s, "/"), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1,K2=V2", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("K1" + s, "V1" + s), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePairUtil.Create("K2" + s, "V2" + s), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePair.Create("K1" + s, "V1" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("K2" + s, "V2" + s), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:,", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -11562,28 +11557,28 @@ class C {
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"supporting spaces=is hard\"", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("supporting spaces" + s, "is hard" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("supporting spaces" + s, "is hard" + s), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1=V 1\",\"K 2=V 2\"", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("K 1" + s, "V 1" + s), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePairUtil.Create("K 2" + s, "V 2" + s), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePair.Create("K 1" + s, "V 1" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("K 2" + s, "V 2" + s), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1\"=\"V 1\",\"K 2\"=\"V 2\"", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("K 1" + s, "V 1" + s), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePairUtil.Create("K 2" + s, "V 2" + s), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePair.Create("K 1" + s, "V 1" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("K 2" + s, "V 2" + s), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"a ==,,b\"=\"1,,== 2\",\"x ==,,y\"=\"3 4\",", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("a =,b" + s, "1,= 2" + s), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePairUtil.Create("x =,y" + s, "3 4" + s), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePair.Create("a =,b" + s, "1,= 2" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("x =,y" + s, "3 4" + s), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new[] { @"/pathmap:C:\temp\=/_1/,C:\temp\a\=/_2/,C:\temp\a\b\=/_3/", "a.cs", @"a\b.cs", @"a\b\c.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create(@"C:\temp\a\b\", "/_3/"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePairUtil.Create(@"C:\temp\a\", "/_2/"), parsedArgs.PathMap[1]);
-            Assert.Equal(KeyValuePairUtil.Create(@"C:\temp\", "/_1/"), parsedArgs.PathMap[2]);
+            Assert.Equal(KeyValuePair.Create(@"C:\temp\a\b\", "/_3/"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create(@"C:\temp\a\", "/_2/"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePair.Create(@"C:\temp\", "/_1/"), parsedArgs.PathMap[2]);
         }
 
         [Theory]
@@ -12074,7 +12069,6 @@ System.NotImplementedException: 28
 
             Assert.Equal(0, result.ExitCode);
         }
-#endif
 
         private static ImmutableArray<byte> CreateCSharpAnalyzerNetStandard13(string analyzerAssemblyName)
         {
@@ -12235,6 +12229,8 @@ public class TestAnalyzer : DiagnosticAnalyzer
             return analyzerImage;
         }
 
+#endif
+
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void MicrosoftDiaSymReaderNativeAltLoadPath()
@@ -12266,7 +12262,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 cscCopy,
                 arguments + " /deterministic",
                 workingDirectory: dir.Path,
-                additionalEnvironmentVars: new[] { KeyValuePairUtil.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", "") });
+                additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", "") });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 "error CS0041: Unexpected error writing debug information -- 'Unable to load DLL 'Microsoft.DiaSymReader.Native.amd64.dll': " +
@@ -12281,7 +12277,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 cscCopy,
                 arguments + " /deterministic",
                 workingDirectory: dir.Path,
-                additionalEnvironmentVars: new[] { KeyValuePairUtil.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
+                additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
 
             Assert.Equal("", result.Output.Trim());
         }

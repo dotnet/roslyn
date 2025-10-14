@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 /// This service provides diagnostic analyzers from the analyzer assets specified in the manifest files of installed VSIX extensions.
 /// These analyzers are used across this workspace session.
 /// </summary>
-internal sealed partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
+internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 {
     private const string AnalyzerContentTypeName = "Microsoft.VisualStudio.Analyzer";
 
@@ -33,7 +34,6 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiag
     private readonly Type _typeIExtensionContent;
 
     private readonly Lazy<ImmutableArray<(AnalyzerFileReference reference, string extensionId)>> _lazyAnalyzerReferences;
-    private readonly Lazy<ImmutableArray<(string path, string extensionId)>> _lazyRazorReferences;
 
     // internal for testing
     internal VisualStudioDiagnosticAnalyzerProvider(object extensionManager, Type typeIExtensionContent)
@@ -44,14 +44,10 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiag
         _extensionManager = extensionManager;
         _typeIExtensionContent = typeIExtensionContent;
         _lazyAnalyzerReferences = new Lazy<ImmutableArray<(AnalyzerFileReference, string)>>(() => GetExtensionContent(AnalyzerContentTypeName).SelectAsArray(c => (new AnalyzerFileReference(c.path, AnalyzerAssemblyLoader), c.extensionId)));
-        _lazyRazorReferences = new Lazy<ImmutableArray<(string, string)>>(() => GetExtensionContent(RazorContentTypeName));
     }
 
     public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions()
         => _lazyAnalyzerReferences.Value;
-
-    public ImmutableArray<(string path, string extensionId)> GetRazorAssembliesInExtensions()
-        => _lazyRazorReferences.Value;
 
     private ImmutableArray<(string path, string extensionId)> GetExtensionContent(string contentTypeName)
     {

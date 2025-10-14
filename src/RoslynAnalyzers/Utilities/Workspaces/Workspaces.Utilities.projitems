@@ -10,7 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxGeneratorExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DocumentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxNodeExtensions.cs" />
   </ItemGroup>
 </Project>

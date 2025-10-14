@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.NameTupleElement
 
@@ -19,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NameTupleElement
 
         <Fact>
         Public Async Function TestInCall_FirstElement() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(x As (arg1 As Integer, arg2 As Integer))
         M(([||]1, 2))
@@ -34,7 +33,7 @@ End Class")
 
         <Fact>
         Public Async Function TestInCall_FirstComma() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(x As (arg1 As Integer, arg2 As Integer))
         M((1[||], 2))
@@ -49,7 +48,7 @@ End Class")
 
         <Fact>
         Public Async Function TestInCall_SecondElement() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(x As (arg1 As Integer, arg2 As Integer))
         M((1, [||]2))
@@ -64,7 +63,7 @@ End Class")
 
         <Fact>
         Public Async Function TestInCall_CloseParen() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(x As (arg1 As Integer, arg2 As Integer))
         M((1, 2[||]))

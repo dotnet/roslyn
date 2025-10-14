@@ -35,8 +35,7 @@ public sealed class VarForBuiltInTypesSeverityConfigurationTests : AbstractSuppr
         // specified in the editorconfig that's different from the default value:
         Assert.False(CSharpCodeStyleOptions.VarForBuiltInTypes.DefaultValue.Value);
         Assert.Equal(NotificationOption2.Silent, CSharpCodeStyleOptions.VarForBuiltInTypes.DefaultValue.Notification);
-
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath="z:\\file.cs">
@@ -49,9 +48,7 @@ public sealed class VarForBuiltInTypesSeverityConfigurationTests : AbstractSuppr
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -64,8 +61,6 @@ public sealed class VarForBuiltInTypesSeverityConfigurationTests : AbstractSuppr
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 }

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 
 public sealed partial class PreviewTests : AbstractCSharpCodeActionTest
 {
-    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
+    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
         .AddParts(
             typeof(MockPreviewPaneService));
 
@@ -106,7 +106,7 @@ public sealed partial class PreviewTests : AbstractCSharpCodeActionTest
     [WpfFact]
     public async Task TestPickTheRightPreview_NoPreference()
     {
-        var parameters = new TestParameters();
+        var parameters = TestParameters.Default;
         using var workspace = CreateWorkspaceFromOptions("class D {}", parameters);
 
         var (document, previews) = await GetMainDocumentAndPreviewsAsync(parameters, workspace);

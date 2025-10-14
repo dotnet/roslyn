@@ -71,10 +71,3 @@ M:Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputeOperationsAsync(System.Th
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedSolutionAsync(CSystem.Threading.CancellationToken); Use overload that takes progress
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedDocumentAsync(CancellationToken); Use overload that takes progress
 M:System.Diagnostics.Tracing.EventSource.WriteEvent(System.Int32,System.Object[]); Use WriteEventCore instead
-E:Microsoft.CodeAnalysis.Workspace.WorkspaceChanged; Use RegisterWorkspaceChangedHandler instead
-E:Microsoft.CodeAnalysis.Workspace.WorkspaceFailed; Use RegisterWorkspaceFailedHandler instead
-E:Microsoft.CodeAnalysis.Workspace.DocumentOpened; Use RegisterDocumentOpenedHandler instead
-E:Microsoft.CodeAnalysis.Workspace.TextDocumentOpened; Use RegisterTextDocumentOpenedHandler instead
-E:Microsoft.CodeAnalysis.Workspace.DocumentClosed; Use RegisterDocumentClosedHandler instead
-E:Microsoft.CodeAnalysis.Workspace.TextDocumentClosed; Use RegisterTextDocumentClosedHandler instead
-E:Microsoft.CodeAnalysis.Workspace.DocumentActiveContextChanged; Use RegisterDocumentActiveContextChangedHandler instead

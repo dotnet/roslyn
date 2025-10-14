@@ -5,12 +5,11 @@
 #nullable disable
 
 extern alias DSR;
-
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.Debugging;
 using DSR::Microsoft.DiaSymReader;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Roslyn.Test.PdbUtilities
 {

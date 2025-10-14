@@ -585,6 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CrefParameterList = 8603,
         CrefBracketedParameterList = 8604,
         CrefParameter = 8605,
+        ExtensionMemberCref = 8607,
 
         // names & type-names
         IdentifierName = 8616,

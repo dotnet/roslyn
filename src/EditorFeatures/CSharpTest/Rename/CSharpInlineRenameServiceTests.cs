@@ -78,16 +78,14 @@ public sealed class CSharpInlineRenameServiceTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/74545")]
     public async Task VerifyContextReachEndOfFile()
     {
-        var markup = """
-            public class Sampl$$eClass()
-            {
-            }
-            """;
-
         var escapedPath = Path.Combine(TestWorkspace.RootDirectory, "test1.cs").Replace("\\", "\\\\");
 
         await VerifyGetRenameContextAsync(
-            markup,
+            """
+            public class Sampl$$eClass()
+            {
+            }
+            """,
             $$"""
             {
                 "definition": [{"Item1":"{{escapedPath}}", "Item2":"public class SampleClass()\r\n{\r\n}"}]

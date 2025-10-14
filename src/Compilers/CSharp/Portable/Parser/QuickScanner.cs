@@ -193,19 +193,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             this.Start();
             var state = QuickScanState.Initial;
-            int i = TextWindow.Offset;
-            int n = TextWindow.CharacterWindowCount;
-            n = Math.Min(n, i + MaxCachedTokenSize);
+
+            var textWindowCharSpan = TextWindow.CurrentWindowSpan;
+
+            // Cap how much of the char span we're willing to look at.
+            textWindowCharSpan = textWindowCharSpan[..Math.Min(MaxCachedTokenSize, textWindowCharSpan.Length)];
 
             int hashCode = Hash.FnvOffsetBias;
 
             //localize frequently accessed fields
-            var charWindow = TextWindow.CharacterWindow;
             var charPropLength = CharProperties.Length;
 
-            for (; i < n; i++)
+            // Where we are currently pointing in the charWindow as we read in a character at a time.
+            var currentIndex = 0;
+            for (; currentIndex < textWindowCharSpan.Length; currentIndex++)
             {
-                char c = charWindow[i];
+                char c = textWindowCharSpan[currentIndex];
                 int uc = unchecked((int)c);
 
                 var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
@@ -228,16 +231,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             state = QuickScanState.Bad; // ran out of characters in window
 exitWhile:
 
-            TextWindow.AdvanceChar(i - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
 
             if (state == QuickScanState.Done)
             {
                 // this is a good token!
+                var tokenLength = currentIndex;
+
+                Debug.Assert(tokenLength > 0);
+
+                // It is fine to advance text window here.  AdvanceChar is doc'ed to not change charWindow in any way.
+                // Note: we need to advance here, instead of after LookupToken as LookupToken can call into CreateQuickToken
+                // as a callback, which expects the text window to be in the position after lexing has occurred.
+                TextWindow.AdvanceChar(tokenLength);
+
                 var token = _cache.LookupToken(
-                    TextWindow.CharacterWindow,
-                    TextWindow.LexemeRelativeStart,
-                    i - TextWindow.LexemeRelativeStart,
+                    textWindowCharSpan[..tokenLength],
                     hashCode,
                     CreateQuickToken,
                     this);
@@ -245,7 +254,6 @@ exitWhile:
             }
             else
             {
-                TextWindow.Reset(TextWindow.LexemeStartPosition);
                 return null;
             }
         }
@@ -253,9 +261,9 @@ exitWhile:
         private static SyntaxToken CreateQuickToken(Lexer lexer)
         {
 #if DEBUG
-            var quickWidth = lexer.TextWindow.Width;
+            var quickWidth = lexer.CurrentLexemeWidth;
 #endif
-            lexer.TextWindow.Reset(lexer.TextWindow.LexemeStartPosition);
+            lexer.TextWindow.Reset(lexer.LexemeStartPosition);
             var token = lexer.LexSyntaxToken();
 #if DEBUG
             Debug.Assert(quickWidth == token.FullWidth);

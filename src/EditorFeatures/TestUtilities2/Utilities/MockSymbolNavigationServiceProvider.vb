@@ -8,9 +8,7 @@ Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.

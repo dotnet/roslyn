@@ -14,145 +14,114 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """$$""");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
             """using Goo = $$""");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
             """global using Goo = $$""");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """$$"""));
-    }
 
     [Fact]
-    public async Task TestInAttributeInsideClass()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInAttributeInsideClass()
+        => VerifyKeywordAsync(
             """
             class C {
                 [$$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInAttributeArgumentInsideClass1()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInAttributeArgumentInsideClass1()
+        => VerifyAbsenceAsync(
             """
             class C {
                 [field: $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInAttributeArgumentInsideClass2()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInAttributeArgumentInsideClass2()
+        => VerifyAbsenceAsync(
             """
             class C {
                 [field: Goo($$)]
             """);
-    }
 
     [Fact]
-    public async Task TestNotInAttributeArgumentInsideClass3()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInAttributeArgumentInsideClass3()
+        => VerifyAbsenceAsync(
             """
             class C {
                 [field: Goo($$)] int Prop { get; }
             """);
-    }
 
     [Theory]
     [InlineData("record")]
     [InlineData("record class")]
     [InlineData("record struct")]
-    public async Task TestInAttributeInsideRecord(string record)
-    {
-        // The recommender doesn't work in record in script
-        // Tracked by https://github.com/dotnet/roslyn/issues/44865
-        await VerifyWorkerAsync(
+    public Task TestInAttributeInsideRecord(string record)
+        => VerifyWorkerAsync(
             $$"""
             {{record}} C {
                 [$$
             """, absent: false, TestOptions.RegularPreview);
-    }
 
     [Fact]
-    public async Task TestInAttributeAfterAttributeInsideClass()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInAttributeAfterAttributeInsideClass()
+        => VerifyKeywordAsync(
             """
             class C {
                 [Goo]
                 [$$
             """);
-    }
 
     [Fact]
-    public async Task TestInAttributeAfterMethod()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInAttributeAfterMethod()
+        => VerifyKeywordAsync(
             """
             class C {
                 void Goo() {
                 }
                 [$$
             """);
-    }
 
     [Fact]
-    public async Task TestInAttributeAfterProperty()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInAttributeAfterProperty()
+        => VerifyKeywordAsync(
             """
             class C {
                 int Goo {
@@ -160,228 +129,186 @@ public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
                 }
                 [$$
             """);
-    }
 
     [Fact]
-    public async Task TestInAttributeAfterField()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInAttributeAfterField()
+        => VerifyKeywordAsync(
             """
             class C {
                 int Goo;
                 [$$
             """);
-    }
 
     [Fact]
-    public async Task TestInAttributeAfterEvent()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInAttributeAfterEvent()
+        => VerifyKeywordAsync(
             """
             class C {
                 event Action<int> Goo;
                 [$$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInOuterAttribute()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInOuterAttribute()
+        => VerifyAbsenceAsync(
             """[$$""");
-    }
 
     [Fact]
-    public async Task TestNotInParameterAttribute()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInParameterAttribute()
+        => VerifyAbsenceAsync(
             """
             class C {
                 void Goo([$$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInPropertyAttribute()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInPropertyAttribute()
+        => VerifyAbsenceAsync(
             """
             class C {
                 int Goo { [$$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInEventAttribute()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInEventAttribute()
+        => VerifyAbsenceAsync(
             """
             class C {
                 event Action<int> Goo { [$$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInTypeParameters()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInTypeParameters()
+        => VerifyAbsenceAsync(
             """class C<[$$""");
-    }
 
     [Fact]
-    public async Task TestNotInInterface()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInInterface()
+        => VerifyAbsenceAsync(
             """
             interface I {
                 [$$
             """);
-    }
 
     [Fact]
-    public async Task TestInStruct()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInStruct()
+        => VerifyKeywordAsync(
             """
             struct S {
                 [$$
             """);
-    }
 
     [Fact]
-    public async Task TestInEnum()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInEnum()
+        => VerifyKeywordAsync(
             """
             enum E {
                 [$$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInPropertyInitializer()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInPropertyInitializer()
+        => VerifyAbsenceAsync(
             """
             class C
             {
                 int Goo { get; } = $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInPropertyExpressionBody()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInPropertyExpressionBody()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 int Goo => $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInPropertyExpressionBody_NotPrimary()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInPropertyExpressionBody_NotPrimary()
+        => VerifyAbsenceAsync(
             """
             class C
             {
                 int Goo => this.$$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInPropertyAccessor1()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInPropertyAccessor1()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 int Goo { get => $$ }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInPropertyAccessor2()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInPropertyAccessor2()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 int Goo { get { return $$ } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInPropertyStatement()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInPropertyStatement()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 int Goo { get { $$ } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInPropertyExpressionContext()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInPropertyExpressionContext()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 int Goo { get { var v = 1 + $$ } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInPropertyArgument1()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInPropertyArgument1()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 int Goo { get { Bar($$) } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInPropertyArgument2()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInPropertyArgument2()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 int Goo { get { Bar(ref $$) } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInPropertyNameof()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInPropertyNameof()
+        => VerifyAbsenceAsync(
             """
             class C
             {
                 int Goo { get { Bar(nameof($$)) } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInLocalFunctionInProperty()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInLocalFunctionInProperty()
+        => VerifyKeywordAsync(
             """
             class C
             {
@@ -394,12 +321,10 @@ public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInLambdaInProperty()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInLambdaInProperty()
+        => VerifyKeywordAsync(
             """
             class C
             {
@@ -412,12 +337,10 @@ public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInAccessorAttribute()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInAccessorAttribute()
+        => VerifyAbsenceAsync(
             """
             class C
             {
@@ -425,60 +348,50 @@ public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
                 int Goo { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInIndexer1()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInIndexer1()
+        => VerifyAbsenceAsync(
             """
             class C
             {
                 int this[int index] => $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInIndexer2()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInIndexer2()
+        => VerifyAbsenceAsync(
             """
             class C
             {
                 int this[int index] { get => $$ }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInIndexer3()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInIndexer3()
+        => VerifyAbsenceAsync(
             """
             class C
             {
                 int this[int index] { get { return $$ } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInEvent1()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInEvent1()
+        => VerifyAbsenceAsync(
             """
             class C
             {
                 event Action E { add { $$ } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInMethodContext()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInMethodContext()
+        => VerifyAbsenceAsync(
             """
             class C
             {
@@ -488,12 +401,10 @@ public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInMethodExpressionContext()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInMethodExpressionContext()
+        => VerifyAbsenceAsync(
             """
             class C
             {
@@ -503,23 +414,18 @@ public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInGlobalStatement()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalStatement()
+        => VerifyAbsenceAsync(
             """
             $$
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68399")]
-    public async Task TestInRecordParameterAttribute()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInRecordParameterAttribute()
+        => VerifyKeywordAsync(
             """
                 record R([$$] int i) { }
                 """);
-    }
 }

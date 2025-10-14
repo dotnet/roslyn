@@ -33,9 +33,6 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
     [Theory, CombinatorialData]
     public async Task VerifyNoRequestToClientWithoutCapability(bool mutatingLspWorkspace)
     {
-        var markup = @"
-public class B { }";
-
         var clientCapabilities = new ClientCapabilities()
         {
             Workspace = new WorkspaceClientCapabilities()
@@ -55,15 +52,18 @@ public class B { }";
         };
 
         await CreateTestLspServerAsync(
-            markup, mutatingLspWorkspace, initializationOptions);
+            """
+            public class B { }
+            """, mutatingLspWorkspace, initializationOptions);
         Assert.False(clientCallbackTarget.ReceivedWorkspaceConfigurationRequest);
     }
 
     [Theory, CombinatorialData]
     public async Task VerifyWorkflow(bool mutatingLspWorkspace)
     {
-        var markup = @"
-public class A { }";
+        var markup = """
+            public class A { }
+            """;
 
         var clientCapabilities = new ClientCapabilities()
         {

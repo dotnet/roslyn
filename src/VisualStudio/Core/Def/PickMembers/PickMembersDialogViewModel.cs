@@ -70,24 +70,19 @@ internal sealed class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
             memberContainer.IsChecked = true;
     }
 
-    private int? _selectedIndex;
-
     public int? SelectedIndex
     {
-        get
-        {
-            return _selectedIndex;
-        }
+        get;
 
         set
         {
             var newSelectedIndex = value == -1 ? null : value;
-            if (newSelectedIndex == _selectedIndex)
+            if (newSelectedIndex == field)
             {
                 return;
             }
 
-            _selectedIndex = newSelectedIndex;
+            field = newSelectedIndex;
 
             NotifyPropertyChanged(nameof(CanMoveUp));
             NotifyPropertyChanged(nameof(MoveUpAutomationText));
@@ -190,15 +185,14 @@ internal sealed class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
             IsChecked = option.Value;
         }
 
-        private bool _isChecked;
         public bool IsChecked
         {
-            get => _isChecked;
+            get;
 
             set
             {
                 Option.Value = value;
-                SetProperty(ref _isChecked, value);
+                SetProperty(ref field, value);
             }
         }
 

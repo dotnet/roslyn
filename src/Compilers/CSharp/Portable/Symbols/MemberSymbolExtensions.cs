@@ -85,8 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (member.Kind)
             {
                 case SymbolKind.Method:
+                    return GetIsNewExtensionMember((MethodSymbol)member);
                 case SymbolKind.Property:
-                    return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+                    return GetIsNewExtensionMember((PropertySymbol)member);
                 default:
                     return false;
             }
@@ -94,12 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool GetIsNewExtensionMember(this MethodSymbol member)
         {
-            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+            return member is { ContainingSymbol: NamedTypeSymbol { IsExtension: true }, OriginalDefinition: not SynthesizedExtensionMarker };
         }
 
         internal static bool GetIsNewExtensionMember(this PropertySymbol member)
         {
-            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+            return member.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
         }
 
         internal static bool TryGetInstanceExtensionParameter(this Symbol symbol, [NotNullWhen(true)] out ParameterSymbol? extensionParameter)
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(this Symbol symbol, bool skipExtensionIfStatic)
         {
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider optimizing
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, consider optimizing
             if (!skipExtensionIfStatic || !symbol.IsStatic)
             {
                 if (symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)

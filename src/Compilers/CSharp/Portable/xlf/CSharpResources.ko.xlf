@@ -127,6 +127,11 @@
         <target state="translated">'{0}': 특성 유형 인수는 형식 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">이벤트 접근자에서 '{0}' 특성이 유효하지 않습니다. 이 특성은 '{1}' 선언에만 유효합니다.</target>
@@ -227,9 +232,29 @@
         <target state="translated">비동기 foreach에는 동적 형식 컬렉션을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadExtensionBinaryOperatorSignature">
+        <source>One of the parameters of a binary operator must be the extended type.</source>
+        <target state="new">One of the parameters of a binary operator must be the extended type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadExtensionContainingType">
         <source>Extensions must be declared in a top-level, non-generic, static class</source>
         <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionIncDecSignature">
+        <source>The parameter type for ++ or -- operator must be the extended type.</source>
+        <target state="new">The parameter type for ++ or -- operator must be the extended type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionShiftOperatorSignature">
+        <source>The first operand of an overloaded shift operator must have the same type as the extended type</source>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the extended type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionUnaryOperatorSignature">
+        <source>The parameter of a unary operator must be the extended type.</source>
+        <target state="new">The parameter of a unary operator must be the extended type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -305,6 +330,11 @@
       <trans-unit id="ERR_BadRefInUsingAlias">
         <source>Using alias cannot be a 'ref' type.</source>
         <target state="translated">별칭을 사용하는 것은 'ref' 유형일 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpreadInCatchFilter">
+        <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
+        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
@@ -682,6 +712,16 @@
         <target state="translated">사용자 정의 연산자 '{0}'의 명시적 구현은 정적으로 선언되어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">'System.Runtime.CompilerServices.NullableAttribute'의 명시적 적용은 허용되지 않습니다.</target>
@@ -730,6 +770,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
         <source>An expression tree may not contain a collection expression.</source>
         <target state="translated">식 트리에는 컬렉션 식이 포함될 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator">
+        <source>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</source>
+        <target state="new">An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
@@ -787,9 +832,14 @@
         <target state="translated">식 트리에는 with 식이 포함될 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionBlockCollision">
+        <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
+        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
-        <source>Extension declarations can include only methods or properties</source>
-        <target state="new">Extension declarations can include only methods or properties</target>
+        <source>This member is not allowed in an extension block</source>
+        <target state="new">This member is not allowed in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
@@ -845,6 +895,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion13">
         <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' 기능은 C# 13.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion14">
+        <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1102,6 +1157,16 @@
         <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceOperatorExtensionWrongReceiverType">
+        <source>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</source>
+        <target state="new">Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceOperatorStructExtensionWrongReceiverRefKind">
+        <source>Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</source>
+        <target state="new">Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">인터페이스의 인스턴스 속성은 이니셜라이저를 사용할 수 없습니다.</target>
@@ -1207,11 +1272,6 @@
         <target state="translated">가로챌 수 없음: 컴파일에 경로가 '{0}'인 파일이 없습니다. 경로 '{1}'을(를) 사용하려고 했습니까?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
-        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
-        <target state="translated">차단할 수 없음: 경로 '{0}'이(가) 매핑되지 않았습니다. 매핑된 경로 '{1}'이(가) 예상됩니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
         <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
         <target state="translated">제공된 행 및 문자 번호는 가로챌 수 있는 메서드 이름이 아니라 '{0}' 토큰을 나타냅니다.</target>
@@ -1276,6 +1336,11 @@
         <source>The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</source>
         <target state="translated">매개 변수 '{0}'에 적용된 InterpolatedStringHandlerArgumentAttribute 형식이 잘못되어 해석할 수 없습니다. '{1}'의 인스턴스를 수동으로 구성하세요.</target>
         <note>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</note>
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerArgumentDisallowed">
+        <source>Interpolated string handler arguments are not allowed in this context.</source>
+        <target state="new">Interpolated string handler arguments are not allowed in this context.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString">
         <source>Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</source>
@@ -1467,9 +1532,24 @@
         <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberNameSameAsExtendedType">
+        <source>'{0}': extension member names cannot be the same as their extended type</source>
+        <target state="new">'{0}': extension member names cannot be the same as their extended type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">함수 포인터 '{1}'과(와) 일치하는 '{0}'에 대한 오버로드가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
+        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
+        <note>'MethodImplAttribute.Async' and 'async' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedExtension">
+        <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
+        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
@@ -1550,6 +1630,11 @@
       <trans-unit id="ERR_NamedArgumentForInlineArray">
         <source>An inline array access may not have a named argument specifier</source>
         <target state="translated">인라인 배열 액세스에는 명명된 인수 지정자가 없을 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NameofExtensionMember">
+        <source>Extension members are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1643,7 +1728,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
-        <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
+        <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
         <target state="translated">'{0}'은(는) 인스턴스 메서드가 아니므로 수신기는 보간된 문자열 처리기 인수가 될 수 없습니다.</target>
         <note />
       </trans-unit>
@@ -1690,6 +1775,11 @@
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
         <target state="translated">사용자 정의 연산자 '{0}'은(는) 선언할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorInExtensionOfStaticClass">
+        <source>An extension block extending a static class cannot contain user-defined operators</source>
+        <target state="new">An extension block extending a static class cannot contain user-defined operators</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMismatchOnOverride">
@@ -2272,11 +2362,6 @@
         <target state="translated">레코드 멤버 '{0}'은(는) '{1}'을(를) 반환해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">최상위 문이 포함된 컴파일 단위가 있으면 /main을 지정할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">최소한 하나의 최상위 문은 비어 있지 않아야 합니다.</target>
@@ -2458,8 +2543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
-        <source>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</source>
-        <target state="new">The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</target>
+        <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
+        <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -2505,6 +2590,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
         <target state="translated">'{0}'에는 이 버전의 C # 컴파일러에서 지원되지 않는 컴파일러 기능 '{1}'이(가) 필요합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
+        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="new">Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2980,16 +3070,6 @@
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
         <target state="translated">인수는 'ref' 또는 'in' 키워드와 함께 전달되어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
-        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">유형 ‘{0}’은(는) 메타데이터로 표현할 수 없기 때문에 이 컨텍스트에서 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
-        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">유형은 메타데이터로 표현할 수 없기 때문에 이 컨텍스트에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
@@ -3909,6 +3989,7 @@
                               each error
 -preferreduilang              Specify the preferred output language name.
 -nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for
@@ -3927,7 +4008,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Visual C# 컴파일러 옵션
 
                        - 출력 파일 -
@@ -6393,11 +6474,6 @@
         <target state="translated">C# 6 이전 버전에서 switch 식 또는 case 레이블은 bool, char, string, integral, enum 또는 해당하는 nullable 형식이어야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IntegralTypeValueExpected">
-        <source>A value of an integral type expected</source>
-        <target state="translated">정수 계열 형식 값이 필요합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateCaseLabel">
         <source>The switch statement contains multiple cases with the label value '{0}'</source>
         <target state="translated">switch 문에 '{0}' 레이블 값을 사용하는 경우가 여러 개 포함되어 있습니다.</target>
@@ -7597,7 +7673,7 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">미리 정의된 형식 '{0}'을(를) 정의하지 않았거나 가져오지 않았습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">미리 정의된 형식 '{0}'이(가) 여러 참조된 어셈블리('{1}' 및 '{2}')에서 선언되었습니다.</target>
         <note />
@@ -7913,8 +7989,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
-        <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
-        <target state="translated">DllImport 특성은 'static' 및 'extern'으로 표시된 메서드에만 지정할 수 있습니다.</target>
+        <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
+        <target state="needs-review-translation">DllImport 특성은 'static' 및 'extern'으로 표시된 메서드에만 지정할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9266,11 +9342,6 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <target state="translated">'{0}'에 적합한 정적 Main 메서드가 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MainClassIsImport">
-        <source>Cannot use '{0}' for Main method because it is imported</source>
-        <target state="translated">가져온 것이므로 Main 메서드에 '{0}'을(를) 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
         <source>Outputs without source must have the /out option specified</source>
         <target state="translated">소스 없는 출력의 경우 /out 옵션을 지정해야 합니다.</target>
@@ -10001,21 +10072,6 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <target state="translated">이 경고는 MarshalByRefObject에서 파생되는 클래스 멤버에 대한 메서드, 속성 또는 인덱서를 호출하려고 하고, 멤버가 값 형식일 때 발생합니다. MarshalByRefObject에서 상속되는 개체는 일반적으로 애플리케이션 도메인 전체에서 참조로 마샬링됩니다. 애플리케이션 도메인에서 그런 개체의 값 형식 멤버에 직접 액세스하려고 시도하는 코드가 있을 경우 런타임 예외가 발생합니다. 이 경고를 해결하려면 먼저 멤버를 지역 변수에 복사하고 해당 변수에 대한 메서드를 호출합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber">
-        <source>'{0}' is not a valid warning number</source>
-        <target state="translated">'{0}'은(는) 유효한 경고 번호가 아닙니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Title">
-        <source>Not a valid warning number</source>
-        <target state="translated">올바른 경고 번호가 아닙니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Description">
-        <source>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</source>
-        <target state="translated">#pragma 경고 전처리기 지시문에 전달된 번호는 올바른 경고 번호가 아닙니다. 번호가 오류가 아닌 경고를 나타내는지 확인하세요.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_InvalidNumber">
         <source>Invalid number</source>
         <target state="translated">잘못된 숫자입니다.</target>
@@ -10024,16 +10080,6 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       <trans-unit id="WRN_InvalidNumber_Title">
         <source>Invalid number</source>
         <target state="translated">잘못된 숫자입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong">
-        <source>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</source>
-        <target state="translated">전처리기 지시문에 잘못된 파일 이름이 지정되었습니다. 파일 이름이 너무 길거나 유효한 파일 이름이 아닙니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong_Title">
-        <source>Invalid filename specified for preprocessor directive</source>
-        <target state="translated">전처리기 지시문에 지정한 파일 이름이 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPChecksum">
@@ -10474,11 +10520,6 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       <trans-unit id="ERR_VarArgsInExpressionTree">
         <source>An expression tree lambda may not contain a method with variable arguments</source>
         <target state="translated">람다 식 트리에는 가변 인수가 있는 메서드를 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MemGroupInExpressionTree">
-        <source>An expression tree lambda may not contain a method group</source>
-        <target state="translated">람다 식 트리에는 메서드 그룹을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
@@ -11099,17 +11140,7 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <target state="translated">await' 연산자는 초기 'from' 절의 첫 번째 Collection 식이나 'join' 절의 Collection 식 내의 쿼리 식에서만 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits">
-        <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">이 비동기 메서드에는 'await' 연산자가 없으며 메서드가 동시에 실행됩니다. 'await' 연산자를 사용하여 비블로킹 API 호출을 대기하거나, 'await Task.Run(...)'을 사용하여 백그라운드 스레드에서 CPU 바인딩된 작업을 수행하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits_Title">
-        <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">이 비동기 메서드에는 'await' 연산자가 없으며 메서드가 동시에 실행됩니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnobservedAwaitableExpression">
+                  <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">이 호출이 대기되지 않으므로 호출이 완료되기 전에 현재 메서드가 계속 실행됩니다. 호출 결과에 'await' 연산자를 적용해 보세요.</target>
         <note />
@@ -12547,11 +12578,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_UnclosedExpressionHole">
         <source>Missing close delimiter '}' for interpolated expression started with '{'.</source>
         <target state="translated">{'로 시작하는 보간된 식의 닫는 구분 기호 '}'가 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleLineCommentInExpressionHole">
-        <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">보간된 문자열에는 한 줄로 된 주석을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">

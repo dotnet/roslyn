@@ -54,8 +54,6 @@ public partial class TelemetryPanel : UserControl
 
     private static string GetTelemetryString()
     {
-        var fixAllScopeValues = Enum.GetValues(typeof(FixAllScope));
-
         var sb = new StringBuilder();
         var seenType = new HashSet<Type>();
 

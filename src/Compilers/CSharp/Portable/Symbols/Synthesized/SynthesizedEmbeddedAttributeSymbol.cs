@@ -90,9 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsRefLikeType => false;
 
-        internal override string ExtensionName
-            => throw ExceptionUtilities.Unreachable();
-
         public override bool IsReadOnly => false;
 
         public override bool IsAbstract => false;
@@ -118,7 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInterpolatedStringHandlerType => false;
 
-        internal sealed override ParameterSymbol ExtensionParameter => null;
+#nullable enable
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+        internal sealed override string? ExtensionGroupingName => null;
+        internal sealed override string? ExtensionMarkerName => null;
+#nullable disable
 
         internal override bool HasSpecialName => false;
 

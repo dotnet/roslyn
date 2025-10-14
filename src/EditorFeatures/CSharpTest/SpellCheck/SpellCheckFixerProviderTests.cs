@@ -16,9 +16,8 @@ public sealed class SpellCheckFixerProviderTests : AbstractSpellCheckFixerProvid
         => EditorTestWorkspace.CreateCSharp(content);
 
     [WpfFact]
-    public async Task TestRenameClassName()
-    {
-        await TestSuccessAsync(
+    public Task TestRenameClassName()
+        => TestSuccessAsync(
             """
             class {|CorrectlySpelled:CrrectlySpelled|}
             {
@@ -31,13 +30,10 @@ public sealed class SpellCheckFixerProviderTests : AbstractSpellCheckFixerProvid
                 public CorrectlySpelled() { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestBogusLocation()
-    {
-        // Should not be called inside a string.  But we should still apply the change.
-        await TestFailureAsync(
+    public Task TestBogusLocation()
+        => TestFailureAsync(
             """
             class C
             {
@@ -58,13 +54,10 @@ public sealed class SpellCheckFixerProviderTests : AbstractSpellCheckFixerProvid
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestReplacementThatLanguageDoesNotSupport()
-    {
-        // Should not be called inside a string.  But we should still apply the change.
-        await TestFailureAsync(
+    public Task TestReplacementThatLanguageDoesNotSupport()
+        => TestFailureAsync(
             """
             class {|Bo()gus:Orginal|}
             {
@@ -77,13 +70,10 @@ public sealed class SpellCheckFixerProviderTests : AbstractSpellCheckFixerProvid
                 public Orginal() { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestReplacementSpanLargerThanToken()
-    {
-        // Replacement span is larger than the lang token to rename.
-        await TestFailureAsync(
+    public Task TestReplacementSpanLargerThanToken()
+        => TestFailureAsync(
             """
             class {|Replacement:Class |}
             {
@@ -96,5 +86,4 @@ public sealed class SpellCheckFixerProviderTests : AbstractSpellCheckFixerProvid
                 public Class() { }
             }
             """);
-    }
 }

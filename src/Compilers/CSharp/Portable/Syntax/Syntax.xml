@@ -4359,7 +4359,7 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true" Override="true"/>
     <Field Name="Identifier" Type="SyntaxToken" Optional="true">
-      <!-- Tracked by https://github.com/dotnet/roslyn/issues/76130 : enforce that a ParameterSyntax cannot be created with both Type and Identifier missing -->
+      <!-- Tracked by https://github.com/dotnet/roslyn/issues/78961 : enforce that a ParameterSyntax cannot be created with both Type and Identifier missing -->
       <PropertyComment>
         <summary>Gets the identifier.</summary>
       </PropertyComment>
@@ -4473,6 +4473,20 @@
     <Field Name="Name" Type="TypeSyntax"/>
     <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>
   </Node>
+  
+  <Node Name="ExtensionMemberCrefSyntax" Base="MemberCrefSyntax">
+    <Kind Name="ExtensionMemberCref"/>
+    <Field Name="ExtensionKeyword" Type="SyntaxToken">
+      <Kind Name="ExtensionKeyword"/>
+    </Field>
+    <Field Name="TypeArgumentList" Type="TypeArgumentListSyntax" Optional="true"/>
+    <Field Name="Parameters" Type="CrefParameterListSyntax"/>
+    <Field Name="DotToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+    </Field>
+    <Field Name="Member" Type="MemberCrefSyntax"/>
+  </Node>
+  
   <Node Name="IndexerMemberCrefSyntax" Base="MemberCrefSyntax">
     <TypeComment>
       <summary>

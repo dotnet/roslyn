@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -18,14 +18,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynExperiments.cs" Link="InternalUtilities\RoslynExperiments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterlockedOperations.cs" Link="InternalUtilities\InterlockedOperations.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" Link="InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs" Link="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SingleInitNullable.cs" Link="InternalUtilities\SingleInitNullable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SharedStopwatch.cs" Link="InternalUtilities\SharedStopwatch.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTaskFactory.cs" Link="InternalUtilities\ValueTaskFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="Syntax\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\BitVector.cs" Link="Collections\BitVector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\SmallDictionary.cs" Link="Collections\SmallDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceGeneration\GeneratedCodeUtilities.cs" Link="SourceGeneration\GeneratedCodeUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceCodeKindExtensions.cs" Link="Utilities\Compiler\SourceCodeKindExtensions.cs" />
@@ -163,6 +161,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeHelpers.Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeHelpers.NodeEnumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editing\Modifiers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageExtensions.cs" />
@@ -202,6 +201,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticDescriptorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticSeverityExtensions_Shared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\KnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectWriterExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ReadOnlySpanExtensions.cs" />
@@ -210,6 +210,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions2.IndentStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\LineFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\SyntaxFormattingOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\RemoveUnnecessaryImportsHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentation.Indenter.cs" />
@@ -367,6 +368,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\Option2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\PerLanguageOption2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\AbstractRefactoringHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\IRefactoringHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\AbstractSelectedMembers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ForEachSymbols.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ISemanticFactsExtensions.cs" />
@@ -450,13 +453,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CancellableLazy`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CommonFormattingHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ComparerWithState.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\FixedSizeArrayBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\InterceptsLocationUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ISpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\OptionalExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ParameterName.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ProducerConsumer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PublicContract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditDistance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IBidirectionalMap.cs" />
@@ -494,8 +495,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ReferenceCountedDisposableCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\RestrictedInternalsVisibleToAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticEquivalence.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\RoslynParallel.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\RoslynParallel.NetFramework.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SerializableBytes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SoftCrashException.cs" />
@@ -545,8 +544,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)CodeCleanup\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Extensions\Compiler\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Hashing\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\" />
   </ItemGroup>
 </Project>

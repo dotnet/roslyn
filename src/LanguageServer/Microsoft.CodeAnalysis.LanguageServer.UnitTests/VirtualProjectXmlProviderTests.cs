@@ -7,10 +7,8 @@
 //#define RoslynTestRunApi
 
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
-using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
@@ -32,6 +30,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
 
     private class EnableRunApiTests : ExecutionCondition
     {
+        // https://github.com/dotnet/roslyn/issues/78879: Enable these tests unconditionally
         public override bool ShouldSkip =>
 #if RoslynTestRunApi
             false;
@@ -49,7 +48,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         return exportProvider.GetExportedValue<VirtualProjectXmlProvider>();
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/79464")]
     public async Task GetProjectXml_FileBasedProgram_SdkTooOld_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -69,7 +68,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """));
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
         Assert.Null(contentNullable);
     }
 
@@ -93,10 +92,11 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, CancellationToken.None);
+        var logger = LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>();
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, logger, CancellationToken.None);
         var content = contentNullable.Value;
         var virtualProjectXml = content.VirtualProjectXml;
-        LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(virtualProjectXml);
+        logger.LogTrace(virtualProjectXml);
 
         Assert.Contains("<TargetFramework>net10.0</TargetFramework>", virtualProjectXml);
         Assert.Contains("<ArtifactsPath>", virtualProjectXml);
@@ -125,7 +125,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
         var content = contentNullable.Value;
         LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(content.VirtualProjectXml);
 
@@ -150,7 +150,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), CancellationToken.None);
+        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
         Assert.Null(content);
     }
 
@@ -176,7 +176,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
         var content = contentNullable.Value;
         var diagnostic = content.Diagnostics.Single();
         Assert.Contains("Unrecognized directive 'BAD'", diagnostic.Message);

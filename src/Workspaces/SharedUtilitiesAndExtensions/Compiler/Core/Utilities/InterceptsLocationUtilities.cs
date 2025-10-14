@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;

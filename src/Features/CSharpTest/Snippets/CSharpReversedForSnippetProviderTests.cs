@@ -16,9 +16,8 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
     protected override string SnippetIdentifier => "forr";
 
     [Fact]
-    public async Task InsertReversedForSnippetInMethodTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertReversedForSnippetInMethodTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -38,12 +37,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertReversedForSnippetInMethodUsedIncrementorTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertReversedForSnippetInMethodUsedIncrementorTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -65,12 +62,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertReversedForSnippetInMethodUsedIncrementorsTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertReversedForSnippetInMethodUsedIncrementorsTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -92,12 +87,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertReversedForSnippetInGlobalContextTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertReversedForSnippetInGlobalContextTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             for (int {|0:i|} = {|1:length|} - 1; {|0:i|} >= 0; {|0:i|}--)
@@ -105,12 +98,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertReversedForSnippetInConstructorTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertReversedForSnippetInConstructorTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public Program()
@@ -130,13 +121,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertReversedForSnippetInLocalFunctionTest()
-    {
-        // TODO: fix this test when bug with simplifier failing to find correct node is fixed
-        await VerifySnippetAsync("""
+    public Task InsertReversedForSnippetInLocalFunctionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -154,7 +142,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {
                     void LocalFunction()
                     {
-                        for (global::System.Int32 {|0:i|} = {|1:(length)|} - (1); {|0:i|} >= 0; {|0:i|}--)
+                        for (global::System.Int32 {|0:i|} = {|1:length|} - (1); {|0:i|} >= 0; {|0:i|}--)
                         {
                             $$
                         }
@@ -162,13 +150,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertReversedForSnippetInAnonymousFunctionTest()
-    {
-        // TODO: fix this test when bug with simplifier failing to find correct node is fixed
-        await VerifySnippetAsync("""
+    public Task InsertReversedForSnippetInAnonymousFunctionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -186,7 +171,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {
                     var action = delegate()
                     {
-                        for (global::System.Int32 {|0:i|} = {|1:(length)|} - (1); {|0:i|} >= 0; {|0:i|}--)
+                        for (global::System.Int32 {|0:i|} = {|1:length|} - (1); {|0:i|} >= 0; {|0:i|}--)
                         {
                             $$
                         }
@@ -194,13 +179,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertReversedForSnippetInParenthesizedLambdaExpressionTest()
-    {
-        // TODO: fix this test when bug with simplifier failing to find correct node is fixed
-        await VerifySnippetAsync("""
+    public Task InsertReversedForSnippetInParenthesizedLambdaExpressionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -218,7 +200,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {
                     var action = () =>
                     {
-                        for (global::System.Int32 {|0:i|} = {|1:(length)|} - (1); {|0:i|} >= 0; {|0:i|}--)
+                        for (global::System.Int32 {|0:i|} = {|1:length|} - (1); {|0:i|} >= 0; {|0:i|}--)
                         {
                             $$
                         }
@@ -226,14 +208,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TryToProduceVarWithSpecificCodeStyleTest()
-    {
-        // In non-inline reversed for snippet type of expression `length - 1` is unknown,
-        // so it cannot be simplified to `var`. Therefore having explicit `int` type here is expected
-        await VerifySnippetAsync("""
+    public Task TryToProduceVarWithSpecificCodeStyleTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -259,13 +237,11 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
             [*]
             csharp_style_var_for_built_in_types = true
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertInlineReversedForSnippetInMethodTest(string inlineExpressionType)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineReversedForSnippetInMethodTest(string inlineExpressionType)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 public void Method({{inlineExpressionType}} l)
@@ -285,13 +261,11 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertInlineReversedForSnippetInGlobalContextTest(string inlineExpressionType)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineReversedForSnippetInGlobalContextTest(string inlineExpressionType)
+        => VerifySnippetAsync($$"""
             {{inlineExpressionType}} l;
             l.$$
             """, $$"""
@@ -301,13 +275,11 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 $$
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.NotIntegerTypesWithoutLengthOrCountProperty), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineReversedForSnippetForIncorrectTypeInMethodTest(string inlineExpressionType)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineReversedForSnippetForIncorrectTypeInMethodTest(string inlineExpressionType)
+        => VerifySnippetIsAbsentAsync($$"""
             class Program
             {
                 public void Method({{inlineExpressionType}} l)
@@ -316,22 +288,18 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.NotIntegerTypesWithoutLengthOrCountProperty), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineReversedForSnippetForIncorrectTypeInGlobalContextTest(string inlineExpressionType)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineReversedForSnippetForIncorrectTypeInGlobalContextTest(string inlineExpressionType)
+        => VerifySnippetIsAbsentAsync($$"""
             {{inlineExpressionType}} l;
             l.$$
             """);
-    }
 
     [Fact]
-    public async Task ProduceVarWithSpecificCodeStyleForInlineSnippetTest()
-    {
-        await VerifySnippetAsync("""
+    public Task ProduceVarWithSpecificCodeStyleForInlineSnippetTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method(int l)
@@ -357,12 +325,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
             [*]
             csharp_style_var_for_built_in_types = true
             """);
-    }
 
     [Fact]
-    public async Task NoInlineReversedForSnippetNotDirectlyExpressionStatementTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineReversedForSnippetNotDirectlyExpressionStatementTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method(int l)
@@ -371,15 +337,13 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("// comment")]
     [InlineData("/* comment */")]
     [InlineData("#region test")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 void M(int len)
@@ -401,15 +365,13 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("#if true")]
     [InlineData("#pragma warning disable CS0108")]
     [InlineData("#nullable enable")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 void M(int len)
@@ -431,14 +393,12 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("// comment")]
     [InlineData("/* comment */")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
+        => VerifySnippetAsync($$"""
             {{trivia}}
             10.$$
             """, $$"""
@@ -448,16 +408,14 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 $$
             }
             """);
-    }
 
     [Theory]
     [InlineData("#region test")]
     [InlineData("#if true")]
     [InlineData("#pragma warning disable CS0108")]
     [InlineData("#nullable enable")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
+        => VerifySnippetAsync($$"""
             {{trivia}}
             10.$$
             """, $$"""
@@ -468,13 +426,11 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 $$
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertInlineReversedForSnippetWhenDottingBeforeContextualKeywordTest1(string intType)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineReversedForSnippetWhenDottingBeforeContextualKeywordTest1(string intType)
+        => VerifySnippetAsync($$"""
             using System.Collections.Generic;
 
             class C
@@ -500,13 +456,11 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertInlineReversedForSnippetWhenDottingBeforeContextualKeywordTest2(string intType)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineReversedForSnippetWhenDottingBeforeContextualKeywordTest2(string intType)
+        => VerifySnippetAsync($$"""
             using System.Collections.Generic;
 
             class C
@@ -532,15 +486,13 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
     [InlineData("Task")]
     [InlineData("Task<int>")]
     [InlineData("System.Threading.Tasks.Task<int>")]
-    public async Task InsertInlineReversedForSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineReversedForSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        => VerifySnippetAsync($$"""
             using System.Threading.Tasks;
             using System.Collections.Generic;
 
@@ -568,13 +520,11 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertInlineReversedForSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest(string intType)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineReversedForSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest(string intType)
+        => VerifySnippetAsync($$"""
             using System;
 
             class C
@@ -600,13 +550,11 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineReversedForSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest(string intType)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineReversedForSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest(string intType)
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M({{intType}} @int)
@@ -615,13 +563,11 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineReversedForSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest(string intType)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineReversedForSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest(string intType)
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M({{intType}} @int)
@@ -630,7 +576,6 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("int[]", "Length")]
@@ -641,9 +586,8 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
     [InlineData("HashSet<byte>", "Count")]
     [InlineData("Dictionary<long>", "Count")]
     [InlineData("ImmutableList<C>", "Count")]
-    public async Task InsertInlineReversedForSnippetForCommonTypesWithLengthOrCountPropertyTest(string type, string propertyName)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineReversedForSnippetForCommonTypesWithLengthOrCountPropertyTest(string type, string propertyName)
+        => VerifySnippetAsync($$"""
             using System;
             using System.Collections.Generic;
             using System.Collections.Immutable;
@@ -672,15 +616,13 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net80);
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task InsertInlineReversedForSnippetForTypeWithAccessibleLengthOrCountPropertyTest(
+    public Task InsertInlineReversedForSnippetForTypeWithAccessibleLengthOrCountPropertyTest(
         [CombinatorialValues("public", "internal", "protected internal")] string propertyAccessibility,
         [CombinatorialValues("Length", "Count")] string propertyName)
-    {
-        await VerifySnippetAsync($$"""
+        => VerifySnippetAsync($$"""
             class C
             {
                 void M(MyType type)
@@ -710,15 +652,13 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {{propertyAccessibility}} int {{propertyName}} { get; }
             }
             """);
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task InsertInlineReversedForSnippetForTypeWithAccessibleLengthOrCountPropertyGetterTest(
+    public Task InsertInlineReversedForSnippetForTypeWithAccessibleLengthOrCountPropertyGetterTest(
         [CombinatorialValues("", "internal", "protected internal")] string getterAccessibility,
         [CombinatorialValues("Length", "Count")] string propertyName)
-    {
-        await VerifySnippetAsync($$"""
+        => VerifySnippetAsync($$"""
             class C
             {
                 void M(MyType type)
@@ -748,15 +688,13 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public int {{propertyName}} { {{getterAccessibility}} get; }
             }
             """);
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task InsertInlineReversedForSnippetForTypesWithLengthOrCountPropertyOfDifferentIntegerTypesTest(
+    public Task InsertInlineReversedForSnippetForTypesWithLengthOrCountPropertyOfDifferentIntegerTypesTest(
         [CombinatorialValues("byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "nint", "nuint")] string integerType,
         [CombinatorialValues("Length", "Count")] string propertyName)
-    {
-        await VerifySnippetAsync($$"""
+        => VerifySnippetAsync($$"""
             class C
             {
                 void M(MyType type)
@@ -786,14 +724,12 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public {{integerType}} {{propertyName}} { get; }
             }
             """);
-    }
 
     [Theory]
     [InlineData("Length")]
     [InlineData("Count")]
-    public async Task InsertInlineReversedForSnippetForTypeWithLengthOrCountPropertyInBaseClassTest(string propertyName)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineReversedForSnippetForTypeWithLengthOrCountPropertyInBaseClassTest(string propertyName)
+        => VerifySnippetAsync($$"""
             class C
             {
                 void M(MyType type)
@@ -831,14 +767,12 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public int {{propertyName}} { get; }
             }
             """);
-    }
 
     [Theory]
     [InlineData("Length")]
     [InlineData("Count")]
-    public async Task NoInlineReversedForSnippetWhenLengthOrCountPropertyHasNoGetterTest(string propertyName)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineReversedForSnippetWhenLengthOrCountPropertyHasNoGetterTest(string propertyName)
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M(MyType type)
@@ -852,15 +786,13 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public int {{propertyName}} { set { } }
             }
             """);
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task NoInlineReversedForSnippetForInaccessibleLengthPropertyTest(
+    public Task NoInlineReversedForSnippetForInaccessibleLengthPropertyTest(
         [CombinatorialValues("private", "protected", "private protected")] string propertyAccessibility,
         [CombinatorialValues("Length", "Count")] string propertyName)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M(MyType type)
@@ -874,15 +806,13 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {{propertyAccessibility}} int {{propertyName}} { get; }
             }
             """);
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task NoInlineReversedForSnippetForInaccessibleLengthOrCountPropertyGetterTest(
+    public Task NoInlineReversedForSnippetForInaccessibleLengthOrCountPropertyGetterTest(
         [CombinatorialValues("private", "protected", "private protected")] string getterAccessibility,
         [CombinatorialValues("Length", "Count")] string propertyName)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M(MyType type)
@@ -896,15 +826,13 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public int {{propertyName}} { {{getterAccessibility}} get; }
             }
             """);
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task NoInlineReversedForSnippetForLengthPropertyOfIncorrectTypeTest(
+    public Task NoInlineReversedForSnippetForLengthPropertyOfIncorrectTypeTest(
         [CombinatorialValues("object", "string", "System.DateTime", "System.Action")] string notIntegerType,
         [CombinatorialValues("Length", "Count")] string propertyName)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M(MyType type)
@@ -918,12 +846,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public {{notIntegerType}} {{propertyName}} { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineReversedForSnippetForTypeWithBothLengthAndCountPropertyTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineReversedForSnippetForTypeWithBothLengthAndCountPropertyTest()
+        => VerifySnippetIsAbsentAsync("""
             class C
             {
                 void M(MyType type)
@@ -938,14 +864,12 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public int Count { get; }
             }
             """);
-    }
 
     [Theory]
     [InlineData("MyType")]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineReversedForSnippetForTypeItselfTest(string validTypes)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineReversedForSnippetForTypeItselfTest(string validTypes)
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M()
@@ -959,14 +883,12 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public int Count => 0;
             }
             """);
-    }
 
     [Theory]
     [InlineData("MyType")]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineReversedForSnippetForTypeItselfTest_Parenthesized(string validTypes)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineReversedForSnippetForTypeItselfTest_Parenthesized(string validTypes)
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M()
@@ -980,14 +902,12 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public int Count => 0;
             }
             """);
-    }
 
     [Theory]
     [InlineData("MyType")]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineReversedForSnippetForTypeItselfTest_BeforeContextualKeyword(string validTypes)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineReversedForSnippetForTypeItselfTest_BeforeContextualKeyword(string validTypes)
+        => VerifySnippetIsAbsentAsync($$"""
             using System.Threading.Tasks;
 
             class C
@@ -1004,12 +924,10 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public int Count => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInlineReversedForSnippetForVariableNamedLikeTypeTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineReversedForSnippetForVariableNamedLikeTypeTest()
+        => VerifySnippetAsync("""
             class C
             {
                 void M()
@@ -1041,5 +959,4 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 public int Length => 0;
             }
             """);
-    }
 }

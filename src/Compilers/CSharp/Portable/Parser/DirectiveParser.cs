@@ -321,12 +321,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     triviaWidth += node.FullWidth;
                 }
 
-                //relative to leading trivia of eod
-                //could be negative if part of the error text comes from the trailing trivia of the keyword token
-                int triviaOffset = eod.GetLeadingTriviaWidth() - triviaWidth;
+                // Relative to Start (not FullStart) of eod. Can be negative if part of the error text comes from the
+                // trailing trivia of the keyword token.
+                var triviaOffset = -triviaWidth;
 
                 string errorText = triviaBuilder.ToString();
-                eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
+                eod = this.AddError(eod, offset: triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
 
                 if (isError)
                 {
@@ -695,19 +695,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseIgnoredDirective(SyntaxToken hash, SyntaxToken colon, bool isActive, bool isFollowingToken)
         {
-            if (!lexer.Options.FileBasedProgram)
+            if (isActive)
             {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
-            }
+                if (!lexer.Options.FileBasedProgram)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
+                }
 
-            if (isFollowingToken)
-            {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
-            }
+                if (isFollowingToken)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
+                }
 
-            if (_context.SeenAnyIfDirectives)
-            {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
+                if (_context.SeenAnyIfDirectives)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
+                }
             }
 
             SyntaxToken endOfDirective = this.lexer.LexEndOfDirectiveWithOptionalContent(out SyntaxToken content);

@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
-using System.Collections.Generic;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 

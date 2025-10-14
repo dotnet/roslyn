@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,7 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using Microsoft.CodeAnalysis.Shared.Collections;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal sealed partial class LanguageParser : SyntaxParser
@@ -699,7 +699,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
                                     {
                                         RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
-                                        attribute = this.AddError(attribute, attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst);
+
+                                        attribute = attribute.Update(
+                                            attribute.OpenBracketToken,
+                                            attribute.Target.Update(
+                                                this.AddError(attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst),
+                                                attribute.Target.ColonToken),
+                                            attribute.Attributes,
+                                            attribute.CloseBracketToken);
+
                                         this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, attribute);
                                     }
                                     else
@@ -2963,7 +2971,10 @@ parse_member_name:;
                 var misplacedModifier = this.CurrentToken;
                 type = this.AddError(
                     type,
-                    type.FullWidth + misplacedModifier.GetLeadingTriviaWidth(),
+                    // We're attaching a diagnostic for the misplaced modifier on the 'type' node.  So the offset will
+                    // be *relative* to the *start* (not *full start*) of 'type'. That offset will then be the width of
+                    // type itself, plus any trailing trivia it has, plus the leading trivia of the modifier itself.
+                    offset: type.Width + type.GetTrailingTriviaWidth() + misplacedModifier.GetLeadingTriviaWidth(),
                     misplacedModifier.Width,
                     ErrorCode.ERR_BadModifierLocation,
                     misplacedModifier.Text);
@@ -3004,7 +3015,11 @@ parse_member_name:;
                     //the error position should indicate CurrentToken
                     result = this.AddError(
                         incompleteMember,
-                        incompleteMember.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(),
+                        // We're attaching a diagnostic for the current token on the 'incompleteMember' node.  So the
+                        // offset will be *relative* to the *start* (not *full start*) of 'incompleteMember'. That
+                        // offset will then be the width of incompleteMember itself, plus any trailing trivia it has,
+                        // plus the leading trivia of the modifier itself.
+                        offset: incompleteMember.Width + incompleteMember.GetTrailingTriviaWidth() + this.CurrentToken.GetLeadingTriviaWidth(),
                         this.CurrentToken.Width,
                         ErrorCode.ERR_InvalidMemberDecl,
                         this.CurrentToken.Text);
@@ -3241,7 +3256,9 @@ parse_member_name:;
 
         private bool IsExtensionContainerStart()
         {
-            return this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword && IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+            // For error recovery, we recognize `extension` followed by `<` even in older language versions
+            return this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword &&
+                (IsFeatureEnabled(MessageID.IDS_FeatureExtensions) || this.PeekToken(1).Kind == SyntaxKind.LessThanToken);
         }
 
         // if the modifiers do not contain async or replace and the type is the identifier "async" or "replace", then
@@ -3890,7 +3907,7 @@ parse_member_name:;
                 if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
                 {
                     // Grab the offset and width before we consume the invalid keyword and change our position.
-                    GetDiagnosticSpanForMissingToken(out opTokenErrorOffset, out opTokenErrorWidth);
+                    (opTokenErrorOffset, opTokenErrorWidth) = this.GetDiagnosticSpanForMissingToken();
                     opToken = this.ConvertToMissingWithTrailingTrivia(this.EatToken(), SyntaxKind.PlusToken);
                     Debug.Assert(opToken.IsMissing); //Which is why we used GetDiagnosticSpanForMissingToken above.
 
@@ -4686,7 +4703,7 @@ parse_member_name:;
                 allowTrailingSeparator: false,
                 requireOneElement: forExtension, // For extension declarations, we require at least one receiver parameter
                 allowSemicolonAsSeparator: false);
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider suppressing parsing diagnostics on extension parameters beyond the first one
+            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider suppressing parsing diagnostics on extension parameters beyond the first one
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
@@ -5357,8 +5374,7 @@ parse_member_name:;
                     var isAfterNewLine = parentType.GetLastToken().TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia);
                     if (isAfterNewLine)
                     {
-                        int offset, width;
-                        this.GetDiagnosticSpanForMissingToken(out offset, out width);
+                        var (offset, width) = this.GetDiagnosticSpanForMissingToken();
 
                         this.EatToken();
                         currentTokenKind = this.CurrentToken.Kind;
@@ -7686,11 +7702,7 @@ done:
                 for (int i = 0; i < list.Count; i++)
                 {
                     if (list[i].RawKind == (int)SyntaxKind.OmittedArraySizeExpression)
-                    {
-                        int width = list[i].Width;
-                        int offset = list[i].GetLeadingTriviaWidth();
-                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset, width, ErrorCode.ERR_ValueExpected);
-                    }
+                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset: 0, list[i].Width, ErrorCode.ERR_ValueExpected);
                 }
             }
 
@@ -8313,7 +8325,7 @@ done:
                 return true;
             }
 
-            return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel);
+            return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel);
         }
 
         private bool IsPossibleScopedKeyword(bool isFunctionPointerParameter)
@@ -8322,7 +8334,7 @@ done:
             return ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter: false) != null;
         }
 
-        private bool IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(bool isGlobalScriptLevel)
+        private bool IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(bool isGlobalScriptLevel)
         {
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(this.CurrentToken, this.PeekToken(1), allowThisKeyword: false);
             if (typedIdentifier != null)
@@ -8394,9 +8406,20 @@ done:
                 return true;
             }
 
-            if (st == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            if (st == ScanTypeFlags.NotType)
             {
                 return false;
+            }
+
+            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            {
+                // In the case of something like:
+                //     List<SomeType>
+                //     if
+                // we know that we're in an error case, as the following keyword must be the start of a new statement.
+                // We'd prefer to assume that this is an incomplete local declaration over an expression, as it's more likely
+                // the user is just in the middle of writing a local declaration, and not an expression.
+                return st == ScanTypeFlags.GenericTypeOrExpression && (IsDefiniteStatement() || IsTypeDeclarationStart() || IsAccessibilityModifier(CurrentToken.Kind));
             }
 
             // T? and T* might start an expression, we need to parse further to disambiguate:
@@ -8457,7 +8480,7 @@ done:
                 EatToken();
             }
 
-            return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel: false);
+            return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel: false);
         }
 
         // Looks ahead for a declaration of a field, property or method declaration following a nullable type T?.
@@ -8905,17 +8928,16 @@ done:
                 out trailingTrivia);
         }
 
-        private bool IsPossibleStatement()
+        private bool IsDefiniteStatement()
         {
             var tk = this.CurrentToken.Kind;
+            // Only those cases that can be certain start a new statement, regardless of context
             switch (tk)
             {
                 case SyntaxKind.FixedKeyword:
                 case SyntaxKind.BreakKeyword:
                 case SyntaxKind.ContinueKeyword:
                 case SyntaxKind.TryKeyword:
-                case SyntaxKind.CheckedKeyword:
-                case SyntaxKind.UncheckedKeyword:
                 case SyntaxKind.ConstKeyword:
                 case SyntaxKind.DoKeyword:
                 case SyntaxKind.ForKeyword:
@@ -8925,20 +8947,39 @@ done:
                 case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
-                case SyntaxKind.SwitchKeyword:
-                case SyntaxKind.ThrowKeyword:
                 case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.UsingKeyword:
                 case SyntaxKind.WhileKeyword:
+                case SyntaxKind.VolatileKeyword:
+                case SyntaxKind.ExternKeyword:
+                case SyntaxKind.CaseKeyword: // for parsing an errant case without a switch.
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private bool IsPossibleStatement()
+        {
+            if (IsDefiniteStatement())
+            {
+                return true;
+            }
+
+            var tk = this.CurrentToken.Kind;
+            switch (tk)
+            {
+                case SyntaxKind.CheckedKeyword:
+                case SyntaxKind.UncheckedKeyword:
+                case SyntaxKind.ThrowKeyword:
+                case SyntaxKind.SwitchKeyword:
                 case SyntaxKind.OpenBraceToken:
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
-                case SyntaxKind.VolatileKeyword:
                 case SyntaxKind.RefKeyword:
-                case SyntaxKind.ExternKeyword:
                 case SyntaxKind.OpenBracketToken:
-                case SyntaxKind.CaseKeyword: // for parsing an errant case without a switch.
                     return true;
 
                 case SyntaxKind.IdentifierToken:

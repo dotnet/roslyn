@@ -7,7 +7,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -21,6 +20,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -315,6 +315,20 @@ internal static partial class ProtocolConversions
     {
         var linePositionSpan = RangeToLinePositionSpan(range);
 
+        // Handle the specific case where the end position is exactly one line beyond the document bounds
+        // and the end character is 0 (start of the non-existent next line).
+        // This can happen when deleting the last line, where LSP clients are allowed (by the spec) to
+        // send an end position referencing the start of the next line (which doesn't exist).
+        if (text.Lines.Count > 0 &&
+            linePositionSpan.End.Line == text.Lines.Count &&
+            linePositionSpan.End.Character == 0)
+        {
+            // Clamp the end position to the end of the last line
+            var lastLine = text.Lines[text.Lines.Count - 1];
+            var clampedEnd = new LinePosition(text.Lines.Count - 1, lastLine.End - lastLine.Start);
+            linePositionSpan = new LinePositionSpan(linePositionSpan.Start, clampedEnd);
+        }
+
         try
         {
             try
@@ -351,16 +365,16 @@ internal static partial class ProtocolConversions
     }
 
     public static TextChange TextEditToTextChange(LSP.TextEdit edit, SourceText oldText)
-        => new TextChange(RangeToTextSpan(edit.Range, oldText), edit.NewText);
+        => new(RangeToTextSpan(edit.Range, oldText), edit.NewText);
 
     public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
-        => new TextChange(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
+        => new(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
 
     public static LSP.Position LinePositionToPosition(LinePosition linePosition)
-        => new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
+        => new() { Line = linePosition.Line, Character = linePosition.Character };
 
     public static LSP.Range LinePositionToRange(LinePositionSpan linePositionSpan)
-        => new LSP.Range { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
+        => new() { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
 
     public static LSP.Range TextSpanToRange(TextSpan textSpan, SourceText text)
     {
@@ -389,15 +403,15 @@ internal static partial class ProtocolConversions
     /// Compute all the <see cref="LSP.TextDocumentEdit"/> for the input list of changed documents.
     /// Additionally maps the locations of the changed documents if necessary.
     /// </summary>
-    public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync<T>(IEnumerable<DocumentId> changedDocuments, Func<DocumentId, T> getNewDocumentFunc,
-            Func<DocumentId, T> getOldDocumentFunc, IDocumentTextDifferencingService? textDiffService, CancellationToken cancellationToken) where T : TextDocument
+    public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync(IEnumerable<DocumentId> changedDocuments, Solution newSolution,
+            Solution oldSolution, IDocumentTextDifferencingService? textDiffService, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<(DocumentUri Uri, LSP.TextEdit TextEdit)>.GetInstance(out var uriToTextEdits);
 
         foreach (var docId in changedDocuments)
         {
-            var newDocument = getNewDocumentFunc(docId);
-            var oldDocument = getOldDocumentFunc(docId);
+            var newDocument = await newSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            var oldDocument = await oldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
             var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -417,7 +431,7 @@ internal static partial class ProtocolConversions
             }
 
             // Map all the text changes' spans for this document.
-            var mappedResults = await GetMappedSpanResultAsync(oldDocument, [.. textChanges.Select(tc => tc.Span)], cancellationToken).ConfigureAwait(false);
+            var mappedResults = await SpanMappingHelper.TryGetMappedSpanResultAsync(oldDocument, [.. textChanges.Select(tc => tc.Span)], cancellationToken).ConfigureAwait(false);
             if (mappedResults == null)
             {
                 // There's no span mapping available, just create text edits from the original text changes.
@@ -472,7 +486,9 @@ internal static partial class ProtocolConversions
     {
         Debug.Assert(document.FilePath != null);
 
-        var result = await GetMappedSpanResultAsync(document, [textSpan], cancellationToken).ConfigureAwait(false);
+        var result = document is Document d
+            ? await SpanMappingHelper.TryGetMappedSpanResultAsync(d, [textSpan], cancellationToken).ConfigureAwait(false)
+            : null;
         if (result == null)
             return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
@@ -1006,25 +1022,6 @@ internal static partial class ProtocolConversions
                 _ => text,
             };
         }
-    }
-
-    private static async Task<ImmutableArray<MappedSpanResult>?> GetMappedSpanResultAsync(TextDocument textDocument, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken)
-    {
-        if (textDocument is not Document document)
-        {
-            return null;
-        }
-
-        var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
-        if (spanMappingService == null)
-        {
-            return null;
-        }
-
-        var mappedSpanResult = await spanMappingService.MapSpansAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
-        Contract.ThrowIfFalse(textSpans.Length == mappedSpanResult.Length,
-            $"The number of input spans {textSpans.Length} should match the number of mapped spans returned {mappedSpanResult.Length}");
-        return mappedSpanResult;
     }
 
     private static LSP.Range MappedSpanResultToRange(MappedSpanResult mappedSpanResult)

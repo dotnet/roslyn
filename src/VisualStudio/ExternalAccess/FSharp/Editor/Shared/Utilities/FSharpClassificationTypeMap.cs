@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities;
 

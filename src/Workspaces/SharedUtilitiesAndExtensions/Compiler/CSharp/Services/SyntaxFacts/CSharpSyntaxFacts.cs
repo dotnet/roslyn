@@ -185,7 +185,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => node is DeclarationExpressionSyntax;
 
     public bool IsNamedArgument([NotNullWhen(true)] SyntaxNode? node)
-        => node is ArgumentSyntax arg && arg.NameColon != null;
+        => node is ArgumentSyntax { NameColon: not null };
 
     public bool IsNameOfNamedArgument([NotNullWhen(true)] SyntaxNode? node)
         => node.CheckParent<NameColonSyntax>(p => p.Name == node);
@@ -201,7 +201,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
            usingDirective.NamespaceOrType == node;
 
     public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
-        => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
+        => node is UsingDirectiveSyntax { Alias: not null };
 
     public void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name)
     {
@@ -267,6 +267,9 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     public bool IsBaseConstructorInitializer(SyntaxToken token)
         => token.Parent is ConstructorInitializerSyntax(SyntaxKind.BaseConstructorInitializer) constructorInit &&
            constructorInit.ThisOrBaseKeyword == token;
+
+    public bool HasImplicitBaseConstructorInitializer(SyntaxNode node)
+        => node is ConstructorDeclarationSyntax constructor && constructor.Initializer == null;
 
     public bool IsQueryKeyword(SyntaxToken token)
     {
@@ -836,6 +839,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
                 return builder.ToString();
             }
+#if !ROSLYN_4_12_OR_LOWER
             else if (memberDeclaration is ExtensionBlockDeclarationSyntax extensionDeclaration)
             {
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
@@ -847,6 +851,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
                 AppendParameterList(builder, extensionDeclaration.ParameterList);
                 return builder.ToString();
             }
+#endif
             else
             {
                 Debug.Assert(memberDeclaration.Kind() == SyntaxKind.IncompleteMember);
@@ -872,6 +877,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
             }
         }
 
+#if !ROSLYN_4_12_OR_LOWER
         void AppendParameterList(StringBuilder builder, ParameterListSyntax? parameterList)
         {
             if (parameterList != null)
@@ -881,10 +887,17 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
                 builder.Append(')');
             }
         }
+#endif
     }
 
-    public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
-        => ((TypeDeclarationSyntax)typeDeclaration).Members;
+    public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode node)
+        => node is TypeDeclarationSyntax { Members: var members } ? members : [];
+
+    public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode node)
+        => node is BaseNamespaceDeclarationSyntax { Members: var members } ? members : [];
+
+    public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode node)
+        => node is CompilationUnitSyntax { Members: var members } ? members : [];
 
     protected override void AppendMembers(SyntaxNode? node, ArrayBuilder<SyntaxNode> list, bool topLevel, bool methodLevel)
     {
@@ -989,42 +1002,6 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         return node is PatternSyntax ? null : node;
     }
 
-    public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
-    {
-        if (root is not CompilationUnitSyntax compilationUnit)
-            return [];
-
-        var constructors = new List<SyntaxNode>();
-        AppendConstructors(compilationUnit.Members, constructors, cancellationToken);
-        return constructors;
-    }
-
-    private static void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
-    {
-        foreach (var member in members)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            switch (member)
-            {
-                case ConstructorDeclarationSyntax constructor:
-                    constructors.Add(constructor);
-                    continue;
-                case BaseNamespaceDeclarationSyntax @namespace:
-                    AppendConstructors(@namespace.Members, constructors, cancellationToken);
-                    break;
-                case ClassDeclarationSyntax @class:
-                    AppendConstructors(@class.Members, constructors, cancellationToken);
-                    break;
-                case RecordDeclarationSyntax record:
-                    AppendConstructors(record.Members, constructors, cancellationToken);
-                    break;
-                case StructDeclarationSyntax @struct:
-                    AppendConstructors(@struct.Members, constructors, cancellationToken);
-                    break;
-            }
-        }
-    }
-
     public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
     {
         var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
@@ -1100,8 +1077,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => ((AssignmentExpressionSyntax)node).Right;
 
     public bool IsInferredAnonymousObjectMemberDeclarator([NotNullWhen(true)] SyntaxNode? node)
-        => node is AnonymousObjectMemberDeclaratorSyntax anonObject &&
-           anonObject.NameEquals == null;
+        => node is AnonymousObjectMemberDeclaratorSyntax { NameEquals: null };
 
     public bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node)
         => node?.Parent?.Kind() is SyntaxKind.PostIncrementExpression or SyntaxKind.PreIncrementExpression;
@@ -1359,8 +1335,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => node.GetAttributeLists();
 
     public bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node)
-        => node is XmlElementSyntax xmlElement &&
-        xmlElement.StartTag.Name.LocalName.ValueText == DocumentationCommentXmlNames.ParameterElementName;
+        => node is XmlElementSyntax { StartTag.Name.LocalName.ValueText: DocumentationCommentXmlNames.ParameterElementName };
 
     public SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
     {
@@ -1659,6 +1634,13 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         openParen = parenthesizedExpression.OpenParenToken;
         expression = parenthesizedExpression.Expression;
         closeParen = parenthesizedExpression.CloseParenToken;
+    }
+
+    public void GetPartsOfPostfixUnaryExpression(SyntaxNode node, out SyntaxNode operand, out SyntaxToken operatorToken)
+    {
+        var postfixUnaryExpression = (PostfixUnaryExpressionSyntax)node;
+        operand = postfixUnaryExpression.Operand;
+        operatorToken = postfixUnaryExpression.OperatorToken;
     }
 
     public void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand)

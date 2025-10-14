@@ -633,6 +633,9 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
     public virtual TResult? VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a ExtensionMemberCrefSyntax node.</summary>
+    public virtual TResult? VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
     public virtual TResult? VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
 
@@ -1374,6 +1377,9 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
     public virtual void VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a ExtensionMemberCrefSyntax node.</summary>
+    public virtual void VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
     public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
 
@@ -2114,6 +2120,9 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitNameMemberCref(NameMemberCrefSyntax node)
         => node.Update((TypeSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), (CrefParameterListSyntax?)Visit(node.Parameters));
+
+    public override SyntaxNode? VisitExtensionMemberCref(ExtensionMemberCrefSyntax node)
+        => node.Update(VisitToken(node.ExtensionKeyword), (TypeArgumentListSyntax?)Visit(node.TypeArgumentList), (CrefParameterListSyntax?)Visit(node.Parameters) ?? throw new ArgumentNullException("parameters"), VisitToken(node.DotToken), (MemberCrefSyntax?)Visit(node.Member) ?? throw new ArgumentNullException("member"));
 
     public override SyntaxNode? VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
         => node.Update(VisitToken(node.ThisKeyword), (CrefBracketedParameterListSyntax?)Visit(node.Parameters));
@@ -5859,6 +5868,24 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new NameMemberCrefSyntax instance.</summary>
     public static NameMemberCrefSyntax NameMemberCref(TypeSyntax name)
         => SyntaxFactory.NameMemberCref(name, default);
+
+    /// <summary>Creates a new ExtensionMemberCrefSyntax instance.</summary>
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+    {
+        if (extensionKeyword.Kind() != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(extensionKeyword));
+        if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+        if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (member == null) throw new ArgumentNullException(nameof(member));
+        return (ExtensionMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionMemberCref((Syntax.InternalSyntax.SyntaxToken)extensionKeyword.Node!, typeArgumentList == null ? null : (Syntax.InternalSyntax.TypeArgumentListSyntax)typeArgumentList.Green, (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.MemberCrefSyntax)member.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new ExtensionMemberCrefSyntax instance.</summary>
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, MemberCrefSyntax member)
+        => SyntaxFactory.ExtensionMemberCref(SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), typeArgumentList, parameters, SyntaxFactory.Token(SyntaxKind.DotToken), member);
+
+    /// <summary>Creates a new ExtensionMemberCrefSyntax instance.</summary>
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(MemberCrefSyntax member)
+        => SyntaxFactory.ExtensionMemberCref(SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default, SyntaxFactory.CrefParameterList(), SyntaxFactory.Token(SyntaxKind.DotToken), member);
 
     /// <summary>Creates a new IndexerMemberCrefSyntax instance.</summary>
     public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)

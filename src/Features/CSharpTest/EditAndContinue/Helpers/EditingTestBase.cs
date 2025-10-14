@@ -24,18 +24,24 @@ public abstract class EditingTestBase : CSharpTestBase
     public static readonly string ReloadableAttributeDefSrc =
         "namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }";
 
-    public static readonly string ReloadableAttributeSrc = $@"
-using System.Runtime.CompilerServices;
-{ReloadableAttributeDefSrc}
-";
+    public static readonly string ReloadableAttributeSrc = $"""
 
-    public static readonly string RestartRequiredOnMetadataUpdateAttributeDefSrc = @"
-namespace System.Runtime.CompilerServices { class RestartRequiredOnMetadataUpdateAttribute : Attribute {} }
-";
+        using System.Runtime.CompilerServices;
+        {ReloadableAttributeDefSrc}
 
-    public static readonly string RestartRequiredOnMetadataUpdateAttributeSrc = $@"
-using System.Runtime.CompilerServices;
-{RestartRequiredOnMetadataUpdateAttributeDefSrc}";
+        """;
+
+    public static readonly string RestartRequiredOnMetadataUpdateAttributeDefSrc = """
+
+        namespace System.Runtime.CompilerServices { class RestartRequiredOnMetadataUpdateAttribute : Attribute {} }
+
+        """;
+
+    public static readonly string RestartRequiredOnMetadataUpdateAttributeSrc = $"""
+
+        using System.Runtime.CompilerServices;
+        {RestartRequiredOnMetadataUpdateAttributeDefSrc}
+        """;
 
     internal enum MethodKind
     {
@@ -99,6 +105,7 @@ using System.Runtime.CompilerServices;
             "top-level statement" => CSharpFeaturesResources.top_level_statement,
             "top-level code" => CSharpFeaturesResources.top_level_code,
             "class with explicit or sequential layout" => string.Format(FeaturesResources.class_with_explicit_or_sequential_layout),
+            "extension block" => FeaturesResources.extension_block,
             _ => null
         };
 

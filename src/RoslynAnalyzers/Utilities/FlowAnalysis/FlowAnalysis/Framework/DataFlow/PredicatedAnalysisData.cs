@@ -9,7 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (_lazyPredicateDataMap != null)
             {
                 Debug.Assert(!_lazyPredicateDataMap.IsDisposed);
-                using var builder = PooledHashSet<DictionaryAnalysisData<TKey, TValue>>.GetInstance();
+                using var _ = PooledHashSet<DictionaryAnalysisData<TKey, TValue>>.GetInstance(out var builder);
                 foreach (var value in _lazyPredicateDataMap.Values)
                 {
                     if (value.TruePredicatedData != null)

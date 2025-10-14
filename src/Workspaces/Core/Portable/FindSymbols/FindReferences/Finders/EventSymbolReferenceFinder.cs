@@ -32,7 +32,7 @@ internal sealed class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEve
                                                         .WhereAsArray(n => symbol.Equals(n.AssociatedSymbol))
                                                         .CastArray<ISymbol>();
 
-        return new(GetOtherPartsOfPartial(symbol).Concat(backingFields).Concat(associatedNamedTypes));
+        return new([.. GetOtherPartsOfPartial(symbol), .. backingFields, .. associatedNamedTypes]);
     }
 
     private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IEventSymbol symbol)

@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #if DEBUG
 using System.Collections.Generic;
@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal static class LValueFlowCapturesProvider
     {
-        private static readonly ConditionalWeakTable<ControlFlowGraph, ImmutableHashSet<CaptureId>> s_lValueFlowCapturesCache =
-            new();
+        private static readonly ConditionalWeakTable<ControlFlowGraph, ImmutableHashSet<CaptureId>> s_lValueFlowCapturesCache = new();
 
         public static ImmutableHashSet<CaptureId> GetOrCreateLValueFlowCaptures(ControlFlowGraph cfg)
             => s_lValueFlowCapturesCache.GetValue(cfg, CreateLValueFlowCaptures);

@@ -2,7 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.ComponentModel.Design
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Options
@@ -30,13 +32,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '     Code Style (category)
     '       General
     '       Naming
-    '     IntelliSense
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
     <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
-    <ProvideLanguageEditorOptionPage(GetType(IntelliSenseOptionPage), "Basic", Nothing, "IntelliSense", "#112", 312)>
     <ProvideSettingsManifest(PackageRelativeManifestFile:="UnifiedSettings\visualBasicSettings.registration.json")>
+    <ProvideService(GetType(IVbTempPECompilerFactory), IsAsyncQueryable:=False, IsCacheable:=True, IsFreeThreaded:=True, ServiceName:="Visual Basic TempPE Compiler Factory Service")>
     <Guid(Guids.VisualBasicPackageIdString)>
     Friend NotInheritable Class VisualBasicPackage
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
@@ -57,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Sub New()
             MyBase.New()
 
-            ' This is a UI-affinitized operation. Currently this opeartion prevents setting AllowsBackgroundLoad for
+            ' This is a UI-affinitized operation. Currently this operation prevents setting AllowsBackgroundLoad for
             ' VisualBasicPackage. The call should be removed from the constructor, and the package set back to allowing
             ' background loads.
             _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
@@ -71,14 +72,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 isMainThreadTask:=False,
                 task:=Function() As Task
                           Try
-                              RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
+                              AddService(GetType(IVbCompilerService), Function(_1, cancellationToken, _2)
+                                                                          PreloadProjectSystemComponents()
+                                                                          Return Task.FromResult(_comAggregate)
+                                                                      End Function, promote:=True)
 
-                              RegisterService(Of IVbTempPECompilerFactory)(
-                            Async Function(ct)
-                                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                                Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
-                                Return New TempPECompilerFactory(workspace)
-                            End Function)
+                              DirectCast(Me, IServiceContainer).AddService(
+                                  GetType(IVbTempPECompilerFactory),
+                                  Function(_1, _2) New TempPECompilerFactory(Me.ComponentModel.GetService(Of VisualStudioWorkspace)()),
+                                  promote:=True)
                           Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
                               Throw ExceptionUtilities.Unreachable
                           End Try

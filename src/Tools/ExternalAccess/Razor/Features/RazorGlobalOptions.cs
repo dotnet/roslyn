@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Formatting;
-using System.Collections.Immutable;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {

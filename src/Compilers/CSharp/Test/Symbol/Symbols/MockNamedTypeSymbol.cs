@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal override string ExtensionName
-            => throw ExceptionUtilities.Unreachable();
+        internal sealed override string ExtensionGroupingName => null;
+        internal sealed override string ExtensionMarkerName => null;
 
         public sealed override bool IsReadOnly
         {

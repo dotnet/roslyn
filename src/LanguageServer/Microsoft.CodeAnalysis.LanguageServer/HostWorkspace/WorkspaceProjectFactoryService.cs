@@ -11,34 +11,29 @@ using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+
 #pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
+
 /// <summary>
 /// An implementation of the brokered service <see cref="IWorkspaceProjectFactoryService"/> that just maps calls to the underlying project system.
 /// </summary>
 [ExportBrokeredService("Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService", null, Audience = ServiceAudience.Local)]
-internal sealed class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService, IExportedBrokeredService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class WorkspaceProjectFactoryService(
+    LanguageServerWorkspaceFactory workspaceFactory,
+    ProjectInitializationHandler projectInitializationHandler,
+    ILoggerFactory loggerFactory) : IWorkspaceProjectFactoryService, IExportedBrokeredService
 {
-    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
-    private readonly ProjectInitializationHandler _projectInitializationHandler;
-    private readonly ILogger _logger;
-    private readonly ILoggerFactory _loggerFactory;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkspaceProjectFactoryService(LanguageServerWorkspaceFactory workspaceFactory, ProjectInitializationHandler projectInitializationHandler, ILoggerFactory loggerFactory)
-    {
-        _workspaceFactory = workspaceFactory;
-        _projectInitializationHandler = projectInitializationHandler;
-        _loggerFactory = loggerFactory;
-        _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
-    }
+    private readonly LanguageServerWorkspaceFactory _workspaceFactory = workspaceFactory;
+    private readonly ProjectInitializationHandler _projectInitializationHandler = projectInitializationHandler;
+    private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
+    private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor => WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor;
 
-    async Task IExportedBrokeredService.InitializeAsync(CancellationToken cancellationToken)
-    {
-        await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
-    }
+    Task IExportedBrokeredService.InitializeAsync(CancellationToken cancellationToken)
+        => _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
     {

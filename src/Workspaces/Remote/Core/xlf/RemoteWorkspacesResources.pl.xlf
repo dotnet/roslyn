@@ -32,6 +32,11 @@
         <target state="new">Copilot change analysis</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotProposalAdjuster">
+        <source>Copilot proposal adjuster</source>
+        <target state="new">Copilot proposal adjuster</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">Wyszukiwanie typów zależnych</target>

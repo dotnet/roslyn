@@ -19,7 +19,7 @@ public sealed class RawStringLiteralCommandHandlerTests
 {
     internal sealed class RawStringLiteralTestState : AbstractCommandHandlerTestState
     {
-        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(
             typeof(RawStringLiteralCommandHandler));
 
         private readonly RawStringLiteralCommandHandler _commandHandler;

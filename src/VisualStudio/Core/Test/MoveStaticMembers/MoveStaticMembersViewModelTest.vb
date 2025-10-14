@@ -6,14 +6,12 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.MoveStaticMembers
-Imports Microsoft.CodeAnalysis.PullMemberUp
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Test.Utilities

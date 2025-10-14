@@ -14,22 +14,21 @@ public sealed partial class DocumentChangesTests
     [Theory, CombinatorialData]
     public async Task FindReferencesInChangingDocument(bool mutatingLspWorkspace)
     {
-        var source =
-@"class A
-{
-    public int {|type:|}someInt = 1;
-    void M()
-    {
-    }
-}
-class B
-{
-    void M2()
-    {
-    }
-}";
-
-        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                public int {|type:|}someInt = 1;
+                void M()
+                {
+                }
+            }
+            class B
+            {
+                void M2()
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
 
         await using (testLspServer)
         {

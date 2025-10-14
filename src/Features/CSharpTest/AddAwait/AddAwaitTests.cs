@@ -19,9 +19,8 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
         => new CSharpAddAwaitCodeRefactoringProvider();
 
     [Fact]
-    public async Task Simple()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task Simple()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -40,12 +39,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleWithConfigureAwait()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SimpleWithConfigureAwait()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -64,12 +61,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """, index: 1);
-    }
 
     [Fact]
-    public async Task InArgument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task InArgument()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -88,12 +83,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InvocationInArgument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task InvocationInArgument()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -112,12 +105,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InvocationInArgumentWithConfigureAwait()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task InvocationInArgumentWithConfigureAwait()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -136,12 +127,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """, index: 1);
-    }
 
     [Fact]
-    public async Task AlreadyAwaited()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task AlreadyAwaited()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -151,12 +140,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AlreadyAwaitedAndConfigured()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task AlreadyAwaitedAndConfigured()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -166,12 +153,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AlreadyAwaitedAndConfigured2()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task AlreadyAwaitedAndConfigured2()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -181,12 +166,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleWithTrivia()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SimpleWithTrivia()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -207,12 +190,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleWithTrivia2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SimpleWithTrivia2()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -231,12 +212,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleWithTriviaWithConfigureAwait()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SimpleWithTriviaWithConfigureAwait()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -257,12 +236,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """, index: 1);
-    }
 
     [Fact]
-    public async Task SimpleWithTrivia2WithConfigureAwait()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task SimpleWithTrivia2WithConfigureAwait()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -281,12 +258,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task OnSemiColon()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task OnSemiColon()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -305,12 +280,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task Selection()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task Selection()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -329,12 +302,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task Selection2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task Selection2()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -353,12 +324,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ChainedInvocation()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task ChainedInvocation()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -369,12 +338,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ChainedInvocation_ExpressionOfInvalidInvocation()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task ChainedInvocation_ExpressionOfInvalidInvocation()
+        => TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -395,13 +362,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task BadAsyncReturnOperand1()
-    {
-        var initial =
-            """
+    public Task BadAsyncReturnOperand1()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -417,10 +381,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return [|Test()|];
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -436,15 +397,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return await Test();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task BadAsyncReturnOperand_WithLeadingTrivia1()
-    {
-        var initial =
-            """
+    public Task BadAsyncReturnOperand_WithLeadingTrivia1()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -462,10 +419,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     [|Test()|];
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -483,15 +437,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     await Test();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_SingleLine()
-    {
-        var initial =
-            """
+    public Task BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_SingleLine()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -504,10 +454,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return [|true ? Test() /* true */ : Test()|] /* false */;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -520,15 +467,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return await (true ? Test() /* true */ : Test()) /* false */;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_Multiline()
-    {
-        var initial =
-            """
+    public Task BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_Multiline()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -543,10 +486,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                                 ;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -561,15 +501,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                                 ;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_SingleLine()
-    {
-        var initial =
-            """
+    public Task BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_SingleLine()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -582,10 +518,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return [|null /* 0 */ ?? Test()|] /* 1 */;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -598,15 +531,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return await (null /* 0 */ ?? Test()) /* 1 */;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_Multiline()
-    {
-        var initial =
-            """
+    public Task BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_Multiline()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -621,10 +550,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                         ;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -639,15 +565,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                         ;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_SingleLine()
-    {
-        var initial =
-            """
+    public Task BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_SingleLine()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -658,10 +580,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return [|null /* 0 */ as Task<int>|] /* 1 */;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -672,15 +591,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return await (null /* 0 */ as Task<int>) /* 1 */;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_Multiline()
-    {
-        var initial =
-            """
+    public Task BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_Multiline()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -695,10 +610,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                         ;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -713,15 +625,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                         ;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TaskNotAwaited()
-    {
-        var initial =
-            """
+    public Task TaskNotAwaited()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
             class Program
@@ -731,10 +639,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     [|Task.Delay(3)|];
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
             class Program
@@ -744,15 +649,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     await Task.Delay(3);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TaskNotAwaited_WithLeadingTrivia()
-    {
-        var initial =
-            """
+    public Task TaskNotAwaited_WithLeadingTrivia()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
             class Program
@@ -764,10 +665,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     [|Task.Delay(3)|];
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
             class Program
@@ -779,15 +677,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     await Task.Delay(3);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task FunctionNotAwaited()
-    {
-        var initial =
-            """
+    public Task FunctionNotAwaited()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
             class Program
@@ -802,10 +696,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     [|AwaitableFunction()|];
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
             class Program
@@ -820,15 +711,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     await AwaitableFunction();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task FunctionNotAwaited_WithLeadingTrivia()
-    {
-        var initial =
-            """
+    public Task FunctionNotAwaited_WithLeadingTrivia()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
             class Program
@@ -845,10 +732,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     [|AwaitableFunction()|];
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
             class Program
@@ -865,15 +749,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     await AwaitableFunction();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task FunctionNotAwaited_WithLeadingTrivia1()
-    {
-        var initial =
-            """
+    public Task FunctionNotAwaited_WithLeadingTrivia1()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
             class Program
@@ -890,10 +770,7 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     [|AwaitableFunction()|];
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
             class Program
@@ -910,14 +787,11 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     await AwaitableFunction();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestAssignmentExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System.Threading.Tasks;
 
@@ -950,12 +824,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpressionWithConversion()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpressionWithConversion()
+        => TestInRegularAndScriptAsync(
             """
             using System.Threading.Tasks;
 
@@ -988,13 +860,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpressionWithConversionInNonAsyncFunction()
-    {
-
-        await TestMissingAsync("""
+    public Task TestAssignmentExpressionWithConversionInNonAsyncFunction()
+        => TestMissingAsync("""
             using System.Threading.Tasks;
 
             class TestClass
@@ -1011,12 +880,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpressionWithConversionInAsyncFunction()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpressionWithConversionInAsyncFunction()
+        => TestInRegularAndScriptAsync(
             """
             using System.Threading.Tasks;
 
@@ -1049,12 +916,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpression1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1093,12 +958,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpression2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1137,12 +1000,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression3()
-    {
-        await TestMissingAsync(
+    public Task TestAssignmentExpression3()
+        => TestMissingAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1163,12 +1024,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression3_1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpression3_1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1209,12 +1068,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression4()
-    {
-        await TestMissingAsync(
+    public Task TestAssignmentExpression4()
+        => TestMissingAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1234,12 +1091,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression4_1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpression4_1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1278,12 +1133,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpression5()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1322,12 +1175,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpression6()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1366,12 +1217,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression7()
-    {
-        await TestMissingAsync(
+    public Task TestAssignmentExpression7()
+        => TestMissingAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1391,12 +1240,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression7_1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpression7_1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1435,12 +1282,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression8()
-    {
-        await TestMissingAsync(
+    public Task TestAssignmentExpression8()
+        => TestMissingAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1461,12 +1306,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignmentExpression8_1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssignmentExpression8_1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1507,12 +1350,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTernaryOperator()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTernaryOperator()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1537,12 +1378,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullCoalescingOperator()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullCoalescingOperator()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1565,12 +1404,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return await (null ?? Task.FromResult(1)); }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1593,12 +1430,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                     return await (null as Task<int>); }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1345322")]
-    public async Task TestOnTaskTypeItself()
-    {
-        await TestMissingAsync(
+    public Task TestOnTaskTypeItself()
+        => TestMissingAsync(
             """
             using System.Threading.Tasks;
 
@@ -1609,12 +1444,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66726")]
-    public async Task NotOnBindingExpression1()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NotOnBindingExpression1()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             class TestClass
@@ -1630,12 +1463,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66726")]
-    public async Task NotOnBindingExpression2()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NotOnBindingExpression2()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             class TestClass
@@ -1653,12 +1484,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66726")]
-    public async Task NotOnBindingExpression3()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NotOnBindingExpression3()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             class TestClass
@@ -1676,12 +1505,10 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66726")]
-    public async Task NotOnBindingExpression4()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NotOnBindingExpression4()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             class TestClass
@@ -1694,5 +1521,4 @@ public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
                 }
             }
             """);
-    }
 }

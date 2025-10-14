@@ -234,8 +234,8 @@ internal abstract class AbstractOptionPreviewViewModel : AbstractNotifyPropertyC
     {
         var unusedParameterPreferences = new List<CodeStylePreference>
         {
-            new CodeStylePreference(ServicesVSResources.Non_public_methods, isChecked: false),
-            new CodeStylePreference(ServicesVSResources.All_methods, isChecked: true),
+            new(ServicesVSResources.Non_public_methods, isChecked: false),
+            new(ServicesVSResources.All_methods, isChecked: true),
         };
 
         var enumValues = new[]

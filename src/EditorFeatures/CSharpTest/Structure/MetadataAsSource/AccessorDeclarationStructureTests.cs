@@ -18,9 +18,8 @@ public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNode
     internal override AbstractSyntaxStructureProvider CreateProvider() => new AccessorDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestPropertyGetter3()
-    {
-        var code = """
+    public Task TestPropertyGetter3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -34,16 +33,12 @@ public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNode
                         }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithSingleLineComments3()
-    {
-        var code = """
+    public Task TestPropertyGetterWithSingleLineComments3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -59,17 +54,13 @@ public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNode
                         }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// My ...", autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithMultiLineComments3()
-    {
-        var code = """
+    public Task TestPropertyGetterWithMultiLineComments3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -85,9 +76,6 @@ public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNode
                         }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

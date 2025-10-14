@@ -580,10 +580,26 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 return declaredSymbol;
             }
 
-            if (IsFieldDeclarationSyntax(node)
-                && semanticModel.GetAllDeclaredSymbols(node, cancellationToken).SingleOrDefault() is IFieldSymbol fieldSymbol)
+            if (IsFieldDeclarationSyntax(node))
             {
-                return fieldSymbol;
+                foreach (var declarator in node.DescendantNodes().OfType<SyntaxNode>()
+                    .Where(n => _syntaxFacts.IsVariableDeclarator(n)))
+                {
+                    var initializer = _syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
+                    if (initializer?.DescendantNodesAndSelf().Contains(calleeMethodInvocationNode) is true)
+                    {
+                        if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is IFieldSymbol fieldSymbol)
+                        {
+                            return fieldSymbol;
+                        }
+                    }
+                }
+
+                // Fall back to the current approach for the VB case
+                if (semanticModel.GetAllDeclaredSymbols(node, cancellationToken).SingleOrDefault() is IFieldSymbol fieldSymbolFallBack)
+                {
+                    return fieldSymbolFallBack;
+                }
             }
 
             if (_syntaxFacts.IsAnonymousFunctionExpression(node))

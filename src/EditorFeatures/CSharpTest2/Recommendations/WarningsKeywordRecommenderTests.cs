@@ -12,116 +12,86 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class WarningsKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestAfterHash()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterHash()
+        => VerifyAbsenceAsync(
 @"#$$");
-    }
 
     [Fact]
-    public async Task TestAfterHashAndSpace()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterHashAndSpace()
+        => VerifyAbsenceAsync(
 @"# $$");
-    }
 
     [Fact]
-    public async Task TestAfterPragma()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterPragma()
+        => VerifyAbsenceAsync(
 @"#pragma $$");
-    }
 
     [Fact]
-    public async Task TestAfterNullable()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterNullable()
+        => VerifyAbsenceAsync(
 @"#nullable $$");
-    }
 
     [Fact]
-    public async Task TestAfterNullableEnable()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNullableEnable()
+        => VerifyKeywordAsync(
 @"#nullable enable $$");
-    }
 
     [Fact]
-    public async Task TestAfterNullableDisable()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNullableDisable()
+        => VerifyKeywordAsync(
 @"#nullable disable $$");
-    }
 
     [Fact]
-    public async Task TestAfterNullableRestore()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNullableRestore()
+        => VerifyKeywordAsync(
 @"#nullable restore $$");
-    }
 
     [Fact]
-    public async Task TestAfterNullableBadSetting()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterNullableBadSetting()
+        => VerifyAbsenceAsync(
 @"#nullable true $$");
-    }
 }

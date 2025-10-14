@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -22,7 +23,6 @@ using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
-using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.LanguageServer;
 
@@ -40,11 +40,13 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     public async Task TestExternalAccessTypeScriptHandlerInvoked()
     {
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
-        <Document FilePath=""C:\T.ts""></Document>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
+                    <Document FilePath="C:\T.ts"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
 
@@ -59,11 +61,13 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     public async Task TestRoslynTypeScriptHandlerInvoked()
     {
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
-        <Document FilePath=""C:\T.ts""></Document>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
+                    <Document FilePath="C:\T.ts"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml, new InitializationOptions());
 
@@ -81,11 +85,13 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     public async Task TestGetSimplifierOptionsOnTypeScriptDocument()
     {
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
-        <Document FilePath=""C:\T.ts""></Document>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
+                    <Document FilePath="C:\T.ts"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -95,7 +101,7 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
 
     private async Task<VSTypeScriptTestLspServer> CreateTsTestLspServerAsync(string workspaceXml, InitializationOptions? options = null)
     {
-        var testWorkspace = CreateWorkspace(options, mutatingLspWorkspace: false, workspaceKind: null);
+        var testWorkspace = await CreateWorkspaceAsync(options, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
         return await VSTypeScriptTestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);

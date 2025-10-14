@@ -17,7 +17,7 @@ namespace Test.Utilities
 
         /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult, string)"/>
         public static async Task VerifyRefactoringAsync(string source, DiagnosticResult expected, string fixedSource)
-            => await VerifyRefactoringAsync(source, new[] { expected }, fixedSource);
+            => await VerifyRefactoringAsync(source, [expected], fixedSource);
 
         /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult[], string)"/>
         public static async Task VerifyRefactoringAsync(string source, DiagnosticResult[] expected, string fixedSource)

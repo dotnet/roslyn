@@ -38,15 +38,19 @@ public class CSharpGoToImplementation : AbstractEditorTest
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"class Implementation : IGoo
-{
-}", HangMitigatingCancellationToken);
+            """
+            class Implementation : IGoo
+            {
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileInterface.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileInterface.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"interface IGoo 
-{
-}", HangMitigatingCancellationToken);
+            """
+            interface IGoo 
+            {
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("interface IGoo", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
@@ -78,17 +82,21 @@ public class CSharpGoToImplementation : AbstractEditorTest
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"class Implementation : IBar
-{
-}
-", HangMitigatingCancellationToken);
+            """
+            class Implementation : IBar
+            {
+            }
+
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.CloseCodeFileAsync(project, "FileImplementation.cs", saveFile: true, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileInterface.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileInterface.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"interface IBar
-{
-}", HangMitigatingCancellationToken);
+            """
+            interface IBar
+            {
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("interface IBar", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
@@ -111,9 +119,7 @@ public class CSharpGoToImplementation : AbstractEditorTest
     }
 
     [IdeTheory]
-    //[CombinatorialData]
-    [InlineData(false, Skip = "https://github.com/dotnet/roslyn/issues/77293")]
-    [InlineData(true)]
+    [CombinatorialData]
     public async Task GoToImplementationFromMetadataAsSource(bool asyncNavigation)
     {
         await TestServices.Editor.ConfigureAsyncNavigation(asyncNavigation ? AsyncNavigationKind.Asynchronous : AsyncNavigationKind.Synchronous, HangMitigatingCancellationToken);
@@ -122,15 +128,17 @@ public class CSharpGoToImplementation : AbstractEditorTest
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"using System;
+            """
+            using System;
 
-class Implementation : IDisposable
-{
-    public void SomeMethod()
-    {
-        IDisposable d;
-    }
-}", HangMitigatingCancellationToken);
+            class Implementation : IDisposable
+            {
+                public void SomeMethod()
+                {
+                    IDisposable d;
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("IDisposable d", charsOffset: -1, HangMitigatingCancellationToken);
         await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
         Assert.Equal("IDisposable [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
@@ -167,36 +175,40 @@ class Implementation : IDisposable
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"using System;
+            """
+            using System;
 
-class Implementation : IDisposable
-{
-    public void Dispose()
-    {
-    }
-}", HangMitigatingCancellationToken);
+            class Implementation : IDisposable
+            {
+                public void Dispose()
+                {
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.CloseCodeFileAsync(project, "FileImplementation.cs", saveFile: true, HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileUsage.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileUsage.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"using System;
+            """
+            using System;
 
-class C
-{
-    void M()
-    {
-        IDisposable c;
-        try
-        {
-            c = new Implementation();
-        }
-        finally
-        {
-            c.Dispose();
-        }
-    }
-}", HangMitigatingCancellationToken);
+            class C
+            {
+                void M()
+                {
+                    IDisposable c;
+                    try
+                    {
+                        c = new Implementation();
+                    }
+                    finally
+                    {
+                        c.Dispose();
+                    }
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("Dispose", charsOffset: -1, HangMitigatingCancellationToken);
 

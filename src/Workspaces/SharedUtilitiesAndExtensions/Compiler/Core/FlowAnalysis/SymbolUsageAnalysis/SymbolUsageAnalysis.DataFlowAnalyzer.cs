@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
 

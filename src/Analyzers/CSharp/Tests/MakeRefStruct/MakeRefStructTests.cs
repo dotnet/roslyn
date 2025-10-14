@@ -56,7 +56,7 @@ public sealed class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUs
                 Span<int> m;
             }
             """);
-        await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+        await TestInRegularAndScriptAsync(text, expected, new(parseOptions: s_parseOptions));
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public sealed class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUs
                 static Span<int> m;
             }
             """);
-        await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+        await TestInRegularAndScriptAsync(text, expected, new(parseOptions: s_parseOptions));
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public sealed class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUs
                 Span<int> M { get; }
             }
             """);
-        await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+        await TestInRegularAndScriptAsync(text, expected, new(parseOptions: s_parseOptions));
     }
 
     [Fact]
@@ -181,7 +181,7 @@ public sealed class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUs
                 static Span<int> M { get; }
             }
             """);
-        await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+        await TestInRegularAndScriptAsync(text, expected, new(parseOptions: s_parseOptions));
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public sealed class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUs
                 Span<int>[||] M { get; }
             }
             """);
-        await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+        await TestInRegularAndScriptAsync(text, expected, new(parseOptions: s_parseOptions));
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public sealed class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUs
                 Span<int>[||] M { get; }
             }
             """);
-        await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+        await TestInRegularAndScriptAsync(text, expected, new(parseOptions: s_parseOptions));
     }
 
     private static string CreateTestSource(string testSource) => SpanDeclarationSourceText + testSource;

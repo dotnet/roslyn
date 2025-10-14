@@ -196,7 +196,9 @@ namespace Roslyn.Utilities
                 switch (c)
                 {
                     case '\"':
-                        b!.Append("\\\"");
+                        b!.Append("""
+                            \"
+                            """);
                         break;
                     case '\\':
                         b!.Append("\\\\");

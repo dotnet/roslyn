@@ -12,175 +12,137 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class SelectKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestNotAtEndOfPreviousClause()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAtEndOfPreviousClause()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var q = from x in y$$"));
-    }
 
     [Fact]
-    public async Task TestNewClause()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestNewClause()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterPreviousClause()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterPreviousClause()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var v = from x in y
                       where x > y
                       $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterPreviousContinuationClause()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterPreviousContinuationClause()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var v = from x in y
                       group x by y into g
                       $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterOrderByExpr()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterOrderByExpr()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x
                       $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterOrderByAscendingExpr()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterOrderByAscendingExpr()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x ascending
                       $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterOrderByDescendingExpr()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterOrderByDescendingExpr()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x descending
                       $$
             """));
-    }
 
     [Fact]
-    public async Task TestBetweenClauses()
-    {
-        // Technically going to generate invalid code, but we 
-        // shouldn't stop users from doing this.
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestBetweenClauses()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       $$
                       from z in w
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterSelect()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterSelect()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       select $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterDot()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterDot()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x.$$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterComma()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterComma()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x, $$
             """));
-    }
 }

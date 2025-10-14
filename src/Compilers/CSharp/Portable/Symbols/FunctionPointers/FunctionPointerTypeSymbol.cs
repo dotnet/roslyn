@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsReferenceType => false;
         public override bool IsValueType => true;
-        internal sealed override ParameterSymbol? ExtensionParameter => null;
         public override TypeKind TypeKind => TypeKind.FunctionPointer;
         public override bool IsRefLikeType => false;
         public override bool IsReadOnly => false;
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// signatures, and we are disallowing similar overloads in source with function pointers.
         /// </summary>
         internal static bool RefKindEquals(TypeCompareKind compareKind, RefKind refKind1, RefKind refKind2)
-            => (compareKind & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) != 0
+            => (compareKind & TypeCompareKind.FunctionPointerRefOutInRefReadonlyMatch) != 0
                ? (refKind1 == RefKind.None) == (refKind2 == RefKind.None)
                : refKind1 == refKind2;
 

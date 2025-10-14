@@ -13,12 +13,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
-
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
 internal abstract partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
@@ -72,7 +66,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
                     attributes: default,
                     accessibility: _state.DetermineMaximalAccessibility(),
-                    modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
+                    modifiers: DeclarationModifiers.None.WithIsStatic(_state.IsStatic).WithIsUnsafe(generateUnsafe),
                     type: _state.TypeMemberType,
                     refKind: _refKind,
                     explicitInterfaceImplementations: default,
@@ -91,8 +85,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                     attributes: default,
                     accessibility: DetermineMinimalAccessibility(_state),
                     modifiers: _isConstant
-                        ? new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe)
-                        : new DeclarationModifiers(isStatic: _state.IsStatic, isReadOnly: _isReadonly, isUnsafe: generateUnsafe),
+                        ? DeclarationModifiers.None.WithIsConst(true).WithIsUnsafe(generateUnsafe)
+                        : DeclarationModifiers.None.WithIsStatic(_state.IsStatic).WithIsReadOnly(_isReadonly).WithIsUnsafe(generateUnsafe),
                     type: _state.TypeMemberType,
                     name: _state.IdentifierToken.ValueText);
 

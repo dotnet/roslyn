@@ -24,7 +24,7 @@ public sealed class ArgumentProviderOrderTests
     [Fact]
     public void TestArgumentProviderOrder()
     {
-        var exportProvider = EditorTestCompositions.EditorFeaturesWpf.ExportProviderFactory.CreateExportProvider();
+        var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
         var argumentProviderExports = exportProvider.GetExports<ArgumentProvider, CompletionProviderMetadata>();
         var orderedCSharpArgumentProviders = ExtensionOrderer.Order(argumentProviderExports.Where(export => export.Metadata.Language == LanguageNames.CSharp));
 

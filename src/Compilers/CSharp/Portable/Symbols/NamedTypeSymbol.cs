@@ -8,12 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -212,6 +212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (candidates.IsEmpty)
                 return;
 
+            AddOperators(operators, candidates);
+        }
+
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        {
             foreach (var candidate in candidates)
             {
                 if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
@@ -355,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var thisParam = method.Parameters.First();
 
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should use similar logic when looking up new extension members
+                        // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, we should use similar logic when looking up new extension members
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
                             (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
@@ -371,6 +376,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+
+        internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+        {
+            if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
+
+            foreach (var nestedType in GetTypeMembersUnordered())
+            {
+                if (nestedType.IsExtension)
+                {
+                    extensions.Add(nestedType);
+                }
+            }
+        }
 
         public virtual MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
         {
@@ -504,10 +522,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
+        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
+        public virtual bool IsExtension
+            => TypeKind == TypeKind.Extension;
+
         /// <summary>
-        /// For extensions, returns the synthesized identifier for the type: "&lt;E>__N".
+        /// For the type representing an extension declaration, returns the receiver parameter symbol.
+        /// It may be unnamed.
+        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
         /// </summary>
-        internal abstract string ExtensionName { get; }
+        internal abstract ParameterSymbol? ExtensionParameter { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the grouping type.
+        /// Returns null otherwise.
+        /// </summary>
+        internal abstract string? ExtensionGroupingName { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the marker type.
+        /// Returns null otherwise.
+        /// </summary>
+        internal abstract string? ExtensionMarkerName { get; }
 #nullable disable
 
         /// <summary>

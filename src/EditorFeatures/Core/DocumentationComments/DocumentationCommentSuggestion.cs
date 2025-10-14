@@ -4,12 +4,10 @@
 
 using System;
 using System.ComponentModel;
-using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Copilot;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
@@ -98,7 +96,7 @@ internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentatio
         _suggestionSession = await RunWithEnqueueActionAsync(
             "StartWork",
             async () => await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false),
-        cancellationToken).ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false);
 
         if (_suggestionSession is null)
         {

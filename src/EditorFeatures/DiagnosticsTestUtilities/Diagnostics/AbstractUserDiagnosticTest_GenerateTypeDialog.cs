@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 public abstract partial class AbstractUserDiagnosticTest
 {
     // TODO: IInlineRenameService requires WPF (https://github.com/dotnet/roslyn/issues/46153)
-    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
+    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
         .AddParts(
             typeof(TestGenerateTypeOptionsService),
             typeof(TestProjectManagementService));
@@ -59,7 +59,7 @@ public abstract partial class AbstractUserDiagnosticTest
               ? EditorTestWorkspace.CreateCSharp(initial, composition: s_composition)
               : EditorTestWorkspace.CreateVisualBasic(initial, composition: s_composition);
 
-        var testOptions = new TestParameters();
+        var testOptions = TestParameters.Default;
         var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(workspace, testOptions);
 
         var testState = new GenerateTypeTestState(workspace, projectToBeModified: projectName, typeName, existingFilename);

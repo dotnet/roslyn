@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.ExplicitDefaultConstantValue; }
         }
 
+        internal sealed override ConstantValue? DefaultValueFromAttributes
+        {
+            get { return _underlyingParameter.DefaultValueFromAttributes; }
+        }
+
         public override int Ordinal
         {
             get { return _underlyingParameter.Ordinal; }
@@ -156,6 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
+
+        internal sealed override ScopedKind DeclaredScope => _underlyingParameter.DeclaredScope;
 
         internal sealed override ScopedKind EffectiveScope => _underlyingParameter.EffectiveScope;
 

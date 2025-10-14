@@ -13,95 +13,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class UncheckedKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestAtRoot_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestAfterClass_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalStatement()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestEmptyStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestEmptyStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestInExpression()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInExpression()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"var q = $$"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-    public async Task TestNotInTypeOf()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInTypeOf()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"typeof($$"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-    public async Task TestNotInDefault()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInDefault()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"default($$"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-    public async Task TestNotInSizeOf()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInSizeOf()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"sizeof($$"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
-    public async Task TestNotInObjectInitializerMemberContext()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInObjectInitializerMemberContext()
+        => VerifyAbsenceAsync("""
             class C
             {
                 public int x, y;
@@ -109,19 +86,15 @@ public sealed class UncheckedKeywordRecommenderTests : KeywordRecommenderTests
                 {
                     var c = new C { x = 2, y = 3, $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterRefExpression()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterRefExpression()
+        => VerifyKeywordAsync(AddInsideMethod(
             @"ref int x = ref $$"));
-    }
 
     [Fact]
-    public async Task TestWithinExtension()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestWithinExtension()
+        => VerifyAbsenceAsync(
             """
             static class C
             {
@@ -133,5 +106,4 @@ public sealed class UncheckedKeywordRecommenderTests : KeywordRecommenderTests
             """,
             CSharpNextParseOptions,
             CSharpNextScriptParseOptions);
-    }
 }

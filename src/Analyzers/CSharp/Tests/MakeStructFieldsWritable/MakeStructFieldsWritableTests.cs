@@ -21,9 +21,8 @@ public class MakeStructFieldsWritable
         => VerifyCS.VerifyStandardProperty(property);
 
     [Fact]
-    public async Task SingleReadonlyField_ThisAssignmentInMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SingleReadonlyField_ThisAssignmentInMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct [|MyStruct|]
             {
@@ -56,12 +55,10 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SingleReadonlyField_ThisAssignmentInMultipleMethods()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SingleReadonlyField_ThisAssignmentInMultipleMethods()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct [|MyStruct|]
             {
@@ -104,7 +101,6 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task SingleNonReadonlyField_ThisAssignmentInMethod()
@@ -130,9 +126,8 @@ public class MakeStructFieldsWritable
     }
 
     [Fact]
-    public async Task MultipleMixedFields_ThisAssignmentInMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task MultipleMixedFields_ThisAssignmentInMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct [|MyStruct|]
             {
@@ -173,7 +168,6 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task SingleReadonlyField_ThisAssignmentInCtor()
@@ -217,9 +211,8 @@ public class MakeStructFieldsWritable
     }
 
     [Fact]
-    public async Task SingleReadonlyField_ThisAssignmentInMethod_ReportDiagnostic()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SingleReadonlyField_ThisAssignmentInMethod_ReportDiagnostic()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct [|MyStruct|]
             {
@@ -252,7 +245,6 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task SingleReadonlyField_InClass()
@@ -341,9 +333,8 @@ public class MakeStructFieldsWritable
     }
 
     [Fact]
-    public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssignmentInMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task MultipleStructDeclaration_SingleReadonlyField_ThisAssignmentInMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct [|MyStruct|]
             {
@@ -406,12 +397,10 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssignmentInMethod_ShouldNotReportDiagnostic()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task MultipleStructDeclaration_SingleReadonlyField_ThisAssignmentInMethod_ShouldNotReportDiagnostic()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct MyStruct
             {
@@ -474,12 +463,10 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NestedStructDeclaration_SingleNestedReadonlyField_ThisAssignmentInMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task NestedStructDeclaration_SingleNestedReadonlyField_ThisAssignmentInMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct [|MyStruct|]
             {
@@ -542,12 +529,10 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NestedStructDeclaration_SingleReadonlyField_ThisAssignmentInMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task NestedStructDeclaration_SingleReadonlyField_ThisAssignmentInMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct [|MyStruct|]
             {
@@ -610,12 +595,10 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task StructDeclaration_MixedFields_MixedAssignmentsInMethods()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task StructDeclaration_MixedFields_MixedAssignmentsInMethods()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct [|MyStruct|]
             {
@@ -662,12 +645,10 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task StructDeclaration_ChangedOrderOfConstructorDeclaration()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task StructDeclaration_ChangedOrderOfConstructorDeclaration()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             struct [|MyStruct|]
             {
@@ -700,7 +681,6 @@ public class MakeStructFieldsWritable
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57920")]
     public async Task ReadonlyStaticField()

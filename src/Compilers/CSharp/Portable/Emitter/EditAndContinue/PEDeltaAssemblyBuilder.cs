@@ -224,19 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal CSharpDefinitionMap PreviousDefinitions
             => (CSharpDefinitionMap)_changes.DefinitionMap;
 
-        public SynthesizedTypeMaps GetSynthesizedTypes()
-        {
-            var result = new SynthesizedTypeMaps(
-                Compilation.AnonymousTypeManager.GetAnonymousTypeMap(),
-                Compilation.AnonymousTypeManager.GetAnonymousDelegates(),
-                Compilation.AnonymousTypeManager.GetAnonymousDelegatesWithIndexedNames());
-
-            // Should contain all entries in previous generation.
-            Debug.Assert(PreviousGeneration.SynthesizedTypes.IsSubsetOf(result));
-
-            return result;
-        }
-
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
             => GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(context, includePrivateImplementationDetails: true);
 
@@ -256,16 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(EmitOptions.InstrumentationKinds.IsEmpty);
 
             return _changes.DefinitionMap.GetMethodBodyInstrumentations(method);
-        }
-
-        internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
-        {
-            return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousTypes.Keys);
-        }
-
-        internal override ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
-        {
-            return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousDelegates.Keys);
         }
 
         internal override int GetNextAnonymousTypeIndex()
@@ -329,11 +306,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             var exceptionType = Compilation.GetWellKnownType(WellKnownType.System_Exception);
+            var actionOfTType = Compilation.GetWellKnownType(WellKnownType.System_Action_T);
             var stringType = Compilation.GetSpecialType(SpecialType.System_String);
             var intType = Compilation.GetSpecialType(SpecialType.System_Int32);
 
             var containingNamespace = GetOrSynthesizeNamespace(SynthesizedHotReloadExceptionSymbol.NamespaceName);
-            symbol = new SynthesizedHotReloadExceptionSymbol(containingNamespace, exceptionType, stringType, intType);
+            symbol = new SynthesizedHotReloadExceptionSymbol(containingNamespace, exceptionType, actionOfTType, stringType, intType);
 
             Interlocked.CompareExchange(ref _lazyHotReloadExceptionType, symbol, comparand: null);
             return _lazyHotReloadExceptionType;

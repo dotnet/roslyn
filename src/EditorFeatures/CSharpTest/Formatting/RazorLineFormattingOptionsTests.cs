@@ -45,12 +45,14 @@ public sealed class RazorLineFormattingOptionsTests
 
         var project = workspace.AddProject("Test", LanguageNames.CSharp);
 
-        var source = @"
-class C
-   {
-void F   () {}
-       }
-";
+        var source = """
+
+            class C
+               {
+            void F   () {}
+                   }
+
+            """;
 
         var sourceText = SourceText.From(source, encoding: null, SourceHashAlgorithms.Default);
         var documentInfo = DocumentInfo.Create(
@@ -72,11 +74,15 @@ void F   () {}
         var formattedText = await formattedDocument.GetTextAsync();
 
         // document options override solution options:
-        AssertEx.Equal(@"
-class C
-{
-" + "\t" + @"void F() { }
-}
-", formattedText.ToString());
+        AssertEx.Equal("""
+
+            class C
+            {
+
+            """ + "\t" + """
+            void F() { }
+            }
+
+            """, formattedText.ToString());
     }
 }

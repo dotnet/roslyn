@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
 
@@ -264,7 +263,7 @@ class Program
             i = i + 1
         next
     end sub
-end class", parseOptions:=Nothing)
+end class", New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact>

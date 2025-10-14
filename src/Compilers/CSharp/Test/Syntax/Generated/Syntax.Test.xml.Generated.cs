@@ -628,6 +628,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.NameMemberCrefSyntax GenerateNameMemberCref()
             => InternalSyntaxFactory.NameMemberCref(GenerateIdentifierName(), null);
 
+        private static Syntax.InternalSyntax.ExtensionMemberCrefSyntax GenerateExtensionMemberCref()
+            => InternalSyntaxFactory.ExtensionMemberCref(InternalSyntaxFactory.Token(SyntaxKind.ExtensionKeyword), null, GenerateCrefParameterList(), InternalSyntaxFactory.Token(SyntaxKind.DotToken), GenerateNameMemberCref());
+
         private static Syntax.InternalSyntax.IndexerMemberCrefSyntax GenerateIndexerMemberCref()
             => InternalSyntaxFactory.IndexerMemberCref(InternalSyntaxFactory.Token(SyntaxKind.ThisKeyword), null);
 
@@ -3373,6 +3376,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(node.Name);
             Assert.Null(node.Parameters);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestExtensionMemberCrefFactoryAndProperties()
+        {
+            var node = GenerateExtensionMemberCref();
+
+            Assert.Equal(SyntaxKind.ExtensionKeyword, node.ExtensionKeyword.Kind);
+            Assert.Null(node.TypeArgumentList);
+            Assert.NotNull(node.Parameters);
+            Assert.Equal(SyntaxKind.DotToken, node.DotToken.Kind);
+            Assert.NotNull(node.Member);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -9273,6 +9290,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExtensionMemberCrefTokenDeleteRewriter()
+        {
+            var oldNode = GenerateExtensionMemberCref();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestExtensionMemberCrefIdentityRewriter()
+        {
+            var oldNode = GenerateExtensionMemberCref();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestIndexerMemberCrefTokenDeleteRewriter()
         {
             var oldNode = GenerateIndexerMemberCref();
@@ -10934,6 +10977,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static NameMemberCrefSyntax GenerateNameMemberCref()
             => SyntaxFactory.NameMemberCref(GenerateIdentifierName(), default(CrefParameterListSyntax));
+
+        private static ExtensionMemberCrefSyntax GenerateExtensionMemberCref()
+            => SyntaxFactory.ExtensionMemberCref(SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default(TypeArgumentListSyntax), GenerateCrefParameterList(), SyntaxFactory.Token(SyntaxKind.DotToken), GenerateNameMemberCref());
 
         private static IndexerMemberCrefSyntax GenerateIndexerMemberCref()
             => SyntaxFactory.IndexerMemberCref(SyntaxFactory.Token(SyntaxKind.ThisKeyword), default(CrefBracketedParameterListSyntax));
@@ -13681,6 +13727,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Name);
             Assert.Null(node.Parameters);
             var newNode = node.WithName(node.Name).WithParameters(node.Parameters);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestExtensionMemberCrefFactoryAndProperties()
+        {
+            var node = GenerateExtensionMemberCref();
+
+            Assert.Equal(SyntaxKind.ExtensionKeyword, node.ExtensionKeyword.Kind());
+            Assert.Null(node.TypeArgumentList);
+            Assert.NotNull(node.Parameters);
+            Assert.Equal(SyntaxKind.DotToken, node.DotToken.Kind());
+            Assert.NotNull(node.Member);
+            var newNode = node.WithExtensionKeyword(node.ExtensionKeyword).WithTypeArgumentList(node.TypeArgumentList).WithParameters(node.Parameters).WithDotToken(node.DotToken).WithMember(node.Member);
             Assert.Equal(node, newNode);
         }
 
@@ -19573,6 +19633,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNameMemberCrefIdentityRewriter()
         {
             var oldNode = GenerateNameMemberCref();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestExtensionMemberCrefTokenDeleteRewriter()
+        {
+            var oldNode = GenerateExtensionMemberCref();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestExtensionMemberCrefIdentityRewriter()
+        {
+            var oldNode = GenerateExtensionMemberCref();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

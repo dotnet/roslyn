@@ -315,6 +315,6 @@ internal sealed class VisualStudioDesignerAttributeService :
     {
         Contract.ThrowIfNull(_projectSystemNotificationQueue);
         _projectSystemNotificationQueue.AddWork(data.AsSpan());
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

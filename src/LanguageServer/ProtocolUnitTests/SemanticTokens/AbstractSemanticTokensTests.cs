@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -52,20 +51,20 @@ public abstract class AbstractSemanticTokensTests : AbstractLanguageServerProtoc
     }
 
     private static LSP.SemanticTokensFullParams CreateSemanticTokensFullParams(LSP.Location caret)
-        => new LSP.SemanticTokensFullParams
+        => new()
         {
             TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri }
         };
 
     private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location location)
-        => new LSP.SemanticTokensRangeParams
+        => new()
         {
             TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = location.DocumentUri },
             Range = location.Range
         };
 
     private static SemanticTokensRangesParams CreateSemanticTokensRangesParams(LSP.Location caret, Range[] ranges)
-        => new SemanticTokensRangesParams
+        => new()
         {
             TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri },
             Ranges = ranges

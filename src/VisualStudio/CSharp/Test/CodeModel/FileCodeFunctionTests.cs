@@ -20,92 +20,92 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel;
 public sealed class FileCodeFunctionTests : AbstractFileCodeElementTests
 {
     public FileCodeFunctionTests()
-        : base(@"using System;
+        : base("""
+            using System;
 
-public class A
-{
-    public A()
-    {
-    }
+            public class A
+            {
+                public A()
+                {
+                }
 
-    ~A()
-    {
-    }
+                ~A()
+                {
+                }
 
-    public static A operator +(A a1, A a2)
-    {
-        return a1;
-    }
+                public static A operator +(A a1, A a2)
+                {
+                    return a1;
+                }
 
-    private int MethodA()
-    {
-        return 1;
-    }
+                private int MethodA()
+                {
+                    return 1;
+                }
 
-    protected virtual string MethodB(int intA)
-    {
-        return intA.ToString();
-    }
+                protected virtual string MethodB(int intA)
+                {
+                    return intA.ToString();
+                }
 
-    internal static bool MethodC(int intA, bool boolB)
-    {
-        return boolB;
-    }
+                internal static bool MethodC(int intA, bool boolB)
+                {
+                    return boolB;
+                }
 
-    public float MethodD(int intA, bool boolB, string stringC)
-    {
-        return 1.5f;
-    }
+                public float MethodD(int intA, bool boolB, string stringC)
+                {
+                    return 1.5f;
+                }
 
-    void MethodE()
-    {
-    }
+                void MethodE()
+                {
+                }
 
-    void MethodE(int intA)
-    {
-    }
-    
-    void MethodWithBlankLine()
-    {
+                void MethodE(int intA)
+                {
+                }
 
-    }
-}
+                void MethodWithBlankLine()
+                {
 
-public class B : A
-{
-    protected override string MethodB(int intA)
-    {
-        return ""Override!"";
-    }
-}
+                }
+            }
 
-public abstract class C
-{
-    /// <summary>
-    /// A short summary.
-    /// </summary>
-    /// <param name=""intA"">A parameter.</param>
-    /// <returns>An int.</returns>
-    public abstract int MethodA(int intA);
+            public class B : A
+            {
+                protected override string MethodB(int intA)
+                {
+                    return "Override!";
+                }
+            }
 
-    // This is a short comment.
-    public abstract int MethodB(string goo);
+            public abstract class C
+            {
+                /// <summary>
+                /// A short summary.
+                /// </summary>
+                /// <param name="intA">A parameter.</param>
+                /// <returns>An int.</returns>
+                public abstract int MethodA(int intA);
 
-    dynamic DynamicField;
-    dynamic DynamicMethod(dynamic goo = 5);
-}
+                // This is a short comment.
+                public abstract int MethodB(string goo);
 
-public class Entity { }
+                dynamic DynamicField;
+                dynamic DynamicMethod(dynamic goo = 5);
+            }
 
-public class Ref<T> where T : Entity
-{
-    public static implicit operator Ref<T>(T entity)
-    {
-        return new Ref<T>(entity);
-    }
-}
+            public class Entity { }
 
-")
+            public class Ref<T> where T : Entity
+            {
+                public static implicit operator Ref<T>(T entity)
+                {
+                    return new Ref<T>(entity);
+                }
+            }
+            """)
     {
     }
 
@@ -240,20 +240,14 @@ public class Ref<T> where T : Entity
     public void Comment()
     {
         var testObject = GetCodeFunction("C", "MethodB");
-
-        var expected = "This is a short comment.\r\n";
-
-        Assert.Equal(expected, testObject.Comment);
+        Assert.Equal("This is a short comment.\r\n", testObject.Comment);
     }
 
     [WpfFact]
     public void DocComment()
     {
         var testObject = GetCodeFunction("C", "MethodA");
-
-        var expected = "<doc>\r\n<summary>\r\nA short summary.\r\n</summary>\r\n<param name=\"intA\">A parameter.</param>\r\n<returns>An int.</returns>\r\n</doc>";
-
-        Assert.Equal(expected, testObject.DocComment);
+        Assert.Equal("<doc>\r\n<summary>\r\nA short summary.\r\n</summary>\r\n<param name=\"intA\">A parameter.</param>\r\n<returns>An int.</returns>\r\n</doc>", testObject.DocComment);
     }
 
     [WpfFact(Skip = "636860")]

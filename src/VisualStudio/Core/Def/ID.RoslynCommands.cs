@@ -46,5 +46,10 @@ internal static partial class ID
         public const int DocumentOutlineSortByOrder = 0x314;
         public const int DocumentOutlineSortByType = 0x315;
         public const int DocumentOutlineToolbarGroup = 0x350;
+
+        public const int SolutionExplorerSymbolItemContextMenu = 0x401;
+        public const int SolutionExplorerSymbolItemGoToBase = 0x402;
+        public const int SolutionExplorerSymbolItemGoToImplementation = 0x403;
+        public const int SolutionExplorerSymbolItemFindAllReferences = 0x404;
     }
 }

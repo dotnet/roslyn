@@ -10,11 +10,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 #pragma warning disable CA1707 // Identifiers should not contain underscores
 
@@ -517,7 +519,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> newAnalysisData)
             where TKey : notnull
         {
-            using var builder = ArrayBuilder<TKey>.GetInstance(targetAnalysisData.Count);
+            using var _ = ArrayBuilder<TKey>.GetInstance(targetAnalysisData.Count, out var builder);
             builder.AddRange(targetAnalysisData.Keys);
 
             for (int i = 0; i < builder.Count; i++)
@@ -2601,7 +2603,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
             }
 
-            using var capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
+            using var _ = cfg.OriginalOperation.GetCaptures(invokedMethod, out var capturedVariables);
             if (capturedVariables.Count == 0)
             {
                 return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
@@ -2821,7 +2823,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override TAbstractAnalysisValue DefaultVisit(IOperation operation, object? argument)
         {
-            return VisitArray(operation.Children, argument);
+            return VisitArray(operation.ChildOperations, argument);
         }
 
         public override TAbstractAnalysisValue VisitSimpleAssignment(ISimpleAssignmentOperation operation, object? argument)
@@ -3282,8 +3284,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(IsPointsToAnalysis);
 
             var hasEscapes = false;
-            using var methodTargetsOptBuilder = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance();
-            using var lambdaTargets = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance();
+            using var _1 = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance(out var methodTargetsOptBuilder);
+            using var _2 = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance(out var lambdaTargets);
             if (ResolveLambdaOrDelegateOrLocalFunctionTargets(pointsToAbstractValue, methodTargetsOptBuilder, lambdaTargets))
             {
                 foreach (var (targetMethod, _) in methodTargetsOptBuilder)
@@ -3437,8 +3439,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             var value = base.VisitInvocation(operation, argument)!;
 
-            using var methodTargetsOptBuilder = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance();
-            using var lambdaTargets = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance();
+            using var _1 = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance(out var methodTargetsOptBuilder);
+            using var _2 = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance(out var lambdaTargets);
             if (ResolveLambdaOrDelegateOrLocalFunctionTargets(operation, methodTargetsOptBuilder, lambdaTargets))
             {
                 resolvedMethodTargets = methodTargetsOptBuilder.ToImmutable();
@@ -3662,7 +3664,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override TAbstractAnalysisValue VisitTuple(ITupleOperation operation, object? argument)
         {
-            using var elementValueBuilder = ArrayBuilder<TAbstractAnalysisValue>.GetInstance(operation.Elements.Length);
+            using var _ = ArrayBuilder<TAbstractAnalysisValue>.GetInstance(operation.Elements.Length, out var elementValueBuilder);
 
             foreach (var element in operation.Elements)
             {

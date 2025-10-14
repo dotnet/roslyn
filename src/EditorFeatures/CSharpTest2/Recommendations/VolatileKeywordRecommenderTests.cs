@@ -12,305 +12,241 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class VolatileKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestAtRoot_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestAfterClass_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalStatement_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalStatement_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
     public async Task TestNotInCompilationUnit()
         => await VerifyAbsenceAsync(SourceCodeKind.Regular, @"$$");
 
     [Fact]
-    public async Task TestNotAfterExtern()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular, """
+    public Task TestNotAfterExtern()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular, """
             extern alias Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterExtern_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script, """
+    public Task TestAfterExtern_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script, """
             extern alias Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterUsing()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular, """
+    public Task TestNotAfterUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular, """
             using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterUsing_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script, """
+    public Task TestAfterUsing_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script, """
             using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalUsing()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular, """
+    public Task TestNotAfterGlobalUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular, """
             global using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalUsing_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script, """
+    public Task TestAfterGlobalUsing_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script, """
             global using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNamespace()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular, """
+    public Task TestNotAfterNamespace()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular, """
             namespace N {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterTypeDeclaration()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular, """
+    public Task TestNotAfterTypeDeclaration()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular, """
             class C {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterDelegateDeclaration()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular, """
+    public Task TestNotAfterDelegateDeclaration()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular, """
             delegate void Goo();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterMethod()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterMethod()
+        => VerifyKeywordAsync(
             """
             class C {
               void Goo() {}
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterField()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterField()
+        => VerifyKeywordAsync(
             """
             class C {
               int i;
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterProperty()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterProperty()
+        => VerifyKeywordAsync(
             """
             class C {
               int i { get; }
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeUsing()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotBeforeUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
             """
             $$
             using Goo;
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
-    public async Task TestNotBeforeUsing_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotBeforeUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             $$
             using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeGlobalUsing()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotBeforeGlobalUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
             """
             $$
             global using Goo;
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
-    public async Task TestNotBeforeGlobalUsing_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotBeforeGlobalUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             $$
             global using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterAssemblyAttribute()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular, """
+    public Task TestNotAfterAssemblyAttribute()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular, """
             [assembly: goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAssemblyAttribute_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script, """
+    public Task TestAfterAssemblyAttribute_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script, """
             [assembly: goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterRootAttribute()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular, """
+    public Task TestNotAfterRootAttribute()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular, """
             [goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterRootAttribute_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script, """
+    public Task TestAfterRootAttribute_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script, """
             [goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterNestedAttribute()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedAttribute()
+        => VerifyKeywordAsync(
             """
             class C {
               [goo]
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestInsideStruct()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInsideStruct()
+        => VerifyKeywordAsync(
             """
             struct S {
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestInsideInterface()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInsideInterface()
+        => VerifyKeywordAsync("""
             interface I {
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInsideEnum()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInsideEnum()
+        => VerifyAbsenceAsync("""
             enum E {
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestInsideClass()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInsideClass()
+        => VerifyKeywordAsync(
             """
             class C {
                $$
             """);
-    }
 
     [Fact]
     public async Task TestNotAfterPartial()
@@ -329,14 +265,12 @@ public sealed class VolatileKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyKeywordAsync(SourceCodeKind.Script, @"internal $$");
 
     [Fact]
-    public async Task TestAfterNestedInternal()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedInternal()
+        => VerifyKeywordAsync(
             """
             class C {
                 internal $$
             """);
-    }
 
     [Fact]
     public async Task TestNotAfterPublic()
@@ -347,69 +281,55 @@ public sealed class VolatileKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyKeywordAsync(SourceCodeKind.Script, @"public $$");
 
     [Fact]
-    public async Task TestAfterNestedPublic()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedPublic()
+        => VerifyKeywordAsync(
             """
             class C {
                 public $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterPrivate()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotAfterPrivate()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"private $$");
-    }
 
     [Fact]
-    public async Task TestAfterPrivate_Script()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterPrivate_Script()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"private $$");
-    }
 
     [Fact]
-    public async Task TestAfterNestedPrivate()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedPrivate()
+        => VerifyKeywordAsync(
             """
             class C {
                 private $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterProtected()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterProtected()
+        => VerifyAbsenceAsync(
 @"protected $$");
-    }
 
     [Fact]
-    public async Task TestAfterNestedProtected()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedProtected()
+        => VerifyKeywordAsync(
             """
             class C {
                 protected $$
             """);
-    }
 
     [Fact]
     public async Task TestNotAfterSealed()
         => await VerifyAbsenceAsync(@"sealed $$");
 
     [Fact]
-    public async Task TestNotAfterNestedSealed()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNestedSealed()
+        => VerifyAbsenceAsync(
             """
             class C {
                 sealed $$
             """);
-    }
 
     [Fact]
     public async Task TestNotAfterStatic()
@@ -420,14 +340,12 @@ public sealed class VolatileKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyKeywordAsync(SourceCodeKind.Script, @"static $$");
 
     [Fact]
-    public async Task TestAfterNestedStatic()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedStatic()
+        => VerifyKeywordAsync(
             """
             class C {
                 static $$
             """);
-    }
 
     [Fact]
     public async Task TestNotAfterStaticPublic()
@@ -438,81 +356,66 @@ public sealed class VolatileKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyKeywordAsync(SourceCodeKind.Script, @"static public $$");
 
     [Fact]
-    public async Task TestAfterNestedStaticPublic()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedStaticPublic()
+        => VerifyKeywordAsync(
             """
             class C {
                 static public $$
             """);
-    }
 
     [Fact]
     public async Task TestNotAfterDelegate()
         => await VerifyAbsenceAsync(@"delegate $$");
 
     [Fact]
-    public async Task TestNotAfterEvent()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterEvent()
+        => VerifyAbsenceAsync(
             """
             class C {
                 event $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterConst()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterConst()
+        => VerifyAbsenceAsync(
             """
             class C {
                 const $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterVolatile()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterVolatile()
+        => VerifyAbsenceAsync(
             """
             class C {
                 volatile $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNew()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNew()
+        => VerifyAbsenceAsync(
 @"new $$");
-    }
 
     [Fact]
-    public async Task TestAfterNestedNew()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedNew()
+        => VerifyKeywordAsync(
             """
             class C {
                new $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInMethod()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInMethod()
+        => VerifyAbsenceAsync(
             """
             class C {
                 void Goo() {
                     $$
             """);
-    }
 
     [Fact]
-    public async Task TestWithinExtension()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestWithinExtension()
+        => VerifyAbsenceAsync(
             """
             static class C
             {
@@ -522,5 +425,4 @@ public sealed class VolatileKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """, CSharpNextParseOptions);
-    }
 }

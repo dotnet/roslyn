@@ -7,12 +7,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 
 public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper? logger)
-    : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
+    : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor<
+        TestHostDocument,
+        TestHostProject,
+        TestHostSolution,
+        TestWorkspace>(logger)
 {
     private static readonly CSharpParseOptions Script = new(kind: SourceCodeKind.Script);
 
@@ -151,21 +156,21 @@ public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosti
     internal OptionsCollection RemoveAllUnnecessaryParentheses => ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses;
     internal OptionsCollection RequireAllParenthesesForClarity => ParenthesesOptionsProvider.RequireAllParenthesesForClarity;
 
-    internal new Task TestInRegularAndScript1Async(
+    internal new Task TestInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         int index = 0,
         TestParameters? parameters = null)
     {
-        return base.TestInRegularAndScript1Async(initialMarkup, expectedMarkup, index, parameters);
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, parameters);
     }
 
-    internal new Task TestInRegularAndScript1Async(
+    internal new Task TestInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         TestParameters parameters)
     {
-        return base.TestInRegularAndScript1Async(initialMarkup, expectedMarkup, parameters);
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parameters);
     }
 
     protected new Task TestMissingInRegularAndScriptAsync(

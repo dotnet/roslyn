@@ -18,9 +18,8 @@ public sealed class UsingStatementHighlighterTests : AbstractCSharpKeywordHighli
         => typeof(UsingStatementHighlighter);
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -33,5 +32,4 @@ public sealed class UsingStatementHighlighterTests : AbstractCSharpKeywordHighli
                 }
             }
             """);
-    }
 }

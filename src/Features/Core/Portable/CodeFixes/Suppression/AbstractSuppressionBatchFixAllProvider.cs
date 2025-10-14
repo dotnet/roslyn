@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -117,7 +117,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         cancellationToken.ThrowIfCancellationRequested();
 
         var registerCodeFix = GetRegisterCodeFixAction(fixAllState, onItemFound);
-        await RoslynParallel.ForEachAsync(
+        await Parallel.ForEachAsync(
             source: diagnostics,
             cancellationToken,
             async (diagnostic, cancellationToken) =>

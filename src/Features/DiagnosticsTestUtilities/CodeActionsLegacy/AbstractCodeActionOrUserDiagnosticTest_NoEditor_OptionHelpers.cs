@@ -7,7 +7,11 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
-public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
+public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
+    TDocument,
+    TProject,
+    TSolution,
+    TTestWorkspace>
 {
     internal static (OptionKey2, object?) SingleOption<T>(Option2<T> option, T enabled)
         => (new OptionKey2(option), enabled);
@@ -31,20 +35,20 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
         => (new OptionKey2(option, language), codeStyle);
 
     internal OptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-        => new OptionsCollection(GetLanguage()) { { option, enabled, notification } };
+        => new(GetLanguage()) { { option, enabled, notification } };
 
     internal OptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-        => new OptionsCollection(GetLanguage()) { { option, codeStyle } };
+        => new(GetLanguage()) { { option, codeStyle } };
 
     internal OptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-        => new OptionsCollection(GetLanguage()) { { option, enabled, notification } };
+        => new(GetLanguage()) { { option, enabled, notification } };
 
     internal OptionsCollection Option<T>(Option2<T> option, T value)
-        => new OptionsCollection(GetLanguage()) { { option, value } };
+        => new(GetLanguage()) { { option, value } };
 
     internal OptionsCollection Option<T>(PerLanguageOption2<T> option, T value)
-        => new OptionsCollection(GetLanguage()) { { option, value } };
+        => new(GetLanguage()) { { option, value } };
 
     internal OptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-        => new OptionsCollection(GetLanguage()) { { option, codeStyle } };
+        => new(GetLanguage()) { { option, codeStyle } };
 }

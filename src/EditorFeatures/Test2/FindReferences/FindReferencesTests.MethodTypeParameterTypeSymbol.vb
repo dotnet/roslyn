@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
@@ -95,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/62744")>
-        Public Async Function TestMethodTypeParameter_NewConstraint_CSharp(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestMethodTypeParameter_NewConstraint_CSharp1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -105,6 +104,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             void Goo<{|Definition:$$T|}>() where [|T|] : new()
             {
                 new [|T|]();
+            }
+        }]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/62744")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78649")>
+        Public Async Function TestMethodTypeParameter_NewConstraint_CSharp2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+        class C
+        {
+            void Goo<{|Definition:T|}>() where [|T|] : new()
+            {
+                new [|$$T|]();
             }
         }]]></Document>
     </Project>

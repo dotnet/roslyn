@@ -34,12 +34,12 @@ internal sealed class RazorStartupServiceFactory(
         Lazy<ICohostStartupService>? cohostStartupService) : ILspService, IOnInitialized, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
-        private IDisposable? _activation;
+        private IDisposable? _cohostActivation;
 
         public void Dispose()
         {
-            _activation?.Dispose();
-            _activation = null;
+            _cohostActivation?.Dispose();
+            _cohostActivation = null;
             _disposalTokenSource.Cancel();
         }
 
@@ -58,12 +58,11 @@ internal sealed class RazorStartupServiceFactory(
 
             if (uIContextActivationService is null)
             {
-                // Outside of VS, we want to initialize immediately.. I think?
                 InitializeRazor();
             }
             else
             {
-                _activation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
+                _cohostActivation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
             }
 
             return Task.CompletedTask;
@@ -76,6 +75,8 @@ internal sealed class RazorStartupServiceFactory(
 
         private async Task InitializeRazorAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(cohostStartupService);
+
             // The LSP server will dispose us when the server exits, but VS could decide to activate us later.
             // If a new instance of the server is created, a new instance of this class will be created and the
             // UIContext will already be active, so this method will be immediately called on the new instance.
@@ -85,15 +86,11 @@ internal sealed class RazorStartupServiceFactory(
 
             using var languageScope = context.Logger.CreateLanguageContext(Constants.RazorLanguageName);
 
-            // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
-            var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
-
             var requestContext = new RazorCohostRequestContext(context);
 
-            if (cohostStartupService is not null)
-            {
-                await cohostStartupService.Value.StartupAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
-            }
+            // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
+            var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
+            await cohostStartupService.Value.StartupAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -215,6 +216,8 @@ internal abstract partial class AbstractNavigateToSearchService
                 return NavigateToItemKind.Property;
             case DeclaredSymbolInfoKind.Struct:
                 return NavigateToItemKind.Structure;
+            case DeclaredSymbolInfoKind.Operator:
+                return NavigateToItemKind.OtherSymbol;
             default:
                 throw ExceptionUtilities.UnexpectedValue(declaredSymbolInfo.Kind);
         }
@@ -249,7 +252,7 @@ internal abstract partial class AbstractNavigateToSearchService
             // The 'Contains' method implementation assumes that the DeclaredSymbolInfoKind type is unsigned.
             Debug.Assert(Enum.GetUnderlyingType(typeof(DeclaredSymbolInfoKind)) == typeof(byte));
 
-            var lookupTable = new bool[Enum.GetValues(typeof(DeclaredSymbolInfoKind)).Length];
+            var lookupTable = new bool[Enum.GetValues<DeclaredSymbolInfoKind>().Length];
             foreach (var navigateToItemKind in navigateToItemKinds)
             {
                 switch (navigateToItemKind)

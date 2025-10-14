@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue? constantValue = boundCall.ConstantValueOpt;
             bool isImplicit = boundCall.WasCompilerGenerated;
 
-            if (!boundCall.OriginalMethodsOpt.IsDefault || IsMethodInvalid(boundCall.ResultKind, targetMethod))
+            if (boundCall.IsErroneousNode)
             {
                 ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -2494,7 +2494,7 @@ namespace Microsoft.CodeAnalysis.Operations
             var (placeholderKind, argumentIndex) = placeholder.ArgumentIndex switch
             {
                 >= 0 and var index => (InterpolatedStringArgumentPlaceholderKind.CallsiteArgument, index),
-                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
+                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
                 BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => (InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument, NonArgumentIndex),
                 _ => throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex)
             };

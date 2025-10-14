@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     <ExportLanguageServiceFactory(GetType(ICodeModelService), LanguageNames.VisualBasic), [Shared]>

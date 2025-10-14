@@ -3,12 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.Internal.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.ComponentModelHost
-Imports Microsoft.VisualStudio.Settings
-Imports Microsoft.VisualStudio.Settings.Internal
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
@@ -28,10 +25,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Private ReadOnly _exportProvider As Composition.ExportProvider
         Private ReadOnly _fileChangeEx As New MockVsFileChangeEx
-        Private ReadOnly _localRegistry As New StubLocalRegistry
-        Private _settingsManager As ISettingsManager
 
-        Public MockMonitorSelection As IVsMonitorSelection
+        Public MockRunningDocumentTable As New MockVsRunningDocumentTable
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -46,11 +41,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     Dim solutionMock As New Mock(Of IVsSolution2)(MockBehavior.Loose)
                     Return solutionMock.Object
 
+                Case GetType(SVsBackgroundSolution)
+                    Return GetVsBackgroundSolutionMock()
+
                 Case GetType(SComponentModel)
                     Return GetComponentModelMock()
-
-                Case GetType(SVsShellMonitorSelection)
-                    Return MockMonitorSelection
 
                 Case GetType(SVsXMLMemberIndexService)
                     Return New MockXmlMemberIndexService
@@ -61,21 +56,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 Case GetType(SVsFileChangeEx)
                     Return _fileChangeEx
 
-                Case GetType(SLocalRegistry)
-                    Return _localRegistry
-
-                Case GetType(SVsSettingsPersistenceManager)
-                    If _settingsManager Is Nothing Then
-                        LoggerFactory.Reset()
-                        _settingsManager = SettingsManagerFactory.CreateInstance(New StubSettingsManagerHost())
-                    End If
-
-                    Return _settingsManager
-
-                Case GetType(SVsFeatureFlags)
-                    ' The only places that we consume this treat it as optional, so we can skip it here, and remove this in 
-                    ' https://github.com/dotnet/roslyn/pull/69160.
-                    Return Nothing
+                Case GetType(SVsRunningDocumentTable)
+                    Return MockRunningDocumentTable
 
                 Case Else
                     Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
@@ -96,6 +78,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Friend Function GetComponentModelMock() As IComponentModel
             Return New MockComponentModel(_exportProvider)
+        End Function
+
+        Private Shared Function GetVsBackgroundSolutionMock() As IVsBackgroundSolution
+            ' Return a simple mock that lets callers subscribe to events
+            Dim mock = New Mock(Of IVsBackgroundSolution)(MockBehavior.Strict)
+
+            mock.Setup(Function(s) s.SubscribeListener(It.IsAny(Of Object))).Returns(
+                Function()
+                    Return New Mock(Of IVsBackgroundDisposable)().Object
+                End Function)
+            mock.SetupGet(Function(s) s.IsSolutionOpening).Returns(False)
+
+            Return mock.Object
         End Function
     End Class
 

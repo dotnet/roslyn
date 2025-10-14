@@ -13,152 +13,119 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestAtRoot_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestAfterClass_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalStatement()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInPreprocessor1()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInPreprocessor1()
+        => VerifyAbsenceAsync(
             """
             class C {
             #$$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInPreprocessor2()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInPreprocessor2()
+        => VerifyAbsenceAsync(
             """
             class C {
             #if $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterHash()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterHash()
+        => VerifyKeywordAsync(
 @"#line $$");
-    }
 
     [Fact]
-    public async Task TestAfterHashAndSpace()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterHashAndSpace()
+        => VerifyKeywordAsync(
 @"# line $$");
-    }
 
     [Fact]
-    public async Task TestInEmptyStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInEmptyStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestInExpression()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInExpression()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"var q = $$"));
-    }
 
     [Fact]
-    public async Task TestAfterSwitch()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterSwitch()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterCase()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterCase()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 case 0:
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterDefault()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterDefault()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterOneStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterOneStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                   Console.WriteLine();
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterTwoStatements()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterTwoStatements()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
@@ -166,24 +133,20 @@ public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
                   Console.WriteLine();
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterBlock()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default: {
                 }
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterIfElse()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterIfElse()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
@@ -192,35 +155,29 @@ public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
                   }
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterIncompleteStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterIncompleteStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                    Console.WriteLine(
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestInsideBlock()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInsideBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default: {
                   $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterCompleteIf()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterCompleteIf()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
@@ -228,24 +185,20 @@ public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
                     Console.WriteLine();
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterIncompleteIf()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterIncompleteIf()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                   if (goo)
                     $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterWhile()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterWhile()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
@@ -253,51 +206,39 @@ public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
                   }
                 $$
             """));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552717")]
-    public async Task TestNotAfterGotoInSwitch()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterGotoInSwitch()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                   goto $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterGotoOutsideSwitch()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterGotoOutsideSwitch()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"goto $$"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-    public async Task TestNotInTypeOf()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInTypeOf()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"typeof($$"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-    public async Task TestNotInDefault()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInDefault()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"default($$"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-    public async Task TestNotInSizeOf()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInSizeOf()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"sizeof($$"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
-    public async Task TestNotInObjectInitializerMemberContext()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInObjectInitializerMemberContext()
+        => VerifyAbsenceAsync("""
             class C
             {
                 public int x, y;
@@ -305,19 +246,15 @@ public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
                 {
                     var c = new C { x = 2, y = 3, $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterRefExpression()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterRefExpression()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"ref int x = ref $$"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46283")]
-    public async Task TestInTypeParameterConstraint()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInTypeParameterConstraint()
+        => VerifyKeywordAsync(
             """
             class C
             {
@@ -326,12 +263,10 @@ public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46283")]
-    public async Task TestInTypeParameterConstraint_InOverride()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInTypeParameterConstraint_InOverride()
+        => VerifyKeywordAsync(
             """
             class C : Base
             {
@@ -340,12 +275,10 @@ public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46283")]
-    public async Task TestInTypeParameterConstraint_InExplicitInterfaceImplementation()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInTypeParameterConstraint_InExplicitInterfaceImplementation()
+        => VerifyKeywordAsync(
             """
             class C : I
             {
@@ -354,33 +287,25 @@ public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAfterLambdaOpenParen()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterLambdaOpenParen()
+        => VerifyKeywordAsync(
 @"var lam = ($$");
-    }
 
     [Fact]
-    public async Task TestAfterLambdaComma()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterLambdaComma()
+        => VerifyKeywordAsync(
 @"var lam = (int i, $$");
-    }
 
     [Fact]
-    public async Task TestLambdaDefaultParameterValue()
-    {
-        await VerifyKeywordAsync(
+    public Task TestLambdaDefaultParameterValue()
+        => VerifyKeywordAsync(
 @"var lam = (int i = $$");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36472")]
-    public async Task InAmbiguousCast1()
-    {
-        await VerifyKeywordAsync(
+    public Task InAmbiguousCast1()
+        => VerifyKeywordAsync(
             """
             class C
             {
@@ -392,5 +317,4 @@ public sealed class DefaultKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 }

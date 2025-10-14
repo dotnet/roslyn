@@ -53,7 +53,7 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
 
         var symbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
         if (symbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, Parameters: [var constructorParameter] } ||
-            constructorParameter.Type.Name != nameof(IEnumerable<int>))
+            constructorParameter.Type.Name != nameof(IEnumerable<>))
         {
             return;
         }

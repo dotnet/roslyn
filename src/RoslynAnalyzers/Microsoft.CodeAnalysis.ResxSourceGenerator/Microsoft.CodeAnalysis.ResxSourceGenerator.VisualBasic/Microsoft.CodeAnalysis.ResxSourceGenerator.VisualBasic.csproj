@@ -7,13 +7,22 @@
 
     <!-- Avoid ID conflicts with the package project. -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForResxSourceGenerators)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+        <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.csproj" />

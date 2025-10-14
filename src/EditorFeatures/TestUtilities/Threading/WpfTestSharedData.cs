@@ -13,7 +13,7 @@ namespace Roslyn.Test.Utilities;
 
 public sealed class WpfTestSharedData
 {
-    internal static readonly WpfTestSharedData Instance = new WpfTestSharedData();
+    internal static readonly WpfTestSharedData Instance = new();
 
     /// <summary>
     /// Holds the last 10 test cases executed: more recent test cases will occur later in the 
@@ -21,7 +21,7 @@ public sealed class WpfTestSharedData
     /// </summary>
     private readonly List<string> _recentTestCases = [];
 
-    public readonly SemaphoreSlim TestSerializationGate = new SemaphoreSlim(1, 1);
+    public readonly SemaphoreSlim TestSerializationGate = new(1, 1);
 
     private WpfTestSharedData()
     {
@@ -29,19 +29,17 @@ public sealed class WpfTestSharedData
 
     public void ExecutingTest(ITestMethod testMethod)
     {
-        var name = $"{testMethod.TestClass.Class.Name}::{testMethod.Method.Name}";
         lock (_recentTestCases)
         {
-            _recentTestCases.Add(name);
+            _recentTestCases.Add($"{testMethod.TestClass.Class.Name}::{testMethod.Method.Name}");
         }
     }
 
     public void ExecutingTest(MethodInfo testMethod)
     {
-        var name = $"{testMethod.DeclaringType.Name}::{testMethod.Name}";
         lock (_recentTestCases)
         {
-            _recentTestCases.Add(name);
+            _recentTestCases.Add($"{testMethod.DeclaringType.Name}::{testMethod.Name}");
         }
     }
 }

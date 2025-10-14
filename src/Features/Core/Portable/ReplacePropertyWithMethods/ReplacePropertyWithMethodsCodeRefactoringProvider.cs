@@ -263,13 +263,10 @@ internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider() :
                     editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                         ConflictAnnotation.Create(FeaturesResources.Property_referenced_implicitly)));
                 }
-                else if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(parent))
+                else if (IsInNonUpdatableLocation(syntaxFacts, parent))
                 {
-                    editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
-                        ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
-                }
-                else if (syntaxFacts.IsNameOfSubpattern(parent))
-                {
+                    // If the property is in a location where it cannot be updated, then just
+                    // replace it with a warning.
                     editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                         ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
                 }
@@ -283,6 +280,13 @@ internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider() :
                         cancellationToken).ConfigureAwait(false);
                 }
             }
+        }
+
+        static bool IsInNonUpdatableLocation(ISyntaxFacts syntaxFacts, SyntaxNode parent)
+        {
+            return syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(parent) ||
+                syntaxFacts.IsNameOfSubpattern(parent) ||
+                syntaxFacts.IsInNamespaceOrTypeContext(parent);
         }
     }
 

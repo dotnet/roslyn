@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 
 internal static class OptionsTestHelpers
 {
-    public static readonly Option<bool> CustomPublicOption = new Option<bool>("My Feature", "My Option", defaultValue: true);
+    public static readonly Option<bool> CustomPublicOption = new("My Feature", "My Option", defaultValue: true);
 
     // all public options and their non-default values:
     public static readonly ImmutableArray<(IOption, object)> PublicCustomOptionsWithNonDefaultValues = [(CustomPublicOption, false)];

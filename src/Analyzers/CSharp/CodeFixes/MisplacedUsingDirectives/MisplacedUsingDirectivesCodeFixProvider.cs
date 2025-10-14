@@ -36,7 +36,7 @@ using static SyntaxFactory;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvider
+internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvider
 {
     private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new(nameof(s_usingPlacementCodeFixAnnotation));
 
@@ -73,10 +73,9 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
+            context.RegisterCodeFix(CodeAction.Create(
                     CSharpAnalyzersResources.Move_misplaced_using_directives,
-                    token => GetTransformedDocumentAsync(document, compilationUnit, GetAllUsingDirectives(compilationUnit), placement, simplifierOptions, token),
+                    cancellationToken => GetTransformedDocumentAsync(document, compilationUnit, placement, simplifierOptions, cancellationToken),
                     nameof(CSharpAnalyzersResources.Move_misplaced_using_directives)),
                 diagnostic);
         }
@@ -101,7 +100,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
             return document;
 
         return await GetTransformedDocumentAsync(
-            document, compilationUnit, allUsingDirectives, placement, simplifierOptions, cancellationToken).ConfigureAwait(false);
+            document, compilationUnit, placement, simplifierOptions, cancellationToken).ConfigureAwait(false);
     }
 
     private static ImmutableArray<UsingDirectiveSyntax> GetAllUsingDirectives(CompilationUnitSyntax compilationUnit)
@@ -123,7 +122,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
         {
             foreach (var member in members)
             {
-                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
+                if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 {
                     result.AddRange(namespaceDeclaration.Usings);
                     Recurse(namespaceDeclaration.Members);
@@ -135,12 +134,13 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
     private static async Task<Document> GetTransformedDocumentAsync(
         Document document,
         CompilationUnitSyntax compilationUnit,
-        ImmutableArray<UsingDirectiveSyntax> allUsingDirectives,
         AddImportPlacement placement,
         SimplifierOptions simplifierOptions,
         CancellationToken cancellationToken)
     {
         var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+
+        var allUsingDirectives = GetAllUsingDirectives(compilationUnit);
 
         // Expand usings so that they can be properly simplified after they are relocated.
         var compilationUnitWithExpandedUsings = await ExpandUsingDirectivesAsync(
@@ -234,8 +234,9 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
         var (deduplicatedUsings, orphanedTrivia) = RemoveDuplicateUsings(compilationUnit.Usings, [.. usingsToAdd]);
 
         // Update the compilation unit with the usings from the namespace declaration.
-        var newUsings = compilationUnitWithReplacedNamespaces.Usings.AddRange(deduplicatedUsings);
-        var compilationUnitWithUsings = compilationUnitWithReplacedNamespaces.WithUsings(newUsings);
+        var compilationUnitWithUsings = compilationUnitWithReplacedNamespaces.WithUsings([
+            .. compilationUnitWithReplacedNamespaces.Usings,
+            .. deduplicatedUsings]);
 
         // Fix the leading trivia for the compilation unit. 
         var compilationUnitWithSeparatorLine = EnsureLeadingBlankLineBeforeFirstMember(compilationUnitWithUsings);
@@ -328,10 +329,9 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
     private static TSyntaxNode RemoveLeadingBlankLinesFromFirstMember<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
     {
         var members = GetMembers(node);
-        if (members.Count == 0)
+        if (members is not [var firstMember, ..])
             return node;
 
-        var firstMember = members.First();
         var firstMemberTrivia = firstMember.GetLeadingTrivia();
 
         // If there is no leading trivia, then return the node as it is.
@@ -367,10 +367,9 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
     private static TSyntaxNode EnsureLeadingBlankLineBeforeFirstMember<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
     {
         var members = GetMembers(node);
-        if (members.Count == 0)
+        if (members is not [var firstMember, ..])
             return node;
 
-        var firstMember = members.First();
         var firstMemberTrivia = firstMember.GetLeadingTrivia();
 
         // If the first member already contains a leading new line then, this will already break up the usings from these members.

@@ -128,7 +128,7 @@ internal abstract class AbstractRefreshQueue :
         }
 
         // LSP is already tracking all changed documents so we don't need to send a refresh request.
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public virtual void Dispose()

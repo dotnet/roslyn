@@ -26,21 +26,17 @@ public sealed class DynamicFileInfoProviderMefTests : TestBase
 
     [Fact]
     public void TestInvalidArgument1()
-    {
-        Assert.Throws<ArgumentException>(() =>
+        => Assert.Throws<ArgumentException>(() =>
         {
             new ExportDynamicFileInfoProviderAttribute();
         });
-    }
 
     [Fact]
     public void TestInvalidArgument2()
-    {
-        Assert.Throws<ArgumentException>(() =>
+        => Assert.Throws<ArgumentException>(() =>
         {
             new FileExtensionsMetadata();
         });
-    }
 
     internal static Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata> GetDynamicFileInfoProvider()
     {

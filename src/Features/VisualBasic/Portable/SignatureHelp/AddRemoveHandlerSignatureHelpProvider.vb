@@ -24,12 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As AddRemoveHandlerStatementSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
             Select Case node.Kind
                 Case SyntaxKind.AddHandlerStatement
-                    Return ValueTaskFactory.FromResult(SpecializedCollections.SingletonEnumerable(Of AbstractIntrinsicOperatorDocumentation)(New AddHandlerStatementDocumentation()))
+                    Return RoslynValueTaskExtensions.FromResult(SpecializedCollections.SingletonEnumerable(Of AbstractIntrinsicOperatorDocumentation)(New AddHandlerStatementDocumentation()))
                 Case SyntaxKind.RemoveHandlerStatement
-                    Return ValueTaskFactory.FromResult(SpecializedCollections.SingletonEnumerable(Of AbstractIntrinsicOperatorDocumentation)(New RemoveHandlerStatementDocumentation()))
+                    Return RoslynValueTaskExtensions.FromResult(SpecializedCollections.SingletonEnumerable(Of AbstractIntrinsicOperatorDocumentation)(New RemoveHandlerStatementDocumentation()))
             End Select
 
-            Return ValueTaskFactory.FromResult(SpecializedCollections.EmptyEnumerable(Of AbstractIntrinsicOperatorDocumentation)())
+            Return RoslynValueTaskExtensions.FromResult(SpecializedCollections.EmptyEnumerable(Of AbstractIntrinsicOperatorDocumentation)())
         End Function
 
         Protected Overrides Function IsTriggerToken(token As SyntaxToken) As Boolean

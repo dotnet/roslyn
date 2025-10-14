@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseAutoProperty
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicUseAutoPropertyAnalyzer(), GetVisualBasicUseAutoPropertyCodeFixProvider())
+            Return (New VisualBasicUseAutoPropertyAnalyzer(), New VisualBasicUseAutoPropertyCodeFixProvider())
         End Function
 
         <Fact>
@@ -1101,7 +1101,7 @@ end class")
 End Class",
 "Public Class Foo
 	Public ReadOnly Property O As Object
-End Class", options:=[Option](FormattingOptions2.UseTabs, True))
+End Class", New TestParameters(options:=[Option](FormattingOptions2.UseTabs, True)))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")>
@@ -1118,7 +1118,7 @@ End Class", options:=[Option](FormattingOptions2.UseTabs, True))
 End Class",
 "Public Class Foo
     Public ReadOnly Property O As Object
-End Class", options:=[Option](FormattingOptions2.UseTabs, False))
+End Class", New TestParameters(options:=[Option](FormattingOptions2.UseTabs, False)))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")>

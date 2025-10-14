@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     <ExportLanguageService(GetType(SyntaxGeneratorInternal), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxGeneratorInternal
+    Friend NotInheritable Class VisualBasicSyntaxGeneratorInternal
         Inherits SyntaxGeneratorInternal
 
         Public Shared ReadOnly Instance As New VisualBasicSyntaxGeneratorInternal()
@@ -98,6 +98,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function AddParentheses(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True) As SyntaxNode
+            Return Parenthesize(expression, addSimplifierAnnotation)
+        End Function
+
+        Friend Shared Function ParenthesizeNonSimple(expression As SyntaxNode, Optional addSimplifierAnnotation As Boolean = True) As ExpressionSyntax
+            Dim identifierName = TryCast(expression, IdentifierNameSyntax)
+            If identifierName IsNot Nothing Then
+                Return identifierName
+            End If
+
             Return Parenthesize(expression, addSimplifierAnnotation)
         End Function
 
@@ -519,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 #End Region
 
         Public Overrides Function BitwiseOrExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.OrExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.OrExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function CastExpression(type As SyntaxNode, expression As SyntaxNode) As SyntaxNode

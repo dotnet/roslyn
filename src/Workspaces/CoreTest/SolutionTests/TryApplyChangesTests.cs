@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -121,7 +122,7 @@ public sealed class TryApplyChangesTests
 
         Assert.True(workspace.TryApplyChanges(
             project.WithParseOptions(
-                project.ParseOptions!.WithFeatures([KeyValuePairUtil.Create("Feature", "")])).Solution));
+                project.ParseOptions!.WithFeatures([KeyValuePair.Create("Feature", "")])).Solution));
     }
 
     [Fact]
@@ -136,7 +137,7 @@ public sealed class TryApplyChangesTests
 
         Assert.True(
             workspace.TryApplyChanges(
-                project.WithParseOptions(project.ParseOptions!.WithFeatures([KeyValuePairUtil.Create("Feature", "ExpectedValue")])).Solution));
+                project.WithParseOptions(project.ParseOptions!.WithFeatures([KeyValuePair.Create("Feature", "ExpectedValue")])).Solution));
     }
 
     [Fact]
@@ -151,7 +152,7 @@ public sealed class TryApplyChangesTests
 
         var exception = Assert.Throws<NotSupportedException>(
             () => workspace.TryApplyChanges(
-                project.WithParseOptions(project.ParseOptions!.WithFeatures([KeyValuePairUtil.Create("Feature", "WrongThing")])).Solution));
+                project.WithParseOptions(project.ParseOptions!.WithFeatures([KeyValuePair.Create("Feature", "WrongThing")])).Solution));
 
         Assert.Equal(WorkspacesResources.Changing_parse_options_is_not_supported, exception.Message);
     }

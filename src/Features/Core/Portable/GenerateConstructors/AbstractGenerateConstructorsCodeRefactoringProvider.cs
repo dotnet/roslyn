@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.GenerateFromMembers;

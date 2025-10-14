@@ -12,24 +12,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class ManagedKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestInFunctionPointerDeclaration()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInFunctionPointerDeclaration()
+        => VerifyKeywordAsync(
             """
             class Test {
                 unsafe void N() {
                     delegate* $$
             """);
-    }
 
     [Fact]
-    public async Task TestInFunctionPointerDeclarationTouchingAsterisk()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInFunctionPointerDeclarationTouchingAsterisk()
+        => VerifyKeywordAsync(
             """
             class Test {
                 unsafe void N() {
                     delegate*$$
             """);
-    }
 }

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -1678,7 +1677,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="sourceText">The source to parse tokens from.</param>
         /// <param name="options">Parse options for the source.</param>
-        [Experimental(RoslynExperiments.SyntaxTokenParser, UrlFormat = RoslynExperiments.SyntaxTokenParser_Url)]
         public static SyntaxTokenParser CreateTokenParser(SourceText sourceText, CSharpParseOptions? options = null)
         {
             return new SyntaxTokenParser(new InternalSyntax.Lexer(sourceText, options ?? CSharpParseOptions.Default));
@@ -1694,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseName();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (NameSyntax)node.CreateRed();
+                return CreateRed<NameSyntax>(node, lexer.Options);
             }
         }
 
@@ -1718,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseTypeName();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (TypeSyntax)node.CreateRed();
+                return CreateRed<TypeSyntax>(node, lexer.Options);
             }
         }
 
@@ -1737,7 +1735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseExpression();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (ExpressionSyntax)node.CreateRed();
+                return CreateRed<ExpressionSyntax>(node, lexer.Options);
             }
         }
 
@@ -1756,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseStatement();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (StatementSyntax)node.CreateRed();
+                return CreateRed<StatementSyntax>(node, lexer.Options);
             }
         }
 
@@ -1780,7 +1778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                return (MemberDeclarationSyntax)(consumeFullText ? parser.ConsumeUnexpectedTokens(node) : node).CreateRed();
+                return CreateRed<MemberDeclarationSyntax>(consumeFullText ? parser.ConsumeUnexpectedTokens(node) : node, lexer.Options);
             }
         }
 
@@ -1800,7 +1798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseCompilationUnit();
-                return (CompilationUnitSyntax)node.CreateRed();
+                return CreateRed<CompilationUnitSyntax>(node, lexer.Options);
             }
         }
 
@@ -1819,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseParenthesizedParameterList(forExtension: false);
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (ParameterListSyntax)node.CreateRed();
+                return CreateRed<ParameterListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1838,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseBracketedParameterList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (BracketedParameterListSyntax)node.CreateRed();
+                return CreateRed<BracketedParameterListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1857,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseParenthesizedArgumentList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (ArgumentListSyntax)node.CreateRed();
+                return CreateRed<ArgumentListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1876,7 +1874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseBracketedArgumentList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (BracketedArgumentListSyntax)node.CreateRed();
+                return CreateRed<BracketedArgumentListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1902,7 +1900,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 annotations: null);
             if (consumeFullText)
                 node = parser.ConsumeUnexpectedTokens(node);
-            return (AttributeArgumentListSyntax)node.CreateRed();
+            return CreateRed<AttributeArgumentListSyntax>(node, lexer.Options);
+        }
+
+        private static TSyntax CreateRed<TSyntax>(InternalSyntax.CSharpSyntaxNode green, CSharpParseOptions options)
+            where TSyntax : CSharpSyntaxNode
+        {
+            var red = (TSyntax)green.CreateRed();
+            Debug.Assert(red._syntaxTree is null);
+#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
+            red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, options);
+#pragma warning restore
+            return red;
         }
 
         /// <summary>

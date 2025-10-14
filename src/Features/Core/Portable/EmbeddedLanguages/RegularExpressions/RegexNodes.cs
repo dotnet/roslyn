@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 
+using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
 using RegexNodeOrToken = EmbeddedSyntaxNodeOrToken<RegexKind, RegexNode>;
 using RegexToken = EmbeddedSyntaxToken<RegexKind>;
-using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
 
 internal sealed class RegexCompilationUnit : RegexNode
 {

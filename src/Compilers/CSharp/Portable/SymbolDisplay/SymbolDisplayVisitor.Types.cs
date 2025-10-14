@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.SymbolDisplay;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -300,19 +299,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IncludeNamedType(symbol.ContainingType))
                 {
                     symbol.ContainingType.Accept(this.NotFirstVisitor);
-
-                    if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes))
-                    {
-                        AddPunctuation(SyntaxKind.PlusToken);
-                    }
-                    else
-                    {
-                        AddPunctuation(SyntaxKind.DotToken);
-                    }
+                    AddNestedTypeSeparator();
                 }
             }
 
             AddNameAndTypeArgumentsOrParameters(symbol);
+        }
+
+        private void AddNestedTypeSeparator()
+        {
+            AddPunctuation(Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) ? SyntaxKind.PlusToken : SyntaxKind.DotToken);
         }
 
         private bool ShouldDisplayAsValueTuple(INamedTypeSymbol symbol)
@@ -345,8 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                 {
-                    var extensionIdentifier = underlyingTypeSymbol!.ExtensionName; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : use public API once it's available
-                    Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, extensionIdentifier));
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, symbol.ExtensionGroupingName));
                 }
                 else
                 {
@@ -995,6 +990,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        internal void AddExtensionMarkerName(INamedTypeSymbol extension)
+        {
+            Debug.Assert(extension.IsExtension);
+            AddNestedTypeSeparator();
+            Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, extension, extension.ExtensionMarkerName));
         }
     }
 }

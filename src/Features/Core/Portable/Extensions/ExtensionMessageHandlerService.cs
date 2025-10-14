@@ -15,8 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
-using HandlerWrappers = ImmutableArray<IExtensionMessageHandlerWrapper>;
 using CachedHandlers = Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>>>;
+using HandlerWrappers = ImmutableArray<IExtensionMessageHandlerWrapper>;
 
 internal sealed partial class ExtensionMessageHandlerServiceFactory
 {

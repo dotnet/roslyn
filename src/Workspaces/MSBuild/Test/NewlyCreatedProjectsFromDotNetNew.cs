@@ -61,9 +61,14 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
 
     [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
     [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
-    public async Task ValidateCSharpTemplateProjects(string templateName)
+    public Task ValidateCSharpTemplateProjects(string templateName)
     {
-        await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
+        if (templateName is "blazor" or "blazorwasm")
+        {
+            // https://github.com/dotnet/roslyn/issues/80263
+            return Task.CompletedTask;
+        }
+        return AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
     }
 
     [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
@@ -140,7 +145,9 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     {
         if (ignoredDiagnostics?.Length > 0)
         {
-            TestOutput.WriteLine($"Ignoring compiler diagnostics: \"{string.Join("\", \"", ignoredDiagnostics)}\"");
+            TestOutput.WriteLine($"""
+                Ignoring compiler diagnostics: "{string.Join("\", \"", ignoredDiagnostics)}"
+                """);
         }
 
         var projectDirectory = SolutionDirectory.Path;
@@ -175,7 +182,9 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
 
             TryCopyGlobalJson(outputDirectory);
 
-            var newResult = RunDotNet($"new \"{templateName}\" -o \"{outputDirectory}\" --language \"{language}\"", LoggerFactory, outputDirectory);
+            var newResult = RunDotNet($"""
+                new "{templateName}" -o "{outputDirectory}" --language "{language}"
+                """, LoggerFactory, outputDirectory);
 
             // Most templates invoke restore as a post-creation action. However, some, like the
             // Maui templates, do not run restore since they require additional workloads to be
@@ -216,11 +225,11 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
             AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the template.");
 
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+            AssertEx.Empty(await project.GetSourceGeneratorDiagnosticsAsync(CancellationToken.None), $"The following source generator diagnostics are being reported for the template.");
 
             // Unnecessary using directives are reported with a severity of Hidden
             var nonHiddenDiagnostics = compilation!.GetDiagnostics()
-                .Where(diagnostic => diagnostic.Severity > DiagnosticSeverity.Hidden)
-                .ToImmutableArray();
+                .WhereAsArray(diagnostic => diagnostic.Severity > DiagnosticSeverity.Hidden);
 
             // For good test hygiene lets ensure that all ignored diagnostics were actually reported.
             var reportedDiagnosticIds = nonHiddenDiagnostics

@@ -42,46 +42,56 @@ public class CSharpInteractive : AbstractInteractiveWindowTest
     [IdeFact]
     public async Task TopLevelMethod()
     {
-        await TestServices.InteractiveWindow.SubmitTextAsync(@"int Fac(int x)
-{
-    return x < 1 ? 1 : x * Fac(x - 1);
-}
-Fac(4)", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.SubmitTextAsync("""
+            int Fac(int x)
+            {
+                return x < 1 ? 1 : x * Fac(x - 1);
+            }
+            Fac(4)
+            """, HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.WaitForLastReplOutputAsync($"{24}", HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task WpfInteractionAsync()
     {
-        await TestServices.InteractiveWindow.SubmitTextAsync(@"#r ""WindowsBase""
-#r ""PresentationCore""
-#r ""PresentationFramework""
-#r ""System.Xaml""", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.SubmitTextAsync("""
+            #r "WindowsBase"
+            #r "PresentationCore"
+            #r "PresentationFramework"
+            #r "System.Xaml"
+            """, HangMitigatingCancellationToken);
 
-        await TestServices.InteractiveWindow.SubmitTextAsync(@"using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.SubmitTextAsync("""
+            using System.Windows;
+            using System.Windows.Controls;
+            using System.Windows.Media;
+            using System.Windows.Media.Imaging;
+            """, HangMitigatingCancellationToken);
 
-        await TestServices.InteractiveWindow.SubmitTextAsync(@"var w = new Window();
-w.Title = ""Hello World"";
-w.FontFamily = new FontFamily(""Calibri"");
-w.FontSize = 24;
-w.Height = 300;
-w.Width = 300;
-w.Topmost = true;
-w.Visibility = Visibility.Visible;", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.SubmitTextAsync("""
+            var w = new Window();
+            w.Title = "Hello World";
+            w.FontFamily = new FontFamily("Calibri");
+            w.FontSize = 24;
+            w.Height = 300;
+            w.Width = 300;
+            w.Topmost = true;
+            w.Visibility = Visibility.Visible;
+            """, HangMitigatingCancellationToken);
 
         var testValue = Guid.NewGuid();
 
-        await TestServices.InteractiveWindow.SubmitTextAsync($@"var b = new Button();
-b.Content = ""{testValue}"";
-b.Margin = new Thickness(40);
-b.Click += (sender, e) => Console.WriteLine(""Hello, World!"");
+        await TestServices.InteractiveWindow.SubmitTextAsync($"""
+            var b = new Button();
+            b.Content = "{testValue}";
+            b.Margin = new Thickness(40);
+            b.Click += (sender, e) => Console.WriteLine("Hello, World!");
 
-var g = new Grid();
-g.Children.Add(b);
-w.Content = g;", HangMitigatingCancellationToken);
+            var g = new Grid();
+            g.Children.Add(b);
+            w.Content = g;
+            """, HangMitigatingCancellationToken);
 
         await AutomationElementHelper.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
 

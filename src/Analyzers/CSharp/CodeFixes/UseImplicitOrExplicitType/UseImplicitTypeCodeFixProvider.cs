@@ -5,9 +5,11 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -25,9 +27,15 @@ internal sealed class UseImplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, CSharpAnalyzersResources.use_var_instead_of_explicit_type, nameof(CSharpAnalyzersResources.use_var_instead_of_explicit_type));
+        RegisterCodeFix(
+            context,
+            CSharpAnalyzersResources.use_var_instead_of_explicit_type,
+            context.Diagnostics.First().Properties[CSharpTypeStyleUtilities.EquivalenceyKey]!);
         return Task.CompletedTask;
     }
+
+    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
+        => diagnostic.Properties[CSharpTypeStyleUtilities.EquivalenceyKey] == equivalenceKey;
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,

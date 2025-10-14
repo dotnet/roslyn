@@ -2937,7 +2937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {
-            return PEModuleBuilder.GetForwardedTypes(this, builder: null);
+            return PEModuleBuilder.GetForwardedTypes(this, builder: null, context: null);
         }
 
         public override AssemblyMetadata GetMetadata() => null;

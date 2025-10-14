@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
@@ -82,7 +82,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 .GetMembers(IdentifierToken.ValueText)
                 .OfType<IMethodSymbol>();
 
-            var destinationProvider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
+            var destinationProvider = document.Project.Solution.GetExtendedLanguageServices(TypeToGenerateIn.Language);
 
             var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
             var syntaxFactory = destinationProvider.GetService<SyntaxGenerator>();

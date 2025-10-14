@@ -103,6 +103,7 @@
         "command": "dotnet",
         "args": [
           "build",
+          "-p:InnerTargets=CopyFilesForDebugging",
           "-p:GenerateFullPaths=true",
           "${workspaceFolder}/src/NuGet/Microsoft.Net.Compilers.Toolset/AnyCpu/Microsoft.Net.Compilers.Toolset.Package.csproj"
         ],
@@ -131,8 +132,9 @@
         "command": "dotnet",
         "type": "shell",
         "args": [
-          "pwsh",
-          "${workspaceFolder}/eng/generate-compiler-code.ps1"
+          "run",
+          "--file",
+          "${workspaceFolder}/eng/generate-compiler-code.cs"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"

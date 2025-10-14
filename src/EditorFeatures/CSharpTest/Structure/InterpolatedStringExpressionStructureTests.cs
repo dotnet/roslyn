@@ -18,9 +18,8 @@ public sealed class InterpolatedStringExpressionStructureTests : AbstractCSharpS
         => new InterpolatedStringExpressionStructureProvider();
 
     [Fact]
-    public async Task TestMultiLineStringLiteral()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestMultiLineStringLiteral()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -34,12 +33,10 @@ public sealed class InterpolatedStringExpressionStructureTests : AbstractCSharpS
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestMissingOnIncompleteStringLiteral()
-    {
-        await VerifyNoBlockSpansAsync(
+    public Task TestMissingOnIncompleteStringLiteral()
+        => VerifyNoBlockSpansAsync(
             """
                 class C
                 {
@@ -49,5 +46,4 @@ public sealed class InterpolatedStringExpressionStructureTests : AbstractCSharpS
                     }
                 }
                 """);
-    }
 }

@@ -456,6 +456,7 @@ public partial class Project
                 case DeclaredSymbolInfoKind.Indexer:
                 case DeclaredSymbolInfoKind.Method:
                 case DeclaredSymbolInfoKind.Property:
+                case DeclaredSymbolInfoKind.Operator:
                     return (filter & SymbolFilter.Member) != 0;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(info.Kind);

@@ -20,10 +20,10 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertIfToSwitchCodeRefact
 public sealed class ConvertIfToSwitchTests
 {
     [Fact]
-    public async Task TestUnreachableEndPoint()
-    {
-        var source =
-            """
+    public Task TestUnreachableEndPoint()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -32,9 +32,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -48,21 +47,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReachableEndPoint()
-    {
-        var source =
-            """
+    public Task TestReachableEndPoint()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -71,9 +63,8 @@ public sealed class ConvertIfToSwitchTests
                         M(i);
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -88,15 +79,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestMissingOnSubsequentBlock()
@@ -167,15 +151,14 @@ public sealed class ConvertIfToSwitchTests
                     DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("C.M(int)"),
                 },
             },
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
     [Fact]
-    public async Task TestElseBlock_02()
-    {
-        var source =
-            """
+    public Task TestElseBlock_02()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(int i)
@@ -192,9 +175,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int M(int i)
@@ -212,21 +194,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleCases_01()
-    {
-        var source =
-            """
+    public Task TestMultipleCases_01()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -236,9 +211,8 @@ public sealed class ConvertIfToSwitchTests
                     else M(2);
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -261,21 +235,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleCases_02_CSharp8()
-    {
-        var source =
-            """
+    public Task TestMultipleCases_02_CSharp8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -285,9 +252,8 @@ public sealed class ConvertIfToSwitchTests
                     else return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(object o)
@@ -305,21 +271,15 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleCases_02_CSharp9()
-    {
-        var source =
-            """
+    public Task TestMultipleCases_02_CSharp9()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -329,9 +289,8 @@ public sealed class ConvertIfToSwitchTests
                     else return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(object o)
@@ -349,21 +308,15 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExpressionOrder()
-    {
-        var source =
-            """
+    public Task TestExpressionOrder()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -372,9 +325,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -388,21 +340,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConstantExpression()
-    {
-        var source =
-            """
+    public Task TestConstantExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -412,9 +357,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -429,15 +373,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestMissingOnNonConstantExpression()
@@ -496,17 +433,6 @@ public sealed class ConvertIfToSwitchTests
     public async Task TestIsExpression(
         [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
     {
-        var source =
-            """
-            class C
-            {
-                void M(object o)
-                {
-                    $$if (o is int || o is string || o is C)
-                        return;
-                }
-            }
-            """;
         var fixedSource = languageVersion switch
         {
             LanguageVersion.CSharp8 =>
@@ -546,17 +472,24 @@ public sealed class ConvertIfToSwitchTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            class C
+            {
+                void M(object o)
+                {
+                    $$if (o is int || o is string || o is C)
+                        return;
+                }
+            }
+            """,
             FixedCode = fixedSource,
             LanguageVersion = languageVersion,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
     [Fact]
-    public async Task TestIsPatternExpression_01()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestIsPatternExpression_01()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -584,13 +517,12 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIsPatternExpression_02_CSharp8()
-    {
-        var source =
-            """
+    public Task TestIsPatternExpression_02_CSharp8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -601,9 +533,8 @@ public sealed class ConvertIfToSwitchTests
                             return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(object o)
@@ -617,21 +548,15 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestIsPatternExpression_02_CSharp9()
-    {
-        var source =
-            """
+    public Task TestIsPatternExpression_02_CSharp9()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -642,9 +567,8 @@ public sealed class ConvertIfToSwitchTests
                             return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(object o)
@@ -658,20 +582,13 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestIsPatternExpression_03()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestIsPatternExpression_03()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -699,12 +616,10 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIsPatternExpression_04()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestIsPatternExpression_04()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -732,12 +647,10 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComplexExpression_01()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestComplexExpression_01()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -774,7 +687,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestMissingIfCaretDoesntIntersectWithTheIfKeyword()
@@ -794,10 +706,10 @@ public sealed class ConvertIfToSwitchTests
     }
 
     [Fact]
-    public async Task TestKeepBlockIfThereIsVariableDeclaration()
-    {
-        var source =
-            """
+    public Task TestKeepBlockIfThereIsVariableDeclaration()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -811,9 +723,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -831,15 +742,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestMissingOnBreak_01()
@@ -887,10 +791,10 @@ public sealed class ConvertIfToSwitchTests
     }
 
     [Fact]
-    public async Task TestNestedBreak()
-    {
-        var source =
-            """
+    public Task TestNestedBreak()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -907,9 +811,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -927,21 +830,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSubsequentIfStatements_01()
-    {
-        var source =
-            """
+    public Task TestSubsequentIfStatements_01()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(int? i)
@@ -951,9 +847,8 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int M(int? i)
@@ -969,21 +864,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSwitchExpression_01()
-    {
-        var source =
-            """
+    public Task TestSwitchExpression_01()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(int? i)
@@ -993,9 +881,8 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int M(int? i)
@@ -1008,22 +895,16 @@ public sealed class ConvertIfToSwitchTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = "SwitchExpression",
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSwitchExpression_02()
-    {
-        var source =
-            """
+    public Task TestSwitchExpression_02()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(int? i)
@@ -1033,9 +914,8 @@ public sealed class ConvertIfToSwitchTests
                     else { return 7; }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int M(int? i)
@@ -1048,22 +928,16 @@ public sealed class ConvertIfToSwitchTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = "SwitchExpression",
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSubsequentIfStatements_02()
-    {
-        var source =
-            """
+    public Task TestSubsequentIfStatements_02()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(int? i)
@@ -1074,9 +948,8 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int M(int? i)
@@ -1092,15 +965,8 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestSubsequentIfStatements_03()
@@ -1164,15 +1030,14 @@ public sealed class ConvertIfToSwitchTests
                     DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("C.M(int?)"),
                 },
             },
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
     [Fact]
-    public async Task TestSubsequentIfStatements_04()
-    {
-        var source =
-            """
+    public Task TestSubsequentIfStatements_04()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 string M(object i)
@@ -1182,9 +1047,8 @@ public sealed class ConvertIfToSwitchTests
                     else return i.ToString();
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 string M(object i)
@@ -1201,21 +1065,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSubsequentIfStatements_05()
-    {
-        var source =
-            """
+    public Task TestSubsequentIfStatements_05()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(int i)
@@ -1226,9 +1083,8 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int M(int i)
@@ -1244,21 +1100,14 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSubsequentIfStatements_06()
-    {
-        var source =
-            """
+    public Task TestSubsequentIfStatements_06()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(int i)
@@ -1278,9 +1127,8 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int M(int i)
@@ -1299,21 +1147,14 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSubsequentIfStatements_07()
-    {
-        var source =
-            """
+    public Task TestSubsequentIfStatements_07()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(int i)
@@ -1342,9 +1183,8 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int M(int i)
@@ -1372,15 +1212,8 @@ public sealed class ConvertIfToSwitchTests
                     return 7;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21109")]
     public async Task TestTrivia1()
@@ -1461,15 +1294,14 @@ public sealed class ConvertIfToSwitchTests
                     DiagnosticResult.CompilerError("CS0103").WithLocation(3).WithArguments("Console"),
                 },
             },
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21101")]
-    public async Task TestTrivia2()
-    {
-        var source =
-            """
+    public Task TestTrivia2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(int i, string[] args)
@@ -1480,9 +1312,8 @@ public sealed class ConvertIfToSwitchTests
                         return /* t7 */ 3 /* t8 */;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int M(int i, string[] args)
@@ -1496,21 +1327,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd1_CSharp8()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd1_CSharp8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -1521,9 +1345,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -1537,33 +1360,13 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
     public async Task TestCompoundLogicalAnd1_CSharp9()
     {
-        var source =
-            """
-            class C
-            {
-                void M(int i)
-                {
-                    $$if (i == 1 && i == 2)
-                        return;
-                    else if (i == 10)
-                        return;
-                }
-            }
-            """;
         var fixedSource =
             """
             class C
@@ -1583,7 +1386,18 @@ public sealed class ConvertIfToSwitchTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            class C
+            {
+                void M(int i)
+                {
+                    $$if (i == 1 && i == 2)
+                        return;
+                    else if (i == 10)
+                        return;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { fixedSource },
@@ -1594,15 +1408,14 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd2_CSharp8()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd2_CSharp8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -1613,9 +1426,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -1629,22 +1441,33 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
     public async Task TestCompoundLogicalAnd2_CSharp9()
     {
-        var source =
+        var fixedSource =
             """
+            class C
+            {
+                void M(int i)
+                {
+                    switch (i)
+                    {
+                        case {|#0:1 and 2 and 3|}:
+                            return;
+                        case 10:
+                            return;
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -1655,27 +1478,7 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
-            class C
-            {
-                void M(int i)
-                {
-                    switch (i)
-                    {
-                        case {|#0:1 and 2 and 3|}:
-                            return;
-                        case 10:
-                            return;
-                    }
-                }
-            }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             FixedState =
             {
                 Sources = { fixedSource },
@@ -1686,15 +1489,14 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd3_CSharp8()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd3_CSharp8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -1705,9 +1507,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -1721,33 +1522,13 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
     public async Task TestCompoundLogicalAnd3_CSharp9()
     {
-        var source =
-            """
-            class C
-            {
-                void M(int i)
-                {
-                    $$if (i == 1 && i == 2 && (i == 3))
-                        return;
-                    else if (i == 10)
-                        return;
-                }
-            }
-            """;
         var fixedSource =
             """
             class C
@@ -1767,7 +1548,18 @@ public sealed class ConvertIfToSwitchTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            class C
+            {
+                void M(int i)
+                {
+                    $$if (i == 1 && i == 2 && (i == 3))
+                        return;
+                    else if (i == 10)
+                        return;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { fixedSource },
@@ -1778,15 +1570,14 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd4()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd4()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -1797,9 +1588,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -1813,33 +1603,13 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
     public async Task TestCompoundLogicalAnd4_CSharp9()
     {
-        var source =
-            """
-            class C
-            {
-                void M(int i)
-                {
-                    $$if (i == 1 && (i == 2) && i == 3)
-                        return;
-                    else if (i == 10)
-                        return;
-                }
-            }
-            """;
         var fixedSource =
             """
             class C
@@ -1859,7 +1629,18 @@ public sealed class ConvertIfToSwitchTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            class C
+            {
+                void M(int i)
+                {
+                    $$if (i == 1 && (i == 2) && i == 3)
+                        return;
+                    else if (i == 10)
+                        return;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { fixedSource },
@@ -1870,15 +1651,14 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd5()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd5()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -1889,9 +1669,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -1905,21 +1684,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd6()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd6()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -1930,9 +1702,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -1946,21 +1717,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd7()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd7()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -1971,9 +1735,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -1987,21 +1750,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd8()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2012,9 +1768,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2028,21 +1783,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd9()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd9()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2053,9 +1801,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2069,21 +1816,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd10()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd10()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2094,9 +1834,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2110,21 +1849,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd11()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd11()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2135,9 +1867,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2151,21 +1882,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd12()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd12()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2176,9 +1900,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2192,21 +1915,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd13()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd13()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2217,9 +1933,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2233,21 +1948,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd14()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2258,9 +1966,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2274,21 +1981,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd15()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd15()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2299,9 +1999,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2315,21 +2014,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
-    public async Task TestCompoundLogicalAnd16()
-    {
-        var source =
-            """
+    public Task TestCompoundLogicalAnd16()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2340,9 +2032,8 @@ public sealed class ConvertIfToSwitchTests
                         return;
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2356,20 +2047,12 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37035")]
-    public async Task TestComplexExpression_02()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestComplexExpression_02()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -2401,13 +2084,12 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestRange_CSharp8()
-    {
-        var source =
-            """
+    public Task TestRange_CSharp8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2422,20 +2104,15 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestRange_CSharp9()
-    {
-        var source =
-            """
+    public Task TestRange_CSharp9()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2450,9 +2127,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2466,21 +2142,15 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestComparison_CSharp8()
-    {
-        var source =
-            """
+    public Task TestComparison_CSharp8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2491,20 +2161,15 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestComparison_CSharp9()
-    {
-        var source =
-            """
+    public Task TestComparison_CSharp9()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2515,9 +2180,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2530,36 +2194,13 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public async Task TestComparison_SwitchExpression_CSharp9()
     {
-        var source =
-            """
-            class C
-            {
-                int M(int i)
-                {
-                    $$if (5 >= i || 1 <= i)
-                    {
-                        return 1;
-                    }
-                    else
-                    {
-                        return 2;
-                    }
-                }
-            }
-            """;
         var fixedSource =
             """
             class C
@@ -2577,7 +2218,22 @@ public sealed class ConvertIfToSwitchTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            class C
+            {
+                int M(int i)
+                {
+                    $$if (5 >= i || 1 <= i)
+                    {
+                        return 1;
+                    }
+                    else
+                    {
+                        return 2;
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { fixedSource },
@@ -2594,10 +2250,10 @@ public sealed class ConvertIfToSwitchTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestComplexIf_CSharp8()
-    {
-        var source =
-            """
+    public Task TestComplexIf_CSharp8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2608,31 +2264,13 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public async Task TestComplexIf_CSharp9()
     {
-        var source =
-            """
-            class C
-            {
-                void M(int i)
-                {
-                    $$if (i < 10 || 20 < i || (i >= 30 && 40 >= i) || i == 50)
-                    {
-                        return;
-                    }
-                }
-            }
-            """;
         var fixedSource =
             """
             class C
@@ -2653,7 +2291,18 @@ public sealed class ConvertIfToSwitchTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            class C
+            {
+                void M(int i)
+                {
+                    $$if (i < 10 || 20 < i || (i >= 30 && 40 >= i) || i == 50)
+                    {
+                        return;
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { fixedSource },
@@ -2666,15 +2315,14 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
-    public async Task TestComplexIf_Precedence_CSharp9()
-    {
-        var source =
-            """
+    public Task TestComplexIf_Precedence_CSharp9()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int i)
@@ -2685,9 +2333,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int i)
@@ -2700,63 +2347,49 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInequality()
-    {
-        var source =
-            """
-            class C
-            {
-                void M(int i)
+    public Task TestInequality()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
                 {
-                    [||]if ((i > 123 && i < 456) && i != 0 || i == 10)
+                    void M(int i)
                     {
-                        return;
+                        [||]if ((i > 123 && i < 456) && i != 0 || i == 10)
+                        {
+                            return;
+                        }
                     }
                 }
-            }
-            """;
-
-        var fixedSource =
-"""
- class C
- {
-     void M(int i)
-     {
-         switch (i)
-         {
-             case > 123 and < 456 when i != 0:
-             case 10:
-                 return;
-         }
-     }
- }
- """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int i)
+                    {
+                        switch (i)
+                        {
+                            case > 123 and < 456 when i != 0:
+                            case 10:
+                                return;
+                        }
+                    }
+                }
+                """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44278")]
     public async Task TestTopLevelStatement()
     {
-        var source = """
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
             var e = new ET1();
 
             [||]if (e == ET1.A)
@@ -2772,9 +2405,8 @@ public sealed class ConvertIfToSwitchTests
                 B,
                 C,
             }
-            """;
-
-        var fixedSource = """
+            """,
+            FixedCode = """
             var e = new ET1();
 
             switch (e)
@@ -2791,14 +2423,8 @@ public sealed class ConvertIfToSwitchTests
                 B,
                 C,
             }
-            """;
-
-        var test = new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         };
 
         test.ExpectedDiagnostics.Add(
@@ -2809,9 +2435,10 @@ public sealed class ConvertIfToSwitchTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46863")]
-    public async Task CommentsAtTheEndOfBlocksShouldBePlacedBeforeBreakStatements()
-    {
-        var source = """
+    public Task CommentsAtTheEndOfBlocksShouldBePlacedBeforeBreakStatements()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(int p)
@@ -2831,9 +2458,8 @@ public sealed class ConvertIfToSwitchTests
                 void DoA() { }
                 void DoB() { }
             }
-            """;
-
-        var fixedSource = """
+            """,
+            FixedCode = """
             class C
             {
                 void M(int p)
@@ -2854,21 +2480,14 @@ public sealed class ConvertIfToSwitchTests
                 void DoA() { }
                 void DoB() { }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingOnImplicitCastInRelationalPattern()
-    {
-        var source =
-            """
+    public Task TestMissingOnImplicitCastInRelationalPattern()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(char c)
@@ -2877,20 +2496,15 @@ public sealed class ConvertIfToSwitchTests
                         System.Console.WriteLine(c);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingExpressionOnImplicitCastInRelationalPattern()
-    {
-        var source =
-            """
+    public Task TestMissingExpressionOnImplicitCastInRelationalPattern()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int M(char c)
@@ -2901,20 +2515,15 @@ public sealed class ConvertIfToSwitchTests
                         return 2;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingOnImplicitCastInRangePattern()
-    {
-        var source =
-            """
+    public Task TestMissingOnImplicitCastInRangePattern()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(char c)
@@ -2923,20 +2532,15 @@ public sealed class ConvertIfToSwitchTests
                         System.Console.WriteLine(c);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingOnImplicitCastInConstantPattern()
-    {
-        var source =
-            """
+    public Task TestMissingOnImplicitCastInConstantPattern()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(char c)
@@ -2945,20 +2549,15 @@ public sealed class ConvertIfToSwitchTests
                         System.Console.WriteLine(c);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExplicitCastInConstantPattern()
-    {
-        var source =
-            """
+    public Task TestExplicitCastInConstantPattern()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(char c)
@@ -2967,10 +2566,8 @@ public sealed class ConvertIfToSwitchTests
                         System.Console.WriteLine(c);
                 }
             }
-            """;
-
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M(char c)
@@ -2984,22 +2581,15 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41131")]
-    public async Task MoveTriviaFromElse1()
-    {
-        var source =
-            """
+    public Task MoveTriviaFromElse1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class C
@@ -3022,9 +2612,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             using System;
 
             class C
@@ -3047,21 +2636,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41131")]
-    public async Task MoveTriviaFromElse2()
-    {
-        var source =
-            """
+    public Task MoveTriviaFromElse2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class C
@@ -3085,9 +2667,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             using System;
 
             class C
@@ -3111,21 +2692,14 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71295")]
-    public async Task TestCodeAfterElseIf()
-    {
-        var source =
-            """
+    public Task TestCodeAfterElseIf()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void TestThing(int a, int b)
@@ -3144,9 +2718,8 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-        var fixedSource =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void TestThing(int a, int b)
@@ -3166,13 +2739,6 @@ public sealed class ConvertIfToSwitchTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-            CodeActionValidationMode = CodeActionValidationMode.None,
+            """,
         }.RunAsync();
-    }
 }

@@ -5,6 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

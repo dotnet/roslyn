@@ -39,7 +39,7 @@ public abstract class AbstractRelatedDocumentsTests
                 lock (results)
                     results.AddRange(documentIds);
 
-                return ValueTaskFactory.CompletedTask;
+                return ValueTask.CompletedTask;
             }, CancellationToken.None);
 
         Assert.True(results.Distinct().Count() == results.Count);

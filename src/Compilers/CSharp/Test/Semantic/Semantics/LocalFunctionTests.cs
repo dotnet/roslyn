@@ -52,16 +52,10 @@ public class C
                 // (4,11): error CS1073: Unexpected token 'ref'
                 //     async ref System.Threading.Tasks.Task M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 11),
-                // (4,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async ref System.Threading.Tasks.Task M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 43),
                 // (10,15): error CS1073: Unexpected token 'ref'
                 //         async ref System.Threading.Tasks.Task local() { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(10, 15),
-                // (10,47): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async ref System.Threading.Tasks.Task local() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(10, 47)
-                );
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(10, 15)
+            );
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1117,19 +1111,19 @@ class C
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (10,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (10,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //         [DllImport("a")] extern void local1(); // 1, 2
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(10, 10),
                 // (10,38): error CS8112: Local function 'local1()' must either have a body or be marked 'static extern'.
                 //         [DllImport("a")] extern void local1(); // 1, 2
                 Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local1").WithArguments("local1()").WithLocation(10, 38),
-                // (11,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (11,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //         [DllImport("a")] extern void local2() { } // 3, 4
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(11, 10),
                 // (11,38): error CS0179: 'local2()' cannot be extern and declare a body
                 //         [DllImport("a")] extern void local2() { } // 3, 4
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "local2").WithArguments("local2()").WithLocation(11, 38),
-                // (12,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (12,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //         [DllImport("a")] extern int local3() => 0; // 5, 6
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(12, 10),
                 // (12,37): error CS0179: 'local3()' cannot be extern and declare a body
@@ -2067,10 +2061,8 @@ class C
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecurityCritical").WithArguments("SecurityCritical").WithLocation(10, 10),
                 // (11,10): error CS4030: Security attribute 'SecuritySafeCriticalAttribute' cannot be applied to an Async method.
                 //         [SecuritySafeCriticalAttribute] // 2
-                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCriticalAttribute").WithArguments("SecuritySafeCriticalAttribute").WithLocation(11, 10),
-                // (12,20): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async void local1() // 3
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local1").WithLocation(12, 20));
+                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCriticalAttribute").WithArguments("SecuritySafeCriticalAttribute").WithLocation(11, 10)
+            );
         }
 
         [Fact]
@@ -2374,11 +2366,13 @@ class C
             var local = model.GetDeclaredSymbol(declaration).GetSymbol<MethodSymbol>();
 
             Assert.True(local.IsIterator);
+            Assert.True(local.GetPublicSymbol().IsIterator);
             Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
 
             model.GetOperation(declaration.Body);
 
             Assert.True(local.IsIterator);
+            Assert.True(local.GetPublicSymbol().IsIterator);
             Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
 
             comp.VerifyDiagnostics(
@@ -2597,6 +2591,319 @@ class Program
             Assert.True(methods[1].Parameters[0].IsParams);
             Assert.False(methods[1].Parameters[1].IsParams);
             Assert.True(methods[1].Parameters[2].IsParams);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute()
+        {
+            var source = """
+                using System;
+                using System.Linq;
+                using System.Reflection;
+
+                int fun(params int[] xs) => xs.Length;
+                Console.WriteLine(fun(4, 5, 6));
+                Console.WriteLine(string.Join("\n", typeof(Program)
+                  .GetMethod("<<Main>$>g__fun|0_0", BindingFlags.Static | BindingFlags.NonPublic)
+                  .GetParameters()
+                  .Single()
+                  .CustomAttributes
+                  .Select(a => a.AttributeType)));
+                """;
+            CompileAndVerify(source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.ParamArrayAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<<Main>$>g__fun|0_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Int32[] xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.True(parameter.IsParamsArray);
+                Assert.False(parameter.IsParamsCollection);
+
+                Assert.DoesNotContain("ParamArrayAttribute", module.TypeNames);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute_ExtensionMethod()
+        {
+            var source = """
+                using System;
+                using System.Linq;
+                using System.Reflection;
+
+                object.M();
+
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            int fun(params int[] xs) => xs.Length;
+                            Console.WriteLine(fun(4, 5, 6));
+                            Console.WriteLine(string.Join("\n", typeof(E)
+                              .GetMethod("<M>g__fun|1_0", BindingFlags.Static | BindingFlags.NonPublic)
+                              .GetParameters()
+                              .Single()
+                              .CustomAttributes
+                              .Select(a => a.AttributeType)));
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.ParamArrayAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("E.<M>g__fun|1_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Int32[] xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.True(parameter.IsParamsArray);
+                Assert.False(parameter.IsParamsCollection);
+
+                Assert.DoesNotContain("ParamArrayAttribute", module.TypeNames);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute_Missing()
+        {
+            var source = """
+                int fun(params int[] xs) => xs.Length;
+                fun(4, 5, 6);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // int fun(params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute_Missing_ExtensionMethod()
+        {
+            var source = """
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            int fun(params int[] xs) => xs.Length;
+                            fun(4, 5, 6);
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //             int fun(params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(7, 21));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute(bool includeAttribute)
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Reflection;
+
+                int fun(params IList<int> xs) => xs.Count;
+                Console.WriteLine(fun(4, 5, 6));
+                Console.WriteLine(string.Join("\n", typeof(Program)
+                  .GetMethod("<<Main>$>g__fun|0_0", BindingFlags.Static | BindingFlags.NonPublic)
+                  .GetParameters()
+                  .Single()
+                  .CustomAttributes
+                  .Select(a => a.AttributeType)));
+                """;
+
+            var r = CreateCompilation(includeAttribute ? TestSources.ParamsCollectionAttribute : "").VerifyDiagnostics().ToMetadataReference();
+
+            CompileAndVerify(source, [r],
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.Runtime.CompilerServices.ParamCollectionAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<<Main>$>g__fun|0_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Collections.Generic.IList<System.Int32> xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.False(parameter.IsParamsArray);
+                Assert.True(parameter.IsParamsCollection);
+
+                Assert.Equal(includeAttribute, !module.TypeNames.Contains("ParamCollectionAttribute"));
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_ExtensionMethod(bool includeAttribute)
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Reflection;
+
+                object.M();
+
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            int fun(params IList<int> xs) => xs.Count;
+                            Console.WriteLine(fun(4, 5, 6));
+                            Console.WriteLine(string.Join("\n", typeof(E)
+                              .GetMethod("<M>g__fun|1_0", BindingFlags.Static | BindingFlags.NonPublic)
+                              .GetParameters()
+                              .Single()
+                              .CustomAttributes
+                              .Select(a => a.AttributeType)));
+                        }
+                    }
+                }
+                """;
+
+            var r = CreateCompilation(includeAttribute ? TestSources.ParamsCollectionAttribute : "").VerifyDiagnostics().ToMetadataReference();
+
+            CompileAndVerify(source, [r],
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.Runtime.CompilerServices.ParamCollectionAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("E.<M>g__fun|1_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Collections.Generic.IList<System.Int32> xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.False(parameter.IsParamsArray);
+                Assert.True(parameter.IsParamsCollection);
+
+                Assert.Equal(includeAttribute, !module.TypeNames.Contains("ParamCollectionAttribute"));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Missing()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        int func(params IList<int> xs) => xs.Count;
+                        func(4, 5, 6);
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+                // (6,18): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         int func(params IList<int> xs) => xs.Count;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IList<int> xs").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(6, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Missing_ExtensionMethod()
+        {
+            var source = """
+                using System.Collections.Generic;
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            int func(params IList<int> xs) => xs.Count;
+                            func(4, 5, 6);
+                        }
+                    }
+                }
+                """;
+            CreateCompilation([source, ExtensionMarkerAttributeDefinition], options: TestOptions.ReleaseModule).VerifyDiagnostics(
+                // (8,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //             int func(params IList<int> xs) => xs.Count;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IList<int> xs").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(8, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Speculative()
+        {
+            // Compile without a need for the attribute.
+            var source1 = """
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source1);
+            var tree1 = comp.SyntaxTrees.Single();
+            var model1 = comp.GetSemanticModel(tree1);
+
+            // Speculatively bind a lambda that needs the attribute.
+            var source2 = """
+                class C
+                {
+                    void M()
+                    {
+                        int func(params System.Collections.Generic.IList<int> xs) => xs.Count;
+                    }
+                }
+                """;
+            var tree2 = CSharpSyntaxTree.ParseText(source2);
+            var method1 = tree1.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var method2 = tree2.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            Assert.True(model1.TryGetSpeculativeSemanticModelForMethodBody(method1.Body.SpanStart, method2, out var model2));
+            var func = tree2.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var symbol = model2.GetDeclaredSymbol(func);
+            Assert.NotNull(symbol);
+            Assert.True(symbol.Parameters.Single().IsParamsCollection);
+
+            // The original compilation does not synthesize the attribute when emitted.
+            Assert.Equal(TypeKind.Error, comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute).TypeKind);
+            CompileAndVerify(comp,
+                symbolValidator: static (module) =>
+                {
+                    Assert.DoesNotContain("ParamCollectionAttribute", module.TypeNames);
+                })
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -5015,10 +5322,8 @@ class C
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "async d => await d").WithLocation(8, 37),
                 // (8,35): error CS8322: Cannot pass argument with dynamic type to generic local function 'L' with inferred type arguments.
                 //             => await L(async m => L(async d => await d, m), p);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L(async d => await d, m)").WithArguments("L").WithLocation(8, 35),
-                // (8,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //             => await L(async m => L(async d => await d, m), p);
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(8, 32));
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L(async d => await d, m)").WithArguments("L").WithLocation(8, 35)
+            );
         }
 
         [Fact]
@@ -7111,7 +7416,7 @@ namespace N
         public void AwaitWithinAsyncOuterScope_01()
         {
             var source =
-@"#pragma warning disable 1998
+@"
 #pragma warning disable 8321
 using System.Threading.Tasks;
 class Program
@@ -7161,7 +7466,7 @@ class Program
         public void AwaitWithinAsyncOuterScope_02()
         {
             var source =
-@"#pragma warning disable 1998
+@"
 #pragma warning disable 8321
 class Program
 {
@@ -10191,7 +10496,6 @@ using System;
 using System.Threading.Tasks;
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
 
 public class C
 {
@@ -10215,9 +10519,9 @@ public class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (14,27): error CS0165: Use of unassigned local variable 'a'
+                // (13,27): error CS0165: Use of unassigned local variable 'a'
                 //         Console.WriteLine(a);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(14, 27)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
                 );
         }
 
@@ -10300,8 +10604,6 @@ public class C
 using System;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-
 public class C
 {
     public async Task M()
@@ -10324,9 +10626,9 @@ public class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,27): error CS0165: Use of unassigned local variable 'a'
+                // (11,27): error CS0165: Use of unassigned local variable 'a'
                 //         Console.WriteLine(a);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
                 );
         }
 
@@ -10708,6 +11010,90 @@ class C(string p)
                 //         static void init() => _field ??= p;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(16, 42)
                 ] : []);
+        }
+
+        [Fact]
+        public void SimpleIteratorLocalFunction()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                #pragma warning disable 8321 // The local function 'X' is declared but never used
+
+                        IEnumerable<int> I1()
+                        {
+                            yield return 1;
+                        }
+
+                        async IAsyncEnumerable<int> I2()
+                        {
+                            await Task.Yield();
+                            yield return 1;
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var localFunctionSyntaxes = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
+
+            var i1Syntax = localFunctionSyntaxes[0];
+            IMethodSymbol i1Symbol = semanticModel.GetDeclaredSymbol(i1Syntax);
+            Assert.True(i1Symbol.IsIterator);
+
+            var i2Syntax = localFunctionSyntaxes[1];
+            IMethodSymbol i2Symbol = semanticModel.GetDeclaredSymbol(i2Syntax);
+            Assert.True(i2Symbol.IsIterator);
+        }
+
+        [Fact]
+        public void LocalFunctionJustReturnsEnumerable_NotIterator()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                #pragma warning disable 8321 // The local function 'X' is declared but never used
+
+                        IEnumerable<int> I1()
+                        {
+                            return [];
+                        }
+
+                        IAsyncEnumerable<int> I2()
+                        {
+                            return default;
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var localFunctionSyntaxes = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
+
+            var i1Syntax = localFunctionSyntaxes[0];
+            IMethodSymbol i1Symbol = semanticModel.GetDeclaredSymbol(i1Syntax);
+            Assert.False(i1Symbol.IsIterator);
+
+            var i2Syntax = localFunctionSyntaxes[1];
+            IMethodSymbol i2Symbol = semanticModel.GetDeclaredSymbol(i2Syntax);
+            Assert.False(i2Symbol.IsIterator);
         }
     }
 }

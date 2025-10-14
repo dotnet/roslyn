@@ -45,15 +45,9 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// </summary>
     private CancellationTokenSource _cancellationTokenSource = new();
     private bool _isDisposed;
-    private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
     private TimeSpan _semanticContextDelay;
     private bool _semanticContextError;
     private bool _semanticContextUsed;
-
-    /// <summary>
-    /// Backing field for <see cref="IsInProgress"/>.
-    /// </summary>
-    private bool _isInProgress = false;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -67,7 +61,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     /// <summary>
     /// Indicates whether a request to get suggestions is in progress.
-    /// The request to get suggestions is comprised of initial short delay, <see cref="AutomaticFetchDelay"/>
+    /// The request to get suggestions is comprised of initial short delay, see AutomaticFetchDelay
     /// and call to <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
     /// When <c>true</c>, the UI shows the progress bar, and prevents <see cref="FetchSuggestions(bool)"/> from making parallel request.
     /// </summary>
@@ -76,15 +70,15 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         get
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            return _isInProgress;
+            return field;
         }
         set
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            _isInProgress = value;
+            field = value;
             NotifyPropertyChanged(nameof(IsInProgress));
         }
-    }
+    } = false;
 
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
@@ -109,20 +103,18 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// </summary>
     public bool IsUsingSemanticContext { get; }
 
-    private string? _selectedSuggestedName;
-
     /// <summary>
     /// The last selected name when user click one of the suggestions. <see langword="null"/> if user hasn't clicked any suggestions.
     /// </summary>
     public string? SelectedSuggestedName
     {
-        get => _selectedSuggestedName;
+        get;
         set
         {
-            if (_selectedSuggestedName != value)
+            if (field != value)
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                _selectedSuggestedName = value;
+                field = value;
                 BaseViewModel.IdentifierText = value ?? string.Empty;
             }
         }
@@ -196,7 +188,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     /// <summary>
     /// The request for rename suggestions. It's made of three parts:
-    /// 1. Short delay of duration <see cref="AutomaticFetchDelay"/>.
+    /// 1. Short delay of duration AutomaticFetchDelay.
     /// 2. Get definition and references if <see cref="IsUsingSemanticContext"/> is set.
     /// 3. Call to <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
     /// </summary>

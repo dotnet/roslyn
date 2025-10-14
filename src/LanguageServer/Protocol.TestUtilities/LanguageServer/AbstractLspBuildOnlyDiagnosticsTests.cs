@@ -36,7 +36,9 @@ public abstract class AbstractLspBuildOnlyDiagnosticsTests
             var enumMembers = ErrorCodeType.GetFields(BindingFlags.Public | BindingFlags.Static);
             var enumMember = enumMembers.First(m => Convert.ToInt32(m.GetValue(null)) == codeValue);
 
-            errorMessage.AppendLine($@"Missing: ""{missingItem}, // {ErrorCodeType.Name}.{enumMember.Name}""");
+            errorMessage.AppendLine($"""
+                Missing: "{missingItem}, // {ErrorCodeType.Name}.{enumMember.Name}"
+                """);
         }
 
         var extra = actualDiagnosticCodes.Except(ExpectedDiagnosticCodes);

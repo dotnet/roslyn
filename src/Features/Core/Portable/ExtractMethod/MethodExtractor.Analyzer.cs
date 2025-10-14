@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -226,7 +227,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 var readonlyFieldStatus = CheckReadOnlyFields(symbolMap);
 
-                var namesWithAnonymousTypes = variables.Where(v => v.OriginalTypeHadAnonymousTypeOrDelegate).Select(v => v.Name ?? string.Empty);
+                var namesWithAnonymousTypes = variables.SelectAsArray(v => v.OriginalTypeHadAnonymousTypeOrDelegate, v => v.Name ?? string.Empty);
                 if (returnTypeHasAnonymousType)
                 {
                     namesWithAnonymousTypes = namesWithAnonymousTypes.Concat("return type");

@@ -266,7 +266,6 @@ function BuildSolution() {
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
   try {
-    # TODO: Remove DotNetBuildRepo property when roslyn is on Arcade 10
     MSBuild $toolsetBuildProj `
       $bl `
       /p:Configuration=$configuration `
@@ -287,7 +286,6 @@ function BuildSolution() {
       /p:IbcOptimizationDataDir=$ibcDir `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-      /p:DotNetBuildRepo=$productBuild `
       /p:DotNetBuild=$productBuild `
       /p:DotNetBuildFromVMR=$fromVMR `
       $suppressExtensionDeployment `
@@ -309,15 +307,7 @@ function GetIbcSourceBranchName() {
   }
 
   function calculate {
-    $fallback = "main"
-
-    $branchData = GetBranchPublishData $officialSourceBranchName
-    if ($branchData -eq $null) {
-      Write-LogIssue -Type "warning" -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'."
-      Write-Host "Override by setting IbcDrop build variable." -ForegroundColor Yellow
-      return $fallback
-    }
-
+    $branchData = GetBranchPublishData
     return $branchData.vsBranch
   }
 
@@ -440,7 +430,7 @@ function TestUsingRunTests() {
     }
 
   } elseif ($testVsi) {
-    $args += " --timeout 110"
+    $args += " --timeout 220"
     $args += " --runtime both"
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"

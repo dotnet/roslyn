@@ -11,29 +11,38 @@ Imports System.Text
 ''' <summary>
 ''' Contains the startup code, command line argument processing, and driving the execution of the tool.
 ''' </summary>
-Friend Module Program
+Public Module Program
     Const exitWithErrors = 1,
-          exitWithoutErrors = 0
+        exitWithoutErrors = 0
 
     Public Function Main(args As String()) As Integer
         Try
-            Dim outputKind As String = Nothing
+            Dim writeSource = True
+            Dim writeTests = False
             Dim paths As New List(Of String)()
             Dim grammar = False
 
             For Each arg In args
                 Dim c = arg.ToLowerInvariant()
-                If c = "/test" OrElse c = "/source" OrElse c = "/gettext" Then
-                    If outputKind IsNot Nothing Then
-                        PrintUsage()
-                        Return exitWithErrors
-                    End If
-                    outputKind = c
+                If c = "/source" Then
+                    writeSource = True
+                    writeTests = False
+                    grammar = False
+                ElseIf c = "/test" Then
+                    writeSource = False
+                    writeTests = True
+                    grammar = False
+                ElseIf c = "/gettext" Then
+                    writeSource = False
+                    writeTests = False
+                    grammar = False
+                ElseIf c = "/grammar" Then
+                    writeSource = False
+                    writeTests = False
+                    grammar = True
                 ElseIf c = "/?" Then
                     PrintUsage()
                     Return exitWithErrors
-                ElseIf c = "/grammar" Then
-                    grammar = True
                 Else
                     paths.Add(arg)
                 End If
@@ -47,21 +56,26 @@ Friend Module Program
             Dim inputFile = paths(0)
             Dim outputFile = paths(1)
 
-            If Not File.Exists(inputFile) Then
-                Console.Error.WriteLine("Input file not found - ""{0}""", inputFile)
+            Return Generate(inputFile, outputFile, writeSource, writeTests, grammar)
 
-                Return exitWithErrors
-            End If
-
-            Return If(grammar,
-                GenerateGrammar(inputFile, outputFile),
-                GenerateSource(outputKind, inputFile, outputFile))
         Catch ex As Exception
             Console.Error.WriteLine("FATAL ERROR: {0}", ex.Message)
             Console.Error.WriteLine(ex.StackTrace)
 
             Return exitWithErrors
         End Try
+    End Function
+
+    Public Function Generate(inputFile As String, outputFile As String, writeSource As Boolean, writeTests As Boolean, writeGrammar As Boolean) As Integer
+        If Not File.Exists(inputFile) Then
+            Console.Error.WriteLine("Input file not found - ""{0}""", inputFile)
+
+            Return exitWithErrors
+        End If
+
+        Return If(writeGrammar,
+            GenerateGrammar(inputFile, outputFile),
+            GenerateSource(writeSource, writeTests, inputFile, outputFile))
     End Function
 
     Private Function GenerateGrammar(inputFile As String, outputFile As String) As Integer
@@ -82,14 +96,14 @@ Friend Module Program
         Return exitWithoutErrors
     End Function
 
-    Private Function GenerateSource(outputKind As String, inputFile As String, outputFile As String) As Integer
+    Private Function GenerateSource(writeSource As Boolean, writeTests As Boolean, inputFile As String, outputFile As String) As Integer
         Dim definition As ParseTree = Nothing
         If Not TryReadDefinition(inputFile, definition) Then
             Return exitWithErrors
         End If
 
         Dim checksum = GetChecksum(inputFile)
-        WriteOutput(inputFile, outputFile, definition, outputKind, checksum)
+        WriteOutput(inputFile, outputFile, definition, writeSource, writeTests, checksum)
 
         Return exitWithoutErrors
     End Function
@@ -120,34 +134,31 @@ Friend Module Program
         Return True
     End Function
 
-    Public Sub WriteOutput(inputFile As String, outputFile As String, definition As ParseTree, outputKind As String, checksum As String)
-        Select Case outputKind
-            Case "/test"
-                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
+    Public Sub WriteOutput(inputFile As String, outputFile As String, definition As ParseTree, writeSource As Boolean, writeTests As Boolean, checksum As String)
+        If writeTests Then
+            Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
 
-                    WriteHeader(output, checksum)
-                    output.WriteLine()
-                    output.WriteLine("Imports System.Collections.Generic")
-                    output.WriteLine("Imports System.Collections.Immutable")
-                    output.WriteLine("Imports System.Runtime.CompilerServices")
-                    output.WriteLine("Imports Microsoft.CodeAnalysis.VisualBasic.Syntax")
-                    output.WriteLine("Imports Roslyn.Utilities")
-                    output.WriteLine("Imports Xunit")
+                WriteHeader(output, checksum)
+                output.WriteLine()
+                output.WriteLine("Imports System.Collections.Generic")
+                output.WriteLine("Imports System.Collections.Immutable")
+                output.WriteLine("Imports System.Runtime.CompilerServices")
+                output.WriteLine("Imports Microsoft.CodeAnalysis.VisualBasic.Syntax")
+                output.WriteLine("Imports Roslyn.Utilities")
+                output.WriteLine("Imports Xunit")
 
-                    Dim testWriter As New TestWriter(definition, checksum)
-                    testWriter.WriteTestCode(output)
-                End Using
-
-            Case "/gettext"
-                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
-                    WriteHeader(output, checksum)
-                    Dim syntaxFactsWriter As New SyntaxFactsWriter(definition)
-                    syntaxFactsWriter.GenerateGetText(output)
-                End Using
-
-            Case Else
-                WriteSyntax(inputFile, outputFile, definition, checksum)
-        End Select
+                Dim testWriter As New TestWriter(definition, checksum)
+                testWriter.WriteTestCode(output)
+            End Using
+        ElseIf writeSource Then
+            WriteSyntax(inputFile, outputFile, definition, checksum)
+        Else
+            Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
+                WriteHeader(output, checksum)
+                Dim syntaxFactsWriter As New SyntaxFactsWriter(definition)
+                syntaxFactsWriter.GenerateGetText(output)
+            End Using
+        End If
     End Sub
 
     Public Sub WriteSyntax(inputFile As String, outputFile As String, definition As ParseTree, checksum As String)

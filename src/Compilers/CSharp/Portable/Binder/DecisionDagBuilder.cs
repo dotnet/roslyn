@@ -9,10 +9,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -685,7 +685,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         builder = ArrayBuilder<Tests>.GetInstance(2);
                         builder.Add(result);
-                        output = @this.MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
+                        var evaluation = new BoundDagTypeEvaluation(bin.Syntax, bin.NarrowedType, input);
+                        output = new BoundDagTemp(bin.Syntax, bin.NarrowedType, evaluation);
+                        builder.Add(new Tests.One(evaluation));
                         return Tests.AndSequence.Create(builder);
                     }
                 }

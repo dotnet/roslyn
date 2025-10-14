@@ -21,9 +21,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class MakeStructMemberReadOnlyTests
 {
     [Fact]
-    public async Task TestEmptyMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyMethod()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -38,57 +37,48 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInClass()
-    {
-        var test = """
+    public Task TestNotInClass()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class S
             {
                 void M() { }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInReadOnlyStruct()
-    {
-        var test = """
+    public Task TestNotInReadOnlyStruct()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             readonly struct S
             {
                 void M() { }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInReadOnlyMember()
-    {
-        var test = """
+    public Task TestNotInReadOnlyMember()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 readonly void M() { }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithAssignmentToThis()
-    {
-        var test = """
+    public Task TestNotWithAssignmentToThis()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 void M()
@@ -96,17 +86,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     this = default;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithThisPassedByRef1()
-    {
-        var test = """
+    public Task TestNotWithThisPassedByRef1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 void M()
@@ -116,17 +103,14 @@ public sealed class MakeStructMemberReadOnlyTests
 
                 static void G(ref S s) { }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithThisPassedByRef2()
-    {
-        var test = """
+    public Task TestNotWithThisPassedByRef2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 void M()
@@ -139,17 +123,12 @@ public sealed class MakeStructMemberReadOnlyTests
             {
                 public static void G(ref this S s) { }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithThisPassedByIn1_A()
-    {
-        await new VerifyCS.Test
+    public Task TestWithThisPassedByIn1_A()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -174,12 +153,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithThisPassedByIn1_B()
-    {
-        await new VerifyCS.Test
+    public Task TestWithThisPassedByIn1_B()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -204,12 +181,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithThisPassedByIn2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithThisPassedByIn2()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -240,12 +215,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithThisPassedByIn3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithThisPassedByIn3()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -270,12 +243,12 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithWriteToField1()
-    {
-        var test = """
+    public Task TestNotWithWriteToField1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -284,17 +257,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     x = 0;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithWriteToField2()
-    {
-        var test = """
+    public Task TestNotWithWriteToField2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -303,17 +273,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     x++;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithWriteToField3()
-    {
-        var test = """
+    public Task TestNotWithWriteToField3()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -324,17 +291,14 @@ public sealed class MakeStructMemberReadOnlyTests
 
                 static void G(ref int x) { }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithWriteToField4()
-    {
-        var test = """
+    public Task TestNotWithWriteToField4()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -345,17 +309,14 @@ public sealed class MakeStructMemberReadOnlyTests
 
                 static void G(out int x) { x = 0; }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithWriteToField5()
-    {
-        var test = """
+    public Task TestNotWithWriteToField5()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -364,17 +325,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     (x, x) = (0, 0);
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithWriteToField6()
-    {
-        var test = """
+    public Task TestNotWithWriteToField6()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct D
             {
                 public int i;
@@ -387,17 +345,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     d.i = 0;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithWriteToField7()
-    {
-        var test = """
+    public Task TestNotWithWriteToField7()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct BitVector
             {
                 int x;
@@ -411,17 +366,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     bits[0] = true;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithWriteToField8()
-    {
-        var test = """
+    public Task TestNotWithWriteToField8()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct BitVector
             {
                 int x;
@@ -435,33 +387,25 @@ public sealed class MakeStructMemberReadOnlyTests
                     (bits[0], bits[1]) = (true, false);
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp7()
-    {
-        var test = """
+    public Task TestNotInCSharp7()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 void M() { }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestPropertyExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -476,28 +420,22 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestPropertyAccessor1()
-    {
-        var test = """
+    public Task TestPropertyAccessor1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int P { get; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestPropertyAccessor2()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyAccessor2()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -512,12 +450,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestIndexerAccessor2()
-    {
-        await new VerifyCS.Test
+    public Task TestIndexerAccessor2()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -532,12 +468,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestPropertyAccessor3()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyAccessor3()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -552,12 +486,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestIndexerAccessor3()
-    {
-        await new VerifyCS.Test
+    public Task TestIndexerAccessor3()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -572,12 +504,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWriteToFieldNotThroughThis()
-    {
-        await new VerifyCS.Test
+    public Task TestWriteToFieldNotThroughThis()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -604,12 +534,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCallToStaticMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestCallToStaticMethod()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -638,12 +566,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRecursiveCall()
-    {
-        await new VerifyCS.Test
+    public Task TestRecursiveCall()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -668,12 +594,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleAccessor()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleAccessor()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -692,12 +616,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleIndexerAccessor()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleIndexerAccessor()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -716,12 +638,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleAccessor_FixOne1()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleAccessor_FixOne1()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -760,12 +680,10 @@ public sealed class MakeStructMemberReadOnlyTests
             """,
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleIndexerAccessor_FixOne1()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleIndexerAccessor_FixOne1()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -804,12 +722,10 @@ public sealed class MakeStructMemberReadOnlyTests
             """,
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleAccessor2()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleAccessor2()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -828,12 +744,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleIndexerAccessor2()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleIndexerAccessor2()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -852,12 +766,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeRefReadOnlyToField()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeRefReadOnlyToField()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -882,12 +794,12 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithAddressOfFieldTaken()
-    {
-        var test = """
+    public Task TestNotWithAddressOfFieldTaken()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -898,17 +810,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithCallToNonReadOnlyMethod()
-    {
-        var test = """
+    public Task TestNotWithCallToNonReadOnlyMethod()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -922,17 +831,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     x = 1;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithCallToNonReadOnlyIndexer()
-    {
-        var test = """
+    public Task TestNotWithCallToNonReadOnlyIndexer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -943,17 +849,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     var v = this[0];
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithCaptureOfNonReadOnlyMethod1()
-    {
-        var test = """
+    public Task TestNotWithCaptureOfNonReadOnlyMethod1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -967,17 +870,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     x = 1;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithCaptureOfNonReadOnlyMethod2()
-    {
-        var test = """
+    public Task TestNotWithCaptureOfNonReadOnlyMethod2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 int x;
@@ -991,18 +891,13 @@ public sealed class MakeStructMemberReadOnlyTests
                     x = 1;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCallToObjectMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestCallToObjectMethod()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -1017,12 +912,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCallToReadOnlyMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestCallToReadOnlyMethod()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -1039,12 +932,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCallToReadOnlyIndexer1()
-    {
-        await new VerifyCS.Test
+    public Task TestCallToReadOnlyIndexer1()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -1071,12 +962,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCallToReadOnlyIndexer2()
-    {
-        await new VerifyCS.Test
+    public Task TestCallToReadOnlyIndexer2()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S
@@ -1103,12 +992,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExplicitInterfaceImpl()
-    {
-        await new VerifyCS.Test
+    public Task TestExplicitInterfaceImpl()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1125,12 +1012,12 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEventMutation()
-    {
-        var testCode = """
+    public Task TestEventMutation()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             struct S
             {
@@ -1141,17 +1028,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     this.E += () => { };
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonReadOnlyMethodCallOnField()
-    {
-        var testCode = """
+    public Task TestNotWithNonReadOnlyMethodCallOnField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct T
             {
                 int i;
@@ -1167,17 +1051,12 @@ public sealed class MakeStructMemberReadOnlyTests
                     t.Dispose();
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithReadOnlyMethodCallOnField()
-    {
-        await new VerifyCS.Test
+    public Task TestWithReadOnlyMethodCallOnField()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct T
@@ -1212,46 +1091,38 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonReadOnlyMethodOnUnconstrainedField()
-    {
-        var testCode = """
+    public Task TestNotWithNonReadOnlyMethodOnUnconstrainedField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             struct T<X> where X : IComparable
             {
                 X x;
                 public void M() { x.CompareTo(null); }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonReadOnlyMethodOnStructConstrainedField()
-    {
-        var testCode = """
+    public Task TestNotWithNonReadOnlyMethodOnStructConstrainedField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             struct T<X> where X : struct, IComparable
             {
                 X x;
                 public void M() { x.CompareTo(null); }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithNonReadOnlyMethodOnClassConstrainedField()
-    {
-        await new VerifyCS.Test
+    public Task TestWithNonReadOnlyMethodOnClassConstrainedField()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1270,27 +1141,24 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithMethodThatOnlyThrows1()
-    {
-        var test = """
+    public Task TestNotWithMethodThatOnlyThrows1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 void M() => throw new System.Exception();
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithMethodThatOnlyThrows2()
-    {
-        var test = """
+    public Task TestNotWithMethodThatOnlyThrows2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 void M()
@@ -1298,17 +1166,14 @@ public sealed class MakeStructMemberReadOnlyTests
                     throw new System.Exception();
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithBadOperation()
-    {
-        var test = """
+    public Task TestNotWithBadOperation()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             struct S
             {
                 void M()
@@ -1316,17 +1181,12 @@ public sealed class MakeStructMemberReadOnlyTests
                     {|CS0103:Goo|}();
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithLinqRewrite()
-    {
-        await new VerifyCS.Test
+    public Task TestWithLinqRewrite()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1353,12 +1213,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67531")]
-    public async Task TestWithFixedSizeBufferField1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithFixedSizeBufferField1()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct Repro
@@ -1374,12 +1232,10 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
-    public async Task TestInlineArraySpan1()
-    {
-        await new VerifyCS.Test
+    public Task TestInlineArraySpan1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1406,12 +1262,10 @@ public sealed class MakeStructMemberReadOnlyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
-    public async Task TestInlineArraySpan2()
-    {
-        await new VerifyCS.Test
+    public Task TestInlineArraySpan2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1440,12 +1294,10 @@ public sealed class MakeStructMemberReadOnlyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
-    public async Task TestInlineArraySpan2_A()
-    {
-        await new VerifyCS.Test
+    public Task TestInlineArraySpan2_A()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1474,12 +1326,10 @@ public sealed class MakeStructMemberReadOnlyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
-    public async Task TestInlineArraySpan3()
-    {
-        await new VerifyCS.Test
+    public Task TestInlineArraySpan3()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1532,12 +1382,10 @@ public sealed class MakeStructMemberReadOnlyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
-    public async Task TestInlineArraySpan3_A()
-    {
-        await new VerifyCS.Test
+    public Task TestInlineArraySpan3_A()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1590,12 +1438,10 @@ public sealed class MakeStructMemberReadOnlyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
-    public async Task TestInlineArraySpan4()
-    {
-        await new VerifyCS.Test
+    public Task TestInlineArraySpan4()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1648,12 +1494,10 @@ public sealed class MakeStructMemberReadOnlyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
-    public async Task TestInlineArraySpan4_A()
-    {
-        await new VerifyCS.Test
+    public Task TestInlineArraySpan4_A()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1706,12 +1550,10 @@ public sealed class MakeStructMemberReadOnlyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference0()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference0()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct Cell(short value)
@@ -1726,12 +1568,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference1()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct Cell(short value)
@@ -1746,12 +1586,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference2()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct Cell(short value)
@@ -1766,12 +1604,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference3()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct Point
@@ -1789,12 +1625,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference4()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct Point
@@ -1812,12 +1646,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference5()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct Point
@@ -1837,12 +1669,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference6()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct Point
@@ -1878,12 +1708,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference7()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference7()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct Cell(int value)
@@ -1905,12 +1733,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference8()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference8()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct Cell(string value)
@@ -1923,12 +1749,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference9()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference9()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Point
@@ -1964,12 +1788,10 @@ public sealed class MakeStructMemberReadOnlyTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference10()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference10()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Point
@@ -2005,12 +1827,10 @@ public sealed class MakeStructMemberReadOnlyTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference11()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference11()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2036,12 +1856,10 @@ public sealed class MakeStructMemberReadOnlyTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference12()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference12()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2056,12 +1874,10 @@ public sealed class MakeStructMemberReadOnlyTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
-    public async Task TestPrimaryConstructorParameterReference13()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterReference13()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2076,12 +1892,10 @@ public sealed class MakeStructMemberReadOnlyTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
-    public async Task TestInitAccessor1()
-    {
-        await new VerifyCS.Test
+    public Task TestInitAccessor1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2104,12 +1918,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
-    public async Task TestInitAccessor2()
-    {
-        await new VerifyCS.Test
+    public Task TestInitAccessor2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2148,12 +1960,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
-    public async Task TestInitAccessor3()
-    {
-        await new VerifyCS.Test
+    public Task TestInitAccessor3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2175,12 +1985,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
-    public async Task TestInitAccessor4()
-    {
-        await new VerifyCS.Test
+    public Task TestInitAccessor4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2215,12 +2023,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
-    public async Task TestOnInlineArray()
-    {
-        await new VerifyCS.Test
+    public Task TestOnInlineArray()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2263,12 +2069,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
-    public async Task TestOnInlineArrayCapturedIntoReadOnlySpan()
-    {
-        await new VerifyCS.Test
+    public Task TestOnInlineArrayCapturedIntoReadOnlySpan()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2313,12 +2117,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
-    public async Task TestOnInlineArrayRead()
-    {
-        await new VerifyCS.Test
+    public Task TestOnInlineArrayRead()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2363,12 +2165,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
-    public async Task TestOnInlineArrayReadSafe()
-    {
-        await new VerifyCS.Test
+    public Task TestOnInlineArrayReadSafe()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2423,12 +2223,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
-    public async Task TestOnInlineArrayReadUnsafe()
-    {
-        await new VerifyCS.Test
+    public Task TestOnInlineArrayReadUnsafe()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2459,12 +2257,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
-    public async Task TestNotOnInlineArrayCapturedIntoSpan()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnInlineArrayCapturedIntoSpan()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2489,12 +2285,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
-    public async Task TestNotOnInlineArrayWrittenInfo()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnInlineArrayWrittenInfo()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2519,12 +2313,10 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
-    public async Task TestMultipleAccessors()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleAccessors()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct S
@@ -2553,5 +2345,33 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79384")]
+    public Task TestSpanFromInlineArray()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Runtime.CompilerServices;
+
+                public struct Example
+                {
+                    private Buffer _buffer;
+
+                    public void Set(int index, int value)
+                    {
+                        var bufferSpan = _buffer[..0];
+
+                        bufferSpan[0] = value;
+                    }
+                }
+
+                [InlineArray(1)]
+                public struct Buffer
+                {
+                    private int _element0;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
 }

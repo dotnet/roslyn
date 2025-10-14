@@ -422,6 +422,11 @@
         <target state="translated">更新歸併時發生錯誤: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Experimental_feature">
+        <source>Experimental feature</source>
+        <target state="new">Experimental feature</target>
+        <note>This is used by the settings UI to mark experimental features.</note>
+      </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
         <target state="translated">外部來源</target>
@@ -1115,6 +1120,11 @@
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">優先使用唯讀欄位</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_property_accessors">
+        <source>Prefer simple property accessors</source>
+        <target state="new">Prefer simple property accessors</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">

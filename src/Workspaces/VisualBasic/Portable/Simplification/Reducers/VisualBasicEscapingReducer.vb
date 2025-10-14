@@ -4,7 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -124,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             ' escape contextual query keywords if they are the first token after a query expression 
             ' and on the following line
             Dim previousToken = identifier.GetPreviousToken(False, False, True, True)
-            Dim queryAncestorOfPrevious = previousToken.GetAncestors(Of QueryExpressionSyntax).FirstOrDefault()
+            Dim queryAncestorOfPrevious = previousToken.GetAncestor(Of QueryExpressionSyntax)
             If queryAncestorOfPrevious IsNot Nothing AndAlso queryAncestorOfPrevious.GetLastToken() = previousToken Then
                 lastTokenOfQuery = previousToken
 
@@ -163,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     ' if this token is part of a XmlDocument, all trailing whitespace is part of the XmlDocument
                     ' so all line breaks actually will not help.
                     ' see VB spec #11.23.3
-                    If previousToken.GetAncestors(Of XmlDocumentSyntax).FirstOrDefault() IsNot Nothing Then
+                    If previousToken.GetAncestor(Of XmlDocumentSyntax) IsNot Nothing Then
                         Return identifier
                     End If
 

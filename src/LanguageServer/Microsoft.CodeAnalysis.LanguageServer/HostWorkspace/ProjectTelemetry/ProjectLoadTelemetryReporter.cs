@@ -103,8 +103,7 @@ internal sealed class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory,
         var sourceFiles = projectFileInfo.Documents
             .Concat(projectFileInfo.AdditionalDocuments)
             .Concat(projectFileInfo.AnalyzerConfigDocuments)
-            .Where(d => !d.IsGenerated)
-            .SelectAsArray(d => d.FilePath);
+            .SelectAsArray(d => !d.IsGenerated, d => d.FilePath);
         var allFiles = contentFiles.Concat(sourceFiles);
         var fileCounts = new Dictionary<string, int>();
         foreach (var file in allFiles)

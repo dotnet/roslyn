@@ -28,9 +28,8 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        var input = """
+    public Task TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -109,9 +108,7 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -190,17 +187,13 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        var input = """
+    public Task TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -267,9 +260,7 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -336,17 +327,13 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        var input = """
+    public Task TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -413,9 +400,7 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -482,9 +467,6 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
     #endregion
 }

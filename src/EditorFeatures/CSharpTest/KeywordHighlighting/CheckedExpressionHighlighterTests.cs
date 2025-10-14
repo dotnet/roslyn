@@ -19,9 +19,8 @@ public sealed class CheckedExpressionHighlighterTests : AbstractCSharpKeywordHig
         => typeof(CheckedExpressionHighlighter);
 
     [Fact]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -43,12 +42,10 @@ public sealed class CheckedExpressionHighlighterTests : AbstractCSharpKeywordHig
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_1()
-    {
-        await TestAsync(
+    public Task TestExample2_1()
+        => TestAsync(
             """
             class C
             {
@@ -61,5 +58,4 @@ public sealed class CheckedExpressionHighlighterTests : AbstractCSharpKeywordHig
                 }
             }
             """);
-    }
 }

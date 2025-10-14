@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,7 +28,6 @@ internal interface IRemoteRenamerService
         SerializableSymbolAndProjectId symbolAndProjectId,
         string replacementText,
         SymbolRenameOptions options,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
@@ -41,7 +41,6 @@ internal interface IRemoteRenamerService
         SerializableSymbolAndProjectId symbolAndProjectId,
         SerializableRenameLocations renameLocationSet,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
 }
 
@@ -87,7 +86,9 @@ internal readonly struct SerializableRenameLocation(
 
     public async ValueTask<RenameLocation> RehydrateAsync(Solution solution, CancellationToken cancellation)
     {
-        var document = solution.GetRequiredDocument(DocumentId);
+        var document = await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true, cancellation).ConfigureAwait(false);
+        Contract.ThrowIfTrue(DocumentId.IsSourceGenerated && !document.IsRazorSourceGeneratedDocument());
+
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellation).ConfigureAwait(false);
 
         return new RenameLocation(

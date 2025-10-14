@@ -1040,9 +1040,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return TryCast(node, ConditionalAccessExpressionSyntax)
         End Function
 
-        ''' <summary>
-        ''' <see cref="ISyntaxFacts.GetRootConditionalAccessExpression"/>
-        ''' </summary>
         <Extension>
         Friend Function GetRootConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
             ' Once we've walked up the entire RHS, now we continually walk up the conditional accesses until we're at
@@ -1294,6 +1291,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Else
                 Return node
             End If
+        End Function
+
+        Friend Function GetAccessorList(declaration As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
+            Select Case declaration.Kind
+                Case SyntaxKind.PropertyBlock
+                    Return DirectCast(declaration, PropertyBlockSyntax).Accessors
+                Case SyntaxKind.EventBlock
+                    Return DirectCast(declaration, EventBlockSyntax).Accessors
+                Case Else
+                    Return Nothing
+            End Select
         End Function
     End Module
 End Namespace

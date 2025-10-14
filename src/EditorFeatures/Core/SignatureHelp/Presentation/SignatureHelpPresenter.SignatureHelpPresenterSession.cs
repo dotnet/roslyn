@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -97,10 +98,7 @@ internal sealed partial class SignatureHelpPresenter
                 Contract.ThrowIfNull(_signatureMap);
 
                 var defaultValue = _signatureMap.GetValueOrDefault(_selectedItem);
-                if (_editorSessionOpt != null)
-                {
-                    _editorSessionOpt.SelectedSignature = defaultValue;
-                }
+                _editorSessionOpt?.SelectedSignature = defaultValue;
             }
             finally
             {

@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 Imports RoslynCompletion = Microsoft.CodeAnalysis.Completion

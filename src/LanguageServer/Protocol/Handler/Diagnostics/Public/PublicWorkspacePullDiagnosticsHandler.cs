@@ -85,14 +85,14 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler(
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {
-        return diagnosticsParams.PreviousResultId.Select(id => new PreviousPullResult
+        return diagnosticsParams.PreviousResultId.SelectAsArray(id => new PreviousPullResult
         {
             PreviousResultId = id.Value,
             TextDocument = new TextDocumentIdentifier
             {
                 DocumentUri = id.Uri
             }
-        }).ToImmutableArray();
+        });
     }
 
     internal override TestAccessor GetTestAccessor() => new(this);

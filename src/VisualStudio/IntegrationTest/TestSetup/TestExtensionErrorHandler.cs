@@ -22,12 +22,6 @@ public sealed class TestExtensionErrorHandler : IExtensionErrorHandler
 
     public void HandleError(object sender, Exception exception)
     {
-        if (exception.Message == "RemotePartyTerminated" && new System.Diagnostics.StackTrace().ToString().Contains("CodeLens") ||
-            exception.Message == "Cannot access a disposed object.\r\nObject name: 'CodeLensHubClient'.")
-        {
-            return;
-        }
-
         FatalError.ReportAndPropagate(exception);
         TestTraceListener.Instance.AddException(exception);
     }

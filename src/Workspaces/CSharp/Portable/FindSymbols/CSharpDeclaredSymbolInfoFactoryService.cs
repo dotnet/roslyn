@@ -24,6 +24,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.FindSymbols;
 
+using static FindSymbolsUtilities;
+
 [ExportLanguageService(typeof(IDeclaredSymbolInfoFactoryService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService<
     CompilationUnitSyntax,
@@ -232,15 +234,7 @@ internal sealed class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredS
             fullyQualifiedContainerName,
             typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
             typeDeclaration.AttributeLists.Any(),
-            typeDeclaration.Kind() switch
-            {
-                SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
-                SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
-                SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
-                SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
-                SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
-                _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
-            },
+            GetDeclaredSymbolInfoKind(typeDeclaration),
             GetAccessibility(container, typeDeclaration.Modifiers),
             typeDeclaration.Identifier.Span,
             GetInheritanceNames(stringTable, typeDeclaration.BaseList),
@@ -599,50 +593,6 @@ internal sealed class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredS
 
     protected override string GetFullyQualifiedContainerName(MemberDeclarationSyntax node, string rootNamespace)
         => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
-
-    private static Accessibility GetAccessibility(SyntaxNode container, SyntaxTokenList modifiers)
-    {
-        var sawInternal = false;
-        foreach (var modifier in modifiers)
-        {
-            switch (modifier.Kind())
-            {
-                case SyntaxKind.PublicKeyword: return Accessibility.Public;
-                case SyntaxKind.PrivateKeyword: return Accessibility.Private;
-                case SyntaxKind.ProtectedKeyword: return Accessibility.Protected;
-                case SyntaxKind.InternalKeyword:
-                    sawInternal = true;
-                    continue;
-            }
-        }
-
-        if (sawInternal)
-            return Accessibility.Internal;
-
-        // No accessibility modifiers:
-        switch (container.Kind())
-        {
-            case SyntaxKind.ClassDeclaration:
-            case SyntaxKind.RecordDeclaration:
-            case SyntaxKind.StructDeclaration:
-            case SyntaxKind.RecordStructDeclaration:
-                // Anything without modifiers is private if it's in a class/struct declaration.
-                return Accessibility.Private;
-            case SyntaxKind.InterfaceDeclaration:
-                // Anything without modifiers is public if it's in an interface declaration.
-                return Accessibility.Public;
-            case SyntaxKind.CompilationUnit:
-                // Things are private by default in script
-                if (((CSharpParseOptions)container.SyntaxTree.Options).Kind == SourceCodeKind.Script)
-                    return Accessibility.Private;
-
-                return Accessibility.Internal;
-
-            default:
-                // Otherwise it's internal
-                return Accessibility.Internal;
-        }
-    }
 
     private static string GetTypeName(TypeSyntax type)
     {
