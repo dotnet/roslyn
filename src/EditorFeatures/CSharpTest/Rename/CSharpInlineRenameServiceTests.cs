@@ -122,4 +122,38 @@ public sealed class CSharpInlineRenameServiceTests
         // Verify that rename is allowed (not error)
         Assert.True(inlineRenameInfo.CanRename, "Anonymous type member should be renameable");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/883")]
+    public async Task VerifyAnonymousTypeInferredMemberRenameIsAllowed()
+    {
+        var markup = """
+            using System;
+            
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var obj = new MyClass { Member = 42 };
+                    var x = new { obj.M$$ember };
+                    Console.WriteLine(x.Member);
+                }
+            }
+
+            class MyClass
+            {
+                public int Member { get; set; }
+            }
+            """;
+
+        using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+
+        var documentId = workspace.Documents.Single().Id;
+        var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
+        var inlineRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+        MarkupTestFile.GetPosition(markup, out _, out int cursorPosition);
+        var inlineRenameInfo = await inlineRenameService.GetRenameInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(false);
+
+        // Verify that rename is allowed (not error)
+        Assert.True(inlineRenameInfo.CanRename, "Anonymous type inferred member should be renameable");
+    }
 }
