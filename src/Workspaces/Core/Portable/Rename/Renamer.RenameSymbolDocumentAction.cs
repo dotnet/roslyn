@@ -71,7 +71,6 @@ public static partial class Renamer
         {
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var typeDeclarations = syntaxRoot.DescendantNodesAndSelf(n => !syntaxFacts.IsMethodBody(n)).Where(syntaxFacts.IsTypeDeclaration);
             
@@ -81,12 +80,18 @@ public static partial class Renamer
                 return simpleMatch;
             
             // Then check for nested type match (e.g., "Outer.Inner.cs" with type Inner inside Outer)
-            foreach (var declaration in typeDeclarations)
+            // Only do this check if the document name contains a dot (indicating potential nested type naming)
+            var documentTypeName = WorkspacePathUtilities.GetTypeNameFromDocumentName(document);
+            if (documentTypeName != null && documentTypeName.Contains('.'))
             {
-                var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
-                if (symbol != null && WorkspacePathUtilities.SymbolMatchesDocumentName(document, symbol))
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var declaration in typeDeclarations)
                 {
-                    return declaration;
+                    var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+                    if (symbol != null && WorkspacePathUtilities.SymbolMatchesDocumentName(document, symbol))
+                    {
+                        return declaration;
+                    }
                 }
             }
             

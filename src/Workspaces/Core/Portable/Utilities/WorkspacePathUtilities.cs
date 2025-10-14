@@ -108,7 +108,7 @@ internal static class WorkspacePathUtilities
         var typeHierarchy = GetTypeHierarchy(typeSymbol);
         
         // Build the new type hierarchy by replacing the renamed symbol's name
-        var newTypeHierarchy = typeHierarchy.Select(t => t.Equals(typeSymbol) ? newName : t.Name);
+        var newTypeHierarchy = typeHierarchy.Select(t => SymbolEqualityComparer.Default.Equals(t, typeSymbol) ? newName : t.Name);
         var newDocumentTypeName = string.Join(".", newTypeHierarchy);
         
         // Get the file extension from the original document
