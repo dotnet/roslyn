@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.TestSourceGenerator;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
-using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
@@ -181,7 +180,8 @@ public sealed class CSharpSourceGenerators()
         Assert.Equal(HelloWorldGenerator.GeneratedFolderClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/77895")]
+    [IdeFact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77895")]
     public async Task GoToDefinitionWithPartialUserAndGeneratedCode()
     {
         // This test verifies that when a type has both user code and generated code definitions,
