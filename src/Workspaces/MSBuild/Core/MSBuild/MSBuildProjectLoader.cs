@@ -279,7 +279,7 @@ public partial class MSBuildProjectLoader
         // The logger.Parameters could contain more than just the filename, such as "ProjectImports" or "OmitInitialInfo".
         // Attempt to get the parsed filname directly from the logger if possible.
         var fileNameProperty = logger.GetType().GetProperty("FileName");
-        fileName = (string?)fileNameProperty?.GetValue(logger) ?? logger.Parameters;
+        fileName = fileNameProperty?.GetValue(logger) as string? ?? logger.Parameters;
         return true;
     }
 
