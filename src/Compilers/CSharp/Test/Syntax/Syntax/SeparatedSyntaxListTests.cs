@@ -320,5 +320,45 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Equal(2, newList.SeparatorCount);
             Assert.Equal(1, newList.GetSeparator(1).GetLeadingTrivia().Count);
         }
+
+        [Fact]
+        public void ReplaceSeparator_ThrowsArgumentExceptionWithProperMessage_WhenSeparatorNotFound()
+        {
+            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
+                new[] {
+                    SyntaxFactory.IdentifierName("A"),
+                    SyntaxFactory.IdentifierName("B"),
+                    SyntaxFactory.IdentifierName("C"),
+                });
+
+            var badToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+            var newSeparator = SyntaxFactory.Token(SyntaxKind.CommaToken);
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                list.ReplaceSeparator(badToken, newSeparator));
+
+            Assert.Equal("separatorToken", exception.ParamName);
+            Assert.Contains("item specified is not the element of a list", exception.Message);
+        }
+
+        [Fact]
+        public void ReplaceSeparator_ThrowsArgumentExceptionWithProperMessage_WhenNewSeparatorHasWrongKind()
+        {
+            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
+                new[] {
+                    SyntaxFactory.IdentifierName("A"),
+                    SyntaxFactory.IdentifierName("B"),
+                    SyntaxFactory.IdentifierName("C"),
+                });
+
+            var firstSep = list.GetSeparator(0);
+            var wrongSep = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                list.ReplaceSeparator(firstSep, wrongSep));
+
+            Assert.Equal("newSeparator", exception.ParamName);
+            Assert.Contains("must have the same RawKind and Language", exception.Message);
+        }
     }
 }
