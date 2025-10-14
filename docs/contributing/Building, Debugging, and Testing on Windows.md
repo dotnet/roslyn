@@ -194,7 +194,7 @@ under `AppData`, not from `Program File`).
 2. `build.cmd -pack -c Release` on your `roslyn` repo
     - Note that `-c Debug` can also be used (along with changing `Release` to `Debug` in `RestoreAdditionalProjectSources` property value below). This will allow checking the compiler's debug assertions when building the runtime.
     - It's good for us to investigate scenarios where compiling the runtime libraries causes the compiler's debug assertions to fail. However, assertion failures can obscure whether or not the compiler ultimately succeeds at building the runtime and producing correct binaries. So, if the goal is to only check for "functional breaks", then using a Release mode compiler to start with can be preferable.
-3. Open your NuGet package cache (its location is likely `%NUGET_PACKAGES%\microsoft.net.compilers.toolset` or `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset`).
+3. Find the compiler toolset in your NuGet package cache (its location is likely `%NUGET_PACKAGES%\microsoft.net.compilers.toolset` or `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset`).
 4. If there is a toolset version in the NuGet cache with the same version as the toolset you just packed in Roslyn, delete the toolset version from the cache. This allows NuGet to pick up the new packages you just created locally instead of using a stale cached version.
 5. Modify your local enlistment of `runtime` similarly to [this commit](https://github.com/RikkiGibson/runtime/commit/runtime-local-roslyn-build-example) then build again
     - add `<RestoreAdditionalProjectSources><PATH-TO-YOUR-ROSLYN-ENLISTMENT>\artifacts\packages\Release\Shipping\</RestoreAdditionalProjectSources>` using the local path to your `roslyn` repo to `Directory.Build.props`
