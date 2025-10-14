@@ -64,15 +64,33 @@ public static partial class Renamer
 
         /// <summary>
         /// Finds a matching type such that the display name of the type matches the name passed in, ignoring case. Case isn't used because
-        /// documents with name "Foo.cs" and "foo.cs" should still have the same type name
+        /// documents with name "Foo.cs" and "foo.cs" should still have the same type name.
+        /// Also supports nested types following the Outer.Inner.cs convention.
         /// </summary>
         private static async Task<SyntaxNode?> GetMatchingTypeDeclarationAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var typeDeclarations = syntaxRoot.DescendantNodesAndSelf(n => !syntaxFacts.IsMethodBody(n)).Where(syntaxFacts.IsTypeDeclaration);
-            return typeDeclarations.FirstOrDefault(d => WorkspacePathUtilities.TypeNameMatchesDocumentName(document, d, syntaxFacts));
+            
+            // First check for simple type name match (e.g., "Foo.cs" with type "Foo")
+            var simpleMatch = typeDeclarations.FirstOrDefault(d => WorkspacePathUtilities.TypeNameMatchesDocumentName(document, d, syntaxFacts));
+            if (simpleMatch != null)
+                return simpleMatch;
+            
+            // Then check for nested type match (e.g., "Outer.Inner.cs" with type Inner inside Outer)
+            foreach (var declaration in typeDeclarations)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+                if (symbol != null && WorkspacePathUtilities.SymbolMatchesDocumentName(document, symbol))
+                {
+                    return declaration;
+                }
+            }
+            
+            return null;
         }
 
         public static async Task<RenameSymbolDocumentAction?> TryCreateAsync(Document document, string newName, CancellationToken cancellationToken)
@@ -106,7 +124,20 @@ public static partial class Renamer
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetDeclaredSymbol(matchingDeclaration, cancellationToken);
 
-            if (symbol is null || WorkspacePathUtilities.TypeNameMatchesDocumentName(documentWithNewName, symbol.Name))
+            if (symbol is null)
+            {
+                return null;
+            }
+
+            // Check if the type already matches the new document name (no rename needed)
+            // For simple types: "Foo.cs" -> type "Foo"
+            if (WorkspacePathUtilities.TypeNameMatchesDocumentName(documentWithNewName, symbol.Name))
+            {
+                return null;
+            }
+
+            // For nested types: "Outer.Inner.cs" -> type Inner inside Outer
+            if (WorkspacePathUtilities.SymbolMatchesDocumentName(documentWithNewName, symbol))
             {
                 return null;
             }

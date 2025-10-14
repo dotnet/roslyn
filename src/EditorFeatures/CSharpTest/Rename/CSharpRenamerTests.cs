@@ -410,4 +410,124 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
             <h3>Component1</h3>
             @code {}
             """, "Component1.razor", newDocumentName: "MyComponent.razor");
+
+    [Fact]
+    public Task CSharp_RenameDocument_NestedType_RenameInner()
+        => TestRenameDocument(
+            """
+            partial class Outer
+            {
+                class Inner {}
+            }
+            """,
+            """
+            partial class Outer
+            {
+                class Foo {}
+            }
+            """,
+            documentName: "Outer.Inner.cs",
+            newDocumentName: "Outer.Foo.cs");
+
+    [Fact]
+    public Task CSharp_RenameDocument_NestedType_RenameOuter()
+        => TestRenameDocument(
+            """
+            partial class Outer
+            {
+                class Inner {}
+            }
+            """,
+            """
+            partial class Bar
+            {
+                class Inner {}
+            }
+            """,
+            documentName: "Outer.Inner.cs",
+            newDocumentName: "Bar.Inner.cs");
+
+    [Fact]
+    public Task CSharp_RenameDocument_NestedType_ThreeLevels()
+        => TestRenameDocument(
+            """
+            class A
+            {
+                class B
+                {
+                    class C {}
+                }
+            }
+            """,
+            """
+            class A
+            {
+                class B
+                {
+                    class D {}
+                }
+            }
+            """,
+            documentName: "A.B.C.cs",
+            newDocumentName: "A.B.D.cs");
+
+    [Fact]
+    public Task CSharp_RenameDocument_NestedType_ThreeLevels_RenameMiddle()
+        => TestRenameDocument(
+            """
+            class A
+            {
+                class B
+                {
+                    class C {}
+                }
+            }
+            """,
+            """
+            class A
+            {
+                class X
+                {
+                    class C {}
+                }
+            }
+            """,
+            documentName: "A.B.C.cs",
+            newDocumentName: "A.X.C.cs");
+
+    [Fact]
+    public Task CSharp_RenameDocument_NestedType_NoRenameWhenNotMatching()
+        => TestEmptyActionSet(
+            """
+            partial class Outer
+            {
+                class DifferentInner {}
+            }
+            """,
+            documentName: "Outer.Inner.cs",
+            newDocumentName: "Outer.Foo.cs");
+
+    [Fact]
+    public Task CSharp_RenameDocument_NestedType_WithNamespace()
+        => TestRenameDocument(
+            """
+            namespace Test.Namespace
+            {
+                partial class Outer
+                {
+                    class Inner {}
+                }
+            }
+            """,
+            """
+            namespace Test.Namespace
+            {
+                partial class Outer
+                {
+                    class Foo {}
+                }
+            }
+            """,
+            documentName: "Outer.Inner.cs",
+            newDocumentName: "Outer.Foo.cs");
 }

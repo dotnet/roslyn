@@ -163,9 +163,19 @@ internal abstract partial class AbstractEditorInlineRenameService
                 // the name with the symbol name. If they match allow
                 // rename file rename as part of the symbol rename
                 var symbolSourceDocument = this.Document.Project.Solution.GetDocument(RenameSymbol.Locations.Single().SourceTree);
-                if (symbolSourceDocument != null && WorkspacePathUtilities.TypeNameMatchesDocumentName(symbolSourceDocument, RenameSymbol.Name))
+                if (symbolSourceDocument != null)
                 {
-                    return InlineRenameFileRenameInfo.Allowed;
+                    // First check if the simple type name matches (e.g., "Foo.cs" with type "Foo")
+                    if (WorkspacePathUtilities.TypeNameMatchesDocumentName(symbolSourceDocument, RenameSymbol.Name))
+                    {
+                        return InlineRenameFileRenameInfo.Allowed;
+                    }
+                    
+                    // Also check if this is a nested type following the Outer.Inner.cs convention
+                    if (WorkspacePathUtilities.SymbolMatchesDocumentName(symbolSourceDocument, RenameSymbol))
+                    {
+                        return InlineRenameFileRenameInfo.Allowed;
+                    }
                 }
 
                 return InlineRenameFileRenameInfo.TypeDoesNotMatchFileName;

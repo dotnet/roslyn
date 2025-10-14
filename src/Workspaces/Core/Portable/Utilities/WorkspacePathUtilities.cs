@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -42,5 +44,78 @@ internal static class WorkspacePathUtilities
         }
 
         return IOUtilities.PerformIO(() => Path.GetFileNameWithoutExtension(document.Name));
+    }
+
+    /// <summary>
+    /// Checks if a symbol (potentially nested) matches a document name using the Outer.Inner.cs convention.
+    /// For example, a nested type "Inner" within "Outer" would match a document named "Outer.Inner.cs".
+    /// </summary>
+    /// <param name="document">The document to check against</param>
+    /// <param name="symbol">The type symbol to match</param>
+    /// <returns>True if the symbol's fully qualified name matches the document name pattern</returns>
+    public static bool SymbolMatchesDocumentName(Document document, ISymbol symbol)
+    {
+        if (symbol is not INamedTypeSymbol typeSymbol)
+            return false;
+
+        var documentTypeName = GetTypeNameFromDocumentName(document);
+        if (documentTypeName is null)
+            return false;
+
+        // Get the type hierarchy (e.g., [Outer, Inner] for Outer.Inner)
+        var typeHierarchy = GetTypeHierarchy(typeSymbol);
+        
+        // Join with dots to create the expected pattern
+        var fullTypeName = string.Join(".", typeHierarchy.Select(t => t.Name));
+        
+        return fullTypeName.Equals(documentTypeName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Gets the hierarchy of types from outermost to innermost for a nested type.
+    /// For example, for A.B.C, returns [A, B, C].
+    /// </summary>
+    private static List<INamedTypeSymbol> GetTypeHierarchy(INamedTypeSymbol typeSymbol)
+    {
+        var hierarchy = new List<INamedTypeSymbol>();
+        var current = typeSymbol;
+        
+        while (current is not null)
+        {
+            hierarchy.Insert(0, current);
+            current = current.ContainingType;
+        }
+        
+        return hierarchy;
+    }
+
+    /// <summary>
+    /// Gets the new document name when renaming a type that follows the Outer.Inner.cs convention.
+    /// </summary>
+    /// <param name="document">The current document</param>
+    /// <param name="symbol">The type symbol being renamed</param>
+    /// <param name="newName">The new name for the symbol</param>
+    /// <returns>The new document name, or null if the document doesn't follow the convention</returns>
+    public static string? GetNewDocumentNameForSymbolRename(Document document, ISymbol symbol, string newName)
+    {
+        if (symbol is not INamedTypeSymbol typeSymbol)
+            return null;
+
+        var documentTypeName = GetTypeNameFromDocumentName(document);
+        if (documentTypeName is null)
+            return null;
+
+        var typeHierarchy = GetTypeHierarchy(typeSymbol);
+        
+        // Build the new type hierarchy by replacing the renamed symbol's name
+        var newTypeHierarchy = typeHierarchy.Select(t => t.Equals(typeSymbol) ? newName : t.Name);
+        var newDocumentTypeName = string.Join(".", newTypeHierarchy);
+        
+        // Get the file extension from the original document
+        var extension = IOUtilities.PerformIO(() => Path.GetExtension(document.Name));
+        if (extension is null)
+            return null;
+
+        return newDocumentTypeName + extension;
     }
 }
