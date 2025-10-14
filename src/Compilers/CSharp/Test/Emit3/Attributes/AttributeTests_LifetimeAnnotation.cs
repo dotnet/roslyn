@@ -560,6 +560,66 @@ R Program.<>c.<Main>b__0_1(scoped R r)
                 });
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78491")]
+        public void EmitAttribute_ExtensionMethodParameters_ScopedInThis()
+        {
+            var source =
+@"static class Extensions
+{
+    public static void F(scoped in this int i) { }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"void Extensions.F(this scoped in System.Int32 i)
+    [ScopedRef] scoped in System.Int32 i
+";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
+                AssertScopedRefAttributes(module, expected);
+            });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78491")]
+        public void EmitAttribute_ExtensionMethodParameters_ScopedRefThis()
+        {
+            var source =
+@"static class Extensions
+{
+    public static void F(scoped ref this int i) { }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"void Extensions.F(this scoped ref System.Int32 i)
+    [ScopedRef] scoped ref System.Int32 i
+";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
+                AssertScopedRefAttributes(module, expected);
+            });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78491")]
+        public void EmitAttribute_ExtensionMethodParameters_ScopedRefReadonlyThis()
+        {
+            var source =
+@"static class Extensions
+{
+    public static void F(scoped ref readonly this int i) { }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"void Extensions.F(this scoped ref readonly System.Int32 i)
+    [ScopedRef] scoped ref readonly System.Int32 i
+";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
+                AssertScopedRefAttributes(module, expected);
+            });
+        }
+
         private static void AssertScopedRefAttributes(ModuleSymbol module, string expected)
         {
             var actual = ScopedRefAttributesVisitor.GetString((PEModuleSymbol)module);
