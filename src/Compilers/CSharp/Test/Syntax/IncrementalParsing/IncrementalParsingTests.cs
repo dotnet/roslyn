@@ -854,7 +854,7 @@ class C
     extension(object x) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("extension", "class D");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify();
@@ -912,7 +912,7 @@ class C
     extension(object) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("extension", "class D");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify(
@@ -979,7 +979,7 @@ class C
     extension E(object x) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("extension", "class");
             oldTree.GetDiagnostics().Verify(
                 // (4,15): error CS9281: Extension declarations may not have a name.
@@ -1040,7 +1040,7 @@ class C
     class D(object x) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("class D", "extension");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify();
@@ -1049,7 +1049,7 @@ class C
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.ExtensionDeclaration,
+                            SyntaxKind.ExtensionBlockDeclaration,
                             SyntaxKind.ExtensionKeyword);
 
             UsingTree(newTree);
@@ -1061,7 +1061,7 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);
@@ -1096,7 +1096,7 @@ class C
     class D(object) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("class D", "extension");
             oldTree.GetDiagnostics().Verify(
                 // (4,19): error CS1001: Identifier expected
@@ -1108,7 +1108,7 @@ class C
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.ExtensionDeclaration,
+                            SyntaxKind.ExtensionBlockDeclaration,
                             SyntaxKind.ExtensionKeyword,
                             SyntaxKind.ParameterList,
                             SyntaxKind.Parameter);
@@ -1122,7 +1122,7 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);
@@ -1156,7 +1156,7 @@ class C
     struct D(object x) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("struct", "extension");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify(
@@ -1168,7 +1168,7 @@ class C
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.ExtensionDeclaration,
+                            SyntaxKind.ExtensionBlockDeclaration,
                             SyntaxKind.ExtensionKeyword);
 
             UsingTree(newTree,
@@ -1183,7 +1183,7 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);
@@ -1218,7 +1218,7 @@ class C
     extension(object, Type z1) { }
 }
 """;
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("z1", "z2");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify();
@@ -1227,7 +1227,7 @@ class C
             TestDiffsInOrder(diffs,
                 SyntaxKind.CompilationUnit,
                 SyntaxKind.ClassDeclaration,
-                SyntaxKind.ExtensionDeclaration,
+                SyntaxKind.ExtensionBlockDeclaration,
                 SyntaxKind.ExtensionKeyword,
                 SyntaxKind.ParameterList,
                 SyntaxKind.Parameter,
@@ -1242,7 +1242,7 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -228,6 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var attrArgumentLocation = arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 0);
                     arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, attrArgumentLocation);
                 }
+            }
+            else if (arguments.Attribute.IsTargetAttribute(AttributeDescription.MetadataUpdateDeletedAttribute))
+            {
+                arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_AttributeCannotBeAppliedManually, arguments.AttributeSyntaxOpt!.Location, args: [AttributeDescription.MetadataUpdateDeletedAttribute.FullName]);
             }
 
             DecodeWellKnownAttributeImpl(ref arguments);

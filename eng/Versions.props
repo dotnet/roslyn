@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
+  <Import Project="Version.Details.props" Condition="Exists('Version.Details.props')" />
   <!--
     Roslyn version
   -->
   <PropertyGroup>
     <MajorVersion>5</MajorVersion>
-    <MinorVersion>0</MinorVersion>
+    <MinorVersion>1</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
@@ -31,73 +32,36 @@
     <SystemValueTupleVersion>4.6.1</SystemValueTupleVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <MicrosoftIORedistVersion>6.0.1</MicrosoftIORedistVersion>
-    <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
+    <MicrosoftIORedistVersion>6.1.0</MicrosoftIORedistVersion>
+    <SystemBuffersVersion>4.6.0</SystemBuffersVersion>
     <!--
     Microsoft.TeamFoundationServer.Client is referencing System.Data.SqlClient causing CG alert
     When it updates its referenced System.Data.SqlClient version this should be removed
     -->
     <SystemDataSqlClientVersion>4.8.6</SystemDataSqlClientVersion>
-    <SystemMemoryVersion>4.5.5</SystemMemoryVersion>
-    <SystemNumericsVectorsVersion>4.5.0</SystemNumericsVectorsVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
-    <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
+    <SystemMemoryVersion>4.6.0</SystemMemoryVersion>
+    <SystemNumericsVectorsVersion>4.6.0</SystemNumericsVectorsVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemThreadingTasksExtensionsVersion>4.6.0</SystemThreadingTasksExtensionsVersion>
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
   </PropertyGroup>
-  <!--
-    Versions managed by Arcade (see Versions.Details.xml)
-  -->
   <PropertyGroup>
-    <SystemCommandLineVersion>2.0.0-beta5.25210.1</SystemCommandLineVersion>
-    <SystemCompositionVersion>9.0.0</SystemCompositionVersion>
-    <SystemConfigurationConfigurationManagerVersion>9.0.0</SystemConfigurationConfigurationManagerVersion>
-    <SystemDiagnosticsEventLogVersion>9.0.0</SystemDiagnosticsEventLogVersion>
-    <SystemCollectionsImmutableVersion>9.0.0</SystemCollectionsImmutableVersion>
-    <SystemComponentModelCompositionVersion>9.0.0</SystemComponentModelCompositionVersion>
-    <SystemDiagnosticsDiagnosticSourceVersion>9.0.0</SystemDiagnosticsDiagnosticSourceVersion>
-    <SystemIOHashingVersion>9.0.0</SystemIOHashingVersion>
-    <SystemIOPipelinesVersion>9.0.0</SystemIOPipelinesVersion>
-    <SystemReflectionMetadataVersion>9.0.0</SystemReflectionMetadataVersion>
-    <SystemResourcesExtensionsVersion>9.0.0</SystemResourcesExtensionsVersion>
-    <SystemSecurityCryptographyProtectedDataVersion>9.0.0</SystemSecurityCryptographyProtectedDataVersion>
-    <SystemSecurityPermissionsVersion>9.0.0</SystemSecurityPermissionsVersion>
-    <SystemTextEncodingsWebVersion>9.0.0</SystemTextEncodingsWebVersion>
-    <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild in VS (would lead to NGEN failures on insertion). -->
-    <SystemTextJsonVersion>9.0.0</SystemTextJsonVersion>
-    <SystemThreadingTasksDataflowVersion>9.0.0</SystemThreadingTasksDataflowVersion>
-    <SystemWindowsExtensionsVersion>9.0.0</SystemWindowsExtensionsVersion>
-    <MicrosoftBclAsyncInterfacesVersion>9.0.0</MicrosoftBclAsyncInterfacesVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisAnalyzersVersion>
-    <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
-    <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
-    <MicrosoftDiaSymReaderVersion>2.0.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftExtensionsConfigurationVersion>9.0.0</MicrosoftExtensionsConfigurationVersion>
-    <MicrosoftExtensionsDependencyInjectionVersion>9.0.0</MicrosoftExtensionsDependencyInjectionVersion>
-    <MicrosoftExtensionsFileSystemGlobbingVersion>8.0.0</MicrosoftExtensionsFileSystemGlobbingVersion>
-    <MicrosoftExtensionsLoggingVersion>9.0.0</MicrosoftExtensionsLoggingVersion>
-    <MicrosoftExtensionsLoggingAbstractionsVersion>9.0.0</MicrosoftExtensionsLoggingAbstractionsVersion>
-    <MicrosoftExtensionsLoggingConsoleVersion>9.0.0</MicrosoftExtensionsLoggingConsoleVersion>
-    <MicrosoftExtensionsOptionsConfigurationExtensionVersion>8.0.0</MicrosoftExtensionsOptionsConfigurationExtensionVersion>
-    <MicrosoftExtensionsOptionsVersion>9.0.0</MicrosoftExtensionsOptionsVersion>
-    <MicrosoftExtensionsPrimitivesVersion>9.0.0</MicrosoftExtensionsPrimitivesVersion>
     <MicrosoftVSSDKBuildToolsVersion>17.14.1043-preview2</MicrosoftVSSDKBuildToolsVersion>
-    <vswhereVersion>2.4.1</vswhereVersion>
+    <vswhereVersion>3.1.7</vswhereVersion>
     <!--
       MicrosoftDevDivOptimizationDataPowerShellVersion and NewtonsoftJsonVersion are used in eng/InternalTools.props. The file is an extensibility port from eng/common/internal/Tools.csproj (managed by Arcade)
       So it's not affected by our central package management
     -->
-    <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
     <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.865</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <MicrosoftIdentityModelJsonWebTokensVersion>6.34.0</MicrosoftIdentityModelJsonWebTokensVersion>
-    <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
-    <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
     <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
+    <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
   </PropertyGroup>
   <!--
     Microsoft.CodeAnalysis.* versions used by the RoslynAnalyzers.
   -->
-  <PropertyGroup>
+  <Choose>
     <!-- Microsoft.CodeAnalysis.* versions. Read this!
         This repo uses a wide variety of M.CA.* package versions. This is an atypical pattern in
         .NET's repositories but a necessary one for roslyn-analyzers.
@@ -115,37 +79,37 @@
           However, because these reference packages do not provide implementations, they cannot be used in any case
           where the package contents would be redisted or executed. An SBRP may not be created for a version that is used both
           as a reference assembly and redisted.
-
-          In this repo, the MicrosoftCodeAnalysis property should **not** be set globally in this file. Instead, it should
-          be set for each project, based on the properties below. When the project is executable, it should be
-          set only for non-source build or repo-source build. Product source build will set an incoming MicrosoftCodeAnalysis property
-          that will denote the available implementation version.
-
-          Example of surface area usage:
-
-          <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers)</MicrosoftCodeAnalysisVersion>
-
-          Example of executable usage:
-
-          <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
     -->
-    <!-- Microsoft.CodeAnalysis versions for different purposes. -->
-    <!-- Surface area that various projects compile against. These should have source-build reference packages -->
-    <MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>
-    <MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>1.2.1</MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>
-    <MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>
-    <MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>
-    <MicrosoftCodeAnalysisVersionForResxSourceGenerators>4.0.1</MicrosoftCodeAnalysisVersionForResxSourceGenerators>
-    <MicrosoftCodeAnalysisVersionForNetAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForNetAnalyzers>
-    <MicrosoftCodeAnalysisVersionForTextAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForTextAnalyzers>
-    <MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>
-    <MicrosoftCodeAnalysisVersionForToolsAndUtilities>3.11.0</MicrosoftCodeAnalysisVersionForToolsAndUtilities>
-    <MicrosoftCodeAnalysisVersionForMetrics>4.0.1</MicrosoftCodeAnalysisVersionForMetrics>
-    <!-- Versions for tests and general utility execution. -->
-    <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
-         area versions. -->
-    <MicrosoftCodeAnalysisVersionForTests>4.9.0-3.final</MicrosoftCodeAnalysisVersionForTests>
-    <MicrosoftCodeAnalysisVersionForExecution>4.6.0-1.final</MicrosoftCodeAnalysisVersionForExecution>
+    <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+      <PropertyGroup>
+        <!-- Microsoft.CodeAnalysis versions for different purposes. -->
+        <!-- Surface area that various projects compile against. These should have source-build reference packages -->
+        <MicrosoftCodeAnalysisVersionForAnalyzers>4.12.0</MicrosoftCodeAnalysisVersionForAnalyzers>
+        <!-- Versions for tests and general utility execution. -->
+        <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
+            area versions. -->
+        <MicrosoftCodeAnalysisVersionForAnalyzerTests>4.12.0</MicrosoftCodeAnalysisVersionForAnalyzerTests>
+        <MicrosoftCodeAnalysisVersionForAnalyzerExecution>4.12.0</MicrosoftCodeAnalysisVersionForAnalyzerExecution>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <MicrosoftCodeAnalysisVersionFromSbrp>4.12.0</MicrosoftCodeAnalysisVersionFromSbrp>
+        <MicrosoftCodeAnalysisVersionForAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForAnalyzers>
+        <MicrosoftCodeAnalysisVersionForAnalyzerTests>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForAnalyzerTests>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  <!--
+    Patched package versions used by src\RoslynAnalyzers\Tools\Metrics*
+
+    Metrics targets the same older Microsoft.CodeAnalysis version as the RoslynAnalyzers. Analyzers pick up patched versions
+    of Roslyn's transtive dependencies from the compiler that is hosting them. Since Metrics is a standalone tool and not an
+    Analyzer, it needs to directly reference patched versions of some transitive dependencies.
+  -->
+  <PropertyGroup>
+    <MicrosoftBuildTasksCoreVersionForMetrics>17.10.29</MicrosoftBuildTasksCoreVersionForMetrics>
+    <SystemTextJsonVersionForMetrics>8.0.5</SystemTextJsonVersionForMetrics>
   </PropertyGroup>
   <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>
@@ -159,7 +123,7 @@
     <UsingToolXUnit>false</UsingToolXUnit>
     <UseVSTestRunner>true</UseVSTestRunner>
     <!-- Prohibit the usage of .NET Standard 1.x dependencies. -->
-    <FlagNetStandard1XDependencies Condition="'$(DotNetBuildSourceOnly)' == 'true' and '$(DotNetBuildOrchestrator)' == 'true'">true</FlagNetStandard1XDependencies>
+    <FlagNetStandard1XDependencies Condition="'$(DotNetBuildSourceOnly)' == 'true' and '$(DotNetBuildFromVMR)' == 'true'">true</FlagNetStandard1XDependencies>
   </PropertyGroup>
   <PropertyGroup>
     <!--
@@ -167,6 +131,6 @@
       in Directory.Packages.props - Microsoft.TestPlatform.TranslationLayer and Microsoft.TestPlatform.ObjectModel.
       This version needs to match the Test SDK version consumed by Arcade.
     -->
-    <MicrosoftNETTestSdkVersion>17.5.0</MicrosoftNETTestSdkVersion>
+    <MicrosoftNETTestSdkVersion>17.13.0</MicrosoftNETTestSdkVersion>
   </PropertyGroup>
 </Project>

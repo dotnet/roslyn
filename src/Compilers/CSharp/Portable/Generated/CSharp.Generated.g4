@@ -323,7 +323,7 @@ enum_member_declaration
 
 type_declaration
   : class_declaration
-  | extension_declaration
+  | extension_block_declaration
   | interface_declaration
   | record_declaration
   | struct_declaration
@@ -333,7 +333,7 @@ class_declaration
   : attribute_list* modifier* 'class' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
-extension_declaration
+extension_block_declaration
   : attribute_list* modifier* 'extension' type_parameter_list? parameter_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
@@ -1198,6 +1198,7 @@ cref
 
 member_cref
   : conversion_operator_member_cref
+  | extension_member_cref
   | indexer_member_cref
   | name_member_cref
   | operator_member_cref
@@ -1216,6 +1217,10 @@ cref_parameter
   : 'in'? 'readonly'? type
   | 'out'? 'readonly'? type
   | 'ref'? 'readonly'? type
+  ;
+
+extension_member_cref
+  : 'extension' type_argument_list? cref_parameter_list '.' member_cref
   ;
 
 indexer_member_cref

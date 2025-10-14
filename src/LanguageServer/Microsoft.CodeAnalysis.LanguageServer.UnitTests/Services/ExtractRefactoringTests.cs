@@ -25,8 +25,10 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
                 }
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+
+        await TestCodeActionAsync(testLspServer, caretLocation, "Extract base class...", """
             internal class NewBaseType
             {
                 public void M()
@@ -37,12 +39,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
             class A : NewBaseType
             {
             }
-            """;
-
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
-        var caretLocation = testLspServer.GetLocations("caret").Single();
-
-        await TestCodeActionAsync(testLspServer, caretLocation, "Extract base class...", expected);
+            """);
     }
 
     [Theory]
@@ -58,8 +55,10 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
                 }
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+
+        await TestCodeActionAsync(testLspServer, caretLocation, "Extract interface...", """
             interface IA
             {
                 void M();
@@ -71,12 +70,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
-        var caretLocation = testLspServer.GetLocations("caret").Single();
-
-        await TestCodeActionAsync(testLspServer, caretLocation, "Extract interface...", expected);
+            """);
     }
 
     private static async Task TestCodeActionAsync(

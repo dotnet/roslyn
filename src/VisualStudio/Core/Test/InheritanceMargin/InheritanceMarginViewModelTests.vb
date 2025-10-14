@@ -3,17 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.Remoting.Messaging
 Imports System.Threading
 Imports System.Windows
 Imports System.Windows.Documents
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Imaging.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin

@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../WorkspaceMSBuildResources.resx">
     <body>
+      <trans-unit id="Failed_to_load_solution_0">
+        <source>Failed to load solution: '{0}'</source>
+        <target state="new">Failed to load solution: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Failed_to_load_solution_filter_0">
         <source>Failed to load solution filter: '{0}'</source>
         <target state="translated">Не удалось загрузить фильтр решений: "{0}"</target>

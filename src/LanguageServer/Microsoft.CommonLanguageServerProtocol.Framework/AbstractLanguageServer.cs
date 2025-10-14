@@ -65,6 +65,9 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         _jsonRpc = jsonRpc;
         TypeRefResolver = typeRefResolver ?? TypeRef.DefaultResolver.Instance;
 
+        // We have no need to continue running LSP requests after the connection is closed.
+        _jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
+
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
         _lspServices = new Lazy<ILspServices>(() => ConstructLspServices());
@@ -181,7 +184,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     public virtual bool TryGetLanguageForRequest(string methodName, object? serializedRequest, [NotNullWhen(true)] out string? language)
     {
-        Logger.LogInformation($"Using default language handler for {methodName}");
+        Logger.LogDebug($"Using default language handler for {methodName}");
         language = LanguageServerConstants.DefaultLanguageName;
         return true;
     }

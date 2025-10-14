@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.EmitOpCode(ILOpCode.Ldelema)
                 EmitSymbolToken(elementType, arrayAccess.Syntax)
             Else
-                _builder.EmitArrayElementAddress(_module.Translate(DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol)), arrayAccess.Syntax, _diagnostics)
+                _builder.EmitArrayElementAddress(_module.Translate(DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol)), arrayAccess.Syntax)
             End If
         End Sub
 

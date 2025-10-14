@@ -9,8 +9,8 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -21,7 +21,6 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -649,7 +648,7 @@ class C
                 var numRetries = 0;
                 string errorMessage;
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                     context,
                     (_, diagnostics) =>
                     {
@@ -692,7 +691,7 @@ class C
                 var shouldSucceed = false;
                 string errorMessage;
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                     context,
                     (_, diagnostics) =>
                     {
@@ -749,7 +748,7 @@ class UseLinq
                 CompilationTestData testData;
                 int retryCount = 0;
                 var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                     "args.Where(a => a.Length > 0)",
                     ImmutableArray<Alias>.Empty,
                     (_1, _2) => context, // ignore new blocks and just keep using the same failed context...
@@ -913,7 +912,7 @@ LanguageVersion.CSharp7_1);
                     CompilationTestData testData;
                     int retryCount = 0;
                     var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                        runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                        runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                         expression,
                         ImmutableArray<Alias>.Empty,
                         (b, u) => EvaluationContext.CreateMethodContext(

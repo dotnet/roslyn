@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -501,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 static bool isPossibleIndexerNameAttributeInExtension(AttributeSyntax node, Binder? rootBinderOpt)
                 {
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Temporarily limit binding to a string literal argument in order to avoid a binding cycle.
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Temporarily limit binding to a string literal argument in order to avoid a binding cycle.
                     if (node.ArgumentList?.Arguments is not [{ NameColon: null, NameEquals: null, Expression: LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression } }])
                     {
                         return false;
@@ -1043,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.EnsureParamCollectionAttributeExistsAndModifyCompilation(compilation, Parameters, diagnostics);
+            ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
             if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
@@ -1061,6 +1062,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+
+            if (this.GetIsNewExtensionMember())
+            {
+                ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
+
+                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
+            }
         }
 
         private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
@@ -1419,6 +1427,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ref attributes,
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
+
+            if (this.GetIsNewExtensionMember())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).ExtensionMarkerName));
+            }
         }
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
@@ -1556,7 +1569,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 | ReservedAttributes.TupleElementNamesAttribute
                 | ReservedAttributes.NullableAttribute
                 | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.DisallowNullAttribute))
@@ -1724,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (this.GetIsNewExtensionMember() && SourceName != indexerName)
                 {
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Report more descriptive error
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Report more descriptive error
                     // error CS8078: An expression is too long or complex to compile
                     diagnostics.Add(ErrorCode.ERR_InsufficientStack, node.ArgumentList.Arguments[0].Location);
                 }

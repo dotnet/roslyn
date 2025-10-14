@@ -21,12 +21,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
-
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass;
 
 internal sealed class ImplementAbstractClassData(
@@ -152,7 +146,7 @@ internal sealed class ImplementAbstractClassData(
         Compilation compilation, ISymbol member, ISymbol? throughMember, bool addUnsafe,
         ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
     {
-        var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe, isRequired: member.IsRequired());
+        var modifiers = DeclarationModifiers.Override.WithIsUnsafe(addUnsafe).WithIsRequired(member.IsRequired());
         var accessibility = member.ComputeResultantAccessibility(ClassType);
 
         // only call through one of members for this symbol if we can actually access the symbol

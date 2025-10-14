@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.ExtensionDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
 
@@ -473,7 +474,7 @@ next:;
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                case SyntaxKind.ExtensionDeclaration:
+                case SyntaxKind.ExtensionBlockDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
                     return typeDeclaration.ConstraintClauses;
@@ -1169,7 +1170,8 @@ next:;
                 | ReservedAttributes.NullableContextAttribute
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.CaseSensitiveExtensionAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
@@ -1412,6 +1414,11 @@ next:;
         {
             get
             {
+                if (this.IsExtension)
+                {
+                    return true;
+                }
+
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
             }
@@ -1819,9 +1826,23 @@ next:;
         {
             get
             {
+                if (IsExtension)
+                {
+                    Debug.Assert(ExtensionMarkerName is not null);
+                    return ExtensionMarkerName;
+                }
+
+                return base.MetadataName;
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
                 return IsExtension
-                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(this.ExtensionName, Arity, associatedFileIdentifier: null)
-                    : base.MetadataName;
+                    ? false
+                    : base.MangleName;
             }
         }
 
@@ -1983,7 +2004,7 @@ next:;
                 // If the containing type is an extension, we'll have already reported an error
                 if (ContainingType is null || !ContainingType.IsStatic || ContainingType.Arity != 0 || ContainingType.ContainingType is not null)
                 {
-                    var syntax = (ExtensionDeclarationSyntax)this.GetNonNullSyntaxNode();
+                    var syntax = (ExtensionBlockDeclarationSyntax)this.GetNonNullSyntaxNode();
                     diagnostics.Add(ErrorCode.ERR_BadExtensionContainingType, syntax.Keyword);
                 }
             }

@@ -31,16 +31,12 @@ public sealed class AssetProviderTests
         => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
     [Fact]
-    public async Task TestCSharpParseOptionsSynchronization()
-    {
-        await TestAssetAsync(Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Default);
-    }
+    public Task TestCSharpParseOptionsSynchronization()
+        => TestAssetAsync(Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Default);
 
     [Fact]
-    public async Task TestVisualBasicParseOptionsSynchronization()
-    {
-        await TestAssetAsync(Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Default);
-    }
+    public Task TestVisualBasicParseOptionsSynchronization()
+        => TestAssetAsync(Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Default);
 
     private static async Task TestAssetAsync(object data)
     {
@@ -218,7 +214,7 @@ public sealed class AssetProviderTests
                 }
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
     }
 }

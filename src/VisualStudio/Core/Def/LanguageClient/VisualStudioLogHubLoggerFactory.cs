@@ -50,7 +50,7 @@ internal sealed class VisualStudioLogHubLoggerFactory : ILspServiceLoggerFactory
         // Register the default log level as information.
         // Loghub will take care of cleaning up older logs from past sessions / current session
         // if it decides the log file sizes are too large.
-        var loggingLevel = SourceLevels.ActivityTracing | SourceLevels.Information;
+        var loggingLevel = SourceLevels.ActivityTracing | SourceLevels.Verbose;
 
         var logOptions = new RpcContracts.Logging.LoggerOptions(new LoggingLevelSettings(loggingLevel));
         var traceSource = await configuration.RegisterLogSourceAsync(logId, logOptions, cancellationToken).ConfigureAwait(false);

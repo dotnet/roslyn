@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -36,8 +37,15 @@ internal sealed partial class SolutionState
 {
     public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
-    // the version of the workspace this solution is from
-    public int WorkspaceVersion { get; }
+    /// <summary>
+    /// The content version of the workspace this solution is from.  This monotonically increases in the
+    /// workspace whenever the content of its <see cref="SolutionState"/> snapshot changes.  Importantly,
+    /// this does not change when the SolutionState stays the same, but the workspace's <see cref="Solution.CompilationState"/>'s
+    /// <see cref="SourceGeneratorExecutionVersionMap"/> changes.  That ensures that requests from the host
+    /// to rerun source generators do not block subsequent requests to update the solution's content in
+    /// <see cref="Workspace.TryApplyChanges(Solution)"/>.
+    /// </summary>
+    public int ContentVersion { get; }
     public string? WorkspaceKind { get; }
     public SolutionServices Services { get; }
     public SolutionOptionSet Options { get; }
@@ -60,11 +68,11 @@ internal sealed partial class SolutionState
     private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
     // Mapping from file path to the set of documents that are related to it.
-    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new ConcurrentDictionary<string, ImmutableArray<DocumentId>>(FilePathComparer);
+    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new(FilePathComparer);
 
     private SolutionState(
         string? workspaceKind,
-        int workspaceVersion,
+        int solutionStateContentVersion,
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
         IReadOnlyList<ProjectId> projectIds,
@@ -77,7 +85,7 @@ internal sealed partial class SolutionState
         Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
     {
         WorkspaceKind = workspaceKind;
-        WorkspaceVersion = workspaceVersion;
+        ContentVersion = solutionStateContentVersion;
         SolutionAttributes = solutionAttributes;
         Services = services;
         ProjectIds = projectIds;
@@ -110,7 +118,7 @@ internal sealed partial class SolutionState
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(
             workspaceKind,
-            workspaceVersion: 0,
+            solutionStateContentVersion: 0,
             services,
             solutionAttributes,
             projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
@@ -207,7 +215,9 @@ internal sealed partial class SolutionState
 
         return new SolutionState(
             WorkspaceKind,
-            WorkspaceVersion,
+            // Note: we pass along this version for now.  The workspace will actually fork us once more
+            // when it determines the content version it is moving to.
+            ContentVersion,
             Services,
             solutionAttributes,
             projectIds,
@@ -225,13 +235,17 @@ internal sealed partial class SolutionState
     /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
     /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
     /// </summary>
-    public SolutionState WithNewWorkspace(
-        string? workspaceKind,
-        int workspaceVersion,
-        SolutionServices services)
+    public SolutionState WithNewWorkspaceFrom(Solution oldSolution)
     {
+        var workspaceKind = oldSolution.WorkspaceKind;
+        var services = oldSolution.Services;
+
+        var solutionStateContentVersion = oldSolution.SolutionState == this
+            ? oldSolution.SolutionStateContentVersion // If the solution state is the same, we can keep the same version.
+            : oldSolution.SolutionStateContentVersion + 1; // Otherwise, increment the version.
+
         if (workspaceKind == WorkspaceKind &&
-            workspaceVersion == WorkspaceVersion &&
+            solutionStateContentVersion == ContentVersion &&
             services == Services)
         {
             return this;
@@ -241,7 +255,7 @@ internal sealed partial class SolutionState
         // get locked-in by document states and project states when first constructed.
         return new SolutionState(
             workspaceKind,
-            workspaceVersion,
+            solutionStateContentVersion,
             services,
             SolutionAttributes,
             ProjectIds,
@@ -476,11 +490,7 @@ internal sealed partial class SolutionState
 
         var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
         var newProjectStates = SortedProjectStates.WhereAsArray(static (p, projectIdsSet) => !projectIdsSet.Contains(p.Id), projectIdsSet);
-
-        // Note: it would be nice to not cause N forks of the dependency graph here.
-        var newDependencyGraph = _dependencyGraph;
-        foreach (var projectId in projectIds)
-            newDependencyGraph = newDependencyGraph.WithProjectRemoved(projectId);
+        var newDependencyGraph = _dependencyGraph.WithProjectsRemoved(projectIds);
 
         var languageCountDeltas = new TemporaryArray<(string language, int count)>();
         foreach (var projectId in projectIds)
@@ -1217,7 +1227,7 @@ internal sealed partial class SolutionState
         IReadOnlyList<ProjectId> projectIds,
         ImmutableArray<ProjectState> sortedNewProjectStates)
     {
-        var map = sortedNewProjectStates.Select(state => KeyValuePairUtil.Create(
+        var map = sortedNewProjectStates.Select(state => KeyValuePair.Create(
                 state.Id,
                 state.ProjectReferences.Where(pr => GetProjectState(sortedNewProjectStates, pr.ProjectId) != null).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();
@@ -1284,7 +1294,8 @@ internal sealed partial class SolutionState
         {
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
-                if (relatedDocumentId != documentId)
+                // Match the linear search behavior below and do not return documents from the same project.
+                if (relatedDocumentId != documentId && relatedDocumentId.ProjectId != documentId.ProjectId)
                     return relatedDocumentId;
             }
 

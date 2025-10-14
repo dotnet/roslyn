@@ -19,10 +19,20 @@ internal partial class TaggerEventSources
         }
 
         public override void Connect()
-            => _subjectBuffer.Changed += OnTextBufferChanged;
+        {
+            if (_subjectBuffer is ITextBuffer2 buffer2)
+                buffer2.ChangedOnBackground += OnTextBufferChanged;
+            else
+                _subjectBuffer.Changed += OnTextBufferChanged;
+        }
 
         public override void Disconnect()
-            => _subjectBuffer.Changed -= OnTextBufferChanged;
+        {
+            if (_subjectBuffer is ITextBuffer2 buffer2)
+                buffer2.ChangedOnBackground -= OnTextBufferChanged;
+            else
+                _subjectBuffer.Changed -= OnTextBufferChanged;
+        }
 
         private void OnTextBufferChanged(object? sender, TextContentChangedEventArgs e)
         {

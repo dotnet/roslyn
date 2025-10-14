@@ -4,17 +4,17 @@
 
 #nullable disable
 
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Collections.Immutable;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests;
 
 internal static class TextEditorFactoryExtensions
 {
     public static DisposableTextView CreateDisposableTextView(this ITextEditorFactoryService textEditorFactory)
-        => new DisposableTextView(textEditorFactory.CreateTextView());
+        => new(textEditorFactory.CreateTextView());
 
     public static DisposableTextView CreateDisposableTextView(this ITextEditorFactoryService textEditorFactory, ITextBuffer buffer, ImmutableArray<string> roles = default)
     {

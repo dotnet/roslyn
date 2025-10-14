@@ -36,9 +36,9 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
         private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Decsciptor1 =
-                new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                new("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
             public static readonly DiagnosticDescriptor Decsciptor2 =
-                new DiagnosticDescriptor("InfoDiagnostic2", "InfoDiagnostic2 Title", "InfoDiagnostic2", "InfoDiagnostic2", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                new("InfoDiagnostic2", "InfoDiagnostic2 Title", "InfoDiagnostic2", "InfoDiagnostic2", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Decsciptor1, Decsciptor2];
 
@@ -62,9 +62,8 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
             [WorkItem("https://github.com/dotnet/roslyn/issues/6455")]
-            public async Task TestFixMultipleInDocument()
-            {
-                var input = """
+            public Task TestFixMultipleInDocument()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -105,9 +104,7 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                var expected = """
+                    """, """
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -156,10 +153,7 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected);
-            }
+                    """);
         }
 
         #endregion

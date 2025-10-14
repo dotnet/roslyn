@@ -192,7 +192,7 @@ public abstract partial class Workspace : IDisposable
                 return (solution, solution);
             }
 
-            _latestSolution = solution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+            _latestSolution = solution.WithNewWorkspaceFrom(oldSolution);
             return (oldSolution, _latestSolution);
         }
     }
@@ -368,13 +368,16 @@ public abstract partial class Workspace : IDisposable
 
         static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, HashSet<DocumentId> changedDocumentIds)
         {
+            if (changedDocumentIds.Count == 0)
+                return solution;
+
             // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
             // process that chain once.
             using var _ = PooledDictionary<DocumentId, DocumentState>.GetInstance(out var relatedDocumentIdsAndStates);
 
             foreach (var changedDocumentId in changedDocumentIds)
             {
-                Document? changedDocument = null;
+                DocumentState? changedDocumentState = null;
                 var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
 
                 foreach (var relatedDocumentId in relatedDocumentIds)
@@ -384,8 +387,8 @@ public abstract partial class Workspace : IDisposable
 
                     if (!changedDocumentIds.Contains(relatedDocumentId))
                     {
-                        changedDocument ??= solution.GetRequiredDocument(changedDocumentId);
-                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocument.DocumentState;
+                        changedDocumentState ??= solution.SolutionState.GetRequiredDocumentState(changedDocumentId);
+                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocumentState;
                     }
                 }
             }
@@ -463,13 +466,13 @@ public abstract partial class Workspace : IDisposable
     /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
     /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
     /// it will be replaced with. The latter may be different than the solution returned by <paramref
-    /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-    /// accordingly.  This will only be run once.</param>
+    /// name="transformation"/> as it may its <see cref="Solution.SolutionStateContentVersion"/> updated
+    /// (if it's <see cref="SolutionState"/> actually changed).  This will only be run once.</param>
     /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
     /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
     /// was replaced with. The latter may be different than the solution returned by <paramref
-    /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-    /// accordingly.  This will only be run once.</param>
+    /// name="transformation"/> as it may have its <see cref="Solution.SolutionStateContentVersion"/> updated
+    /// (if it's <see cref="SolutionState"/> actually changed).  This will only be run once.</param>
     private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
         TData data,
         Func<Solution, TData, Solution> transformation,
@@ -533,7 +536,7 @@ public abstract partial class Workspace : IDisposable
                         continue;
                     }
 
-                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+                    newSolution = newSolution.WithNewWorkspaceFrom(oldSolution);
 
                     // Prior to updating the latest solution, let the caller do any other state updates they want.
                     onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
@@ -1564,7 +1567,7 @@ public abstract partial class Workspace : IDisposable
             var oldSolution = this.CurrentSolution;
 
             // If the workspace has already accepted an update, then fail
-            if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
+            if (newSolution.SolutionStateContentVersion != oldSolution.SolutionStateContentVersion)
             {
                 Logger.Log(
                     FunctionId.Workspace_ApplyChanges,
@@ -1572,9 +1575,7 @@ public abstract partial class Workspace : IDisposable
                     {
                         // 'oldSolution' is the current workspace solution; if we reach this point we know
                         // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
-                        var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
-                        var newWorkspaceVersion = newSolution.WorkspaceVersion;
-                        return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
+                        return $"Apply Failed: Content version has already been updated (from '{newSolution.SolutionStateContentVersion}' to '{oldSolution.SolutionStateContentVersion}')";
                     },
                     oldSolution,
                     newSolution);
@@ -1615,7 +1616,7 @@ public abstract partial class Workspace : IDisposable
                 this.ApplyProjectRemoved(proj.Id);
             }
 
-            if (this.CurrentSolution.Options != newSolution.Options)
+            if (oldSolution.Options != newSolution.Options)
             {
                 var changedOptions = newSolution.SolutionState.Options.GetChangedOptions();
                 _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);

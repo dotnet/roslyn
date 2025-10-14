@@ -53,7 +53,15 @@ internal sealed class RazorMappingServiceWrapper(IRazorMappingService razorMappi
         CancellationToken cancellationToken)
     {
         var razorSpans = await _razorMappingService.MapSpansAsync(document, spans, cancellationToken).ConfigureAwait(false);
-        var roslynSpans = new MappedSpanResult[razorSpans.Length];
+        var roslynSpans = new MappedSpanResult[spans.Count()];
+
+        if (roslynSpans.Length != razorSpans.Length)
+        {
+            // Span mapping didn't succeed. Razor can log telemetry but this still needs to be handled so return all defaults
+            // to indicate mapping didn't succeed.
+            return roslynSpans.ToImmutableArray();
+        }
+
         for (var i = 0; i < razorSpans.Length; i++)
         {
             var razorSpan = razorSpans[i];

@@ -85,7 +85,10 @@ internal static partial class Extensions
 
         public const int OpenFolder = 2162;
 
-        public const int Operator = 2174;
+        public const int OperatorInternal = 2175;
+        public const int OperatorPrivate = 2176;
+        public const int OperatorProtected = 2173;
+        public const int OperatorPublic = 2174;
 
         public const int PropertyInternal = 2431;
         public const int PropertyPrivate = 2434;

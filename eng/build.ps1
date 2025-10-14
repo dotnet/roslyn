@@ -43,7 +43,8 @@ param (
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
-  [switch]$sourceBuild = $false,
+  [switch][Alias('pb')]$productBuild = $false,
+  [switch]$fromVMR = $false,
   [switch]$oop64bit = $true,
   [switch]$lspEditor = $false,
   [string]$solution = "Roslyn.sln",
@@ -112,7 +113,8 @@ function Print-Usage() {
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
-  Write-Host "  -sourceBuild              Simulate building source-build"
+  Write-Host "  -productBuild             Build the repository in product-build mode"
+  Write-Host "  -fromVMR                  Set when building from within the VMR"
   Write-Host "  -solution                 Solution to build (default is Roslyn.sln)"
   Write-Host ""
   Write-Host "Official build settings:"
@@ -210,7 +212,7 @@ function Process-Arguments() {
     $script:restore = $true
   }
 
-  if ($sourceBuild) {
+  if ($productBuild) {
     $script:msbuildEngine = "dotnet"
   }
 
@@ -260,9 +262,6 @@ function BuildSolution() {
   # Workaround for some machines in the AzDO pool not allowing long paths
   $ibcDir = $RepoRoot
 
-  # Set DotNetBuildSourceOnly to 'true' if we're simulating building for source-build.
-  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildSourceOnly=true" } else { "" }
-
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
@@ -287,9 +286,10 @@ function BuildSolution() {
       /p:IbcOptimizationDataDir=$ibcDir `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+      /p:DotNetBuild=$productBuild `
+      /p:DotNetBuildFromVMR=$fromVMR `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
-      $buildFromSource `
       $generateDocumentationFile `
       $roslynUseHardLinks `
       @properties
@@ -307,15 +307,7 @@ function GetIbcSourceBranchName() {
   }
 
   function calculate {
-    $fallback = "main"
-
-    $branchData = GetBranchPublishData $officialSourceBranchName
-    if ($branchData -eq $null) {
-      Write-LogIssue -Type "warning" -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'."
-      Write-Host "Override by setting IbcDrop build variable." -ForegroundColor Yellow
-      return $fallback
-    }
-
+    $branchData = GetBranchPublishData
     return $branchData.vsBranch
   }
 
@@ -438,7 +430,7 @@ function TestUsingRunTests() {
     }
 
   } elseif ($testVsi) {
-    $args += " --timeout 110"
+    $args += " --timeout 220"
     $args += " --runtime both"
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"

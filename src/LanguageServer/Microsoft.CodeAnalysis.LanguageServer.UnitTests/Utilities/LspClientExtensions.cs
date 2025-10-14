@@ -9,20 +9,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 internal static class LspClientExtensions
 {
-    public static async Task Initialized(this ILspClient lspClient)
-    {
-        await lspClient.ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
-    }
+    public static Task Initialized(this ILspClient lspClient)
+        => lspClient.ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
 
     public static async Task<InitializeResult?> Initialize(this ILspClient lspClient, ClientCapabilities clientCapabilities)
     {
         return await lspClient.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
     }
 
-    public static async Task OpenProjectsAsync(this ILspClient lspClient, Uri[] projects)
-    {
-        await lspClient.ExecuteNotificationAsync<OpenProjectHandler.NotificationParams>(OpenProjectHandler.OpenProjectName, new() { Projects = projects });
-    }
+    public static Task OpenProjectsAsync(this ILspClient lspClient, Uri[] projects)
+        => lspClient.ExecuteNotificationAsync<OpenProjectHandler.NotificationParams>(OpenProjectHandler.OpenProjectName, new() { Projects = projects });
 
     public static async Task<VSInternalCodeAction[]> RunGetCodeActionsAsync(
         this ILspClient lspClient,

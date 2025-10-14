@@ -72,6 +72,12 @@ public static class Resources
         public static string CSharp => GetText("SolutionFilters.CSharpSolutionFilter.slnf");
     }
 
+    public static class XmlSolutionFiles
+    {
+        public static string CSharp => GetText("XmlSolutionFiles.CSharpXmlSolution.slnx");
+        public static string Invalid => GetText("XmlSolutionFiles.InvalidXmlSolution.slnx");
+    }
+
     public static class SolutionFiles
     {
         public static string AnalyzerReference => GetText("SolutionFiles.AnalyzerReference.sln");
@@ -164,6 +170,11 @@ public static class Resources
             public static string WithXaml => GetText("ProjectFiles.CSharp.WithXaml.csproj");
             public static string WithoutPrefer32Bit => GetText("ProjectFiles.CSharp.WithoutPrefer32Bit.csproj");
             public static string VBNetCoreAppWithGlobalImportAndLibrary_Library => GetText("VBNetCoreAppWithGlobalImportAndLibrary.Library.csproj");
+        }
+        public static class XmlSolutions
+        {
+            public static string CSharp => GetText("XmlSolutions.CSharpXmlSolution.slnx");
+            public static string Invalid => GetText("XmlSolutions.InvalidXmlSolution.slnx");
         }
 
         public static class FSharp

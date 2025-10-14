@@ -280,57 +280,7 @@ internal readonly struct RoslynNavigateToItem(
 
         #region INavigableItem
 
-        Glyph INavigableItem.Glyph => GetGlyph(_item.DeclaredSymbolInfo.Kind, _item.DeclaredSymbolInfo.Accessibility);
-
-        private static Glyph GetPublicGlyph(DeclaredSymbolInfoKind kind)
-            => kind switch
-            {
-                DeclaredSymbolInfoKind.Class => Glyph.ClassPublic,
-                DeclaredSymbolInfoKind.Constant => Glyph.ConstantPublic,
-                DeclaredSymbolInfoKind.Constructor => Glyph.MethodPublic,
-                DeclaredSymbolInfoKind.Delegate => Glyph.DelegatePublic,
-                DeclaredSymbolInfoKind.Enum => Glyph.EnumPublic,
-                DeclaredSymbolInfoKind.EnumMember => Glyph.EnumMemberPublic,
-                DeclaredSymbolInfoKind.Event => Glyph.EventPublic,
-                DeclaredSymbolInfoKind.ExtensionMethod => Glyph.ExtensionMethodPublic,
-                DeclaredSymbolInfoKind.Field => Glyph.FieldPublic,
-                DeclaredSymbolInfoKind.Indexer => Glyph.PropertyPublic,
-                DeclaredSymbolInfoKind.Interface => Glyph.InterfacePublic,
-                DeclaredSymbolInfoKind.Method => Glyph.MethodPublic,
-                DeclaredSymbolInfoKind.Module => Glyph.ModulePublic,
-                DeclaredSymbolInfoKind.Property => Glyph.PropertyPublic,
-                DeclaredSymbolInfoKind.Struct => Glyph.StructurePublic,
-                DeclaredSymbolInfoKind.RecordStruct => Glyph.StructurePublic,
-                _ => Glyph.ClassPublic,
-            };
-
-        private static Glyph GetGlyph(DeclaredSymbolInfoKind kind, Accessibility accessibility)
-        {
-            // Glyphs are stored in this order:
-            //  ClassPublic,
-            //  ClassProtected,
-            //  ClassPrivate,
-            //  ClassInternal,
-
-            var rawGlyph = GetPublicGlyph(kind);
-
-            switch (accessibility)
-            {
-                case Accessibility.Private:
-                    rawGlyph += (Glyph.ClassPrivate - Glyph.ClassPublic);
-                    break;
-                case Accessibility.Internal:
-                    rawGlyph += (Glyph.ClassInternal - Glyph.ClassPublic);
-                    break;
-                case Accessibility.Protected:
-                case Accessibility.ProtectedOrInternal:
-                case Accessibility.ProtectedAndInternal:
-                    rawGlyph += (Glyph.ClassProtected - Glyph.ClassPublic);
-                    break;
-            }
-
-            return rawGlyph;
-        }
+        Glyph INavigableItem.Glyph => GlyphExtensions.GetGlyph(_item.DeclaredSymbolInfo.Kind, _item.DeclaredSymbolInfo.Accessibility);
 
         ImmutableArray<TaggedText> INavigableItem.DisplayTaggedParts
             => [new TaggedText(

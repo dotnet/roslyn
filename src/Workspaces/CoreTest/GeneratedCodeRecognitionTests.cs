@@ -17,8 +17,7 @@ public sealed class GeneratedCodeRecognitionTests
 {
     [Fact]
     public void TestFileNamesNotGenerated()
-    {
-        TestFileNames(false,
+        => TestFileNames(false,
             "",
             "Test",
             "Test.cs",
@@ -31,12 +30,10 @@ public sealed class GeneratedCodeRecognitionTests
             "Test.notgenerated.vb",
             "Test.generated",
             "Test.designer");
-    }
 
     [Fact]
     public void TestFileNamesGenerated()
-    {
-        TestFileNames(true,
+        => TestFileNames(true,
             "TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92",
             "TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs",
             "TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.vb",
@@ -50,23 +47,22 @@ public sealed class GeneratedCodeRecognitionTests
             "Test.g.vb",
             "Test.g.i.cs",
             "Test.g.i.vb");
-    }
 
     private static void TestFileNames(bool assertGenerated, params string[] fileNames)
     {
         var project = CreateProject();
 
         var projectWithUserConfiguredGeneratedCodeTrue = project.AddAnalyzerConfigDocument(".editorconfig",
-            SourceText.From(@"
-[*.{cs,vb}]
-generated_code = true
-"), filePath: @"z:\.editorconfig").Project;
+            SourceText.From("""
+                [*.{cs,vb}]
+                generated_code = true
+                """), filePath: @"z:\.editorconfig").Project;
 
         var projectWithUserConfiguredGeneratedCodeFalse = project.AddAnalyzerConfigDocument(".editorconfig",
-            SourceText.From(@"
-[*.{cs,vb}]
-generated_code = false
-"), filePath: @"z:\.editorconfig").Project;
+            SourceText.From("""
+                [*.{cs,vb}]
+                generated_code = false
+                """), filePath: @"z:\.editorconfig").Project;
 
         foreach (var fileName in fileNames)
         {

@@ -19,12 +19,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
-
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 
 using static GenerateConstructorHelpers;
@@ -129,7 +123,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         private async Task InitializeNonDelegatedConstructorAsync(CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
-            var typeParametersNames = TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
+            var typeParametersNames = TypeToGenerateIn.GetAllTypeParameters().SelectAsArray(t => t.Name);
             var parameterNames = GetParameterNames(_arguments, typeParametersNames, cancellationToken);
 
             (_parameters, _parameterToExistingMemberMap, ParameterToNewFieldMap, ParameterToNewPropertyMap) =
@@ -240,7 +234,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         }
 
         private TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
-            => _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(language).GetRequiredService<TLanguageService>();
+            => _document.Project.Solution.GetRequiredLanguageService<TLanguageService>(language);
 
         private bool ClashesWithExistingConstructor()
         {
@@ -440,7 +434,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: Accessibility.Public,
-                modifiers: new DeclarationModifiers(isUnsafe: generateUnsafe),
+                modifiers: DeclarationModifiers.None.WithIsUnsafe(generateUnsafe),
                 typeName: TypeToGenerateIn.Name,
                 parameters: newParameters,
                 statements: assignments,

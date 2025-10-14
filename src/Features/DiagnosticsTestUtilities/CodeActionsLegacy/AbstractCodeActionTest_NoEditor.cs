@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,17 +23,28 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
-public abstract partial class AbstractCodeActionTest_NoEditor : AbstractCodeActionOrUserDiagnosticTest_NoEditor
+public abstract partial class AbstractCodeActionTest_NoEditor<
+    TDocument,
+    TProject,
+    TSolution,
+    TTestWorkspace> : AbstractCodeActionOrUserDiagnosticTest_NoEditor<
+        TDocument,
+        TProject,
+        TSolution,
+        TTestWorkspace>
+    where TDocument : TestHostDocument
+    where TProject : TestHostProject<TDocument>
+    where TSolution : TestHostSolution<TDocument>
+    where TTestWorkspace : TestWorkspace<TDocument, TProject, TSolution>
 {
     protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(
-        TestWorkspace workspace, TestParameters parameters);
+        TTestWorkspace workspace, TestParameters parameters);
 
     protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-        TestWorkspace workspace, TestParameters parameters = null)
+        TTestWorkspace workspace, TestParameters parameters = null)
     {
         parameters ??= TestParameters.Default;
 
@@ -62,7 +74,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor : AbstractCodeActi
             return (actions, actionToInvoke);
 
         var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
-            refactoring.Provider, document, span, fixAllScope.Value).ConfigureAwait(false);
+            refactoring.Provider, document, span, fixAllScope.Value.ToRefactorAllScope()).ConfigureAwait(false);
         if (fixAllCodeAction == null)
             return ([], null);
 
@@ -74,22 +86,22 @@ public abstract partial class AbstractCodeActionTest_NoEditor : AbstractCodeActi
         CodeRefactoringProvider provider,
         Document document,
         TextSpan selectionSpan,
-        FixAllScope scope)
+        RefactorAllScope scope)
     {
-        var fixAllProvider = provider.GetFixAllProvider();
-        if (fixAllProvider == null || !fixAllProvider.GetSupportedFixAllScopes().Contains(scope))
+        var refactorAllProvider = provider.GetRefactorAllProvider();
+        if (refactorAllProvider == null || !refactorAllProvider.GetSupportedRefactorAllScopes().Contains(scope))
             return null;
 
-        var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
-        var fixAllContext = new FixAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
-        return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+        var refactorAllState = new RefactorAllState(refactorAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
+        var refactorAllContext = new RefactorAllContext(refactorAllState, CodeAnalysisProgress.None, CancellationToken.None);
+        return await refactorAllProvider.GetRefactoringAsync(refactorAllContext).ConfigureAwait(false);
     }
 
-    protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
+    protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TTestWorkspace workspace, TestParameters parameters)
         => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
     internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
-        TestWorkspace workspace, TestParameters parameters)
+        TTestWorkspace workspace, TestParameters parameters)
     {
         GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out _);
         return await GetCodeRefactoringAsync(document, span, workspace, parameters).ConfigureAwait(false);
@@ -98,7 +110,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor : AbstractCodeActi
     internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
         Document document,
         TextSpan selectedOrAnnotatedSpan,
-        TestWorkspace workspace,
+        TTestWorkspace workspace,
         TestParameters parameters)
     {
         var provider = CreateCodeRefactoringProvider(workspace, parameters);
@@ -112,7 +124,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor : AbstractCodeActi
     }
 
     protected async Task TestActionOnLinkedFiles(
-        TestWorkspace workspace,
+        TTestWorkspace workspace,
         string expectedText,
         CodeAction action,
         string expectedPreviewContents = null)
@@ -174,10 +186,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor : AbstractCodeActi
     internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
     {
         var option = options.FirstOrDefault(o => o.Id == id);
-        if (option != null)
-        {
-            option.Value = true;
-        }
+        option?.Value = true;
     }
 
     internal Task TestWithPickMembersDialogAsync(
@@ -190,7 +199,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor : AbstractCodeActi
     {
         var ps = parameters ?? TestParameters.Default;
         var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
-        return TestInRegularAndScript1Async(
+        return TestInRegularAndScriptAsync(
             initialMarkup, expectedMarkup,
             index,
             ps.WithFixProviderData(pickMembersService));

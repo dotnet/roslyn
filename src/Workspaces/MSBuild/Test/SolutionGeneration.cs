@@ -22,38 +22,40 @@ public static class SolutionGeneration
     public const string NS = "http://schemas.microsoft.com/developer/msbuild/2003";
 
     private const string CSharpProjectTemplate =
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project ToolsVersion=""12.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
-  <PropertyGroup>
-    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
-    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
-  </PropertyGroup>
-  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
-  </PropertyGroup>
-  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
-  </PropertyGroup>
-  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>";
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+          <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+          <PropertyGroup>
+            <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+            <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+          </PropertyGroup>
+          <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+          </PropertyGroup>
+          <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+          </PropertyGroup>
+          <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+        </Project>
+        """;
 
     private const string SolutionTemplate =
-@"
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
-MinimumVisualStudioVersion = 10.0.40219.1
-{0}Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-EndGlobal
-";
+        """
+        Microsoft Visual Studio Solution File, Format Version 12.00
+        # Visual Studio 2013
+        VisualStudioVersion = 12.0.30110.0
+        MinimumVisualStudioVersion = 10.0.40219.1
+        {0}Global
+        	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        		Debug|Any CPU = Debug|Any CPU
+        		Release|Any CPU = Release|Any CPU
+        	EndGlobalSection
+        	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        	EndGlobalSection
+        	GlobalSection(SolutionProperties) = preSolution
+        		HideSolutionNode = FALSE
+        	EndGlobalSection
+        EndGlobal
+        """;
 
     public const string PublicKey = "00240000048000009400000006020000002400005253413100040000010001003bb5de1b79bee9bf5ba44bdb42974c6f40fdc4b329c8e1b833fa798cf0859529485b2bfc359a08e16f025fe57efd293c4dc3541cb2e0929b1c4a92db87eed7a9454dbd08beb7c7308941384b3bfb088de781b51caef23677f8f6defb671e97e1fc5e0979858e52828c86aca1d4ea1797f1f1254bf64073a28e5be520d5397fb0";
     public const string PublicKeyToken = "39d7e8ec38707fde";
@@ -192,7 +194,9 @@ EndGlobal
                 : "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
             sb.AppendLine(
                 string.Format(
-                    @"Project(""{0}"") = ""{1}"", ""{2}"", ""{3}""",
+                    """
+                    Project("{0}") = "{1}", "{2}", "{3}"
+                    """,
                     languageGuid,
                     project.Name,
                     fileName,

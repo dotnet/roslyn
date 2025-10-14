@@ -2387,8 +2387,9 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(17, 15));
         }
 
-        [Fact]
-        public void NullCoalescing_CondAccess_NonNullConstantLeft()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78386")]
+        public void NullCoalescing_CondAccess_NonNullConstantLeft(
+            [CombinatorialValues(TargetFramework.Standard, TargetFramework.NetCoreApp)] TargetFramework targetFramework)
         {
             var source = @"
 #nullable enable
@@ -2414,7 +2415,7 @@ static class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, targetFramework: targetFramework).VerifyDiagnostics(
                 // (21,30): error CS0165: Use of unassigned local variable 'z'
                 //             : x.ToString() + z.ToString(); // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(21, 30)
@@ -6101,6 +6102,67 @@ class C
                 // class C(out int a) : Base(Test(() =>
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "C").WithArguments("a").WithLocation(1, 7)
                 );
+        }
+
+        [Fact]
+        public void OutParameterIsNotAssigned_LocalFunction()
+        {
+            var source = """
+                class C
+                {
+                    void M(out int i)
+                    {
+                        f();
+                        static void f() { }
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,10): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+                //     void M(out int i)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("i").WithLocation(3, 10));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79437")]
+        public void OutParameterIsNotAssigned_LocalFunction_Extern()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+                class C
+                {
+                    void M(out int i)
+                    {
+                        f();
+                        [DllImport("test")] static extern void f();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,10): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+                //     void M(out int i)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("i").WithLocation(4, 10));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79437")]
+        public void UnassignedVariable_LocalFunction_Extern()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+                class C
+                {
+                    void M()
+                    {
+                        int i;
+                        f();
+                        i.ToString();
+                        [DllImport("test")] extern static void f();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,9): error CS0165: Use of unassigned local variable 'i'
+                //         i.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(8, 9));
         }
     }
 }

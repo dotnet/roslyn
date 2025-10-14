@@ -10,12 +10,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ImplementInterface;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface;
@@ -23,11 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 [ExportLanguageService(typeof(IImplementInterfaceService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpImplementInterfaceService() : AbstractImplementInterfaceService
+internal sealed class CSharpImplementInterfaceService() : AbstractImplementInterfaceService<TypeDeclarationSyntax>
 {
-    protected override ISyntaxFormatting SyntaxFormatting
-        => CSharpSyntaxFormatting.Instance;
-
     protected override SyntaxGeneratorInternal SyntaxGeneratorInternal
         => CSharpSyntaxGeneratorInternal.Instance;
 
@@ -36,6 +32,18 @@ internal sealed class CSharpImplementInterfaceService() : AbstractImplementInter
 
     protected override bool AllowDelegateAndEnumConstraints(ParseOptions options)
         => options.LanguageVersion() >= LanguageVersion.CSharp7_3;
+
+    protected override bool IsTypeInInterfaceBaseList(SyntaxNode? type)
+        => type?.Parent is BaseTypeSyntax { Parent: BaseListSyntax } baseTypeParent && baseTypeParent.Type == type;
+
+    protected override void AddInterfaceTypes(TypeDeclarationSyntax typeDeclaration, ArrayBuilder<SyntaxNode> result)
+    {
+        if (typeDeclaration.BaseList != null)
+        {
+            foreach (var baseType in typeDeclaration.BaseList.Types)
+                result.Add(baseType.Type);
+        }
+    }
 
     protected override bool TryInitializeState(
         Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken,

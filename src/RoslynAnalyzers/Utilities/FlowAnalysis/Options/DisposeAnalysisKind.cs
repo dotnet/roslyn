@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Analyzer.Utilities
 {

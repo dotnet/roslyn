@@ -24,14 +24,15 @@ public sealed class SimplifyMethodTests : AbstractLanguageServerProtocolTests
     public async Task TestGetSimplifyMethodAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-using System;
-using System.Threading.Tasks;
-namespace test;
-class A
-{
-{|caret:|}
-}";
+            """
+            using System;
+            using System.Threading.Tasks;
+            namespace test;
+            class A
+            {
+            {|caret:|}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var methodInsertionLocation = testLspServer.GetLocations("caret").First();
         var method = "private global::System.Threading.Tasks.Task test() => throw new global::System.NotImplementedException();";
@@ -52,7 +53,7 @@ class A
     }
 
     private static SimplifyMethodParams CreateSimplifyMethodParams(LSP.Location location, string newText)
-        => new SimplifyMethodParams()
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
             TextEdit = new TextEdit() { Range = location.Range, NewText = newText },

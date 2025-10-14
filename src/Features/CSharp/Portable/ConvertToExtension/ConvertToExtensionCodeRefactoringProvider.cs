@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -56,8 +57,8 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             => ExtensionMethodEqualityComparer.Instance.GetHashCode(this);
     }
 
-    internal override FixAllProvider? GetFixAllProvider()
-        => new ConvertToExtensionFixAllProvider();
+    public override RefactorAllProvider? GetRefactorAllProvider()
+        => new ConvertToExtensionRefactorAllProvider();
 
     private static ExtensionMethodInfo? TryGetExtensionMethodInfo(
         SemanticModel semanticModel,
@@ -251,7 +252,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 classDeclarationEditor.RemoveNode(siblingExtension.ExtensionMethod);
         }
 
-        ExtensionDeclarationSyntax CreateExtension(ImmutableArray<ExtensionMethodInfo> group)
+        ExtensionBlockDeclarationSyntax CreateExtension(ImmutableArray<ExtensionMethodInfo> group)
         {
             Contract.ThrowIfTrue(group.IsEmpty);
 
@@ -259,7 +260,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 CodeGenerationContext.Default,
                 CSharpCodeGenerationOptions.Default,
                 (CSharpCodeGenerationService)codeGenerationService,
-                LanguageVersionExtensions.CSharpNext);
+                LanguageVersion.CSharp14);
 
             var firstExtensionInfo = group[0];
             var typeParameters = firstExtensionInfo.MethodTypeParameters.CastArray<ITypeParameterSymbol>();
@@ -269,7 +270,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             // the extension declaration).
             var firstParameter = CodeGenerationSymbolFactory.CreateParameterSymbol(firstExtensionInfo.FirstParameter);
 
-            var extensionDeclaration = ExtensionDeclaration(
+            var extensionDeclaration = ExtensionBlockDeclaration(
                 attributeLists: default,
                 modifiers: default,
                 ExtensionKeyword,

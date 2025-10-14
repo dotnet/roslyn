@@ -7,14 +7,15 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue.VsdbgIntegration;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 
@@ -498,19 +499,39 @@ internal static class StringCopyPasteHelpers
         string? commonIndentPrefix = null;
         var first = true;
 
+        using var allLines = TemporaryArray<TextLine>.Empty;
+
         foreach (var change in textChanges)
         {
             var text = SourceText.From(change.NewText);
             foreach (var line in text.Lines)
             {
-                if (first)
-                {
-                    first = false;
-                    continue;
-                }
-
                 var nonWhitespaceIndex = GetFirstNonWhitespaceIndex(text, line);
-                if (nonWhitespaceIndex >= 0)
+
+                // For the first line, we only want to consider its indentation if it *has* any.  That's because
+                // people often copy by avoiding indentation on the first line and starting their selection on the
+                // first real construct.  e.g.:
+                //
+                //   <ws>[|Goo
+                //   <ws     >Bar
+                //   <ws          >Baz|]
+                //
+                // In this case, we don't want to say that there is no common indentation to trim since there is
+                // no indentation on the selection's first line.  However, we do want to trim if the user selected
+                // whitespace a-la:
+                //
+                //   [|<ws>Goo
+                //   <ws     >Bar
+                //   <ws          >Baz|]
+                //
+                // In this case, we really only want to trim the common whitespace of all three lines, not the whitespace
+                // of the second/third lines.  If we do the latter, we'd end up with Goo and Bar being aligned, which
+                // doesn't match the original intent.
+
+                var minimumStartColumn = first ? 1 : 0;
+                first = false;
+
+                if (nonWhitespaceIndex >= minimumStartColumn)
                     commonIndentPrefix = GetCommonIndentationPrefix(commonIndentPrefix, text, TextSpan.FromBounds(line.Start, nonWhitespaceIndex));
             }
         }
@@ -555,6 +576,11 @@ internal static class StringCopyPasteHelpers
             return true;
 
         // or contains a newline
+        return SpansContainsNewLine(text, spans);
+    }
+
+    public static bool SpansContainsNewLine(SourceText text, ImmutableArray<TextSpan> spans)
+    {
         foreach (var span in spans)
         {
             for (var i = span.Start; i < span.End; i++)

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasPrimaryConstructor = 1 << 11,
 
             /// <summary>
-            /// Set when <see cref="Syntax.ExtensionDeclarationSyntax"/> is present.
+            /// Set when <see cref="Syntax.ExtensionBlockDeclarationSyntax"/> is present.
             /// </summary>            
             AnyExtensionDeclarationSyntax = 1 << 12,
         }

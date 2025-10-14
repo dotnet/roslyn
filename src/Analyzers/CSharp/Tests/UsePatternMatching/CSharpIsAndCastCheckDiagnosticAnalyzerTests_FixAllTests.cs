@@ -14,9 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
 {
     [Fact]
-    public async Task FixAllInDocument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -49,12 +48,10 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAllInDocument2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -87,5 +84,4 @@ public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
                 }
             }
             """);
-    }
 }

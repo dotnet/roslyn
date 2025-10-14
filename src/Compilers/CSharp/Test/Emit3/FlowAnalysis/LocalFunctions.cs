@@ -706,6 +706,25 @@ class C
         }
 
         [Fact]
+        public void UnusedLocalFunc_Extern()
+        {
+            var comp = CreateCompilation("""
+                using System.Runtime.InteropServices;
+                class C
+                {
+                    public static void Main()
+                    {
+                        [DllImport("test")] static extern bool Local();
+                    }
+                }
+                """);
+            comp.VerifyDiagnostics(
+                // (6,48): warning CS8321: The local function 'Local' is declared but never used
+                //         [DllImport("test")] static extern bool Local();
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(6, 48));
+        }
+
+        [Fact]
         public void UnassignedInStruct()
         {
             var source = @"

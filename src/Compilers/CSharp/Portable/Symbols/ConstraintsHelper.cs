@@ -523,7 +523,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal readonly struct CheckConstraintsArgs
         {
-            public readonly CSharpCompilation CurrentCompilation;
+#nullable enable
+            public readonly CSharpCompilation? CurrentCompilation;
+#nullable disable
             public readonly ConversionsBase Conversions;
             public readonly bool IncludeNullability;
             public readonly Location Location;
@@ -590,7 +592,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.Kind == SymbolKind.PointerType)
             {
-                Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, args.Location, args.Diagnostics);
+#nullable enable
+                if (args.CurrentCompilation is not null)
+                {
+                    Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, args.Location, args.Diagnostics);
+                }
+#nullable disable
             }
             return false; // continue walking types
         }
@@ -734,6 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnosticsBuilder.Free();
 
+#nullable enable
             // we only check for distinct interfaces when the type is not from source, as we
             // trust that types that are from source have already been checked by the compiler
             // to prevent this from happening in the first place.
@@ -742,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = false;
                 args.Diagnostics.Add(ErrorCode.ERR_BogusType, args.Location, type);
             }
-
+#nullable disable
             return result;
         }
 
@@ -796,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 // some implemented interfaces are related
 // will have to instantiate interfaces and check
 hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates<NamedTypeSymbol>(SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
         }
 
         public static bool CheckConstraints(
@@ -958,7 +966,8 @@ hasRelatedInterfaces:
             {
                 if (typeParameter.AllowsRefLikeType)
                 {
-                    if (args.CurrentCompilation.SourceModule != typeParameter.ContainingModule)
+#nullable enable
+                    if (args.CurrentCompilation is not null && args.CurrentCompilation.SourceModule != typeParameter.ContainingModule)
                     {
                         if (MessageID.IDS_FeatureAllowsRefStructConstraint.GetFeatureAvailabilityDiagnosticInfo(args.CurrentCompilation) is { } diagnosticInfo)
                         {
@@ -970,6 +979,7 @@ hasRelatedInterfaces:
                             diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics))));
                         }
                     }
+#nullable disable
                 }
                 else
                 {
@@ -1011,6 +1021,7 @@ hasRelatedInterfaces:
                 }
                 else if (managedKind == ManagedKind.UnmanagedWithGenerics)
                 {
+#nullable enable
                     // When there is no compilation, we are being invoked through the API IMethodSymbol.ReduceExtensionMethod(...).
                     // In that case we consider the unmanaged constraint to be satisfied as if we were compiling with the latest
                     // language version.  The net effect of this is that in some IDE scenarios completion might consider an
@@ -1024,6 +1035,7 @@ hasRelatedInterfaces:
                             return false;
                         }
                     }
+#nullable disable
                 }
             }
 
@@ -1203,9 +1215,11 @@ hasRelatedInterfaces:
             }
             else
             {
+#nullable enable
                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(args.CurrentCompilation, constraintType.Type, typeArgument.Type);
                 constraintTypeErrorArgument = distinguisher.First;
                 typeArgumentErrorArgument = distinguisher.Second;
+#nullable disable
             }
 
             diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(errorCode, containingSymbol.ConstructedFrom(), constraintTypeErrorArgument, typeParameter, typeArgumentErrorArgument))));

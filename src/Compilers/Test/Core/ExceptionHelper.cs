@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
@@ -19,10 +20,13 @@ namespace Roslyn.Test.Utilities
                 sb.AppendLine("Emit Failed, binaries saved to: ");
                 sb.AppendLine(directory);
             }
-            foreach (var d in diagnostics)
+            else
             {
-                sb.AppendLine(d.ToString());
+                sb.AppendLine();
             }
+
+            DiagnosticDescription.GetPrettyDiagnostics(sb, diagnostics, includeDiagnosticMessagesAsComments: true, indentDepth: 0, includeDefaultSeverity: false, includeEffectiveSeverity: false);
+
             return sb.ToString();
         }
 

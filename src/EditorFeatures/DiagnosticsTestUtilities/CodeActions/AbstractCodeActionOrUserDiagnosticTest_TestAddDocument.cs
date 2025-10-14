@@ -43,7 +43,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest
         }
     }
 
-    protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
+    protected async Task<(Solution oldSolution, Solution newSolution)> TestAddDocumentAsync(
         TestParameters parameters,
         EditorTestWorkspace workspace,
         string expectedMarkup,
@@ -71,7 +71,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest
             expectedDocumentName, action);
     }
 
-    private async Task<Tuple<Solution, Solution>> TestAddDocument(
+    private async Task<(Solution oldSolution, Solution newSolution)> TestAddDocument(
         EditorTestWorkspace workspace,
         string expectedMarkup,
         ImmutableArray<string> expectedFolders,
@@ -89,7 +89,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest
             expectedDocumentName: expectedDocumentName);
     }
 
-    protected static async Task<Tuple<Solution, Solution>> TestAddDocument(
+    protected static async Task<(Solution oldSolution, Solution newSolution)> TestAddDocument(
         EditorTestWorkspace workspace,
         string expected,
         ImmutableArray<CodeActionOperation> operations,
@@ -98,9 +98,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest
         ImmutableArray<string> expectedFolders,
         string expectedDocumentName)
     {
-        var appliedChanges = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
-        var oldSolution = appliedChanges.Item1;
-        var newSolution = appliedChanges.Item2;
+        var (oldSolution, newSolution) = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
 
         Document addedDocument = null;
         if (!hasProjectChange)
@@ -155,6 +153,6 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest
             Assert.True(hasPreview);
         }
 
-        return Tuple.Create(oldSolution, newSolution);
+        return (oldSolution, newSolution);
     }
 }

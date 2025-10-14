@@ -130,9 +130,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void QuotePipeName_Desktop()
         {
             var serverInfo = BuildServerConnection.GetServerProcessInfo(@"q:\tools", "name with space");
-            // Because q:\tools\VBCSCompiler.exe does not exist, the fallback 'dotnet exec VBCSCompiler.dll' is returned.
             Assert.EndsWith(@"\dotnet.exe", serverInfo.processFilePath);
-            Assert.Equal(@"exec ""q:\tools\VBCSCompiler.dll"" ""-pipename:name with space""", serverInfo.commandLineArguments);
+            AssertEx.Equal(@"exec ""q:\tools\VBCSCompiler.dll"" ""-pipename:name with space""", serverInfo.commandLineArguments);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 : "/tools";
             var serverInfo = BuildServerConnection.GetServerProcessInfo(toolDir, "name with space");
             var vbcsFilePath = Path.Combine(toolDir, "VBCSCompiler.dll");
-            Assert.Equal($@"exec ""{vbcsFilePath}"" ""-pipename:name with space""", serverInfo.commandLineArguments);
+            AssertEx.Equal($@"exec ""{vbcsFilePath}"" ""-pipename:name with space""", serverInfo.commandLineArguments);
         }
 
         [Theory]

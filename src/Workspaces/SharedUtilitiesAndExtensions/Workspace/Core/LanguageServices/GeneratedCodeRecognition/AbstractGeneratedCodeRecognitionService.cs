@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 
 internal abstract class AbstractGeneratedCodeRecognitionService : IGeneratedCodeRecognitionService
 {
-#if !CODE_STYLE
+#if WORKSPACE
     public bool IsGeneratedCode(Document document, CancellationToken cancellationToken)
     {
         var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);

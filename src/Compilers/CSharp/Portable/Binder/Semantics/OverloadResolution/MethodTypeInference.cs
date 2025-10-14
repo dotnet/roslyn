@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (IsUnfixedTypeParameter(target) && !target.NullableAnnotation.IsAnnotated() && kind is ExactOrBoundsKind.LowerBound)
                 {
-                    var ordinal = GetOrdinal((TypeParameterSymbol)target.Type); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test nullability scenario where the override of ordinals matters
+                    var ordinal = GetOrdinal((TypeParameterSymbol)target.Type);
                     _nullableAnnotationLowerBounds[ordinal] = _nullableAnnotationLowerBounds[ordinal].Join(argumentType.NullableAnnotation);
                 }
             }
@@ -1513,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
                 options: OverloadResolution.Options.IsMethodGroupConversion |
                          (isFunctionPointerResolution ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
-                returnRefKind: delegateRefKind,
+                acceptOnlyMethods: true, returnRefKind: delegateRefKind,
                 // Since we are trying to infer the return type, it is not an input to resolving the method group
                 returnType: null,
                 callingConventionInfo: in callingConventionInfo);

@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 
@@ -103,22 +102,39 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
     private static async Task<Document> RemoveSortUsingsAsync(
         Document document, OrganizeUsingsSet organizeUsingsSet, CancellationToken cancellationToken)
     {
-        if (organizeUsingsSet.IsRemoveUnusedImportEnabled &&
-            document.GetLanguageService<IRemoveUnnecessaryImportsService>() is { } removeUsingsService)
+        if (organizeUsingsSet.IsRemoveUnusedImportEnabled)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_RemoveUnusedImports, cancellationToken))
             {
-                var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-                document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                // The compiler reports any usings/imports it didn't think were used.  Regardless of the state of
+                // the code in the file.  For example, if there are major parse errors, it can end up causing
+                // many usings to seem unused simply because the compiler isn't actually able to determine the
+                // meaning of all the code.  Similarly, in scenarios where there may be a bunch of disabled code
+                // (like when merge markers are introduced) this can happen as well.
+                //
+                // For the normal editing experience, this is not a huge deal.  The usings/imports may fade,
+                // but they'll stay around unless the user goes out of the way to remove them.  That's not the case
+                // for code-cleanup, which may run automatically on actions like 'save'.  As such, we don't 
+                // remove usings in that case if we see that there are major issues in the file (like syntactic
+                // diagnostics).
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                if (!root.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                {
+                    var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+                    var removeUsingsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
+                    document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
-        if (organizeUsingsSet.IsSortImportsEnabled &&
-            document.GetLanguageService<IOrganizeImportsService>() is { } organizeImportsService)
+        if (organizeUsingsSet.IsSortImportsEnabled)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_SortImports, cancellationToken))
             {
                 var organizeOptions = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+                var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
                 document = await organizeImportsService.OrganizeImportsAsync(document, organizeOptions, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -168,11 +184,8 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
     private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
         Document document, string diagnosticId, DiagnosticSeverity minimumSeverity, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
-        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var textSpan = new TextSpan(0, tree.Length);
-
         var fixCollection = await _codeFixService.GetDocumentFixAllForIdInSpanAsync(
-            document, textSpan, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
+            document, textSpan: null, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
         if (fixCollection == null)
         {
             return document;
@@ -193,11 +206,12 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var range = new TextSpan(0, tree.Length);
 
-        // Compute diagnostics for everything that is not an IDE analyzer
         var diagnosticService = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, range,
-            shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+        var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(
+            document, range,
+            // Compute diagnostics for everything that is *NOT* an IDE analyzer
+            DiagnosticIdFilter.Exclude(IDEDiagnosticIdToOptionMappingHelper.KnownIDEDiagnosticIds),
+            priority: null,
             DiagnosticKind.All,
             cancellationToken).ConfigureAwait(false);
 
@@ -226,7 +240,7 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
             progressTracker.Report(CodeAnalysisProgress.Description(string.Format(FeaturesResources.Fixing_0, title ?? diagnosticId)));
             // Apply codefixes for diagnostics with a severity of warning or higher
             var updatedDocument = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
-                document, diagnosticId, DiagnosticSeverity.Warning, progressTracker, cancellationToken).ConfigureAwait(false);
+                document, textSpan: null, diagnosticId, DiagnosticSeverity.Warning, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // If changes were made to the solution snap shot outside the current document discard the changes.
             // The assumption here is that if we are applying a third party code fix to a document it only affects the document.

@@ -4,7 +4,6 @@
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Simplification.Simplifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

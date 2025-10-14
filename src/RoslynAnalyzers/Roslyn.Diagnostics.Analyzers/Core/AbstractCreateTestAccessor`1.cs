@@ -49,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 CodeAction.Create(
                     RoslynDiagnosticsAnalyzersResources.CreateTestAccessorMessage,
                     cancellationToken => CreateTestAccessorAsync(context.Document, location.SourceSpan, cancellationToken),
-                    nameof(AbstractCreateTestAccessor<TTypeDeclarationSyntax>)));
+                    nameof(AbstractCreateTestAccessor<>)));
         }
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)

@@ -55,19 +55,15 @@ internal sealed partial class StringCopyPasteCommandHandler(
     IEditorOperationsFactoryService editorOperationsFactoryService,
     IGlobalOptionService globalOptions,
     ITextBufferFactoryService2 textBufferFactoryService,
-    EditorOptionsService editorOptionsService,
-    IIndentationManagerService indentationManager) :
+    EditorOptionsService editorOptionsService) :
     IChainedCommandHandler<CutCommandArgs>,
     IChainedCommandHandler<CopyCommandArgs>,
     IChainedCommandHandler<PasteCommandArgs>
 {
-    private const string CopyId = "RoslynStringCopyPasteId";
-
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
-    private readonly IIndentationManagerService _indentationManager = indentationManager;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
     private readonly ITextBufferFactoryService2 _textBufferFactoryService = textBufferFactoryService;
 

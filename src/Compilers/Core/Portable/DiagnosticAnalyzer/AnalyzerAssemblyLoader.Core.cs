@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
-                    CodeAnalysisEventSource.Log.CreateAssemblyLoadContext(fullDirectoryPath);
                     loadContext = new DirectoryLoadContext(fullDirectoryPath, this);
+                    CodeAnalysisEventSource.Log.CreateAssemblyLoadContext(fullDirectoryPath, loadContext.ToString());
                     _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
             }
@@ -165,29 +165,10 @@ namespace Microsoft.CodeAnalysis
 
         private partial void DisposeWorker()
         {
-            var contexts = ArrayBuilder<DirectoryLoadContext>.GetInstance();
             lock (_guard)
             {
-                foreach (var (_, context) in _loadContextByDirectory)
-                    contexts.Add(context);
-
                 _loadContextByDirectory.Clear();
             }
-
-            foreach (var context in contexts)
-            {
-                try
-                {
-                    context.Unload();
-                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory);
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-                {
-                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContextException(context.Directory, ex.ToString());
-                }
-            }
-
-            contexts.Free();
         }
 
         internal sealed class DirectoryLoadContext : AssemblyLoadContext
@@ -196,7 +177,7 @@ namespace Microsoft.CodeAnalysis
             private readonly AnalyzerAssemblyLoader _loader;
 
             public DirectoryLoadContext(string directory, AnalyzerAssemblyLoader loader)
-                : base(isCollectible: true)
+                : base(isCollectible: false)
             {
                 Directory = directory;
                 _loader = loader;
@@ -209,10 +190,12 @@ namespace Microsoft.CodeAnalysis
                     var assembly = resolver.Resolve(_loader, assemblyName, this, Directory);
                     if (assembly is not null)
                     {
+                        CodeAnalysisEventSource.Log.ResolvedAssembly(Directory, assemblyName.ToString(), resolver.GetType().Name, assembly.Location, GetLoadContext(assembly)!.ToString());
                         return assembly;
                     }
                 }
 
+                CodeAnalysisEventSource.Log.ResolveAssemblyFailed(Directory, assemblyName.ToString());
                 return null;
             }
 

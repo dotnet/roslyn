@@ -5,7 +5,6 @@
 #nullable disable
 
 extern alias PortableTestUtils;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,14 +17,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
-using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
-using WorkItemAttribute = PortableTestUtils::Roslyn.Test.Utilities.WorkItemAttribute;
 using static Microsoft.CodeAnalysis.Scripting.TestCompilationFactory;
-using Microsoft.CodeAnalysis.Scripting.TestUtilities;
+using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
+using WorkItemAttribute = PortableTestUtils::Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
@@ -244,7 +242,7 @@ System.Diagnostics.Process.GetCurrentProcess()
                    GlobalAssemblyCache.Instance.ResolvePartialName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null;
         });
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/79923")]
         public void References_Versioning_FxUnification1()
         {
             if (!s_isSystemV2AndV4Available.Value)
@@ -274,7 +272,7 @@ System.Diagnostics.Process.GetCurrentProcess()
             Assert.NotNull(script.RunAsync().Result.ReturnValue);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/79923")]
         public void References_Versioning_FxUnification2()
         {
             if (!s_isSystemV2AndV4Available.Value)

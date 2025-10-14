@@ -901,15 +901,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case CompletionPart.Attributes:
                         GetAttributes();
-
-                        if (this is SynthesizedPrimaryConstructor primaryConstructor)
-                        {
-                            // The constructor is responsible for completion of the backing fields
-                            foreach (var field in primaryConstructor.GetBackingFields())
-                            {
-                                field.GetAttributes();
-                            }
-                        }
                         break;
 
                     case CompletionPart.ReturnTypeAttributes:
@@ -925,6 +916,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var parameter in this.Parameters)
                         {
                             parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
+                        }
+
+                        if (this is SynthesizedPrimaryConstructor primaryConstructor)
+                        {
+                            // The constructor is responsible for completion of the backing fields
+                            foreach (var field in primaryConstructor.GetBackingFields())
+                            {
+                                field.GetAttributes();
+                            }
                         }
 
                         state.NotePartComplete(CompletionPart.Parameters);
@@ -1000,27 +1000,27 @@ done:
             byte? value;
             if (!flags.TryGetNullableContext(out value))
             {
-                value = ComputeNullableContextValue();
+                value = ComputeNullableContextValue(this);
                 flags.SetNullableContext(value);
             }
             return value;
         }
 
-        private byte? ComputeNullableContextValue()
+        internal static byte? ComputeNullableContextValue(MethodSymbol method)
         {
-            var compilation = DeclaringCompilation;
-            if (!compilation.ShouldEmitNullableAttributes(this))
+            var compilation = method.DeclaringCompilation;
+            if (!compilation.ShouldEmitNullableAttributes(method))
             {
                 return null;
             }
 
             var builder = new MostCommonNullableValueBuilder();
-            foreach (var typeParameter in TypeParameters)
+            foreach (var typeParameter in method.TypeParameters)
             {
                 typeParameter.GetCommonNullableValues(compilation, ref builder);
             }
-            builder.AddValue(ReturnTypeWithAnnotations);
-            foreach (var parameter in Parameters)
+            builder.AddValue(method.ReturnTypeWithAnnotations);
+            foreach (var parameter in method.Parameters)
             {
                 parameter.GetCommonNullableValues(compilation, ref builder);
             }

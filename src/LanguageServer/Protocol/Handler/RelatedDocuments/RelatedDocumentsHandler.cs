@@ -41,19 +41,17 @@ internal sealed class RelatedDocumentsHandler
     public async Task<VSInternalRelatedDocumentReport[]?> HandleRequestAsync(
         VSInternalRelatedDocumentParams requestParams, RequestContext context, CancellationToken cancellationToken)
     {
-        context.TraceInformation($"{this.GetType()} started getting related documents");
-
         var solution = context.Solution;
         var document = context.Document;
         Contract.ThrowIfNull(solution);
         Contract.ThrowIfNull(document);
 
-        context.TraceInformation($"Processing: {document.FilePath}");
+        context.TraceDebug($"Processing: {document.FilePath}");
 
         var relatedDocumentsService = document.GetLanguageService<IRelatedDocumentsService>();
         if (relatedDocumentsService == null)
         {
-            context.TraceInformation($"Ignoring document '{document.FilePath}' because it does not support related documents");
+            context.TraceDebug($"Ignoring document '{document.FilePath}' because it does not support related documents");
             return [];
         }
 
@@ -79,13 +77,12 @@ internal sealed class RelatedDocumentsHandler
                     FilePaths = [.. relatedDocumentIds.Select(id => solution.GetRequiredDocument(id).FilePath).WhereNotNull()],
                 });
 
-                return ValueTaskFactory.CompletedTask;
+                return ValueTask.CompletedTask;
             },
             cancellationToken).ConfigureAwait(false);
 
         // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
         // collecting and return that.
-        context.TraceInformation($"{this.GetType()} finished getting related documents");
         return progress.GetFlattenedValues();
     }
 }

@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 public partial class TestWorkspace : TestWorkspace<TestHostDocument, TestHostProject, TestHostSolution>
 {
+    public static string RootDirectory => TempRoot.Root;
+
     internal TestWorkspace(
         TestComposition? composition = null,
         string? workspaceKind = WorkspaceKind.Host,
@@ -22,6 +24,22 @@ public partial class TestWorkspace : TestWorkspace<TestHostDocument, TestHostPro
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
         WorkspaceConfigurationOptions? configurationOptions = null)
         : base(composition,
+               workspaceKind,
+               solutionTelemetryId,
+               disablePartialSolutions,
+               ignoreUnchangeableDocumentsWhenApplyingChanges,
+               configurationOptions)
+    {
+    }
+
+    internal TestWorkspace(
+        ExportProvider exportProvider,
+        string? workspaceKind = WorkspaceKind.Host,
+        Guid solutionTelemetryId = default,
+        bool disablePartialSolutions = true,
+        bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
+        WorkspaceConfigurationOptions? configurationOptions = null)
+        : base(exportProvider,
                workspaceKind,
                solutionTelemetryId,
                disablePartialSolutions,

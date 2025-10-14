@@ -9,6 +9,7 @@ Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.DocumentationComments
@@ -292,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 ' Make sure we don't crash
                 Dim unused = Await codefixService.GetMostSevereFixAsync(
-                    document, Text.TextSpan.FromBounds(0, 0), New DefaultCodeActionRequestPriorityProvider(), CancellationToken.None)
+                    document, Text.TextSpan.FromBounds(0, 0), priority:=Nothing, CancellationToken.None)
             End Using
         End Function
 

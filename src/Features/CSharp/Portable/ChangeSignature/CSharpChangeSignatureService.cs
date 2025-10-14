@@ -54,8 +54,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
     ];
 
     private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
-        _declarationKinds.Concat(
-        [
+        [.. _declarationKinds,
             SyntaxKind.InvocationExpression,
             SyntaxKind.ElementAccessExpression,
             SyntaxKind.ThisConstructorInitializer,
@@ -63,8 +62,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             SyntaxKind.ObjectCreationExpression,
             SyntaxKind.ImplicitObjectCreationExpression,
             SyntaxKind.Attribute,
-            SyntaxKind.NameMemberCref,
-        ]);
+            SyntaxKind.NameMemberCref];
 
     private static readonly ImmutableArray<SyntaxKind> _updatableAncestorKinds =
     [

@@ -167,7 +167,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
     {
         if (serializedParameters == null)
         {
-            Logger.LogInformation("No request parameters given, using default language handler");
+            Logger.LogDebug("No request parameters given, using default language handler");
             language = LanguageServerConstants.DefaultLanguageName;
             return true;
         }
@@ -212,7 +212,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         if (uri == null)
         {
             // This request is not for a textDocument and is not a resolve request.
-            Logger.LogInformation("Request did not contain a textDocument, using default language handler");
+            Logger.LogDebug("Request did not contain a textDocument, using default language handler");
             language = LanguageServerConstants.DefaultLanguageName;
             return true;
         }

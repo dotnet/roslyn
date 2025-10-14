@@ -292,13 +292,11 @@ public sealed class SourceFileHandlingTests
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());
-
-        var sourceFileFullPath1 = @"c:\source1.cs";
         var sourceFileFullPath2 = @"c:\source2.cs";
         var sourceFileFullPath3 = @"c:\source3.cs";
         var sourceFileFullPath4 = @"c:\source4.cs";
         var sourceFileFullPath5 = @"c:\source5.cs";
-        project.AddSourceFile(sourceFileFullPath1);
+        project.AddSourceFile(@"c:\source1.cs");
         project.AddSourceFile(sourceFileFullPath2);
         project.AddSourceFile(sourceFileFullPath3);
         project.AddSourceFile(sourceFileFullPath4);
@@ -328,8 +326,6 @@ public sealed class SourceFileHandlingTests
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());
-
-        var sourceFileFullPath1 = @"c:\source1.cs";
         var sourceFileFullPath2 = @"c:\source2.cs";
         var sourceFileFullPath3 = @"c:\source3.cs";
         var sourceFileFullPath4 = @"c:\source4.cs";
@@ -343,7 +339,7 @@ public sealed class SourceFileHandlingTests
         Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles([]));
         Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(null));
 
-        project.AddSourceFile(sourceFileFullPath1);
+        project.AddSourceFile(@"c:\source1.cs");
 
         // Test before we add/remove the rest of source files in the batch.
         Assert.Throws<ArgumentException>(() => project.ReorderSourceFiles([sourceFileFullPath4, sourceFileFullPath5]));

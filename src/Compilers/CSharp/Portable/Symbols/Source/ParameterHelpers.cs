@@ -370,11 +370,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void EnsureParamCollectionAttributeExistsAndModifyCompilation(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        internal static void EnsureParamCollectionAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
         {
             if (parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
             {
-                compilation.EnsureParamCollectionAttributeExistsAndModifyCompilation(diagnostics, GetParameterLocation(parameter));
+                moduleBuilder.EnsureParamCollectionAttributeExists(null, null);
+            }
+        }
+
+        internal static void EnsureParamCollectionAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        {
+            if (parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
+            {
+                compilation.EnsureParamCollectionAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
             }
         }
 
@@ -516,6 +524,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
+            }
+        }
+
+        internal static void CheckUnderspecifiedGenericExtension(Symbol extensionMember, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(extensionMember.GetIsNewExtensionMember());
+
+            NamedTypeSymbol extension = extensionMember.ContainingType;
+            if (extension.ExtensionParameter is not { } extensionParameter || extension.ContainingType.Arity != 0)
+            {
+                // error cases, already reported elsewhere
+                return;
+            }
+
+            if (extension.Arity == 0)
+            {
+                return;
+            }
+
+            var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            reportUnusedExtensionTypeParameters(extensionMember, parameters, diagnostics, extension, extensionParameter, usedTypeParameters);
+
+            usedTypeParameters.Free();
+            return;
+
+            static void reportUnusedExtensionTypeParameters(Symbol extensionMember, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, NamedTypeSymbol extension, ParameterSymbol extensionParameter, PooledHashSet<TypeParameterSymbol> usedTypeParameters)
+            {
+                int extensionArity = extension.Arity;
+                int extensionMemberArity = extensionMember.GetMemberArity();
+                Debug.Assert(extensionMemberArity == 0); // we currently only apply the check for members which may not be generic
+
+                extensionParameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
+
+                if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
+                {
+                    return;
+                }
+
+                foreach (var parameter in parameters)
+                {
+                    parameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
+
+                    if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
+                    {
+                        return;
+                    }
+                }
+
+                foreach (var typeParameter in extension.TypeParameters)
+                {
+                    if (!usedTypeParameters.Contains(typeParameter))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, extensionMember.GetFirstLocation(), typeParameter);
+                    }
+                }
+            }
+
+            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
+            {
+                if (type is TypeParameterSymbol typeParameter)
+                {
+                    typeParameters.Add(typeParameter);
+                }
+
+                return false;
             }
         }
 

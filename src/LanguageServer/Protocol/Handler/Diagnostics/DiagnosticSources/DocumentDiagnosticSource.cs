@@ -15,12 +15,6 @@ internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Te
 {
     public DiagnosticKind DiagnosticKind { get; } = diagnosticKind;
 
-    /// <summary>
-    /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
-    /// </summary>
-    public override bool IsLiveSource()
-        => true;
-
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         RequestContext context, CancellationToken cancellationToken)
     {

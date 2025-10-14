@@ -51,7 +51,7 @@ internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.C
         if (!completionListCache.TryGetCompletionListCacheEntry(completionItem, out var cacheEntry))
         {
             // Don't have a cache associated with this completion item, cannot resolve.
-            context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
+            context.TraceWarning("No cache entry found for the provided completion item at resolve time.");
             return Task.FromResult(completionItem);
         }
 
@@ -119,7 +119,7 @@ internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.C
         // but from different namespaces. However, VSCode doesn't include labelDetails in the resolve request, so we 
         // compare SortText instead when it's set (which is when label != SortText)
         return lspCompletionItem.Label == completionItem.GetEntireDisplayText()
-            && (lspCompletionItem.SortText is null || lspCompletionItem.SortText == completionItem.SortText);
+            && (lspCompletionItem.Label == completionItem.SortText || lspCompletionItem.SortText?.EndsWith(completionItem.SortText) == true);
     }
 
     private static LSP.TextDocumentIdentifier? GetTextDocumentCacheEntry(LSP.CompletionItem request)

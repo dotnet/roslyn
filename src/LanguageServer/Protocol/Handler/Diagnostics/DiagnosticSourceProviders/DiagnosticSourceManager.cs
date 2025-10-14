@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,10 +45,14 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
     }
 
     public ImmutableArray<string> GetDocumentSourceProviderNames(ClientCapabilities clientCapabilities)
-        => _nameToDocumentProviderMap.Where(kvp => kvp.Value.IsEnabled(clientCapabilities)).SelectAsArray(kvp => kvp.Key);
+        => _nameToDocumentProviderMap.SelectAsArray(
+            predicate: kvp => kvp.Value.IsEnabled(clientCapabilities),
+            selector: kvp => kvp.Key);
 
     public ImmutableArray<string> GetWorkspaceSourceProviderNames(ClientCapabilities clientCapabilities)
-        => _nameToWorkspaceProviderMap.Where(kvp => kvp.Value.IsEnabled(clientCapabilities)).SelectAsArray(kvp => kvp.Key);
+        => _nameToWorkspaceProviderMap.SelectAsArray(
+            predicate: kvp => kvp.Value.IsEnabled(clientCapabilities),
+            selector: kvp => kvp.Key);
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDocumentDiagnosticSourcesAsync(RequestContext context, string? providerName, CancellationToken cancellationToken)
         => CreateDiagnosticSourcesAsync(context, providerName, _nameToDocumentProviderMap, isDocument: true, cancellationToken);
@@ -78,7 +81,7 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
         }
         else
         {
-            // VS Code (and legacy VS ?) pass null sourceName when requesting all sources.
+            // Some clients (legacy VS/VSCode, Razor) do not support multiple sources - a null source indicates that diagnostics from all sources should be returned.
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var sourcesBuilder);
             foreach (var (name, provider) in nameToProviderMap)
             {
@@ -106,7 +109,6 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
         if (isDocument)
         {
             // Group all document sources into a single source.
-            Debug.Assert(sources.All(s => s.IsLiveSource()), "All document sources should be live");
             sources = [new AggregatedDocumentDiagnosticSource(sources)];
         }
         else
@@ -115,7 +117,7 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
             // will have same value for GetDocumentIdentifier and GetProject(). Thus can be
             // aggregated in a single source which will return same values. See
             // AggregatedDocumentDiagnosticSource implementation for more details.
-            sources = [.. sources.GroupBy(s => (s.GetId(), s.IsLiveSource()), s => s).SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))];
+            sources = [.. sources.GroupBy(s => s.GetId(), s => s).SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))];
         }
 
         return sources;
@@ -141,7 +143,6 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
             return result;
         }
 
-        public bool IsLiveSource() => true;
         public Project GetProject() => sources[0].GetProject();
         public ProjectOrDocumentId GetId() => sources[0].GetId();
         public TextDocumentIdentifier? GetDocumentIdentifier() => sources[0].GetDocumentIdentifier();

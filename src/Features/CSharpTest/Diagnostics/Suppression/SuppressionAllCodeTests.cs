@@ -28,7 +28,7 @@ public sealed class CSharpSuppressionAllCodeTests : AbstractSuppressionAllCodeTe
         => TestWorkspace.CreateCSharp(definition, (CSharpParseOptions)parseOptions, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
     internal override Tuple<Analyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        => new Tuple<Analyzer, IConfigurationFixProvider>(new Analyzer(), new CSharpSuppressionCodeFixProvider());
+        => new(new Analyzer(), new CSharpSuppressionCodeFixProvider());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
@@ -36,12 +36,10 @@ public sealed class CSharpSuppressionAllCodeTests : AbstractSuppressionAllCodeTe
         => await TestPragmaAsync(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
 
     [Fact]
-    public async Task TestSuppressionWithAttributeOnEveryNodes()
-    {
-        await TestSuppressionWithAttributeAsync(
+    public Task TestSuppressionWithAttributeOnEveryNodes()
+        => TestSuppressionWithAttributeAsync(
             TestResource.AllInOneCSharpCode,
             CSharpParseOptions.Default,
             digInto: n => n is not StatementSyntax or BlockSyntax,
             verifier: t => t.IndexOf("SuppressMessage", StringComparison.Ordinal) >= 0);
-    }
 }

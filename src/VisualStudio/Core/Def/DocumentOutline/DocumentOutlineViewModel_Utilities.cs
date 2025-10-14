@@ -18,6 +18,7 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline;
+
 internal delegate Task<TResponse?> LanguageServiceBrokerCallback<TRequest, TResponse>(Request<TRequest, TResponse> request, CancellationToken cancellationToken);
 
 internal sealed partial class DocumentOutlineViewModel

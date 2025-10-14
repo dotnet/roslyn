@@ -12,16 +12,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Text;
-using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using StreamJsonRpc;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using IAsyncDisposable = System.IAsyncDisposable;
@@ -31,8 +27,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline;
 [UseExportProvider]
 public abstract class DocumentOutlineTestsBase
 {
-    private const string PathRoot = "C:\\\ue25b\\";
-
     private readonly TestOutputLspLogger _logger;
     protected DocumentOutlineTestsBase(ITestOutputHelper testOutputHelper)
     {
@@ -64,7 +58,7 @@ public abstract class DocumentOutlineTestsBase
         internal ITextBuffer TextBuffer { get; }
 
         internal string FilePath
-            => PathRoot + _workspace.Documents.Single().FilePath!;
+            => _workspace.Documents.Single().FilePath!;
 
         public ValueTask DisposeAsync()
             => _disposable.DisposeAsync();
@@ -97,30 +91,10 @@ public abstract class DocumentOutlineTestsBase
 
     private async Task<EditorTestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace)
     {
-        var solution = workspace.CurrentSolution;
+        await workspace.ChangeSolutionAsync(
+            workspace.CurrentSolution.WithAnalyzerReferences([new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())]));
 
-        foreach (var document in workspace.Documents)
-        {
-            if (document.IsSourceGenerated)
-                continue;
-
-            solution = solution.WithDocumentFilePath(document.Id, PathRoot + document.Name);
-
-            var documentText = await solution.GetRequiredDocument(document.Id).GetTextAsync(CancellationToken.None);
-            solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8));
-        }
-
-        foreach (var project in workspace.Projects)
-        {
-            // Ensure all the projects have a valid file path.
-            solution = solution.WithProjectFilePath(project.Id, PathRoot + project.Name);
-        }
-
-        solution = solution.WithAnalyzerReferences([new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())]);
-        await workspace.ChangeSolutionAsync(solution);
-
-        var server = await EditorTestLspServer.CreateAsync(workspace, new InitializationOptions(), _logger);
-        return server;
+        return await EditorTestLspServer.CreateAsync(workspace, new InitializationOptions(), _logger);
     }
 
     internal sealed class EditorTestLspServer : AbstractTestLspServer<EditorTestWorkspace, EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>

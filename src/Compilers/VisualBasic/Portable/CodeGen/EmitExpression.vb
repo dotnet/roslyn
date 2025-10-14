@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             '   Delegates shall be declared sealed.
             '   The Invoke method shall be virtual.
             ' Dev11 VB uses ldvirtftn for delegate methods, we emit ldftn to be consistent with C#.
-            If method.IsMetadataVirtual AndAlso Not method.ContainingType.IsDelegateType() AndAlso Not receiver.SuppressVirtualCalls Then
+            If Not method.IsShared AndAlso method.IsMetadataVirtual AndAlso Not method.ContainingType.IsDelegateType() AndAlso Not receiver.SuppressVirtualCalls Then
                 _builder.EmitOpCode(ILOpCode.Dup)
                 _builder.EmitOpCode(ILOpCode.Ldvirtftn)
             Else
@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         End If
                 End Select
             Else
-                _builder.EmitArrayElementLoad(_module.Translate(DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol)), arrayAccess.Expression.Syntax, _diagnostics)
+                _builder.EmitArrayElementLoad(_module.Translate(DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol)), arrayAccess.Expression.Syntax)
             End If
 
             EmitPopIfUnused(used)
@@ -1630,7 +1630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.EmitOpCode(ILOpCode.Newarr)
                 EmitSymbolToken(arrayType.ElementType, expression.Syntax)
             Else
-                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics)
+                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax)
             End If
 
             If expression.InitializerOpt IsNot Nothing Then
@@ -1734,7 +1734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If ((type IsNot Nothing) AndAlso (type.TypeKind = TypeKind.TypeParameter) AndAlso constantValue.IsNull) Then
                     EmitInitObj(type, used, syntaxNode)
                 Else
-                    _builder.EmitConstantValue(constantValue)
+                    _builder.EmitConstantValue(constantValue, syntaxNode)
                 End If
             End If
         End Sub
@@ -2107,7 +2107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If arrayType.IsSZArray Then
                 EmitVectorElementStore(arrayType, syntaxNode)
             Else
-                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics)
+                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode)
             End If
         End Sub
 
@@ -2355,7 +2355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitModuleVersionIdToken(node As BoundModuleVersionId)
-            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax)
         End Sub
 
         Private Sub EmitModuleVersionIdStringLoad(node As BoundModuleVersionIdString)
@@ -2374,7 +2374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitInstrumentationPayloadRootToken(node As BoundInstrumentationPayloadRoot)
-            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax)
         End Sub
 
         Private Sub EmitSourceDocumentIndex(node As BoundSourceDocumentIndex)

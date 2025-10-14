@@ -64,47 +64,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol.ContainingAssembly; }
         }
 
-        internal abstract ConstantValue DefaultValueFromAttributes { get; }
-
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
+        }
 
-            var compilation = this.DeclaringCompilation;
+        internal static void AddSynthesizedAttributes(ParameterSymbol parameter, PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            var compilation = parameter.DeclaringCompilation;
 
-            if (this.IsParamsArray)
+            if (parameter.IsParamsArray)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
             }
-            else if (this.IsParamsCollection)
+            else if (parameter.IsParamsCollection)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(this));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(parameter));
             }
 
             // Synthesize DecimalConstantAttribute if we don't have an explicit custom attribute already:
-            var defaultValue = this.ExplicitDefaultConstantValue;
+            var defaultValue = parameter.ExplicitDefaultConstantValue;
             if (defaultValue != ConstantValue.NotAvailable &&
                 defaultValue.SpecialType == SpecialType.System_Decimal &&
-                DefaultValueFromAttributes == ConstantValue.NotAvailable)
+                parameter is SourceParameterSymbolBase sourceParameter &&
+                sourceParameter.DefaultValueFromAttributes == ConstantValue.NotAvailable)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue));
             }
 
-            var type = this.TypeWithAnnotations;
+            var type = parameter.TypeWithAnnotations;
 
             if (type.Type.ContainsDynamic())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + parameter.RefCustomModifiers.Length, parameter.RefKind));
             }
 
             if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(parameter, type.Type));
             }
 
-            if (ParameterHelpers.RequiresScopedRefAttribute(this))
+            if (ParameterHelpers.RequiresScopedRefAttribute(parameter))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(this, EffectiveScope));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(parameter, parameter.EffectiveScope));
             }
 
             if (type.Type.ContainsTupleNames())
@@ -113,19 +116,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            switch (this.RefKind)
+            switch (parameter.RefKind)
             {
                 case RefKind.In:
-                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(parameter));
                     break;
                 case RefKind.RefReadOnlyParameter:
-                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRequiresLocationAttribute(this));
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRequiresLocationAttribute(parameter));
                     break;
             }
 
-            if (compilation.ShouldEmitNullableAttributes(this))
+            if (compilation.ShouldEmitNullableAttributes(parameter))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, GetNullableContextValue(), type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(parameter, parameter.GetNullableContextValue(), type));
             }
         }
 

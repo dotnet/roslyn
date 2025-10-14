@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -32,7 +31,6 @@ internal sealed partial class SuggestedActionsSourceProvider
         private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
         private readonly ReferenceCountedDisposable<State> _state;
-        private readonly IAsynchronousOperationListener _listener;
 
         public event EventHandler<EventArgs>? SuggestedActionsChanged { add { } remove { } }
 
@@ -45,8 +43,7 @@ internal sealed partial class SuggestedActionsSourceProvider
             SuggestedActionsSourceProvider owner,
             ITextView textView,
             ITextBuffer textBuffer,
-            ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
-            IAsynchronousOperationListener listener)
+            ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
         {
             _threadingContext = threadingContext;
             GlobalOptions = globalOptions;
@@ -55,7 +52,6 @@ internal sealed partial class SuggestedActionsSourceProvider
             _state = new ReferenceCountedDisposable<State>(new State(this, owner, textView, textBuffer));
 
             _state.Target.TextView.Closed += OnTextViewClosed;
-            _listener = listener;
         }
 
         public void Dispose()
@@ -67,29 +63,10 @@ internal sealed partial class SuggestedActionsSourceProvider
 
             using var state = _state.TryAddReference();
             if (state is null)
-            {
                 return false;
-            }
 
-            var workspace = state.Target.Workspace;
-            if (workspace == null)
-            {
-                return false;
-            }
-
-            var documentId = workspace.GetDocumentIdInCurrentContext(state.Target.SubjectBuffer.AsTextContainer());
-            if (documentId == null)
-            {
-                return false;
-            }
-
-            var project = workspace.CurrentSolution.GetProject(documentId.ProjectId);
-            if (project == null)
-            {
-                return false;
-            }
-
-            switch (project.Language)
+            var document = state.Target.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            switch (document?.Project.Language)
             {
                 case LanguageNames.CSharp:
                     telemetryId = s_CSharpSourceGuid;
@@ -175,10 +152,6 @@ internal sealed partial class SuggestedActionsSourceProvider
                 range.Snapshot.TextBuffer.Equals(state.Target.SubjectBuffer),
                 $"Invalid text buffer passed to {nameof(HasSuggestedActionsAsync)}");
 
-            var workspace = state.Target.Workspace;
-            if (workspace == null)
-                return null;
-
             using var asyncToken = state.Target.Owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
             var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -226,33 +199,30 @@ internal sealed partial class SuggestedActionsSourceProvider
             if (state is null)
                 return null;
 
-            var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
-
             foreach (var order in Orderings)
             {
                 var priority = TryGetPriority(order);
                 Contract.ThrowIfNull(priority);
-                var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzerData);
 
-                var result = await GetFixCategoryAsync(priorityProvider).ConfigureAwait(false);
+                var result = await GetFixCategoryAsync(priority).ConfigureAwait(false);
                 if (result != null)
                     return result;
             }
 
             return null;
 
-            async Task<string?> GetFixCategoryAsync(ICodeActionRequestPriorityProvider priorityProvider)
+            async Task<string?> GetFixCategoryAsync(CodeActionRequestPriority? priority)
             {
                 if (state.Target.Owner._codeFixService != null &&
                     state.Target.SubjectBuffer.SupportsCodeFixes())
                 {
                     var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
-                        document, range.Span.ToTextSpan(), priorityProvider, cancellationToken).ConfigureAwait(false);
+                        document, range.Span.ToTextSpan(), priority, cancellationToken).ConfigureAwait(false);
 
                     if (result != null)
                     {
                         Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                        return result.FirstDiagnostic.Severity switch
+                        return result.Diagnostics.First().Severity switch
                         {
 
                             DiagnosticSeverity.Hidden or DiagnosticSeverity.Info or DiagnosticSeverity.Warning => PredefinedSuggestedActionCategoryNames.CodeFix,

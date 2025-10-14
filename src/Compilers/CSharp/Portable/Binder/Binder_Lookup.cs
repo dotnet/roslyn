@@ -202,31 +202,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
             // 1. Collect new extension members
-            if (this.Compilation.LanguageVersion.AllowNewExtensions())
+            var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
+
+            foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
             {
-                var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
-
-                foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
+                if (extensionDeclaration.ExtensionParameter is null)
                 {
-                    var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
-
-                    foreach (var candidate in candidates)
-                    {
-                        SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                        result.Add(resultOfThisMember);
-
-                        if (candidate is MethodSymbol { IsStatic: false } shadows &&
-                            shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
-                        {
-                            implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
-                            implementationsToShadow.Add(toShadow);
-                        }
-                    }
+                    continue;
                 }
 
-                extensionDeclarations.Free();
+                var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
+
+                foreach (var candidate in candidates)
+                {
+                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                    result.Add(resultOfThisMember);
+
+                    if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                        shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                    {
+                        implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+                        implementationsToShadow.Add(toShadow);
+                    }
+                }
             }
+
+            extensionDeclarations.Free();
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -521,28 +523,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SingleLookupResult resultOfThisMember = originalBinder.CheckViability(member, arity, options, null, diagnose, ref useSiteInfo);
                 result.MergeEqual(resultOfThisMember);
             }
-        }
-
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should be able to remove this method once all the callers are updated to account for new extension members
-        /// <summary>
-        /// Lookup extension methods by name and arity in the given binder and
-        /// check viability in this binder. The lookup is performed on a single
-        /// binder because extension method search stops at the first applicable
-        /// method group from the nearest enclosing namespace.
-        /// </summary>
-        private void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-            var binder = scope.Binder;
-            binder.GetCandidateExtensionMethods(methods, name, arity, options, this);
-
-            foreach (var method in methods)
-            {
-                SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                result.MergeEqual(resultOfThisMember);
-            }
-
-            methods.Free();
         }
 
         #region "AttributeTypeLookup"

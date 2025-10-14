@@ -61,13 +61,13 @@ namespace Test.Utilities.CodeMetrics
         }
 
         protected void VerifyCSharp(string source, string expectedMetricsText, bool expectDiagnostics = false)
-            => Verify(new[] { source }, expectedMetricsText, expectDiagnostics, LanguageNames.CSharp);
+            => Verify([source], expectedMetricsText, expectDiagnostics, LanguageNames.CSharp);
 
         protected void VerifyCSharp(string[] sources, string expectedMetricsText, bool expectDiagnostics = false)
             => Verify(sources, expectedMetricsText, expectDiagnostics, LanguageNames.CSharp);
 
         protected void VerifyBasic(string source, string expectedMetricsText, bool expectDiagnostics = false)
-            => Verify(new[] { source }, expectedMetricsText, expectDiagnostics, LanguageNames.VisualBasic);
+            => Verify([source], expectedMetricsText, expectDiagnostics, LanguageNames.VisualBasic);
 
         private void Verify(string[] sources, string expectedMetricsText, bool expectDiagnostics, string language)
         {
@@ -85,8 +85,8 @@ namespace Test.Utilities.CodeMetrics
 
             var actualMetricsText = GetMetricsDataString(compilation).Trim();
             expectedMetricsText = expectedMetricsText.Trim();
-            var actualMetricsTextLines = actualMetricsText.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            var expectedMetricsTextLines = expectedMetricsText.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            var actualMetricsTextLines = actualMetricsText.Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
+            var expectedMetricsTextLines = expectedMetricsText.Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
 
             var success = true;
             if (actualMetricsTextLines.Length != expectedMetricsTextLines.Length)

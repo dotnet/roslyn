@@ -4,7 +4,6 @@
 
 Imports System.IO
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -20,7 +19,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
-        Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+        Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
             GetType(MockDocumentNavigationServiceFactory),
             GetType(MockPreviewDialogService),
             GetType(TestWorkspaceConfigurationService))
@@ -80,6 +79,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     End If
                 Next
             Next
+        End Function
+
+        Public Async Function VerifyChangedSourceGeneratedDocumentFileNames(workspace As EditorTestWorkspace, ParamArray mappedFiles As String()) As Task
+            Await WaitForRename(workspace)
+
+            Assert.Equal(workspace.ChangedSourceGeneratedDocumentFileNames, mappedFiles)
         End Function
 
         Public Sub VerifyFileName(document As Document, newIdentifierName As String)

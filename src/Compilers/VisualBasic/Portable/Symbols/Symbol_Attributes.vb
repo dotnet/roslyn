@@ -6,8 +6,9 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -209,6 +210,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim attrArgumentLocation = VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt)
                     DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_InvalidExperimentalDiagID, attrArgumentLocation)
                 End If
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.MetadataUpdateDeletedAttribute) Then
+                arguments.Diagnostics.DiagnosticBag.Add(ERRID.ERR_AttributeCannotBeAppliedManually, arguments.AttributeSyntaxOpt.Location, AttributeDescription.MetadataUpdateDeletedAttribute.FullName)
             End If
         End Sub
 

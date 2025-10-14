@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -32,7 +33,7 @@ internal abstract partial class AbstractLegacyProject
 {
     public IVsHierarchy Hierarchy { get; }
     protected ProjectSystemProject ProjectSystemProject { get; }
-    internal ProjectSystemProjectOptionsProcessor ProjectSystemProjectOptionsProcessor { get; set; }
+    internal AbstractLegacyProjectSystemProjectOptionsProcessor ProjectSystemProjectOptionsProcessor { get; set; }
     protected IProjectCodeModel ProjectCodeModel { get; set; }
     protected VisualStudioWorkspace Workspace { get; }
 
@@ -52,11 +53,7 @@ internal abstract partial class AbstractLegacyProject
 
     private static readonly char[] PathSeparatorCharacters = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
-    #region Mutable fields that should only be used from the UI thread
-
     private readonly SolutionEventsBatchScopeCreator _batchScopeCreator;
-
-    #endregion
 
     public AbstractLegacyProject(
         string projectSystemName,

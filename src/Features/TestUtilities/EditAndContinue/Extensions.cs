@@ -93,6 +93,10 @@ internal static class Extensions
                 ? path : Path.Combine(Path.GetDirectoryName(solution.GetRequiredProject(projectId).FilePath!)!, path))
         .GetRequiredDocument(id);
 
+    public static Project WithCompilationOptions<TCompilationOptions>(this Project project, Func<TCompilationOptions, TCompilationOptions> transform)
+        where TCompilationOptions : CompilationOptions
+        => project.WithCompilationOptions(transform((TCompilationOptions)(project.CompilationOptions ?? throw ExceptionUtilities.Unreachable())));
+
     public static Guid CreateProjectTelemetryId(string projectName)
     {
         Assert.True(Encoding.UTF8.GetByteCount(projectName) <= 20, "Use shorter project names in tests");
@@ -113,7 +117,13 @@ internal static class Extensions
                 NoCompilationConstants.LanguageName => null,
                 _ => throw ExceptionUtilities.UnexpectedValue(language)
             },
-            compilationOptions: TestOptions.DebugDll,
+            compilationOptions: language switch
+            {
+                LanguageNames.CSharp => TestOptions.DebugDll,
+                LanguageNames.VisualBasic => VisualBasic.UnitTests.TestOptions.DebugDll,
+                NoCompilationConstants.LanguageName => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(language)
+            },
             filePath: Path.Combine(TempRoot.Root, projectName, projectName + language switch
             {
                 LanguageNames.CSharp => ".csproj",

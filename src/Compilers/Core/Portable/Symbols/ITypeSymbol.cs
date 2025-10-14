@@ -81,14 +81,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool IsNativeIntegerType { get; }
 
-        /// <summary>
-        /// Is this a symbol for an extension declaration.
-        /// </summary>
+        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.IsExtension)} instead.")]
         bool IsExtension { get; }
 
-        /// <summary>
-        /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).
-        /// </summary>
+        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.ExtensionParameter)} instead.")]
         IParameterSymbol? ExtensionParameter { get; }
 
         /// <summary>

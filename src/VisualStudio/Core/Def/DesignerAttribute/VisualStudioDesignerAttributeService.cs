@@ -314,7 +314,7 @@ internal sealed class VisualStudioDesignerAttributeService :
     public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(_projectSystemNotificationQueue);
-        _projectSystemNotificationQueue.AddWork(data);
-        return ValueTaskFactory.CompletedTask;
+        _projectSystemNotificationQueue.AddWork(data.AsSpan());
+        return ValueTask.CompletedTask;
     }
 }

@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -76,7 +74,7 @@ internal sealed class VisualStudioExtractInterfaceOptionsService(
 
         if (result.HasValue && result.Value)
         {
-            var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol);
+            var includedMembers = viewModel.MemberContainers.SelectAsArray(c => c.IsChecked, c => c.Symbol);
 
             return new ExtractInterfaceOptionsResult(
                 isCancelled: false,

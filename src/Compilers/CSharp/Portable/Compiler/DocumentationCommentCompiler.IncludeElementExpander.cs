@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder binder = BinderFactory.MakeCrefBinder(crefSyntax, memberDeclSyntax, _compilation.GetBinderFactory(memberDeclSyntax.SyntaxTree));
 
                 var crefDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
-                attribute.Value = GetDocumentationCommentId(crefSyntax, binder, crefDiagnostics); // NOTE: mutation (element must be a copy)
+                attribute.Value = GetEscapedDocumentationCommentId(crefSyntax, binder, crefDiagnostics); // NOTE: mutation (element must be a copy)
                 RecordBindingDiagnostics(crefDiagnostics, sourceLocation); // Respects DocumentationMode.
                 crefDiagnostics.Free();
             }

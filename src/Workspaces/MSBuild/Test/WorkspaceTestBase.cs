@@ -85,8 +85,12 @@ public class WorkspaceTestBase : TestBase
 
     protected static FileSet GetSimpleCSharpSolutionFiles()
     {
+        return GetSimpleCSharpProjectFiles().WithFile(@"TestSolution.sln", Resources.SolutionFiles.CSharp);
+    }
+
+    protected static FileSet GetSimpleCSharpProjectFiles()
+    {
         return new FileSet(
-            (@"TestSolution.sln", Resources.SolutionFiles.CSharp),
             (@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.CSharpProject),
             (@"CSharpProject\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
             (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo));
@@ -94,8 +98,12 @@ public class WorkspaceTestBase : TestBase
 
     protected static FileSet GetSimpleVisualBasicSolutionFiles()
     {
+        return GetSimpleVisualBasicProjectFiles().WithFile(@"TestSolution.sln", Resources.SolutionFiles.VisualBasic);
+    }
+
+    protected static FileSet GetSimpleVisualBasicProjectFiles()
+    {
         return new FileSet(
-            (@"TestSolution.sln", Resources.SolutionFiles.VisualBasic),
             (@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.VisualBasicProject),
             (@"VisualBasicProject\VisualBasicClass.vb", Resources.SourceFiles.VisualBasic.VisualBasicClass),
             (@"VisualBasicProject\My Project\Application.Designer.vb", Resources.SourceFiles.VisualBasic.Application_Designer),

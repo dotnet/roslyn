@@ -91,7 +91,7 @@ public abstract partial class CompletionService
                 _ = ProjectCompletionProvider.GetExtensions(_service.Language, references);
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         public ImmutableArray<CompletionProvider> GetCachedProjectCompletionProvidersOrQueueLoadInBackground(Project? project, CompletionOptions options)

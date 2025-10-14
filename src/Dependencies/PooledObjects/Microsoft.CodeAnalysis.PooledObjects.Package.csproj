@@ -20,8 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Debugging.Package"/>
-  </ItemGroup>
+  <Import Project="..\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

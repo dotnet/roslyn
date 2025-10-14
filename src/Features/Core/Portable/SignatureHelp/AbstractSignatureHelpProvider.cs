@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -198,7 +199,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         {
             var structuralTypeParts = new List<SymbolDisplayPart>
             {
-                new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
+                new(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
             };
 
             structuralTypeParts.AddRange(info.TypesParts);

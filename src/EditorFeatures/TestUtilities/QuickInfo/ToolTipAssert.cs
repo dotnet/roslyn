@@ -172,10 +172,14 @@ public static class ToolTipAssert
         if (element is ClassifiedTextRun classifiedTextRun)
         {
             var classification = GetKnownClassification(classifiedTextRun.ClassificationTypeName);
-            result.Append($"{classification}, \"{classifiedTextRun.Text.Replace("\"", "\"\"")}\"");
+            result.Append($"""
+                {classification}, "{classifiedTextRun.Text.Replace("\"", "\"\"")}"
+                """);
             if (classifiedTextRun.NavigationAction is object || !string.IsNullOrEmpty(classifiedTextRun.Tooltip))
             {
-                var tooltip = classifiedTextRun.Tooltip is object ? $"\"{classifiedTextRun.Tooltip.Replace("\"", "\"\"")}\"" : "Nothing";
+                var tooltip = classifiedTextRun.Tooltip is object ? $"""
+                    "{classifiedTextRun.Tooltip.Replace("\"", "\"\"")}"
+                    """ : "Nothing";
                 if (classifiedTextRun.NavigationAction?.Target is QuickInfoHyperLink hyperLink)
                 {
                     result.Append($", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri(\"{hyperLink.Uri}\", UriKind.Absolute))");
@@ -224,7 +228,9 @@ public static class ToolTipAssert
                 return $"{nameof(ClassificationTypeNames)}.{field.Name}";
         }
 
-        return $"\"{classification}\"";
+        return $"""
+            "{classification}"
+            """;
     }
 
     private static string GetKnownImageGuid(Guid guid)

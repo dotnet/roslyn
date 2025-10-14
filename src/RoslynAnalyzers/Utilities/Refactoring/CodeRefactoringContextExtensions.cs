@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Analyzer.Utilities
@@ -33,13 +35,29 @@ namespace Analyzer.Utilities
             return potentialNodes.FirstOrDefault();
         }
 
-        internal static Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
+        internal static async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             this Document document,
             IRefactoringHelpers helpers,
             TextSpan span,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            return helpers.GetRelevantNodesAsync<TSyntaxNode>(document, span, cancellationToken);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            return GetRelevantNodes<TSyntaxNode>(helpers, text, root, span, cancellationToken);
+        }
+
+        private static ImmutableArray<TSyntaxNode> GetRelevantNodes<TSyntaxNode>(
+            IRefactoringHelpers helpers,
+            SourceText text,
+            SyntaxNode root,
+            TextSpan span,
+            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        {
+            using var result = TemporaryArray<TSyntaxNode>.Empty;
+            helpers.AddRelevantNodes<TSyntaxNode>(
+                text, root, span, allowEmptyNodes: false, maxCount: int.MaxValue, ref result.AsRef(), cancellationToken);
+            return result.ToImmutableAndClear();
         }
     }
 }

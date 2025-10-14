@@ -115,9 +115,9 @@ internal sealed record MethodHandlerDetails(
 
         static LanguageServerEndpointAttribute? GetMethodAttributeFromHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
         {
-            const string HandleRequestName = nameof(IRequestHandler<object, object, object>.HandleRequestAsync);
+            const string HandleRequestName = nameof(IRequestHandler<,,>.HandleRequestAsync);
             const string HandleRequestSuffix = "." + HandleRequestName;
-            const string HandleNotificationName = nameof(INotificationHandler<object, object>.HandleNotificationAsync);
+            const string HandleNotificationName = nameof(INotificationHandler<,>.HandleNotificationAsync);
             const string HandleNotificationSuffix = "." + HandleNotificationName;
 
             foreach (var methodInfo in handlerType.GetRuntimeMethods())

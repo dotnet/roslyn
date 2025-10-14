@@ -24,11 +24,11 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
 
     private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, int index = 0)
     {
-        await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
+        await TestInRegularAndScriptAsync(initial, expected, new(options: RemoveAllUnnecessaryParentheses, index: index));
 
         if (offeredWhenRequireForClarityIsEnabled)
         {
-            await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, index: index);
+            await TestInRegularAndScriptAsync(initial, expected, new(options: RequireAllParenthesesForClarity, index: index));
         }
         else
         {
@@ -40,9 +40,8 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
         => descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
 
     [Fact]
-    public async Task TestArithmeticRequiredForClarity2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestArithmeticRequiredForClarity2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -61,12 +60,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
-    }
 
     [Fact]
-    public async Task TestLogicalRequiredForClarity1()
-    {
-        await TestMissingAsync(
+    public Task TestLogicalRequiredForClarity1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -76,12 +73,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
-    }
 
     [Fact]
-    public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1()
-    {
-        await TestAsync(
+    public Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1()
+        => TestAsync(
             """
             class C
             {
@@ -100,12 +95,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2()
-    {
-        await TestAsync(
+    public Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2()
+        => TestAsync(
             """
             class C
             {
@@ -124,12 +117,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAlwaysUnnecessaryForIsPattern()
-    {
-        await TestAsync(
+    public Task TestAlwaysUnnecessaryForIsPattern()
+        => TestAsync(
             """
             class C
             {
@@ -148,12 +139,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAlwaysUnnecessaryForCasePattern()
-    {
-        await TestAsync(
+    public Task TestAlwaysUnnecessaryForCasePattern()
+        => TestAsync(
             """
             class C
             {
@@ -180,12 +169,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAlwaysUnnecessaryForSwitchArmPattern()
-    {
-        await TestAsync(
+    public Task TestAlwaysUnnecessaryForSwitchArmPattern()
+        => TestAsync(
             """
             class C
             {
@@ -210,12 +197,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestAlwaysUnnecessaryForSubPattern()
-    {
-        await TestAsync(
+    public Task TestAlwaysUnnecessaryForSubPattern()
+        => TestAsync(
             """
             class C
             {
@@ -234,12 +219,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 
     [Fact]
-    public async Task TestNotAlwaysUnnecessaryForUnaryPattern1()
-    {
-        await TestAsync(
+    public Task TestNotAlwaysUnnecessaryForUnaryPattern1()
+        => TestAsync(
             """
             class C
             {
@@ -258,12 +241,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: false);
-    }
 
     [Fact]
-    public async Task TestNotAlwaysUnnecessaryForUnaryPattern2()
-    {
-        await TestAsync(
+    public Task TestNotAlwaysUnnecessaryForUnaryPattern2()
+        => TestAsync(
             """
             class C
             {
@@ -282,12 +263,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52589")]
-    public async Task TestAlwaysNecessaryForDiscard()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task TestAlwaysNecessaryForDiscard()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
@@ -299,12 +278,10 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnnecessaryForDiscardInSubpattern()
-    {
-        await TestAsync(
+    public Task TestUnnecessaryForDiscardInSubpattern()
+        => TestAsync(
             """
             class C
             {
@@ -327,5 +304,4 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
                 }
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
-    }
 }

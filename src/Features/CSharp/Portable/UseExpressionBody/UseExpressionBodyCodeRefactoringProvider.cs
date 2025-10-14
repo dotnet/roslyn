@@ -37,6 +37,8 @@ internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorB
     private static readonly BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> s_equivalenceKeyMap
         = CreateEquivalanceKeyMap(UseExpressionBodyHelper.Helpers);
 
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+
     private static BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> CreateEquivalanceKeyMap(
         ImmutableArray<UseExpressionBodyHelper> helpers)
     {
@@ -47,13 +49,13 @@ internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorB
         {
             foreach (var helper in helpers)
             {
-                yield return KeyValuePairUtil.Create((helper, useExpressionBody: true), helper.GetType().Name + "_UseExpressionBody");
-                yield return KeyValuePairUtil.Create((helper, useExpressionBody: false), helper.GetType().Name + "_UseBlockBody");
+                yield return KeyValuePair.Create((helper, useExpressionBody: true), helper.GetType().Name + "_UseExpressionBody");
+                yield return KeyValuePair.Create((helper, useExpressionBody: false), helper.GetType().Name + "_UseBlockBody");
             }
         }
     }
 
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => AllRefactorAllScopes;
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -182,7 +184,7 @@ internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorB
         return root.ReplaceNode(parent, updatedParent);
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,

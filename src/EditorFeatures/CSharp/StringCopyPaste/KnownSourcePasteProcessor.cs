@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 
@@ -307,7 +306,7 @@ internal sealed class KnownSourcePasteProcessor(
                 }
                 else
                 {
-                    builder.Append(new string('{', dollarSignCount));
+                    builder.Append('{', dollarSignCount);
                     builder.Append(content.InterpolationExpression);
                     builder.Append(content.InterpolationAlignmentClause);
 
@@ -317,7 +316,7 @@ internal sealed class KnownSourcePasteProcessor(
                         builder.Append(content.InterpolationFormatClause);
                     }
 
-                    builder.Append(new string('}', dollarSignCount));
+                    builder.Append('}', dollarSignCount);
                 }
             }
             else

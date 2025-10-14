@@ -9,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
@@ -58,7 +59,7 @@ internal class FSharpNavigationBarItemService : INavigationBarItemService
     }
 
     private static ImmutableArray<NavigationBarItem> ConvertItems(IList<FSharpNavigationBarItem> items, ITextVersion textVersion)
-        => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x, textVersion));
+        => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).SelectAsArray(x => x.Spans.Any(), x => ConvertToNavigationBarItem(x, textVersion));
 
     public async Task<bool> TryNavigateToItemAsync(
         Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken)

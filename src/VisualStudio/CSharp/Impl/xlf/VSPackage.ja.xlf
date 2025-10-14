@@ -298,43 +298,6 @@ for ステートメントで、セミコロンの前にスペースを挿入す�
         <target state="translated">折り返しの書式オプションを変更する;ブロックを単一行に配置する;1 行に複数のステートメントとメンバー宣言を表示する</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Automatically show completion list in argument lists (experimental);
-Highlight matching portions of completion list items;
-Show completion item filters;
-Automatically complete statement on semicolon;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;
-Show items from unimported namespaces (experimental);</source>
-        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
-文字が入力された後に入力候補一覧を表示する;
-文字が削除された後に入力候補一覧を表示する;
-引数リストに入力候補一覧を自動的に表示する (試験段階);
-入力候補一覧の項目の一致している部分を強調表示する;
-入力候補の項目フィルターを表示する;
-セミコロンでステートメントをオートコンプリートに設定する;
-スニペットの動作;
-スニペットを含めない;
-常にスニペットを含める;
-識別子の後に ? Tab を入力したときにスニペットを含める;
-Enter キー入力時動作;
-Enter キーで新しい行を追加しない;
-単語を完全に入力した後のみ、Enter キーで新しい行を追加する;
-Enter キーで常に新しい行を追加する;
-名前の提案を表示する;
-未インポートの名前空間からの項目を表示する (試験段階);</target>
-        <note>C# IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
         <target state="translated">書式設定</target>

@@ -10,7 +10,7 @@
       "executablePath": "$(DevEnvDir)devenv.exe",
       "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log",
       "environmentVariables": {
-        "SERVICEHUBDEBUGHOSTONSTARTUP": "All"
+        "SERVICEHUBDEBUGHOSTONSTARTUP": "ServiceHub.RoslynCodeAnalysisService.exe"
       }
     },
     "Visual Studio Extension (with Native Debugging)": {

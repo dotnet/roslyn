@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location)
             : base(owner, ordinal)
         {
-            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property) || owner is TypeSymbol { IsExtension: true });
+            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property) || owner is NamedTypeSymbol { IsExtension: true });
             _refKind = refKind;
             _scope = scope;
             _name = name;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The declared scope. From source, this is from the <c>scope</c> keyword only.
         /// </summary>
-        internal ScopedKind DeclaredScope => _scope;
+        internal sealed override ScopedKind DeclaredScope => _scope;
 
         /// <summary>
         /// Reflects presence of `params` modifier in source

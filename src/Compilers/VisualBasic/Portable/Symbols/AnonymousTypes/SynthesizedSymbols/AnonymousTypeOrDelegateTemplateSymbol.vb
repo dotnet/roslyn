@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Symbols
 

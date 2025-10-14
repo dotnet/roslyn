@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var pathMap = (pathMapFrom, pathMapTo) switch
             {
                 (null, null) => ImmutableArray<KeyValuePair<string, string>>.Empty,
-                (string, string) => ImmutableArray.Create(KeyValuePairUtil.Create(pathMapFrom, pathMapTo)),
+                (string, string) => ImmutableArray.Create(KeyValuePair.Create(pathMapFrom, pathMapTo)),
                 _ => throw new InvalidOperationException(),
             };
             var emitOptions = EmitOptions.WithPdbFilePath(filePath);
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var pathMap = (pathMapFrom, pathMapTo) switch
             {
                 (null, null) => ImmutableArray<KeyValuePair<string, string>>.Empty,
-                (string, string) => ImmutableArray.Create(KeyValuePairUtil.Create(pathMapFrom, pathMapTo)),
+                (string, string) => ImmutableArray.Create(KeyValuePair.Create(pathMapFrom, pathMapTo)),
                 _ => throw new InvalidOperationException(),
             };
 

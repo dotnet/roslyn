@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -48,14 +50,27 @@ internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHa
             return [];
         }
 
-        var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+        var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
+        var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
         var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
         var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
+        // The formatting service expects that the position is inside the token span associated with the typed character, but
+        // in VSCode this is not always the case - the position the client gives us is not necessarily the position of the typed character.
+        // For example when typing characters, the client may automatically
+        //   1.  for '\n' - the client inserts indentation (to get '\n    ')
+        //   2.  for '{' - the client inserts '}' (to get '{}')
+        //
+        // When the formatter calls root.FindToken, it may return a token different from what triggered the on type formatting, which causes us
+        // to format way more than we want, depending on exactly where the position ends up.
+        // Here we do our best to adjust the position back to the typed char location.
+        if (text[position - 1] != request.Character[0])
         {
-            return [];
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var adjustedToken = root.FindTokenOnLeftOfPosition(position);
+            position = adjustedToken.Span.End;
         }
 
         // We should use the options passed in by LSP instead of the document's options.
@@ -65,41 +80,15 @@ internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHa
             AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
         };
 
-        var textChanges = formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
-        if (textChanges.IsEmpty)
+        if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
         {
             return [];
         }
 
-        if (SyntaxFacts.IsNewLine(request.Character[0]))
+        var textChanges = formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
+        if (textChanges.IsEmpty)
         {
-            // When formatting after a newline is pressed, the cursor line will be all whitespace
-            // and we do not want to remove the indentation from it.
-            //
-            // Take the following example of pressing enter after an opening brace.
-            //
-            // ```
-            //    public void M() {||}
-            // ```
-            //
-            // The editor moves the cursor to the next line and uses it's languageconfig to add
-            // the appropriate level of indentation.
-            //
-            // ```
-            //     public void M() {
-            //         ||
-            //     }
-            // ```
-            //
-            // At this point `formatOnType` is called. The formatting service will generate two
-            // text changes. The first moves the opening brace to a new line with proper
-            // indentation. The second removes the whitespace from the cursor line and rewrites
-            // the indentation prior to the closing brace.
-            // 
-            // Letting the second change go through would be a bad experience for the user as they
-            // will now be responsible for adding back the proper indentation.
-
-            textChanges = textChanges.WhereAsArray(static (change, position) => !change.Span.Contains(position), position);
+            return [];
         }
 
         return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text))];

@@ -13,404 +13,314 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class StructKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestAtRoot_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestAfterClass_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalStatement()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestInCompilationUnit()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCompilationUnit()
+        => VerifyKeywordAsync(
 @"$$");
-    }
 
     [Fact]
-    public async Task TestAfterExtern()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterExtern()
+        => VerifyKeywordAsync(
             """
             extern alias Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterUsing()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterUsing()
+        => VerifyKeywordAsync(
             """
             using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalUsing()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterGlobalUsing()
+        => VerifyKeywordAsync(
             """
             global using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterNamespace()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNamespace()
+        => VerifyKeywordAsync(
             """
             namespace N {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterFileScopedNamespace()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterFileScopedNamespace()
+        => VerifyKeywordAsync(
             """
             namespace N;
             $$
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
-    public async Task TestFileKeywordInsideNamespace()
-    {
-        await VerifyKeywordAsync(
+    public Task TestFileKeywordInsideNamespace()
+        => VerifyKeywordAsync(
             """
             namespace N {
             file $$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
-    public async Task TestFileKeywordInsideNamespaceBeforeClass()
-    {
-        await VerifyKeywordAsync(
+    public Task TestFileKeywordInsideNamespaceBeforeClass()
+        => VerifyKeywordAsync(
             """
             namespace N {
             file $$
             class C {}
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAfterTypeDeclaration()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterTypeDeclaration()
+        => VerifyKeywordAsync(
             """
             class C {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterDelegateDeclaration()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterDelegateDeclaration()
+        => VerifyKeywordAsync(
             """
             delegate void Goo();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterMethod()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterMethod()
+        => VerifyKeywordAsync(
             """
             class C {
               void Goo() {}
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterField()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterField()
+        => VerifyKeywordAsync(
             """
             class C {
               int i;
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterProperty()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterProperty()
+        => VerifyKeywordAsync(
             """
             class C {
               int i { get; }
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeUsing()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotBeforeUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
             """
             $$
             using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeGlobalUsing()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotBeforeGlobalUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
             """
             $$
             global using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestAfterReadonly()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterReadonly()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"readonly $$");
-    }
 
     [Fact]
-    public async Task TestAfterRef()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterRef()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"ref $$");
-    }
 
     [Fact]
-    public async Task TestAfterRefReadonly()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterRefReadonly()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"ref readonly $$");
-    }
 
     [Fact]
-    public async Task TestAfterPublicRefReadonly()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterPublicRefReadonly()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"public ref readonly $$");
-    }
 
     [Fact]
-    public async Task TestAfterReadonlyRef()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterReadonlyRef()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"readonly ref $$");
-    }
 
     [Fact]
-    public async Task TestAfterInternalReadonlyRef()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterInternalReadonlyRef()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"internal readonly ref $$");
-    }
 
     [Fact]
-    public async Task TestNotAfterReadonlyInMethod()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotAfterReadonlyInMethod()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"class C { void M() { readonly $$ } }");
-    }
 
     [Fact]
-    public async Task TestNotAfterRefInMethod()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotAfterRefInMethod()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"class C { void M() { ref $$ } }");
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
-    public async Task TestNotBeforeUsing_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotBeforeUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             $$
             using Goo;
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
-    public async Task TestNotBeforeGlobalUsing_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotBeforeGlobalUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             $$
             global using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAssemblyAttribute()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterAssemblyAttribute()
+        => VerifyKeywordAsync(
             """
             [assembly: goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterRootAttribute()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterRootAttribute()
+        => VerifyKeywordAsync(
             """
             [goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterNestedAttribute()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterNestedAttribute()
+        => VerifyKeywordAsync(
             """
             class C {
               [goo]
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestInsideStruct()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInsideStruct()
+        => VerifyKeywordAsync(
             """
             struct S {
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestInsideInterface()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInsideInterface()
+        => VerifyKeywordAsync("""
             interface I {
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestInsideClass()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInsideClass()
+        => VerifyKeywordAsync(
             """
             class C {
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterPartial()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterPartial()
+        => VerifyKeywordAsync(
 @"partial $$");
-    }
 
     [Fact]
     public async Task TestNotAfterAbstract()
         => await VerifyAbsenceAsync(@"abstract $$");
 
     [Fact]
-    public async Task TestAfterInternal()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterInternal()
+        => VerifyKeywordAsync(
 @"internal $$");
-    }
 
     [Fact]
-    public async Task TestAfterPublic()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterPublic()
+        => VerifyKeywordAsync(
 @"public $$");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
-    public async Task TestAfterFile()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterFile()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"file $$");
-    }
 
     [Fact]
-    public async Task TestAfterPrivate()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterPrivate()
+        => VerifyKeywordAsync(
 @"private $$");
-    }
 
     [Fact]
-    public async Task TestAfterProtected()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterProtected()
+        => VerifyKeywordAsync(
 @"protected $$");
-    }
 
     [Fact]
-    public async Task TestAfterRecord()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterRecord()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"record $$");
-    }
 
     [Fact]
     public async Task TestNotAfterSealed()
@@ -429,290 +339,231 @@ public sealed class StructKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyAbsenceAsync(@"struct $$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-    public async Task TestAfterClassTypeParameterConstraint()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterClassTypeParameterConstraint()
+        => VerifyKeywordAsync(
 @"class C<T> where T : $$");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-    public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
+        => VerifyAbsenceAsync(
 @"class C<T> where T : IList<$$");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-    public async Task TestAfterClassTypeParameterConstraint2()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterClassTypeParameterConstraint2()
+        => VerifyKeywordAsync(
             """
             class C<T>
                 where T : $$
                 where U : U
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-    public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
+        => VerifyAbsenceAsync(
             """
             class C<T>
                 where T : IList<$$
                 where U : U
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-    public async Task TestAfterMethodTypeParameterConstraint()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterMethodTypeParameterConstraint()
+        => VerifyKeywordAsync(
             """
             class C {
                 void Goo<T>()
                   where T : $$
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-    public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
+        => VerifyAbsenceAsync(
             """
             class C {
                 void Goo<T>()
                   where T : IList<$$
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-    public async Task TestAfterMethodTypeParameterConstraint2()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterMethodTypeParameterConstraint2()
+        => VerifyKeywordAsync(
             """
             class C {
                 void Goo<T>()
                   where T : $$
                   where U : T
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
-    public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
+        => VerifyAbsenceAsync(
             """
             class C {
                 void Goo<T>()
                   where T : IList<$$
                   where U : T
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64465")]
-    public async Task TestNotAfterRecord_AbstractModifier()
-    {
-        await VerifyAbsenceAsync("abstract record $$");
-    }
+    public Task TestNotAfterRecord_AbstractModifier()
+        => VerifyAbsenceAsync("abstract record $$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64465")]
-    public async Task TestNotAfterRecord_SealedModifier()
-    {
-        await VerifyAbsenceAsync("sealed record $$");
-    }
+    public Task TestNotAfterRecord_SealedModifier()
+        => VerifyAbsenceAsync("sealed record $$");
 
     [Fact]
-    public async Task TestAfterAllowsRefInTypeParameterConstraint()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterAllowsRefInTypeParameterConstraint()
+        => VerifyKeywordAsync(
             """
             class C<T> where T : allows ref $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAllowsRefInTypeParameterConstraint2()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterAllowsRefInTypeParameterConstraint2()
+        => VerifyKeywordAsync(
             """
             class C<T>
                 where T : allows ref $$
                 where U : U
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAllowsRefInMethodTypeParameterConstraint()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterAllowsRefInMethodTypeParameterConstraint()
+        => VerifyKeywordAsync(
             """
             class C {
                 void Goo<T>()
                   where T : allows ref $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAllowsRefInMethodTypeParameterConstraint2()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterAllowsRefInMethodTypeParameterConstraint2()
+        => VerifyKeywordAsync(
             """
             class C {
                 void Goo<T>()
                   where T : allows ref $$
                   where U : T
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAllowsRefAfterClassTypeParameterConstraint()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterAllowsRefAfterClassTypeParameterConstraint()
+        => VerifyKeywordAsync(
             """
             class C<T> where T : class, allows ref $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterStructTypeParameterConstraint()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterStructTypeParameterConstraint()
+        => VerifyKeywordAsync(
             """
             class C<T> where T : struct, allows ref $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterSimpleTypeParameterConstraint()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterSimpleTypeParameterConstraint()
+        => VerifyKeywordAsync(
             """
             class C<T> where T : IGoo, allows ref $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterConstructorTypeParameterConstraint()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterConstructorTypeParameterConstraint()
+        => VerifyKeywordAsync(
             """
             class C<T> where T : new(), allows ref $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterStructInTypeParameterConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterStructInTypeParameterConstraint()
+        => VerifyAbsenceAsync(
             """
             class C<T> where T : allows ref struct $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterStructInTypeParameterConstraint2()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterStructInTypeParameterConstraint2()
+        => VerifyAbsenceAsync(
             """
             class C<T>
                 where T : allows ref struct $$
                 where U : U
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterStructAfterClassTypeParameterConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterStructAfterClassTypeParameterConstraint()
+        => VerifyAbsenceAsync(
             """
             class C<T> where T : class, allows ref struct $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterStructAfterStructTypeParameterConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterStructAfterStructTypeParameterConstraint()
+        => VerifyAbsenceAsync(
             """
             class C<T> where T : struct, allows ref struct $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterStructAfterSimpleTypeParameterConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterStructAfterSimpleTypeParameterConstraint()
+        => VerifyAbsenceAsync(
             """
             class C<T> where T : IGoo, allows ref struct $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterStructAfterConstructorTypeParameterConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterStructAfterConstructorTypeParameterConstraint()
+        => VerifyAbsenceAsync(
             """
             class C<T> where T : new(), allows ref struct $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAllowsInTypeParameterConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterAllowsInTypeParameterConstraint()
+        => VerifyAbsenceAsync(
             """
             class C<T> where T : allows $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAllowsInTypeParameterConstraint2()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterAllowsInTypeParameterConstraint2()
+        => VerifyAbsenceAsync(
             """
             class C<T>
                 where T : allows $$
                 where U : U
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAllowsInMethodTypeParameterConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterAllowsInMethodTypeParameterConstraint()
+        => VerifyAbsenceAsync(
             """
             class C {
                 void Goo<T>()
                   where T : allows $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAllowsInMethodTypeParameterConstraint2()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterAllowsInMethodTypeParameterConstraint2()
+        => VerifyAbsenceAsync(
             """
             class C {
                 void Goo<T>()
                   where T : allows $$
                   where U : T
             """);
-    }
 
     [Fact]
-    public async Task TestAfterAllowsAfterClassTypeParameterConstraint()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterAllowsAfterClassTypeParameterConstraint()
+        => VerifyAbsenceAsync(
             """
             class C<T> where T : class, allows $$
             """);
-    }
 
     [Fact]
-    public async Task TestWithinExtension()
-    {
-        await VerifyKeywordAsync(
+    public Task TestWithinExtension()
+        => VerifyKeywordAsync(
             """
             static class C
             {
@@ -724,5 +575,4 @@ public sealed class StructKeywordRecommenderTests : KeywordRecommenderTests
             """,
             CSharpNextParseOptions,
             CSharpNextScriptParseOptions);
-    }
 }

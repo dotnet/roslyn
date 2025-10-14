@@ -9,12 +9,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
@@ -27,9 +28,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         private const string AdditionalDocumentEquivalenceKeySuffix = nameof(AdditionalDocumentEquivalenceKeySuffix);
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId,
-                                  DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId,
-                                  DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
+            [
+                DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId,
+                DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId,
+                DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId,
+            ];
 
         public override FixAllProvider GetFixAllProvider() => CustomFixAllProvider.Instance;
 

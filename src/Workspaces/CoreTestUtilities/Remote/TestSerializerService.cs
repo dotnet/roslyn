@@ -37,7 +37,7 @@ internal sealed class TestSerializerService(
         .Add(TestBase.ValueTupleRef, nameof(TestBase.ValueTupleRef))
         .Add(TestBase.SystemRuntimeFacadeRef, nameof(TestBase.SystemRuntimeFacadeRef));
     private static readonly ImmutableDictionary<string, MetadataReference> s_wellKnownReferences = ImmutableDictionary.Create<string, MetadataReference>()
-        .AddRange(s_wellKnownReferenceNames.Select(pair => KeyValuePairUtil.Create(pair.Value!, pair.Key)));
+        .AddRange(s_wellKnownReferenceNames.Select(pair => KeyValuePair.Create(pair.Value!, pair.Key)));
 
     private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
 

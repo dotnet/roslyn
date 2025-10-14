@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -47,6 +48,8 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
+    protected bool _analyzeForCollectionExpression;
+
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
     protected abstract bool HasExistingInvalidInitializerForCollection();
     protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
@@ -57,6 +60,12 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
 
     protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
+    protected override void Clear()
+    {
+        base.Clear();
+        _analyzeForCollectionExpression = false;
+    }
+
     public AnalysisResult Analyze(
         SemanticModel semanticModel,
         ISyntaxFacts syntaxFacts,
@@ -64,11 +73,16 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         bool analyzeForCollectionExpression,
         CancellationToken cancellationToken)
     {
-        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
-        if (state is null)
+        _analyzeForCollectionExpression = analyzeForCollectionExpression;
+        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+
+        // If we didn't find something we're assigned to, then we normally can't continue.  However, we always support
+        // converting a `new List<int>()` collection over to a collection expression.  We just won't analyze later
+        // statements.  
+        if (state.ValuePattern == default && !analyzeForCollectionExpression)
             return default;
 
-        this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression);
+        this.Initialize(state, objectCreationExpression);
         var (preMatches, postMatches, mayChangeSemantics) = this.AnalyzeWorker(cancellationToken);
 
         // If analysis failed entirely, immediately bail out.
@@ -194,17 +208,21 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         if (this.HasExistingInvalidInitializerForCollection())
             return false;
 
+        return GetAddMethods(cancellationToken).Any();
+    }
+
+    protected ImmutableArray<IMethodSymbol> GetAddMethods(CancellationToken cancellationToken)
+    {
         var type = this.SemanticModel.GetTypeInfo(_objectCreationExpression, cancellationToken).Type;
         if (type == null)
-            return false;
+            return [];
 
         var addMethods = this.SemanticModel.LookupSymbols(
             _objectCreationExpression.SpanStart,
             container: type,
             name: WellKnownMemberNames.CollectionInitializerAddMethodName,
             includeReducedExtensionMethods: true);
-
-        return addMethods.Any(static m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
+        return addMethods.SelectAsArray(s => s is IMethodSymbol { Parameters: [_, ..] }, s => (IMethodSymbol)s);
     }
 
     private bool TryAnalyzeIndexAssignment(

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -201,8 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal override string ExtensionName
-            => throw ExceptionUtilities.Unreachable();
+        internal sealed override string ExtensionGroupingName => null;
+        internal sealed override string ExtensionMarkerName => null;
 
         public sealed override bool IsReadOnly
         {

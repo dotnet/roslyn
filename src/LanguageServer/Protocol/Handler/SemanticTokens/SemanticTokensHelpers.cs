@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -21,8 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
 internal static class SemanticTokensHelpers
 {
-    private static readonly ObjectPool<List<int>> s_tokenListPool = new(() => new List<int>(capacity: 1000));
-
     /// <param name="ranges">The ranges to get semantic tokens for.  If <c>null</c> then the entire document will be
     /// processed.</param>
     internal static async Task<int[]> HandleRequestHelperAsync(
@@ -94,22 +91,24 @@ internal static class SemanticTokensHelpers
         using var _2 = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
         var textSpans = spans.SelectAsArray(static (span, text) => text.Lines.GetTextSpan(span), text);
-        await GetClassifiedSpansForDocumentAsync(
+        await AddClassifiedSpansForDocumentAsync(
             classifiedSpans, document, textSpans, options, cancellationToken).ConfigureAwait(false);
-
-        // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
-        classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
 
         // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
         // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
         ConvertMultiLineToSingleLineSpans(text, classifiedSpans, updatedClassifiedSpans);
+
+        // Classified spans are not guaranteed to be returned in a certain order and
+        // converting multi-line spans to single line spans can change put spans in the wrong order.
+        // Sort them before we compute the tokens to ensure we return them to the client in the correct order.
+        updatedClassifiedSpans.Sort(ClassifiedSpanComparer.Instance);
 
         // TO-DO: We should implement support for streaming if LSP adds support for it:
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
         return ComputeTokens(text.Lines, updatedClassifiedSpans, supportsVisualStudioExtensions, tokenTypesToIndex);
     }
 
-    private static async Task GetClassifiedSpansForDocumentAsync(
+    private static async Task AddClassifiedSpansForDocumentAsync(
         SegmentedList<ClassifiedSpan> classifiedSpans,
         Document document,
         ImmutableArray<TextSpan> textSpans,
@@ -122,15 +121,36 @@ internal static class SemanticTokensHelpers
         // then the semantic token classifications will override them.
 
         // `includeAdditiveSpans` will add token modifiers such as 'static', which we want to include in LSP.
-        var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-            document, textSpans, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
+        await ClassifierHelper.AddClassifiedSpansAsync(
+            classifiedSpans, document, textSpans, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
 
-        // The spans returned to us may include some empty spans, which we don't care about. We also don't care
-        // about the 'text' classification.  It's added for everything between real classifications (including
+        // Some classified spans may not be relevant and should be filtered out before we convert to tokens.
+        classifiedSpans.RemoveAll(static s => ShouldFilterClassification(s));
+    }
+
+    private static bool ShouldFilterClassification(ClassifiedSpan s)
+    {
+        // The spans returned to us may include some empty spans, which we don't care about.
+        if (s.TextSpan.IsEmpty)
+        {
+            return true;
+        }
+
+        // We also don't care about the 'text' classification.  It's added for everything between real classifications (including
         // whitespace), and just means 'don't classify this'.  No need for us to actually include that in
         // semantic tokens as it just wastes space in the result.
-        var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty && s.ClassificationType != ClassificationTypeNames.Text);
-        classifiedSpans.AddRange(nonEmptySpans);
+        if (s.ClassificationType == ClassificationTypeNames.Text)
+        {
+            return true;
+        }
+
+        // Additive classification types that are mapped to TokenModifiers.None are not rendered by the client and do not need to be included.
+        if (SemanticTokensSchema.AdditiveClassificationTypeToTokenModifier.TryGetValue(s.ClassificationType, out var modifier) && modifier == TokenModifiers.None)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static void ConvertMultiLineToSingleLineSpans(SourceText text, SegmentedList<ClassifiedSpan> classifiedSpans, SegmentedList<ClassifiedSpan> updatedClassifiedSpans)
@@ -146,7 +166,7 @@ internal static class SemanticTokensHelpers
             if (startLine != endLine)
             {
                 ConvertToSingleLineSpan(
-                    text, classifiedSpans, updatedClassifiedSpans, ref spanIndex, span.ClassificationType,
+                    text, updatedClassifiedSpans, span.ClassificationType,
                     startLine, startOffset, endLine, endOffSet);
             }
             else
@@ -158,9 +178,7 @@ internal static class SemanticTokensHelpers
 
         static void ConvertToSingleLineSpan(
             SourceText text,
-            SegmentedList<ClassifiedSpan> originalClassifiedSpans,
             SegmentedList<ClassifiedSpan> updatedClassifiedSpans,
-            ref int spanIndex,
             string classificationType,
             int startLine,
             int startOffset,
@@ -202,19 +220,6 @@ internal static class SemanticTokensHelpers
                     var updatedClassifiedSpan = new ClassifiedSpan(textSpan, classificationType);
                     updatedClassifiedSpans.Add(updatedClassifiedSpan);
                 }
-
-                // Since spans are expected to be ordered, when breaking up a multi-line span, we may have to insert
-                // other spans in-between. For example, we may encounter this case when breaking up a multi-line verbatim
-                // string literal containing escape characters:
-                //     var x = @"one ""
-                //               two";
-                // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
-                while (spanIndex + 1 < originalClassifiedSpans.Count &&
-                    textSpan.Contains(originalClassifiedSpans[spanIndex + 1].TextSpan))
-                {
-                    updatedClassifiedSpans.Add(originalClassifiedSpans[spanIndex + 1]);
-                    spanIndex++;
-                }
             }
         }
     }
@@ -231,12 +236,7 @@ internal static class SemanticTokensHelpers
         var lastStartCharacter = 0;
 
         var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
-
-        using var pooledData = s_tokenListPool.GetPooledObject();
-        var data = pooledData.Object;
-
-        // Items in the pool may not have been cleared
-        data.Clear();
+        var data = AllocateTokenArray(classifiedSpans);
 
         for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
         {
@@ -253,7 +253,31 @@ internal static class SemanticTokensHelpers
             data.Add(tokenModifiers);
         }
 
-        return [.. data];
+        return data.MoveToArray();
+    }
+
+    // This method allocates an array of integers to hold the semantic tokens data.
+    // NOTE: The number of items in the array is based on the number of unique classified spans
+    // in the provided list and is closely tied with how ComputeNextToken's loop works
+    private static FixedSizeArrayBuilder<int> AllocateTokenArray(SegmentedList<ClassifiedSpan> classifiedSpans)
+    {
+        if (classifiedSpans.Count == 0)
+            return new FixedSizeArrayBuilder<int>(0);
+
+        var uniqueSpanCount = 1;
+        var lastSpan = classifiedSpans[0].TextSpan;
+
+        for (var index = 1; index < classifiedSpans.Count; index++)
+        {
+            var currentSpan = classifiedSpans[index].TextSpan;
+            if (currentSpan != lastSpan)
+            {
+                uniqueSpanCount++;
+                lastSpan = currentSpan;
+            }
+        }
+
+        return new FixedSizeArrayBuilder<int>(5 * uniqueSpanCount);
     }
 
     private static int ComputeNextToken(
@@ -301,37 +325,23 @@ internal static class SemanticTokensHelpers
         var tokenLength = originalTextSpan.Length;
         Contract.ThrowIfFalse(tokenLength > 0);
 
-        // We currently only have one modifier (static). The logic below will need to change in the future if other
-        // modifiers are added in the future.
         var modifierBits = TokenModifiers.None;
         var tokenTypeIndex = 0;
 
         // Classified spans with the same text span should be combined into one token.
+        // NOTE: The update of currentClassifiedSpanIndex is closely tied to the allocation
+        // of the data array in AllocateTokenArray.
         while (classifiedSpans[currentClassifiedSpanIndex].TextSpan == originalTextSpan)
         {
             var classificationType = classifiedSpans[currentClassifiedSpanIndex].ClassificationType;
-            if (classificationType == ClassificationTypeNames.StaticSymbol)
+
+            if (SemanticTokensSchema.AdditiveClassificationTypeToTokenModifier.TryGetValue(classificationType, out var modifier))
             {
-                // 4. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                modifierBits |= TokenModifiers.Static;
-            }
-            else if (classificationType == ClassificationTypeNames.ReassignedVariable)
-            {
-                // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                modifierBits |= TokenModifiers.ReassignedVariable;
-            }
-            else if (classificationType == ClassificationTypeNames.ObsoleteSymbol)
-            {
-                // 6. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                modifierBits |= TokenModifiers.Deprecated;
-            }
-            else if (classificationType == ClassificationTypeNames.TestCode)
-            {
-                // Skip additive types that are not being converted to token modifiers.
+                modifierBits |= modifier;
             }
             else
             {
-                // 7. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
+                // 5. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
                 // from integer to LSP token types).
                 tokenTypeIndex = GetTokenTypeIndex(classificationType);
             }

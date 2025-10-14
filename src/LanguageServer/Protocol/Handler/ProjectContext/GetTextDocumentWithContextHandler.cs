@@ -17,18 +17,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(GetTextDocumentWithContextHandler)), Shared]
 [Method(VSMethods.GetProjectContextsName)]
-internal class GetTextDocumentWithContextHandler : ILspServiceDocumentRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public GetTextDocumentWithContextHandler()
-    {
-    }
-
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { DocumentUri = request.TextDocument.DocumentUri };
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new() { DocumentUri = request.TextDocument.DocumentUri };
 
     public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
     {

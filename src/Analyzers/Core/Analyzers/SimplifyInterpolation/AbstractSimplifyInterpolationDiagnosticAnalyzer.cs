@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation;
 
@@ -34,13 +34,22 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         => context.RegisterCompilationStartAction(
             context =>
             {
-                var formattableStringType = context.Compilation.FormattableStringType();
-                context.RegisterOperationAction(context => AnalyzeInterpolation(context, formattableStringType), OperationKind.Interpolation);
+                var compilation = context.Compilation;
+                var knownToStringFormats = Helpers.BuildKnownToStringFormatsLookupTable(compilation);
+
+                var readOnlySpanOfCharType = compilation.ReadOnlySpanOfTType()?.Construct(compilation.GetSpecialType(SpecialType.System_Char));
+                var handlersAvailable = compilation.InterpolatedStringHandlerAttributeType() != null;
+
+                context.RegisterOperationAction(context => AnalyzeInterpolation(context, compilation.FormattableStringType(), compilation.IFormattableType(), readOnlySpanOfCharType, knownToStringFormats, handlersAvailable), OperationKind.Interpolation);
             });
 
     private void AnalyzeInterpolation(
         OperationAnalysisContext context,
-        INamedTypeSymbol? formattableStringType)
+        INamedTypeSymbol? formattableStringType,
+        INamedTypeSymbol? iFormattableType,
+        INamedTypeSymbol? readOnlySpanOfCharType,
+        ImmutableDictionary<IMethodSymbol, string> knownToStringFormats,
+        bool handlersAvailable)
     {
         var option = context.GetAnalyzerOptions().PreferSimplifiedInterpolation;
 
@@ -53,7 +62,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         // Formattable strings can observe the inner types of the arguments passed to them.  So we can't safely change
         // to drop ToString in that.
         if (interpolation.Parent is IInterpolatedStringOperation { Parent: IConversionOperation { Type: { } convertedType } conversion } &&
-            convertedType.Equals(formattableStringType))
+            (convertedType.Equals(formattableStringType) || convertedType.Equals(iFormattableType)))
         {
             // One exception to this is calling directly into FormattableString.Invariant.  That method has known good
             // behavior that is fine to continue calling into.
@@ -66,7 +75,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         }
 
         this.Helpers.UnwrapInterpolation(
-            this.VirtualCharService, this.SyntaxFacts, interpolation, out _, out var alignment, out _,
+            this.VirtualCharService, this.SyntaxFacts, interpolation, knownToStringFormats, readOnlySpanOfCharType, handlersAvailable, out _, out var alignment, out _,
             out var formatString, out var unnecessaryLocations);
 
         if (alignment == null && formatString == null)

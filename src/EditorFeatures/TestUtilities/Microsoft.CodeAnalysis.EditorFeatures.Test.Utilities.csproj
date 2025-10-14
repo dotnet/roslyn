@@ -14,7 +14,6 @@
     <ProjectReference Include="..\..\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
-    <ProjectReference Include="..\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
     <ProjectReference Include="..\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
@@ -23,9 +22,7 @@
   <ItemGroup>
     <PackageReference Include="Moq" />
     <PackageReference Include="BasicUndo" />
-    <PackageReference Include="Microsoft.VisualStudio.Editor" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="IdeBenchmarks" />

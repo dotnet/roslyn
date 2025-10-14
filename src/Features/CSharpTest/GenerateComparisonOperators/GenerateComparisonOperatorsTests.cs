@@ -7,22 +7,23 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.GenerateComparisonOperators;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
-    Microsoft.CodeAnalysis.GenerateComparisonOperators.GenerateComparisonOperatorsCodeRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateComparisonOperators;
+
+using VerifyCS = CSharpCodeRefactoringVerifier<
+    GenerateComparisonOperatorsCodeRefactoringProvider>;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
 public sealed class GenerateComparisonOperatorsTests
 {
     [Fact]
-    public async Task TestClass()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestClass()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -59,12 +60,10 @@ public sealed class GenerateComparisonOperatorsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPreferExpressionBodies()
-    {
-        await new VerifyCS.Test
+    public Task TestPreferExpressionBodies()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -95,12 +94,10 @@ public sealed class GenerateComparisonOperatorsTests
                     { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
                 }),
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExplicitImpl()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExplicitImpl()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -137,12 +134,10 @@ public sealed class GenerateComparisonOperatorsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnInterface()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestOnInterface()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -179,12 +174,10 @@ public sealed class GenerateComparisonOperatorsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAtEndOfInterface()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestAtEndOfInterface()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -221,12 +214,10 @@ public sealed class GenerateComparisonOperatorsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInBody()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestInBody()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -265,7 +256,6 @@ public sealed class GenerateComparisonOperatorsTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestMissingWithoutCompareMethod()
@@ -338,9 +328,8 @@ public sealed class GenerateComparisonOperatorsTests
     }
 
     [Fact]
-    public async Task TestWithExistingOperator()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestWithExistingOperator()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -384,7 +373,6 @@ public sealed class GenerateComparisonOperatorsTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestMultipleInterfaces()
@@ -451,9 +439,8 @@ public sealed class GenerateComparisonOperatorsTests
     // TODO: Enable test on .NET Core
     // https://github.com/dotnet/roslyn/issues/71625
     [ConditionalFact(typeof(DesktopOnly))]
-    public async Task TestInInterfaceWithDefaultImpl()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestInInterfaceWithDefaultImpl()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -492,6 +479,5 @@ public sealed class GenerateComparisonOperatorsTests
                 }
             }
             """);
-    }
 }
 

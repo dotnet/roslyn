@@ -255,6 +255,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract ConstantValue? ExplicitDefaultConstantValue { get; }
 
         /// <summary>
+        /// Returns the default value from attributes on the parameter,
+        /// for symbols from source or derived from source symbols.
+        /// Returns null when not applicable.
+        /// </summary>
+        internal abstract ConstantValue? DefaultValueFromAttributes { get; }
+
+        /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
         public sealed override SymbolKind Kind
@@ -402,6 +409,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        /// <summary>
+        /// The index of the parameter which the CallerArgumentExpressionAttribute refers to.
+        /// For non-static extension members, index zero refers to the extension parameter (even in error scenarios where it doesn't exist).
+        /// </summary>
         internal abstract int CallerArgumentExpressionParameterIndex { get; }
 
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
@@ -429,6 +440,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <c>UnscopedRefAttribute</c>.
         /// </summary>
         internal abstract ScopedKind EffectiveScope { get; }
+
+        /// <summary>
+        /// Only valid for parameters declared in source.
+        /// </summary>
+        internal abstract ScopedKind DeclaredScope { get; }
 
         internal abstract bool HasUnscopedRefAttribute { get; }
 

@@ -13,22 +13,26 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
 {
     public class InternalImplementationOnlyTests
     {
-        private const string AttributeStringCSharp = @"
-namespace System.Runtime.CompilerServices
-{
-    internal class InternalImplementationOnlyAttribute : System.Attribute {}
-}
-";
+        private const string AttributeStringCSharp = """
+
+            namespace System.Runtime.CompilerServices
+            {
+                internal class InternalImplementationOnlyAttribute : System.Attribute {}
+            }
+
+            """;
         [Fact]
         public async Task CSharp_VerifySameAssemblyAsync()
         {
-            string source = AttributeStringCSharp + @"
+            string source = AttributeStringCSharp + """
 
-[System.Runtime.CompilerServices.InternalImplementationOnly]
-public interface IMyInterface { }
 
-class SomeClass : IMyInterface { }
-";
+                [System.Runtime.CompilerServices.InternalImplementationOnly]
+                public interface IMyInterface { }
+
+                class SomeClass : IMyInterface { }
+
+                """;
 
             // Verify no diagnostic since interface is in the same assembly.
             await new VerifyCS.Test
@@ -41,18 +45,22 @@ class SomeClass : IMyInterface { }
         [Fact]
         public async Task CSharp_VerifyDifferentAssemblyAsync()
         {
-            string source1 = AttributeStringCSharp + @"
+            string source1 = AttributeStringCSharp + """
 
-[System.Runtime.CompilerServices.InternalImplementationOnly]
-public interface IMyInterface { }
 
-public interface IMyOtherInterface : IMyInterface { }
-";
+                [System.Runtime.CompilerServices.InternalImplementationOnly]
+                public interface IMyInterface { }
 
-            var source2 = @"
-class SomeClass : IMyInterface { }
+                public interface IMyOtherInterface : IMyInterface { }
 
-class SomeOtherClass : IMyOtherInterface { }";
+                """;
+
+            var source2 = """
+
+                class SomeClass : IMyInterface { }
+
+                class SomeOtherClass : IMyOtherInterface { }
+                """;
 
             // Verify errors since interface is not in a friend assembly.
             await new VerifyCS.Test
@@ -83,20 +91,26 @@ class SomeOtherClass : IMyOtherInterface { }";
         [Fact]
         public async Task CSharp_VerifyDifferentFriendAssemblyAsync()
         {
-            string source1 = @"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""TestProject"")]
-" + AttributeStringCSharp + @"
+            string source1 = """
 
-[System.Runtime.CompilerServices.InternalImplementationOnly]
-public interface IMyInterface { }
+                [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("TestProject")]
 
-public interface IMyOtherInterface : IMyInterface { }
-";
+                """ + AttributeStringCSharp + """
 
-            var source2 = @"
-class SomeClass : IMyInterface { }
 
-class SomeOtherClass : IMyOtherInterface { }";
+                [System.Runtime.CompilerServices.InternalImplementationOnly]
+                public interface IMyInterface { }
+
+                public interface IMyOtherInterface : IMyInterface { }
+
+                """;
+
+            var source2 = """
+
+                class SomeClass : IMyInterface { }
+
+                class SomeOtherClass : IMyOtherInterface { }
+                """;
 
             // Verify no diagnostic since interface is in a friend assembly.
             await new VerifyCS.Test
@@ -120,11 +134,13 @@ class SomeOtherClass : IMyOtherInterface { }";
         [Fact]
         public async Task CSharp_VerifyISymbolAsync()
         {
-            var source = @"
-// Causes many compile errors, because not all members are implemented.
-class SomeClass : Microsoft.CodeAnalysis.ISymbol { }
-class SomeOtherClass : Microsoft.CodeAnalysis.IAssemblySymbol { }
-";
+            var source = """
+
+                // Causes many compile errors, because not all members are implemented.
+                class SomeClass : Microsoft.CodeAnalysis.ISymbol { }
+                class SomeOtherClass : Microsoft.CodeAnalysis.IAssemblySymbol { }
+
+                """;
 
             // Verify that ISymbol is not implementable.
             await new VerifyCS.Test
@@ -300,11 +316,13 @@ class SomeOtherClass : Microsoft.CodeAnalysis.IAssemblySymbol { }
         [Fact]
         public async Task CSharp_VerifyIOperationAsync()
         {
-            var source = @"
-// Causes many compile errors, because not all members are implemented.
-class SomeClass : Microsoft.CodeAnalysis.IOperation { }
-class SomeOtherClass : Microsoft.CodeAnalysis.Operations.IInvocationOperation { }
-";
+            var source = """
+
+                // Causes many compile errors, because not all members are implemented.
+                class SomeClass : Microsoft.CodeAnalysis.IOperation { }
+                class SomeOtherClass : Microsoft.CodeAnalysis.Operations.IInvocationOperation { }
+
+                """;
 
             // Verify that IOperation is not implementable.
             await new VerifyCS.Test
@@ -375,27 +393,31 @@ class SomeOtherClass : Microsoft.CodeAnalysis.Operations.IInvocationOperation { 
             }.RunAsync();
         }
 
-        private const string AttributeStringBasic = @"
-Namespace System.Runtime.CompilerServices
-    Friend Class InternalImplementationOnlyAttribute 
-        Inherits System.Attribute
-    End Class
-End Namespace
-";
+        private const string AttributeStringBasic = """
+
+            Namespace System.Runtime.CompilerServices
+                Friend Class InternalImplementationOnlyAttribute 
+                    Inherits System.Attribute
+                End Class
+            End Namespace
+
+            """;
 
         [Fact]
         public async Task Basic_VerifySameAssemblyAsync()
         {
-            string source = AttributeStringBasic + @"
+            string source = AttributeStringBasic + """
 
-<System.Runtime.CompilerServices.InternalImplementationOnly>
-Public Interface IMyInterface
-End Interface
 
-Class SomeClass 
-    Implements IMyInterface 
-End Class
-";
+                <System.Runtime.CompilerServices.InternalImplementationOnly>
+                Public Interface IMyInterface
+                End Interface
+
+                Class SomeClass 
+                    Implements IMyInterface 
+                End Class
+
+                """;
 
             // Verify no diagnostic since interface is in the same assembly.
             await new VerifyVB.Test
@@ -408,26 +430,30 @@ End Class
         [Fact]
         public async Task Basic_VerifyDifferentAssemblyAsync()
         {
-            string source1 = AttributeStringBasic + @"
+            string source1 = AttributeStringBasic + """
 
-<System.Runtime.CompilerServices.InternalImplementationOnly>
-Public Interface IMyInterface
-End Interface
 
-Public Interface IMyOtherInterface
-    Inherits IMyInterface
-End Interface
-";
+                <System.Runtime.CompilerServices.InternalImplementationOnly>
+                Public Interface IMyInterface
+                End Interface
 
-            var source2 = @"
-Class SomeClass 
-    Implements IMyInterface 
-End Class
+                Public Interface IMyOtherInterface
+                    Inherits IMyInterface
+                End Interface
 
-Class SomeOtherClass
-    Implements IMyOtherInterface
-End Class
-";
+                """;
+
+            var source2 = """
+
+                Class SomeClass 
+                    Implements IMyInterface 
+                End Class
+
+                Class SomeOtherClass
+                    Implements IMyOtherInterface
+                End Class
+
+                """;
 
             // Verify errors since interface is not in a friend assembly.
             await new VerifyVB.Test
@@ -458,28 +484,34 @@ End Class
         [Fact]
         public async Task Basic_VerifyDifferentFriendAssemblyAsync()
         {
-            string source1 = @"
-<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""TestProject"")>
-" + AttributeStringBasic + @"
+            string source1 = """
 
-<System.Runtime.CompilerServices.InternalImplementationOnly>
-Public Interface IMyInterface
-End Interface
+                <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("TestProject")>
 
-Public Interface IMyOtherInterface
-    Inherits IMyInterface
-End Interface
-";
+                """ + AttributeStringBasic + """
 
-            var source2 = @"
-Class SomeClass 
-    Implements IMyInterface 
-End Class
 
-Class SomeOtherClass
-    Implements IMyOtherInterface
-End Class
-";
+                <System.Runtime.CompilerServices.InternalImplementationOnly>
+                Public Interface IMyInterface
+                End Interface
+
+                Public Interface IMyOtherInterface
+                    Inherits IMyInterface
+                End Interface
+
+                """;
+
+            var source2 = """
+
+                Class SomeClass 
+                    Implements IMyInterface 
+                End Class
+
+                Class SomeOtherClass
+                    Implements IMyOtherInterface
+                End Class
+
+                """;
 
             // Verify no diagnostic since interface is in a friend assembly.
             await new VerifyVB.Test
@@ -501,20 +533,18 @@ End Class
         }
 
         [Fact]
-        public async Task Basic_VerifyISymbolAsync()
-        {
-            var source = @"
-' Causes many compile errors, because not all members are implemented.
-Class C1
-    Implements Microsoft.CodeAnalysis.ISymbol
-End Class
-Class C2
-    Implements Microsoft.CodeAnalysis.IAssemblySymbol
-End Class
-";
+        public Task Basic_VerifyISymbolAsync()
+            => VerifyVB.VerifyAnalyzerAsync("""
 
-            // Verify that ISymbol is not implementable.
-            await VerifyVB.VerifyAnalyzerAsync(source,
+                ' Causes many compile errors, because not all members are implemented.
+                Class C1
+                    Implements Microsoft.CodeAnalysis.ISymbol
+                End Class
+                Class C2
+                    Implements Microsoft.CodeAnalysis.IAssemblySymbol
+                End Class
+
+                """,
                 // Test0.vb(3,7): error RS1009: Type C1 cannot implement interface ISymbol because ISymbol is not available for public implementation.
                 VerifyVB.Diagnostic().WithSpan(3, 7, 3, 9).WithArguments("C1", "ISymbol"),
                 // Test0.vb(4) : error BC30149: Class 'C1' must implement 'Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult' for interface 'ISymbol'.
@@ -674,23 +704,20 @@ End Class
                 // Test0.vb(7) : error BC30149: Class 'C2' must implement 'Sub Accept(visitor As SymbolVisitor)' for interface 'ISymbol'.
                 DiagnosticResult.CompilerError("BC30149").WithSpan(7, 16, 7, 54).WithArguments("Class", "C2", "Sub Accept(visitor As Microsoft.CodeAnalysis.SymbolVisitor)", "ISymbol")
             );
-        }
 
         [Fact]
-        public async Task Basic_VerifyIOperationAsync()
-        {
-            var source = @"
-' Causes many compile errors, because not all members are implemented.
-Class C1
-    Implements Microsoft.CodeAnalysis.IOperation
-End Class
-Class C2
-    Implements Microsoft.CodeAnalysis.Operations.IInvocationOperation
-End Class
-";
+        public Task Basic_VerifyIOperationAsync()
+            => VerifyVB.VerifyAnalyzerAsync("""
 
-            // Verify that IOperation is not implementable.
-            await VerifyVB.VerifyAnalyzerAsync(source,
+                ' Causes many compile errors, because not all members are implemented.
+                Class C1
+                    Implements Microsoft.CodeAnalysis.IOperation
+                End Class
+                Class C2
+                    Implements Microsoft.CodeAnalysis.Operations.IInvocationOperation
+                End Class
+
+                """,
                 // Test0.vb(3,7): error RS1009: Type C1 cannot implement interface IOperation because IOperation is not available for public implementation.
                 VerifyVB.Diagnostic().WithSpan(3, 7, 3, 9).WithArguments("C1", "IOperation"),
                 // Test0.vb(4) : error BC30149: Class 'C1' must implement 'Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult' for interface 'IOperation'.
@@ -748,6 +775,5 @@ End Class
                 // Test0.vb(7) : error BC30149: Class 'C2' must implement 'Sub Accept(visitor As OperationVisitor)' for interface 'IOperation'.
                 DiagnosticResult.CompilerError("BC30149").WithSpan(7, 16, 7, 70).WithArguments("Class", "C2", "Sub Accept(visitor As Microsoft.CodeAnalysis.Operations.OperationVisitor)", "IOperation")
             );
-        }
     }
 }

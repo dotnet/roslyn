@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
                     }
-                    else if (getEnumeratorMethod.GetIsNewExtensionMember() && getEnumeratorMethod.ContainingType.ExtensionParameter.RefKind == RefKind.Ref) // Tracked by https://github.com/dotnet/roslyn/issues/76130: add test coverage for 'ref readonly' and 'in' 
+                    else if (getEnumeratorMethod.GetIsNewExtensionMember() && getEnumeratorMethod.ContainingType.ExtensionParameter.RefKind == RefKind.Ref)
                     {
                         Error(diagnostics, ErrorCode.ERR_RefLvalueExpected, collectionExpr.Syntax);
                         hasErrors = true;
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
-                if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
+                if (!hasErrors && (awaitInfo.GetResult ?? awaitInfo.RuntimeAsyncAwaitCall?.Method)?.ReturnType.SpecialType != SpecialType.System_Boolean)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, expr.Location, getEnumeratorMethod.ReturnTypeWithAnnotations, getEnumeratorMethod);
                     hasErrors = true;
@@ -465,12 +465,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var foreachKeyword = _syntax.ForEachKeyword;
             ReportDiagnosticsIfObsolete(diagnostics, getEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, getEnumeratorMethod, foreachKeyword, isDelegateConversion: false);
+            Debug.Assert(!IsDisallowedExtensionInOlderLangVer(getEnumeratorMethod));
+
             // MoveNext is an instance method, so it does not need to have unmanaged callers only diagnostics reported.
             // Either a diagnostic was reported at the declaration of the method (for the invalid attribute), or MoveNext
             // is marked as not supported and we won't get here in the first place (for metadata import).
             ReportDiagnosticsIfObsolete(diagnostics, builder.MoveNextInfo.Method, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter.AssociatedSymbol, foreachKeyword, hasBaseReceiver: false);
+            Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.MoveNextInfo.Method));
+            Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.CurrentPropertyGetter));
 
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
@@ -872,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(span == originalSpan);
                 Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod || builder.GetEnumeratorInfo.Method.GetIsNewExtensionMember());
 #endif
-                if (!builder.ViaExtensionMethod && // Tracked by https://github.com/dotnet/roslyn/issues/76130: Add test coverage for new extensions
+                if (!builder.ViaExtensionMethod &&
                     ((result is EnumeratorResult.Succeeded && builder.ElementTypeWithAnnotations.Equals(elementField.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions) &&
                       builder.CurrentPropertyGetter?.RefKind == (wellKnownSpan == WellKnownType.System_ReadOnlySpan_T ? RefKind.RefReadOnly : RefKind.Ref)) ||
                      result is EnumeratorResult.FailedAndReported))
@@ -1223,7 +1227,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol patternDisposeMethod = TryFindDisposePatternMethod(receiver, syntax, isAsync, patternDiagnostics, out bool expanded);
                 if (patternDisposeMethod is object)
                 {
-                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod && !patternDisposeMethod.GetIsNewExtensionMember());
+                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod && !patternDisposeMethod.GetIsNewExtensionMember(),
+                        "No extension disposal. See TryFindDisposePatternMethod");
                     Debug.Assert(patternDisposeMethod.ParameterRefKinds.IsDefaultOrEmpty ||
                         patternDisposeMethod.ParameterRefKinds.All(static refKind => refKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
 
@@ -1234,6 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BindDefaultArguments(
                         syntax,
                         patternDisposeMethod.Parameters,
+                        extensionReceiver: null,
                         argsBuilder,
                         argumentRefKindsBuilder: null,
                         namesBuilder: null,
@@ -1257,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (implementsInterface(enumeratorType, isAsync, diagnostics))
+            if (implementsInterface(builder.CollectionType, enumeratorType, isAsync, diagnostics))
             {
                 builder.NeedsDisposal = true;
                 return;
@@ -1277,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool implementsInterface(TypeSymbol enumeratorType, bool isAsync, BindingDiagnosticBag diagnostics)
+            bool implementsInterface(TypeSymbol collectionType, TypeSymbol enumeratorType, bool isAsync, BindingDiagnosticBag diagnostics)
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -1291,7 +1297,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(syntax, useSiteInfo);
 
                 if (needSupportForRefStructInterfaces &&
-                    enumeratorType.ContainingModule != Compilation.SourceModule)
+                    enumeratorType.ContainingModule != Compilation.SourceModule &&
+                    !LocalRewriter.CanRewriteForEachAsFor(Compilation, syntax, collectionType, out _, out _, BindingDiagnosticBag.Discarded))
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
                 }
@@ -1466,6 +1473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (overloadResolutionResult.Succeeded)
             {
                 result = overloadResolutionResult.ValidResult.Member;
+                Debug.Assert(!result.IsExtensionMethod && !result.GetIsNewExtensionMember());
 
                 if (result.IsStatic || result.DeclaredAccessibility != Accessibility.Public)
                 {
@@ -1490,6 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BindDefaultArguments(
                         syntax,
                         result.Parameters,
+                        extensionReceiver: null,
                         analyzedArguments.Arguments,
                         analyzedArguments.RefKinds,
                         analyzedArguments.Names,
@@ -1535,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnRefKind: default,
                 returnType: null,
                 ref extensionUseSiteInfo,
-                acceptOnlyMethods: true); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test effect of acceptOnlyMethods value
+                acceptOnlyMethods: true);
 
             diagnostics.Add(syntax, extensionUseSiteInfo);
             diagnostics.AddRange(methodGroupResolutionResult.Diagnostics);
@@ -1586,9 +1595,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    BoundExpression extensionReceiver = result.GetIsNewExtensionMember() ? collectionExpr : null;
+                    Debug.Assert(!result.IsStatic);
+
                     info = BindDefaultArguments(
                         result,
-                        extensionReceiverOpt: null,
+                        extensionReceiverOpt: extensionReceiver,
                         expanded: expanded,
                         collectionExpr.Syntax,
                         diagnostics);
@@ -1820,7 +1832,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (implementedIEnumerable is not null && needSupportForRefStructInterfaces && type.ContainingModule != Compilation.SourceModule)
+            if (implementedIEnumerable is not null && needSupportForRefStructInterfaces && type.ContainingModule != Compilation.SourceModule &&
+                !LocalRewriter.CanRewriteForEachAsFor(Compilation, collectionSyntax, type, out _, out _, BindingDiagnosticBag.Discarded))
             {
                 CheckFeatureAvailability(collectionSyntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
             }
@@ -1949,10 +1962,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : null;
         }
 
-        /// <param name="extensionReceiverOpt">If method is an extension method, this must be non-null.</param>
+        /// <param name="extensionReceiverOpt">If method is an extension method (classic or new), this must be non-null.</param>
         private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool expanded, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert((extensionReceiverOpt != null) == method.IsExtensionMethod);
+            Debug.Assert((extensionReceiverOpt != null) == (method.IsExtensionMethod || method.GetIsNewExtensionMember()));
+            Debug.Assert(!method.GetIsNewExtensionMember() || !method.IsStatic);
 
             if (method.ParameterCount == 0)
             {
@@ -1970,6 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindDefaultArguments(
                 syntax,
                 method.Parameters,
+                extensionReceiver: method.GetIsNewExtensionMember() ? extensionReceiverOpt : null,
                 argsBuilder,
                 argumentRefKindsBuilder: null,
                 namesBuilder: null,

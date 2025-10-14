@@ -19,6 +19,17 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class MetadataHelpers
     {
+        /// <summary>
+        /// Once the #UserString heap reaches this size, we can't emit any more string literals to it.
+        /// 
+        /// The max number of bytes that can fit into #US the heap is 2^29 - 1,
+        /// but each string also needs to have an offset that's at most 0xffffff (2^24 - 1) to be addressable by a token.
+        /// First byte of the heap is reserved (0), hence there is 2 ^ 24 - 2 bytes available for user strings.
+        /// 
+        /// See https://github.com/dotnet/runtime/blob/2bd17019c1c01a6bf17a2de244ff92591fc3c334/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/Ecma335/MetadataBuilder.Heaps.cs#L82
+        /// </summary>
+        internal const int UserStringHeapCapacity = 0xfffffe;
+
         // https://github.com/dotnet/roslyn/issues/73548:
         // Remove this constant and refer to GenericParameterAttributes.AllowByRefLike directly once the new enum member becomes available.
         // See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
@@ -902,7 +913,7 @@ DoneWithSequence:
                         {
                             Debug.Assert(keyIndex < i);
                             var primaryPair = nestedNamespaces[keyIndex];
-                            nestedNamespaces[keyIndex] = KeyValuePairUtil.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
+                            nestedNamespaces[keyIndex] = KeyValuePair.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
                             nestedNamespaces[i] = default(KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>);
                         }
                     }
@@ -1065,6 +1076,36 @@ DoneWithSequence:
             s.Replace('.', '_');
 
             return pooledStrBuilder.ToStringAndFree();
+        }
+
+        /// <summary>
+        /// Calculates the number of bytes written on #UserHeap for the given string.
+        /// See https://github.com/dotnet/runtime/blob/5bfc0bec9d627c946f154dd99103a393d278f841/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/BlobBuilder.cs#L1044
+        /// </summary>
+        internal static int GetUserStringBlobSize(string value)
+        {
+            var byteLength = value.Length * 2 + 1;
+            return GetCompressedIntegerSize(byteLength) + byteLength;
+        }
+
+        /// <summary>
+        /// See https://github.com/dotnet/runtime/blob/5bfc0bec9d627c946f154dd99103a393d278f841/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/BlobWriterImpl.cs#L16
+        /// </summary>
+        private static int GetCompressedIntegerSize(int value)
+        {
+            Debug.Assert(value <= 0x1fffffff);
+
+            if (value <= 0x7f)
+            {
+                return 1;
+            }
+
+            if (value <= 0x3fff)
+            {
+                return 2;
+            }
+
+            return 4;
         }
     }
 }

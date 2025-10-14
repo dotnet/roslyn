@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -37,11 +39,18 @@ public abstract class AbstractSnippetProviderTests
             .WithMetadataReferences(metadataReferences);
 
         TestFileMarkupParser.GetPosition(markupBeforeCommit, out markupBeforeCommit, out var snippetRequestPosition);
-        var document = project.AddDocument("TestDocument", markupBeforeCommit, filePath: "/TestDocument");
+        var document = project.AddDocument(
+            "TestDocument",
+            SourceText.From(markupBeforeCommit, Encoding.UTF8, SourceHashAlgorithms.Default),
+            filePath: Path.Combine(TempRoot.Root, "TestDocument"));
 
         if (editorconfig is not null)
         {
-            var editorConfigDoc = document.Project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfig), filePath: "/.editorconfig");
+            var editorConfigDoc = document.Project.AddAnalyzerConfigDocument(
+                ".editorconfig",
+                SourceText.From(editorconfig, Encoding.UTF8, SourceHashAlgorithms.Default),
+                filePath: Path.Combine(TempRoot.Root, ".editorconfig"));
+
             document = editorConfigDoc.Project.GetDocument(document.Id)!;
         }
 
@@ -120,7 +129,7 @@ public abstract class AbstractSnippetProviderTests
             .WithMetadataReferences(metadataReferences);
 
         TestFileMarkupParser.GetPosition(markup, out markup, out var snippetRequestPosition);
-        var document = project.AddDocument("TestDocument", markup);
+        var document = project.AddDocument("TestDocument", SourceText.From(markup, Encoding.UTF8, SourceHashAlgorithms.Default));
 
         var snippetServiceInterface = document.GetRequiredLanguageService<ISnippetService>();
         var snippetService = Assert.IsAssignableFrom<AbstractSnippetService>(snippetServiceInterface);

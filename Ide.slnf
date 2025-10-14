@@ -77,7 +77,6 @@
       "src\\EditorFeatures\\CSharpTest2\\Microsoft.CodeAnalysis.CSharp.EditorFeatures2.UnitTests.csproj",
       "src\\EditorFeatures\\CSharpTest\\Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests.csproj",
       "src\\EditorFeatures\\CSharp\\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj",
-      "src\\EditorFeatures\\Core.Wpf\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj",
       "src\\EditorFeatures\\Core\\Microsoft.CodeAnalysis.EditorFeatures.csproj",
       "src\\EditorFeatures\\DiagnosticsTestUtilities\\Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities.csproj",
       "src\\EditorFeatures\\ExternalAccess\\Debugger\\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj",

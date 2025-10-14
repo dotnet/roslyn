@@ -7,9 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
@@ -30,8 +28,8 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
 
     protected readonly InlineRenameService InlineRenameService;
     protected readonly Dictionary<ITextBuffer, TBufferState> UndoManagers = [];
-    protected readonly Stack<ActiveSpanState> UndoStack = new Stack<ActiveSpanState>();
-    protected readonly Stack<ActiveSpanState> RedoStack = new Stack<ActiveSpanState>();
+    protected readonly Stack<ActiveSpanState> UndoStack = new();
+    protected readonly Stack<ActiveSpanState> RedoStack = new();
     protected ActiveSpanState initialState;
     protected ActiveSpanState currentState;
     protected bool updatePending = false;

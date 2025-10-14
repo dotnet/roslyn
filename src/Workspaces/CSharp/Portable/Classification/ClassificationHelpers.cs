@@ -208,7 +208,7 @@ internal static class ClassificationHelpers
             if (methodDeclaration.ParameterList.Parameters is [var parameter, ..] && parameter.Modifiers.Any(SyntaxKind.ThisKeyword))
                 return ClassificationTypeNames.ExtensionMethodName;
 
-            if (methodDeclaration.Parent is ExtensionDeclarationSyntax)
+            if (methodDeclaration.Parent is ExtensionBlockDeclarationSyntax)
                 return ClassificationTypeNames.ExtensionMethodName;
 
             return ClassificationTypeNames.MethodName;

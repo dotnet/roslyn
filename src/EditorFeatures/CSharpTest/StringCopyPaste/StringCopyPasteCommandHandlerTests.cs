@@ -29,11 +29,11 @@ public abstract class StringCopyPasteCommandHandlerTests
     internal sealed class StringCopyPasteTestState : AbstractCommandHandlerTestState
     {
         private static readonly TestComposition s_composition =
-            EditorTestCompositions.EditorFeaturesWpf
+            EditorTestCompositions.EditorFeatures
                 .AddParts(typeof(StringCopyPasteCommandHandler));
 
         private static readonly TestComposition s_compositionWithMockCopyPasteService =
-            EditorTestCompositions.EditorFeaturesWpf
+            EditorTestCompositions.EditorFeatures
                 .RemoveExcludedPartTypes(typeof(WpfStringCopyPasteService))
                 .AddParts(typeof(TestStringCopyPasteService))
                 .AddParts(typeof(StringCopyPasteCommandHandler));
@@ -53,16 +53,17 @@ public abstract class StringCopyPasteCommandHandlerTests
             => new(GetWorkspaceXml(copyFileMarkup, pasteFileMarkup), mockCopyPasteService);
 
         public static XElement GetWorkspaceXml(string? copyFileMarkup, string pasteFileMarkup)
-            => XElement.Parse(($@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document Markup=""SpansOnly"">{pasteFileMarkup}</Document>
-    </Project>
-    {(copyFileMarkup == null ? "" : $@"
+            => XElement.Parse(($"""
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document Markup="SpansOnly">{pasteFileMarkup}</Document>
+                    </Project>
+                    {(copyFileMarkup == null ? "" : $@"
     <Project Language=""C#"" CommonReferences=""true"">
         <Document Markup=""SpansOnly"">{copyFileMarkup}</Document>
     </Project>")}
-</Workspace>"));
+                </Workspace>
+                """));
 
         internal void AssertCodeIs(string expectedCode)
         {

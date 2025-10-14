@@ -12,6 +12,6 @@ internal interface IUpdateExpressionSyntaxHelper<
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
 {
-    void GetPartsOfForeachStatement(TStatementSyntax statement, out SyntaxToken awaitKeyword, out SyntaxToken identifier, out TExpressionSyntax expression, out IEnumerable<TStatementSyntax> statements);
+    void GetPartsOfForeachStatement(SemanticModel semanticModel, TStatementSyntax statement, out SyntaxToken awaitKeyword, out SyntaxToken identifier, out TExpressionSyntax expression, out IEnumerable<TStatementSyntax> statements, out bool needsCast);
     void GetPartsOfIfStatement(TStatementSyntax statement, out TExpressionSyntax condition, out IEnumerable<TStatementSyntax> whenTrueStatements, out IEnumerable<TStatementSyntax>? whenFalseStatements);
 }

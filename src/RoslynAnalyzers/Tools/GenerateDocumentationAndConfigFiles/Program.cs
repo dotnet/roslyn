@@ -18,10 +18,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
 using static GenerateDocumentationAndConfigFiles.CommonPropertyNames;
@@ -212,7 +212,7 @@ namespace GenerateDocumentationAndConfigFiles
                 var configuration = parseResult.GetValue(configurationOption) ?? string.Empty;
                 var tfm = parseResult.GetValue(tfmOption) ?? string.Empty;
                 var assembliesString = parseResult.GetValue(assembliesOption) ?? string.Empty;
-                var assemblyList = assembliesString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                var assemblyList = assembliesString.Split([';'], StringSplitOptions.RemoveEmptyEntries).ToList();
                 var propsFileDir = parseResult.GetValue(propsFileDirOption) ?? string.Empty;
                 var propsFileName = parseResult.GetValue(propsFileNameOption) ?? string.Empty;
                 var targetsFileDir = parseResult.GetValue(targetsFileDirOption) ?? string.Empty;
@@ -257,7 +257,7 @@ namespace GenerateDocumentationAndConfigFiles
                 return HandleAsync(commandLineArgs, cancellationToken);
             });
 
-            return rootCommand.Parse(args).InvokeAsync(CancellationToken.None);
+            return rootCommand.Parse(args).InvokeAsync(null, CancellationToken.None);
         }
 
         private static async Task<int> HandleAsync(CommandLineArgs args, CancellationToken cancellationToken)
@@ -863,8 +863,8 @@ namespace GenerateDocumentationAndConfigFiles
 
             async Task<bool> createGlobalConfigFilesAsync()
             {
-                using var releaseTrackingFilesDataBuilder = ArrayBuilder<ReleaseTrackingData>.GetInstance();
-                using var versionsBuilder = PooledHashSet<Version>.GetInstance();
+                using var _1 = ArrayBuilder<ReleaseTrackingData>.GetInstance(out var releaseTrackingFilesDataBuilder);
+                using var _2 = PooledHashSet<Version>.GetInstance(out var versionsBuilder);
 
                 // Validate all assemblies exist on disk and can be loaded.
                 foreach (string assembly in args.AssemblyList)
@@ -992,12 +992,12 @@ namespace GenerateDocumentationAndConfigFiles
 
                     foreach (var warnAsError in new[] { true, false })
                     {
-                        foreach (var analysisMode in Enum.GetValues(typeof(AnalysisMode)))
+                        foreach (var analysisMode in Enum.GetValues<AnalysisMode>())
                         {
-                            CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, (AnalysisMode)analysisMode!, warnAsError, releaseTrackingData, category: null);
+                            CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, analysisMode, warnAsError, releaseTrackingData, category: null);
                             foreach (var category in categories!)
                             {
-                                CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, (AnalysisMode)analysisMode!, warnAsError, releaseTrackingData, category);
+                                CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, analysisMode, warnAsError, releaseTrackingData, category);
                             }
                         }
                     }

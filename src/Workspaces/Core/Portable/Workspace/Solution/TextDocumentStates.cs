@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -149,7 +150,7 @@ internal sealed class TextDocumentStates<TState>
 
         return new(
             _ids.AddRange(ids),
-            States.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))),
+            States.AddRange(states.Select(state => KeyValuePair.Create(state.Id, state))),
             filePathToDocumentIds: null);
     }
 

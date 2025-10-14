@@ -47,9 +47,8 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task ToStringWithNoParameter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithNoParameter()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -68,12 +67,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithParameter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithParameter()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -92,12 +89,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithEscapeSequences()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithEscapeSequences()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -116,12 +111,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -140,12 +133,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithVerbatimEscapeSequencesInsideNonVerbatimInterpolatedString()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithVerbatimEscapeSequencesInsideNonVerbatimInterpolatedString()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -164,12 +155,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithNonVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithNonVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -188,12 +177,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithStringConstantParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ToStringWithStringConstantParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -204,12 +191,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithCharacterLiteralParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ToStringWithCharacterLiteralParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -221,14 +206,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 public string ToString(object obj) => null;
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithFormatProvider()
-    {
-        // (If someone is explicitly specifying culture, an implicit form should not be encouraged.)
-
-        await TestMissingInRegularAndScriptAsync(
+    public Task ToStringWithFormatProvider()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -238,14 +219,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithInvariantCultureInsideFormattableStringInvariant()
-    {
-        // Invariance remains explicit, so this is okay.
-
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithInvariantCultureInsideFormattableStringInvariant()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -264,12 +241,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DateTimeFormatInfoInvariantInfoIsRecognized()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DateTimeFormatInfoInvariantInfoIsRecognized()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -288,12 +263,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NumberFormatInfoInvariantInfoIsRecognized()
-    {
-        await TestInRegularAndScript1Async(
+    public Task NumberFormatInfoInvariantInfoIsRecognized()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -312,12 +285,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithInvariantCultureOutsideFormattableStringInvariant()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ToStringWithInvariantCultureOutsideFormattableStringInvariant()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -327,12 +298,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithFormatAndInvariantCultureInsideFormattableStringInvariant()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithFormatAndInvariantCultureInsideFormattableStringInvariant()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -351,12 +320,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithFormatAndInvariantCultureOutsideFormattableStringInvariant()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ToStringWithFormatAndInvariantCultureOutsideFormattableStringInvariant()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -366,12 +333,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftWithIntegerLiteral()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftWithIntegerLiteral()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -390,12 +355,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadRightWithIntegerLiteral()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadRightWithIntegerLiteral()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -414,12 +377,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftWithComplexConstantExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftWithComplexConstantExpression()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -440,12 +401,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftWithSpaceChar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftWithSpaceChar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -464,12 +423,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadRightWithSpaceChar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadRightWithSpaceChar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -488,12 +445,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftWithNonSpaceChar()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task PadLeftWithNonSpaceChar()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -503,12 +458,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadRightWithNonSpaceChar()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task PadRightWithNonSpaceChar()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -518,12 +471,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadRightWithComplexConstantExpressionRequiringParentheses()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadRightWithComplexConstantExpressionRequiringParentheses()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -544,12 +495,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithNoParameterWhenFormattingComponentIsSpecified()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ToStringWithNoParameterWhenFormattingComponentIsSpecified()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -559,12 +508,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithStringLiteralParameterWhenFormattingComponentIsSpecified()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ToStringWithStringLiteralParameterWhenFormattingComponentIsSpecified()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -574,12 +521,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithNoParameterWhenAlignmentComponentIsSpecified()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithNoParameterWhenAlignmentComponentIsSpecified()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -598,12 +543,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithNoParameterWhenBothComponentsAreSpecified()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ToStringWithNoParameterWhenBothComponentsAreSpecified()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -613,12 +556,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithStringLiteralParameterWhenBothComponentsAreSpecified()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ToStringWithStringLiteralParameterWhenBothComponentsAreSpecified()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -628,12 +569,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftWhenFormattingComponentIsSpecified()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftWhenFormattingComponentIsSpecified()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -652,12 +591,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadRightWhenFormattingComponentIsSpecified()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadRightWhenFormattingComponentIsSpecified()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -676,12 +613,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftWhenAlignmentComponentIsSpecified()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task PadLeftWhenAlignmentComponentIsSpecified()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -691,12 +626,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadRightWhenAlignmentComponentIsSpecified()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task PadRightWhenAlignmentComponentIsSpecified()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -706,12 +639,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftWhenBothComponentsAreSpecified()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task PadLeftWhenBothComponentsAreSpecified()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -721,12 +652,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadRightWhenBothComponentsAreSpecified()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task PadRightWhenBothComponentsAreSpecified()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -736,12 +665,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ToStringWithoutFormatThenPadLeft()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ToStringWithoutFormatThenPadLeft()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -759,12 +686,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftThenToStringWithoutFormat()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftThenToStringWithoutFormat()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -782,12 +707,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftThenToStringWithoutFormatWhenAlignmentComponentIsSpecified()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftThenToStringWithoutFormatWhenAlignmentComponentIsSpecified()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -805,12 +728,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftThenPadRight_WithoutAlignment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftThenPadRight_WithoutAlignment()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -828,12 +749,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task PadLeftThenPadRight_WithAlignment()
-    {
-        await TestMissingAsync(
+    public Task PadLeftThenPadRight_WithAlignment()
+        => TestMissingAsync(
             """
             class C
             {
@@ -843,12 +762,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
-    public async Task MissingOnImplicitToStringReceiver()
-    {
-        await TestMissingAsync(
+    public Task MissingOnImplicitToStringReceiver()
+        => TestMissingAsync(
             """
             class C
             {
@@ -857,12 +774,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 string GetViaInterpolation() => $"Hello {ToString[||]()}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
-    public async Task MissingOnImplicitToStringReceiverWithArg()
-    {
-        await TestMissingAsync(
+    public Task MissingOnImplicitToStringReceiverWithArg()
+        => TestMissingAsync(
             """
             class C
             {
@@ -871,12 +786,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 string GetViaInterpolation() => $"Hello {ToString[||]("g")}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
-    public async Task MissingOnStaticToStringReceiver()
-    {
-        await TestMissingAsync(
+    public Task MissingOnStaticToStringReceiver()
+        => TestMissingAsync(
             """
             class C
             {
@@ -885,12 +798,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 string GetViaInterpolation() => $"Hello {ToString[||]()}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
-    public async Task MissingOnStaticToStringReceiverWithArg()
-    {
-        await TestMissingAsync(
+    public Task MissingOnStaticToStringReceiverWithArg()
+        => TestMissingAsync(
             """
             class C
             {
@@ -899,12 +810,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 string GetViaInterpolation() => $"Hello {ToString[||]("g")}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
-    public async Task MissingOnImplicitPadLeft()
-    {
-        await TestMissingAsync(
+    public Task MissingOnImplicitPadLeft()
+        => TestMissingAsync(
             """
             class C
             {
@@ -916,12 +825,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
-    public async Task MissingOnStaticPadLeft()
-    {
-        await TestMissingAsync(
+    public Task MissingOnStaticPadLeft()
+        => TestMissingAsync(
             """
             class C
             {
@@ -933,12 +840,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42247")]
-    public async Task OnConstantAlignment1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task OnConstantAlignment1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Linq;
@@ -976,12 +881,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42247")]
-    public async Task MissingOnNonConstantAlignment()
-    {
-        await TestMissingAsync(
+    public Task MissingOnNonConstantAlignment()
+        => TestMissingAsync(
             """
             using System;
             using System.Linq;
@@ -1000,36 +903,30 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")]
-    public async Task MissingOnBaseToString()
-    {
-        await TestMissingAsync(
+    public Task MissingOnBaseToString()
+        => TestMissingAsync(
             """
             class C
             {
                 public override string ToString() => $"Test: {base[||].ToString()}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")]
-    public async Task MissingOnBaseToStringEvenWhenNotOverridden()
-    {
-        await TestMissingAsync(
+    public Task MissingOnBaseToStringEvenWhenNotOverridden()
+        => TestMissingAsync(
             """
             class C
             {
                 string M() => $"Test: {base[||].ToString()}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")]
-    public async Task MissingOnBaseToStringWithArgument()
-    {
-        await TestMissingAsync(
+    public Task MissingOnBaseToStringWithArgument()
+        => TestMissingAsync(
             """
             class Base
             {
@@ -1041,12 +938,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 public override string ToString() => $"Test: {base[||].ToString("a")}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")]
-    public async Task PadLeftSimplificationIsStillOfferedOnBaseToString()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftSimplificationIsStillOfferedOnBaseToString()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1059,12 +954,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 public override string ToString() => $"Test: {base.ToString(),10}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
-    public async Task FormatComponentSimplificationIsNotOfferedOnNonIFormattableType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task FormatComponentSimplificationIsNotOfferedOnNonIFormattableType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1076,12 +969,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 public string ToString(string format) => "A";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
-    public async Task FormatComponentSimplificationIsOfferedOnIFormattableType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FormatComponentSimplificationIsOfferedOnIFormattableType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1112,12 +1003,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 string IFormattable.ToString(string format, IFormatProvider formatProvider) => "B";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
-    public async Task ParameterlessToStringSimplificationIsStillOfferedOnNonIFormattableType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ParameterlessToStringSimplificationIsStillOfferedOnNonIFormattableType()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1140,12 +1029,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 public string ToString(string format) => "A";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
-    public async Task PadLeftSimplificationIsStillOfferedOnNonIFormattableType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftSimplificationIsStillOfferedOnNonIFormattableType()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1168,12 +1055,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 public string ToString(string format) => "A";
             }
             """);
-    }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42936")]
-    public async Task ToStringSimplificationIsNotOfferedOnRefStruct()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnRefStructIfInterpolatedStringHandlersUnavailable()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1185,12 +1070,282 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 public override string ToString() => "A";
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnReadOnlySpanIfInterpolatedStringHandlersUnavailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            class C
+            {
+                string M(ReadOnlySpan<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnSpanIfInterpolatedStringHandlersUnavailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            class C
+            {
+                string M(Span<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnRefStructIfInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                string M(RefStruct someValue) => $"Test: {someValue[||].ToString()}";
+            }
+
+            ref struct RefStruct
+            {
+                public override string ToString() => "A";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsOfferedOnReadOnlySpanOfCharIfInterpolatedStringHandlersAvailable()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                string M(ReadOnlySpan<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """,
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+            
+            class C
+            {
+                string M(ReadOnlySpan<char> span) => $"Test: {span}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsOfferedOnSpanOfCharIfInterpolatedStringHandlersAvailable()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                string M(Span<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """,
+            """
+            using System;
+            
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+            
+            class C
+            {
+                string M(Span<char> span) => $"Test: {span}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnReadOnlySpanOfIntIfInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                string M(ReadOnlySpan<int> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnSpanOfIntIfInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                string M(Span<int> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnReadOnlySpanIfTargetsFormattableStringAndInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                FormattableString M(ReadOnlySpan<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnSpanIfTargetsFormattableStringAndInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                FormattableString M(Span<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnReadOnlySpanIfTargetsIFormattableAndInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                IFormattable M(ReadOnlySpan<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnSpanIfTargetsIFormattableAndInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                IFormattable M(Span<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42936")]
-    public async Task PadLeftSimplificationIsStillOfferedOnRefStruct()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PadLeftSimplificationIsStillOfferedOnRefStruct()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1213,12 +1368,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 public override string ToString() => "A";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46011")]
-    public async Task ShadowedToString()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ShadowedToString()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1226,12 +1379,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 static string M(C c) => $"{c[||].ToString()}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46011")]
-    public async Task OverridenShadowedToString()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task OverridenShadowedToString()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1244,12 +1395,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 static string M(C c) => $"{c[||].ToString()}";
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46011")]
-    public async Task DoubleOverridenToString()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoubleOverridenToString()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1282,12 +1431,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49647")]
-    public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterlessToString()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterlessToString()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1306,12 +1453,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49647")]
-    public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterizedToString()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterizedToString()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1330,12 +1475,10 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49647")]
-    public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingPadLeft()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ConditionalExpressionMustRemainParenthesizedWhenUsingPadLeft()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1354,21 +1497,110 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47956")]
-    public async Task TestNotPassedToFormattableString1()
-    {
-        await TestMissingAsync(
+    public Task TestNotPassedToFormattableString1()
+        => TestMissingAsync(
             """
             class C
             {
-                void B() => M($"{args[||].Length.ToString()}");
+                void B(string[] args) => M($"{args[||].Length.ToString()}");
 
                 void M(FormattableString fs)
                 {
                     foreach (object o in fs.GetArguments())
                         Console.WriteLine(o?.GetType());
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotPassedToIFormattable()
+        => TestMissingAsync(
+            """
+            class C : ICustomFormatter, IFormatProvider
+            {
+                void B(string[] args) => M($"{args[||].Length.ToString()}");
+
+                void M(IFormattable fs)
+                {
+                    fs.ToString(null, formatProvider: this);
+                }
+
+                object? IFormatProvider.GetFormat(Type? formatType)
+                {
+                    return formatType == typeof(ICustomFormatter) ? this : null;
+                }
+
+                string ICustomFormatter.Format(string? format, object? arg, IFormatProvider? formatProvider)
+                {
+                    Console.WriteLine(arg?.GetType());
+                    return "";
+                }
+            }
+            """);
+
+    [Theory]
+    [InlineData("DateTime", "ToLongDateString", "D")]
+    [InlineData("DateTime", "ToShortDateString", "d")]
+    [InlineData("DateTime", "ToLongTimeString", "T")]
+    [InlineData("DateTime", "ToShortTimeString", "t")]
+    [InlineData("DateOnly", "ToLongDateString", "D")]
+    [InlineData("DateOnly", "ToShortDateString", "d")]
+    [InlineData("TimeOnly", "ToLongTimeString", "T")]
+    [InlineData("TimeOnly", "ToShortTimeString", "t")]
+    public async Task TestWellKnowToStringMethods(string targetType, string targetMethodName, string expectedFormat)
+    {
+        // Replace polyfills of `DateOnly` and `TimeOnly`
+        // with .NET 6+ reference assemblies when porting this test to VerifyCS
+        await TestInRegularAndScriptAsync($$$"""
+            using System;
+            
+            class C
+            {
+                void M({{{targetType}}} obj)
+                {
+                    _ = $"prefix {obj{|Unnecessary:[||].{{{targetMethodName}}}()|}} suffix";
+                }
+            }
+
+            namespace System
+            {
+                public readonly struct DateOnly
+                {
+                    public string ToLongDateString() => default;
+                    public string ToShortDateString() => default;
+                }
+
+                public readonly struct TimeOnly
+                {
+                    public string ToLongTimeString() => default;
+                    public string ToShortTimeString() => default;
+                }
+            }
+            """, $$"""
+            using System;
+            
+            class C
+            {
+                void M({{targetType}} obj)
+                {
+                    _ = $"prefix {obj:{{expectedFormat}}} suffix";
+                }
+            }
+
+            namespace System
+            {
+                public readonly struct DateOnly
+                {
+                    public string ToLongDateString() => default;
+                    public string ToShortDateString() => default;
+                }
+            
+                public readonly struct TimeOnly
+                {
+                    public string ToLongTimeString() => default;
+                    public string ToShortTimeString() => default;
                 }
             }
             """);

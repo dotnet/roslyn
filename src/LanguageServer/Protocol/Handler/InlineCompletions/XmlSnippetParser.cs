@@ -47,7 +47,7 @@ internal sealed partial class XmlSnippetParser
         ParsedXmlSnippet? parsedSnippet = null;
         try
         {
-            logger.LogInformation($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
+            logger.LogDebug($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
             parsedSnippet = GetAndParseSnippetFromFile(matchingSnippetInfo);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
@@ -100,7 +100,7 @@ internal sealed partial class XmlSnippetParser
         return snippet;
     }
 
-    internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+    internal TestAccessor GetTestAccessor() => new(this);
 
     internal readonly struct TestAccessor
     {

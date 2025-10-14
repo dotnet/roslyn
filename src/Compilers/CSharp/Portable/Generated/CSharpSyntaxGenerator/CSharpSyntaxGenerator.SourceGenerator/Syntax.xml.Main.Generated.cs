@@ -525,8 +525,8 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
     public virtual TResult? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
-    /// <summary>Called when the visitor visits a ExtensionDeclarationSyntax node.</summary>
-    public virtual TResult? VisitExtensionDeclaration(ExtensionDeclarationSyntax node) => this.DefaultVisit(node);
+    /// <summary>Called when the visitor visits a ExtensionBlockDeclarationSyntax node.</summary>
+    public virtual TResult? VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
     public virtual TResult? VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
@@ -632,6 +632,9 @@ public partial class CSharpSyntaxVisitor<TResult>
 
     /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
     public virtual TResult? VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a ExtensionMemberCrefSyntax node.</summary>
+    public virtual TResult? VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
     public virtual TResult? VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
@@ -1266,8 +1269,8 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
     public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
-    /// <summary>Called when the visitor visits a ExtensionDeclarationSyntax node.</summary>
-    public virtual void VisitExtensionDeclaration(ExtensionDeclarationSyntax node) => this.DefaultVisit(node);
+    /// <summary>Called when the visitor visits a ExtensionBlockDeclarationSyntax node.</summary>
+    public virtual void VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
     public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
@@ -1373,6 +1376,9 @@ public partial class CSharpSyntaxVisitor
 
     /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
     public virtual void VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a ExtensionMemberCrefSyntax node.</summary>
+    public virtual void VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
     public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
@@ -2007,7 +2013,7 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     public override SyntaxNode? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Identifier), (EqualsValueClauseSyntax?)Visit(node.EqualsValue));
 
-    public override SyntaxNode? VisitExtensionDeclaration(ExtensionDeclarationSyntax node)
+    public override SyntaxNode? VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
     public override SyntaxNode? VisitBaseList(BaseListSyntax node)
@@ -2114,6 +2120,9 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitNameMemberCref(NameMemberCrefSyntax node)
         => node.Update((TypeSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), (CrefParameterListSyntax?)Visit(node.Parameters));
+
+    public override SyntaxNode? VisitExtensionMemberCref(ExtensionMemberCrefSyntax node)
+        => node.Update(VisitToken(node.ExtensionKeyword), (TypeArgumentListSyntax?)Visit(node.TypeArgumentList), (CrefParameterListSyntax?)Visit(node.Parameters) ?? throw new ArgumentNullException("parameters"), VisitToken(node.DotToken), (MemberCrefSyntax?)Visit(node.Member) ?? throw new ArgumentNullException("member"));
 
     public override SyntaxNode? VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
         => node.Update(VisitToken(node.ThisKeyword), (CrefBracketedParameterListSyntax?)Visit(node.Parameters));
@@ -5156,8 +5165,8 @@ public static partial class SyntaxFactory
     public static EnumMemberDeclarationSyntax EnumMemberDeclaration(string identifier)
         => SyntaxFactory.EnumMemberDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Identifier(identifier), default);
 
-    /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-    public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+    /// <summary>Creates a new ExtensionBlockDeclarationSyntax instance.</summary>
+    public static ExtensionBlockDeclarationSyntax ExtensionBlockDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
         if (keyword.Kind() != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
         switch (openBraceToken.Kind())
@@ -5178,16 +5187,16 @@ public static partial class SyntaxFactory
             case SyntaxKind.None: break;
             default: throw new ArgumentException(nameof(semicolonToken));
         }
-        return (ExtensionDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
+        return (ExtensionBlockDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionBlockDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
     }
 
-    /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-    public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
-        => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), typeParameterList, parameterList, constraintClauses, default, members, default, default);
+    /// <summary>Creates a new ExtensionBlockDeclarationSyntax instance.</summary>
+    public static ExtensionBlockDeclarationSyntax ExtensionBlockDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+        => SyntaxFactory.ExtensionBlockDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), typeParameterList, parameterList, constraintClauses, default, members, default, default);
 
-    /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-    public static ExtensionDeclarationSyntax ExtensionDeclaration()
-        => SyntaxFactory.ExtensionDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default, default, default, default, default, default, default);
+    /// <summary>Creates a new ExtensionBlockDeclarationSyntax instance.</summary>
+    public static ExtensionBlockDeclarationSyntax ExtensionBlockDeclaration()
+        => SyntaxFactory.ExtensionBlockDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default, default, default, default, default, default, default);
 
     /// <summary>Creates a new BaseListSyntax instance.</summary>
     public static BaseListSyntax BaseList(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)
@@ -5859,6 +5868,24 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new NameMemberCrefSyntax instance.</summary>
     public static NameMemberCrefSyntax NameMemberCref(TypeSyntax name)
         => SyntaxFactory.NameMemberCref(name, default);
+
+    /// <summary>Creates a new ExtensionMemberCrefSyntax instance.</summary>
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+    {
+        if (extensionKeyword.Kind() != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(extensionKeyword));
+        if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+        if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (member == null) throw new ArgumentNullException(nameof(member));
+        return (ExtensionMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionMemberCref((Syntax.InternalSyntax.SyntaxToken)extensionKeyword.Node!, typeArgumentList == null ? null : (Syntax.InternalSyntax.TypeArgumentListSyntax)typeArgumentList.Green, (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.MemberCrefSyntax)member.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new ExtensionMemberCrefSyntax instance.</summary>
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, MemberCrefSyntax member)
+        => SyntaxFactory.ExtensionMemberCref(SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), typeArgumentList, parameters, SyntaxFactory.Token(SyntaxKind.DotToken), member);
+
+    /// <summary>Creates a new ExtensionMemberCrefSyntax instance.</summary>
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(MemberCrefSyntax member)
+        => SyntaxFactory.ExtensionMemberCref(SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default, SyntaxFactory.CrefParameterList(), SyntaxFactory.Token(SyntaxKind.DotToken), member);
 
     /// <summary>Creates a new IndexerMemberCrefSyntax instance.</summary>
     public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)

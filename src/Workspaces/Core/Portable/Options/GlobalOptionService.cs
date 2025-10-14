@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -139,7 +140,7 @@ internal sealed class GlobalOptionService(
         => SetGlobalOption(new OptionKey2(option, language), value);
 
     public void SetGlobalOption(OptionKey2 optionKey, object? value)
-        => SetGlobalOptions(OneOrMany.Create(KeyValuePairUtil.Create(optionKey, value)));
+        => SetGlobalOptions(OneOrMany.Create(KeyValuePair.Create(optionKey, value)));
 
     public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
         => SetGlobalOptions(OneOrMany.Create(options));

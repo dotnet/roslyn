@@ -29,7 +29,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
     public abstract string GetTitle(bool forSwitchExpression);
     public abstract Analyzer CreateAnalyzer(ISyntaxFacts syntaxFacts, ParseOptions options);
 
-    protected sealed override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+    protected sealed override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => AllRefactorAllScopes;
 
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -42,7 +42,9 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        if (!ShouldOfferRefactoring(ifStatement, semanticModel, syntaxFactsService, out var analyzer, out var sections, out var target))
+        if (!ShouldOfferRefactoring(
+                ifStatement, semanticModel, syntaxFactsService,
+                out var analyzer, out var sections, out var target))
         {
             return;
         }
@@ -72,7 +74,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         ISyntaxFactsService syntaxFactsService,
         [NotNullWhen(true)] out Analyzer? analyzer,
         [NotNullWhen(true)] out ImmutableArray<AnalyzedSwitchSection> sections,
-        [NotNullWhen(true)] out SyntaxNode? target)
+        [NotNullWhen(true)] out TExpressionSyntax? target)
     {
         analyzer = null;
         sections = default;
@@ -176,7 +178,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         }
     }
 
-    protected sealed override async Task FixAllAsync(
+    protected sealed override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,

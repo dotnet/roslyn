@@ -102,6 +102,10 @@ internal abstract class VisualStudioOptionStorage
 
     public static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> Storages = new Dictionary<string, VisualStudioOptionStorage>()
     {
+        {"dotnet_analyze_copilot_changes", new FeatureFlagStorage(@"Roslyn.AnalyzeCopilotChanges")},
+        {"dotnet_copilot_fix_code_format", new FeatureFlagStorage(@"Roslyn.Copilot.FixCodeFormat")},
+        {"dotnet_copilot_fix_add_missing_tokens", new FeatureFlagStorage(@"Roslyn.Copilot.FixAddMissingTokens")},
+        {"dotnet_copilot_fix_add_missing_imports", new FeatureFlagStorage(@"Roslyn.Copilot.FixAddMissingImports")},
         {"dotnet_collapse_empty_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened")},
         {"dotnet_collapse_imports_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened")},
         {"dotnet_collapse_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened")},
@@ -217,6 +221,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_prefer_range_operator", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferRangeOperator")},
         {"csharp_style_prefer_readonly_struct", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferReadOnlyStruct")},
         {"csharp_style_prefer_readonly_struct_member", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferReadOnlyStructMember")},
+        {"csharp_style_prefer_simple_property_accessors", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSimplePropertyAccessors")},
         {"csharp_style_prefer_switch_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSwitchExpression")},
         {"csharp_style_prefer_top_level_statements", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTopLevelStatements")},
         {"csharp_style_prefer_tuple_swap", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTupleSwap")},
@@ -231,7 +236,6 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_using_directive_placement", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferredUsingDirectivePlacement")},
         {"dotnet_provide_date_and_time_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions")},
         {"dotnet_log_telemetry_for_background_analyzer_execution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
-        {"dotnet_lightbulb_skip_executing_deprioritized_analyzers", new FeatureFlagStorage(@"Roslyn.LightbulbSkipExecutingDeprioritizedAnalyzers")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_auto_xml_doc_comment_generation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
@@ -339,7 +343,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_collapse_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameUI")},
         {"dotnet_preview_inline_rename_changes", new RoamingProfileStorage("TextEditor.Specific.PreviewRename")},
         {"dotnet_collapse_suggestions_in_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameSuggestionsUI")},
-        {"dotnet_commit_rename_asynchronously", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "DotnetCommitRenameAsynchronously")},
         {"dotnet_rename_get_suggestions_automatically", new FeatureFlagStorage(@"Editor.AutoSmartRenameSuggestions")},
         // Option is deprecated, don't use the same RoamingProfileStorage key
         {"dotnet_rename_file", new RoamingProfileStorage("TextEditor.Specific.RenameFile")},
@@ -399,6 +402,9 @@ internal abstract class VisualStudioOptionStorage
         {"visual_studio_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
         {"dotnet_unsupported_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
         {"dotnet_search_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
+        {"dotnet_unsupported_search_referenced_project_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SearchReferencedProjectSymbols")},
+        {"dotnet_unsupported_search_unreferenced_project_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SearchUnreferencedProjectSymbols")},
+        {"dotnet_unsupported_search_unreferenced_metadata_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SearchUnreferencedMetadataSymbols")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"tab_width", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Tab Size", "TextEditor.Basic.Tab Size")},
 #pragma warning restore
@@ -416,5 +422,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_validate_compilation_tracker_states", new FeatureFlagStorage(@"Roslyn.ValidateCompilationTrackerStates")},
         {"dotnet_source_generator_execution", new RoamingProfileStorage("TextEditor.Roslyn.Specific.SourceGeneratorExecution")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
+        {"razor_use_cohosting", new FeatureFlagStorage("Razor.LSP.UseRazorCohostServer")},
     };
 }

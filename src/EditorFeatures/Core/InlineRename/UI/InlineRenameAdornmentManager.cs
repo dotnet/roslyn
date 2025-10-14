@@ -8,13 +8,10 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
@@ -35,8 +32,7 @@ internal sealed class InlineRenameAdornmentManager : IDisposable
 
     private readonly IAdornmentLayer _adornmentLayer;
 
-    private static readonly ConditionalWeakTable<InlineRenameSession, object> s_createdViewModels =
-        new ConditionalWeakTable<InlineRenameSession, object>();
+    private static readonly ConditionalWeakTable<InlineRenameSession, object> s_createdViewModels = new();
 
     public InlineRenameAdornmentManager(
         InlineRenameService renameService,

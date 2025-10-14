@@ -14,9 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 public partial class SemanticClassifierTests
 {
     [Theory, CombinatorialData]
-    public async Task TestRegex1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex1(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -94,12 +93,10 @@ public partial class SemanticClassifierTests
             Regex.Quantifier("}"),
             Regex.Quantifier("?"),
             Regex.Anchor("^"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex2(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -177,12 +174,10 @@ public partial class SemanticClassifierTests
             Regex.Quantifier("}"),
             Regex.Quantifier("?"),
             Regex.Anchor("^"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex3(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex3(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -260,12 +255,10 @@ public partial class SemanticClassifierTests
             Regex.Quantifier("}"),
             Regex.Quantifier("?"),
             Regex.Anchor("^"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex4(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex4(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -285,12 +278,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex4_utf8_1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex4_utf8_1(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -310,12 +301,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape(@"\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex4_utf8_2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex4_utf8_2(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -335,12 +324,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex5(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex5(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -360,12 +347,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex6(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex6(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -386,12 +371,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"),
             Regex.Text(" # not end of line comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex7(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex7(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -412,12 +395,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"),
             Regex.Comment("# is end of line comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex8(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex8(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -438,12 +419,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"),
             Regex.Comment("# is end of line comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex9(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex9(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -467,12 +446,10 @@ public partial class SemanticClassifierTests
             Regex.Comment("# is end of line comment"),
             Enum("RegexOptions"),
             EnumMember("IgnorePatternWhitespace"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex10(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex10(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -494,12 +471,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"),
             Regex.Text(" # is not end of line comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex10_utf8(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex10_utf8(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -521,12 +496,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"),
             Regex.Text(" # is not end of line comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegex11(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegex11(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -549,12 +522,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("u"),
             Regex.OtherEscape("0020"),
             Regex.Grouping(")"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexSingleLineRawStringLiteral(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexSingleLineRawStringLiteral(TestHost testHost)
+        => TestAsync(
             """"
             using System.Text.RegularExpressions;
 
@@ -574,12 +545,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexSingleLineRawStringLiteral_utf8(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexSingleLineRawStringLiteral_utf8(TestHost testHost)
+        => TestAsync(
             """"
             using System.Text.RegularExpressions;
 
@@ -599,12 +568,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexMultiLineRawStringLiteral(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexMultiLineRawStringLiteral(TestHost testHost)
+        => TestAsync(
             """"
             using System.Text.RegularExpressions;
 
@@ -626,12 +593,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexMultiLineRawStringLiteral_utf8(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexMultiLineRawStringLiteral_utf8(TestHost testHost)
+        => TestAsync(
             """"
             using System.Text.RegularExpressions;
 
@@ -653,13 +618,11 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47079")]
     [CombinatorialData]
-    public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -678,13 +641,11 @@ public partial class SemanticClassifierTests
             Regex.Anchor("^"),
             Regex.Text(@" """" "),
             Regex.Anchor("$"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47079")]
     [CombinatorialData]
-    public async Task TestRegexWithSpecialCSharpCharLiterals_utf8(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexWithSpecialCSharpCharLiterals_utf8(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -701,12 +662,10 @@ public partial class SemanticClassifierTests
             Regex.Anchor("^"),
             Regex.Text(@" """" "),
             Regex.Anchor("$"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -728,12 +687,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_Field2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_Field2(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -749,12 +706,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -776,12 +731,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_Property2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_Property2(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -797,12 +750,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -825,12 +776,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -853,13 +802,11 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/64549")]
     [CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument2(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -886,12 +833,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_ArrayArgument(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ArrayArgument(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -914,12 +859,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayArgument(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayArgument(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -942,12 +885,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_CollectionArgument(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_CollectionArgument(TestHost testHost)
+        => TestAsync(
             """
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
@@ -972,12 +913,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitCollectionArgument(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitCollectionArgument(TestHost testHost)
+        => TestAsync(
             """
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
@@ -1001,12 +940,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument_Options(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_Argument_Options(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -1032,12 +969,10 @@ public partial class SemanticClassifierTests
             Regex.Comment("# is end of line comment"),
             Enum("RegexOptions"),
             EnumMember("IgnorePatternWhitespace"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_Attribute(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_Attribute(TestHost testHost)
+        => TestAsync(
             """
             using System;
             using System.Diagnostics.CodeAnalysis;
@@ -1061,13 +996,11 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61947")]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeField(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_AttributeField(TestHost testHost)
+        => TestAsync(
             """
             using System;
             using System.Diagnostics.CodeAnalysis;
@@ -1095,13 +1028,11 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61947")]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeProperty(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_AttributeProperty(TestHost testHost)
+        => TestAsync(
             """
             using System;
             using System.Diagnostics.CodeAnalysis;
@@ -1129,12 +1060,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsAttribute(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ParamsAttribute(TestHost testHost)
+        => TestAsync(
             """
             using System;
             using System.Diagnostics.CodeAnalysis;
@@ -1158,12 +1087,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_ArrayAttribute(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ArrayAttribute(TestHost testHost)
+        => TestAsync(
             """
             using System;
             using System.Diagnostics.CodeAnalysis;
@@ -1187,12 +1114,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayAttribute(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayAttribute(TestHost testHost)
+        => TestAsync(
             """
             using System;
             using System.Diagnostics.CodeAnalysis;
@@ -1216,12 +1141,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -1246,13 +1169,11 @@ public partial class SemanticClassifierTests
             Namespace("RegularExpressions"),
             Keyword("var"),
             Class("Regex"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61982")]
-    public async Task TestRegexAmbiguity1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexAmbiguity1(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -1267,13 +1188,11 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61982")]
-    public async Task TestRegexAmbiguity2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexAmbiguity2(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -1288,12 +1207,10 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("\\"),
             Regex.OtherEscape("a"),
             Regex.Comment("(?#comment)"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRegexNotOnBinaryExpression(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestRegexNotOnBinaryExpression(TestHost testHost)
+        => TestAsync(
             """
             using System.Text.RegularExpressions;
 
@@ -1311,15 +1228,13 @@ public partial class SemanticClassifierTests
             Namespace("Text"),
             Namespace("RegularExpressions"),
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/77189")]
-    public async Task TestStringFieldUsedLater_ProperModifiers(
+    public Task TestStringFieldUsedLater_ProperModifiers(
         TestHost testHost,
         [CombinatorialValues("const", "static readonly")] string modifiers)
-    {
-        await TestAsync(
+        => TestAsync(
             $$"""
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -1349,15 +1264,13 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("u"),
             Regex.OtherEscape("0020"),
             Regex.Grouping(")"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/77189")]
-    public async Task TestStringFieldUsedLater_ImproperModifiers(
+    public Task TestStringFieldUsedLater_ImproperModifiers(
         TestHost testHost,
         [CombinatorialValues("", "static", "readonly")] string modifiers)
-    {
-        await TestAsync(
+        => TestAsync(
             $$"""
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
@@ -1377,5 +1290,32 @@ public partial class SemanticClassifierTests
             }
             """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
             testHost);
-    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80179")]
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ParamsReadOnlyCollectionArgument(TestHost testHost)
+        => TestAsync(
+            """
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Text.RegularExpressions;
+
+            class Program
+            {
+                private void M([StringSyntax(StringSyntaxAttribute.Regex)] params IReadOnlyCollection<string> p)
+                {
+                }
+
+                void Goo()
+                {
+                    [|M([@"$\a(?#comment)"]);|]
+                }
+            }
+            """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Method("M"),
+            Regex.Anchor("$"),
+            Regex.OtherEscape("\\"),
+            Regex.OtherEscape("a"),
+            Regex.Comment("(?#comment)"));
 }

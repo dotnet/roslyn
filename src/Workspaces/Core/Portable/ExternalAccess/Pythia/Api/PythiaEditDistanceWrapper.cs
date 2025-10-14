@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
 
 internal readonly struct PythiaEditDistanceWrapper(string str) : IDisposable
 {
-    private readonly EditDistance _underlyingObject = new EditDistance(str);
+    private readonly EditDistance _underlyingObject = new(str);
 
     public double GetEditDistance(string target)
         => _underlyingObject.GetEditDistance(target);

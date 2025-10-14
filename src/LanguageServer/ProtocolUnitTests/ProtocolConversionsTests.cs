@@ -170,9 +170,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     [InlineData("git://host/%2525%EE%89%9B/%C2%89%EC%9E%BD")]
     [InlineData("xy://host/%2525%EE%89%9B/%C2%89%EC%9E%BD")]
     public void CreateAbsoluteUri_Urls(string url)
-    {
-        Assert.Equal(url, ProtocolConversions.CreateAbsoluteUri(url).AbsoluteUri);
-    }
+        => Assert.Equal(url, ProtocolConversions.CreateAbsoluteUri(url).AbsoluteUri);
 
     [Fact]
     public void CompletionItemKind_DoNotUseMethodAndFunction()
@@ -229,11 +227,13 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     public void RangeToTextSpanLineEndOfDocumentWithEndOfLineChars()
     {
         var markup =
-@"void M()
-{
-    var x = 5;
-}
-"; // add additional end line 
+            """
+            void M()
+            {
+                var x = 5;
+            }
+
+            """; // add additional end line 
 
         var sourceText = SourceText.From(markup);
 
@@ -245,13 +245,48 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(32, textSpan.End);
     }
 
-    [Fact]
-    public void RangeToTextSpanLineOutOfRangeError()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80119")]
+    public void RangeToTextSpanDoesNotThrow_WhenReferencingStartOfNextLineAfterLastLine()
     {
         var markup = GetTestMarkup();
         var sourceText = SourceText.From(markup);
 
-        var range = new Range() { Start = new Position(0, 0), End = new Position(sourceText.Lines.Count, 0) };
+        // The spec allows clients to send a range referencing the start of the next line
+        // after the last line in the document (and outside the bounds of the document).
+        // This should not throw.
+        var lastLineIndex = sourceText.Lines.Count - 1;
+        var range = new Range()
+        {
+            Start = new Position(lastLineIndex, 0),
+            End = new Position(lastLineIndex + 1, 0)
+        };
+
+        var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
+
+        // Should span from the start of the last line to the end of the document
+        var lastLine = sourceText.Lines[lastLineIndex];
+        Assert.Equal(lastLine.Start, textSpan.Start);
+        Assert.Equal(sourceText.Length, textSpan.End);
+    }
+
+    [Fact]
+    public void RangeToTextSpanThrows_LineOutOfRange()
+    {
+        var markup = GetTestMarkup();
+        var sourceText = SourceText.From(markup);
+
+        // Ranges that are outside the document bounds should throw.
+        var range = new Range() { Start = new Position(0, 0), End = new Position(sourceText.Lines.Count + 1, 0) };
+        Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
+    }
+
+    [Fact]
+    public void RangeToTextSpanWThrows_CharacterOutOfRange()
+    {
+        var markup = GetTestMarkup();
+        var sourceText = SourceText.From(markup);
+
+        var range = new Range() { Start = new Position(0, 0), End = new Position(sourceText.Lines.Count, 5) };
         Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
     }
 
@@ -277,10 +312,12 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
          */
 
         var markup =
-@"void M()
-{
-    var x = 5;
-}";
+            """
+            void M()
+            {
+                var x = 5;
+            }
+            """;
         return markup;
     }
 
@@ -311,21 +348,20 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     [Theory, CombinatorialData]
     public async Task ProjectToProjectContext_MiscellaneousFilesWorkspace(bool mutatingLspWorkspace)
     {
-        var source = """
-            class A
-            {
-                void M()
-                {
-                }
-            }
-            """;
 
         // Create a server that supports LSP misc files.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
-        await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(looseFileUri, """
+            class A
+            {
+                void M()
+                {
+                }
+            }
+            """).ConfigureAwait(false);
 
         var document = await GetTextDocumentAsync(testLspServer, looseFileUri);
         Assert.NotNull(document);

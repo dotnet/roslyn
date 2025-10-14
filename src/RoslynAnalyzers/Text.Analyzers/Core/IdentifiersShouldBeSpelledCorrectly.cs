@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Text.Analyzers
 {
@@ -263,8 +264,7 @@ namespace Text.Analyzers
                 var fileProvider = AdditionalFileProvider.FromOptions(context.Options);
                 return fileProvider.GetMatchingFiles(@"(?:dictionary|custom).*?\.(?:xml|dic)$")
                     .Select(GetOrCreateDictionaryFromAdditionalText)
-                    .Where(x => x != null)
-                    .ToImmutableArray();
+                    .WhereAsArray(x => x != null);
             }
 
             CodeAnalysisDictionary GetOrCreateDictionaryFromAdditionalText(AdditionalText additionalText)

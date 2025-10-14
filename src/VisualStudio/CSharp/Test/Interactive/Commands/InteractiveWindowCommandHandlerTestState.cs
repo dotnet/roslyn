@@ -56,13 +56,13 @@ internal sealed class InteractiveWindowCommandHandlerTestState : AbstractCommand
 
     public static InteractiveWindowCommandHandlerTestState CreateTestState(string markup)
     {
-        var workspaceXml = XElement.Parse($@"
-                    <Workspace>
-                        <Project Language=""C#"" CommonReferences=""true"">
-                            <Document>{markup}</Document>
-                        </Project>
-                    </Workspace>
-                ");
+        var workspaceXml = XElement.Parse($"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>{markup}</Document>
+                </Project>
+            </Workspace>
+            """);
 
         return new InteractiveWindowCommandHandlerTestState(workspaceXml);
     }

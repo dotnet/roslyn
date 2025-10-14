@@ -202,6 +202,9 @@ public class FormattedClassification
             case "string - escape character":
                 return $"Escape(\"{Text}\")";
 
+            case "preprocessor keyword":
+                return $"""{nameof(FormattedClassifications.PPKeyword)}("{Text}")""";
+
             default:
                 var trimmedClassification = ClassificationName;
                 if (trimmedClassification.EndsWith(" name"))

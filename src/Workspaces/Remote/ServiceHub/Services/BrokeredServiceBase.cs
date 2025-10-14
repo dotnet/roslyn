@@ -78,6 +78,9 @@ internal abstract partial class BrokeredServiceBase : IDisposable
     public SolutionServices GetWorkspaceServices()
         => GetWorkspace().Services.SolutionServices;
 
+    public static TService GetRequiredService<TService>()
+        => RemoteExportProviderBuilder.ExportProvider.GetExportedValue<TService>();
+
     protected void Log(TraceEventType errorType, string message)
         => TraceLogger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
 

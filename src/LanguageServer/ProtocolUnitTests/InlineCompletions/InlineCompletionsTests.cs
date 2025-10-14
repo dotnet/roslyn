@@ -24,225 +24,195 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
         .AddParts(typeof(TestSnippetInfoService));
 
     [Theory, CombinatorialData]
-    public async Task TestSimpleSnippet(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M()
-    {
-        if{|tab:|}
-    }
-}";
-        var expectedSnippet =
-@"if (${1:true})
-        {
-            $0
-        }";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
-    }
+    public Task TestSimpleSnippet(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("""
+            class A
+            {
+                void M()
+                {
+                    if{|tab:|}
+                }
+            }
+            """, """
+            if (${1:true})
+                    {
+                        $0
+                    }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetIgnoresCase(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M()
-    {
-        If{|tab:|}
-    }
-}";
-        var expectedSnippet =
-@"if (${1:true})
-        {
-            $0
-        }";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
-    }
+    public Task TestSnippetIgnoresCase(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("""
+            class A
+            {
+                void M()
+                {
+                    If{|tab:|}
+                }
+            }
+            """, """
+            if (${1:true})
+                    {
+                        $0
+                    }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetUsesOptionsFromRequest(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M()
-    {
-        if{|tab:|}
-    }
-}";
-        var expectedSnippet =
-@"if (${1:true})
-  {
-   $0
-  }";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace, options: new LSP.FormattingOptions { TabSize = 1, InsertSpaces = true });
-    }
+    public Task TestSnippetUsesOptionsFromRequest(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("""
+            class A
+            {
+                void M()
+                {
+                    if{|tab:|}
+                }
+            }
+            """, """
+            if (${1:true})
+              {
+               $0
+              }
+            """, mutatingLspWorkspace, options: new LSP.FormattingOptions { TabSize = 1, InsertSpaces = true });
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithMultipleDeclarations(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M()
-    {
-        for{|tab:|}
-    }
-}";
-        var expectedSnippet =
-@"for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)
-        {
-            $0
-        }";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
-    }
+    public Task TestSnippetWithMultipleDeclarations(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("""
+            class A
+            {
+                void M()
+                {
+                    for{|tab:|}
+                }
+            }
+            """, """
+            for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)
+                    {
+                        $0
+                    }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithSimpleTypeNameFunctionFullyQualifies(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M()
-    {
-        cw{|tab:|}
-    }
-}";
-        var expectedSnippet = @"System.Console.WriteLine($0);";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
-    }
+    public Task TestSnippetWithSimpleTypeNameFunctionFullyQualifies(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("""
+            class A
+            {
+                void M()
+                {
+                    cw{|tab:|}
+                }
+            }
+            """, @"System.Console.WriteLine($0);", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithSimpleTypeNameFunctionWithUsing(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"using System;
-class A
-{
-    void M()
-    {
-        cw{|tab:|}
-    }
-}";
-        var expectedSnippet = @"Console.WriteLine($0);";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
-    }
+    public Task TestSnippetWithSimpleTypeNameFunctionWithUsing(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("""
+            using System;
+            class A
+            {
+                void M()
+                {
+                    cw{|tab:|}
+                }
+            }
+            """, @"Console.WriteLine($0);", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithClassNameFunction(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    ctor{|tab:|}
-}";
-        var expectedSnippet =
-@"public A()
-    {
-        $0
-    }";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
-    }
+    public Task TestSnippetWithClassNameFunction(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("""
+            class A
+            {
+                ctor{|tab:|}
+            }
+            """, """
+            public A()
+                {
+                    $0
+                }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithClassNameFunctionOutsideOfClass(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"ctor{|tab:|}";
-        var expectedSnippet =
-@"public ClassNamePlaceholder ()
-{
-    $0
-}";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
-    }
+    public Task TestSnippetWithClassNameFunctionOutsideOfClass(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"ctor{|tab:|}", """
+            public ClassNamePlaceholder ()
+            {
+                $0
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithSwitchFunctionOnlyGeneratesDefault(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M()
-    {
-        switch{|tab:|}
-    }
-}";
-        var expectedSnippet =
-@"switch (${1:switch_on})
-        {
-            default:
-        }$0";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
-    }
+    public Task TestSnippetWithSwitchFunctionOnlyGeneratesDefault(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("""
+            class A
+            {
+                void M()
+                {
+                    switch{|tab:|}
+                }
+            }
+            """, """
+            switch (${1:switch_on})
+                    {
+                        default:
+                    }$0
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithNoEditableFields(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    equals{|tab:|}
-}";
-        var expectedSnippet =
-@"// override object.Equals
-    public override bool Equals(object obj)
-    {
-        //       
-        // See the full list of guidelines at
-        //   http://go.microsoft.com/fwlink/?LinkID=85237  
-        // and also the guidance for operator== at
-        //   http://go.microsoft.com/fwlink/?LinkId=85238
-        //
+    public Task TestSnippetWithNoEditableFields(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("""
+            class A
+            {
+                equals{|tab:|}
+            }
+            """, """
+            // override object.Equals
+                public override bool Equals(object obj)
+                {
+                    //       
+                    // See the full list of guidelines at
+                    //   http://go.microsoft.com/fwlink/?LinkID=85237  
+                    // and also the guidance for operator== at
+                    //   http://go.microsoft.com/fwlink/?LinkId=85238
+                    //
 
-        if (obj == null || GetType() != obj.GetType())
-        {
-            return false;
-        }
+                    if (obj == null || GetType() != obj.GetType())
+                    {
+                        return false;
+                    }
 
-        // TODO: write your implementation of Equals() here
-        throw new System.NotImplementedException();
-        return base.Equals(obj);$0
-    }
+                    // TODO: write your implementation of Equals() here
+                    throw new System.NotImplementedException();
+                    return base.Equals(obj);$0
+                }
 
-    // override object.GetHashCode
-    public override int GetHashCode()
-    {
-        // TODO: write your implementation of GetHashCode() here
-        throw new System.NotImplementedException();
-        return base.GetHashCode();
-    }";
-
-        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
-    }
+                // override object.GetHashCode
+                public override int GetHashCode()
+                {
+                    // TODO: write your implementation of GetHashCode() here
+                    throw new System.NotImplementedException();
+                    return base.GetHashCode();
+                }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
     public async Task TestSnippetCached(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        if{|tab:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    if{|tab:|}
+                }
+            }
+            """;
         var expectedSnippet =
-@"if (${1:true})
-        {
-            $0
-        }";
+            """
+            if (${1:true})
+                    {
+                        $0
+                    }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var locationTyped = testLspServer.GetLocations("tab").Single();

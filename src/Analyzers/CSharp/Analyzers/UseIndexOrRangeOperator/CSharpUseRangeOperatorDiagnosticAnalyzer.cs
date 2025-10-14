@@ -311,8 +311,6 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer()
     {
         // Keep track of the invocation node
         var invocation = result.Invocation;
-        var additionalLocations = ImmutableArray.Create(
-            invocation.GetLocation());
 
         // Mark the span under the two arguments to .Slice(..., ...) as what we will be
         // updating.
@@ -325,14 +323,13 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer()
             location,
             notificationOption,
             analyzerOptions,
-            additionalLocations,
+            [invocation.GetLocation()],
             ImmutableDictionary<string, string?>.Empty,
             result.SliceLikeMethod.Name);
     }
 
     private static bool IsConstantInt32(IOperation operation, int? value = null)
-        => operation.ConstantValue.HasValue &&
-           operation.ConstantValue.Value is int i &&
+        => operation.ConstantValue is { HasValue: true, Value: int i } &&
            (value == null || i == value);
 
     private static bool IsWriteableIndexer(IInvocationOperation invocation, IPropertySymbol indexer)

@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis.Collections
 {
     internal partial class SpecializedCollections
     {
@@ -36,7 +39,7 @@ namespace Roslyn.Utilities
 
                 public bool IsProperSubsetOf(IEnumerable<T> other)
                 {
-                    return !other.IsEmpty();
+                    return other.Any();
                 }
 
                 public bool IsProperSupersetOf(IEnumerable<T> other)
@@ -51,7 +54,7 @@ namespace Roslyn.Utilities
 
                 public bool IsSupersetOf(IEnumerable<T> other)
                 {
-                    return other.IsEmpty();
+                    return !other.Any();
                 }
 
                 public bool Overlaps(IEnumerable<T> other)
@@ -61,7 +64,7 @@ namespace Roslyn.Utilities
 
                 public bool SetEquals(IEnumerable<T> other)
                 {
-                    return other.IsEmpty();
+                    return !other.Any();
                 }
 
                 public void SymmetricExceptWith(IEnumerable<T> other)

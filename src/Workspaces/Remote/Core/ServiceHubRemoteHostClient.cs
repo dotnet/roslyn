@@ -77,10 +77,12 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
                 (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, localSettingsDirectory, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
+            string? errorMessage = null;
+
             if (remoteProcessIdAndErrorMessage.HasValue)
             {
                 if (remoteProcessIdAndErrorMessage.Value.errorMessage != null)
-                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"ServiceHub initialization error: {remoteProcessIdAndErrorMessage.Value.errorMessage}");
+                    errorMessage = $"ServiceHub initialization error: {remoteProcessIdAndErrorMessage.Value.errorMessage}";
 
                 try
                 {
@@ -88,12 +90,24 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
                 }
                 catch (Exception e)
                 {
-                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"Unable to find Roslyn ServiceHub process: {e.Message}");
+                    errorMessage = $"Unable to find Roslyn ServiceHub process: {e.Message}";
                 }
             }
             else
             {
-                hubClient.Logger.TraceEvent(TraceEventType.Error, 1, "Roslyn ServiceHub process initialization failed.");
+                errorMessage = "Roslyn ServiceHub process initialization failed.";
+            }
+
+            if (errorMessage != null)
+            {
+                hubClient.Logger.TraceEvent(TraceEventType.Error, 1, errorMessage);
+
+                var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(IRemoteInitializationService), client.Configuration);
+
+                services.GetRequiredService<IErrorReportingService>().ShowGlobalErrorInfo(
+                    errorMessage,
+                    TelemetryFeatureName.GetRemoteFeatureName(descriptor.ComponentName, descriptor.SimpleName),
+                    exception: null);
             }
 
             await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(

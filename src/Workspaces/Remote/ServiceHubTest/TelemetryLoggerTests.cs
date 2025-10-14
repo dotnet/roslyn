@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.CodeAnalysis.UnitTests.Logging;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,54 +15,6 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 
 public sealed class TelemetryLoggerTests
 {
-    private sealed class TestLogger : TelemetryLogger
-    {
-        public TestLogger(bool logDelta = false)
-        {
-            LogDelta = logDelta;
-        }
-
-        protected override bool LogDelta { get; }
-
-        public sealed class TestScope
-        {
-            public readonly TelemetryEvent EndEvent;
-            public readonly LogType Type;
-
-            public TestScope(TelemetryEvent endEvent, LogType type)
-            {
-                EndEvent = endEvent;
-                Type = type;
-            }
-        }
-
-        public List<TelemetryEvent> PostedEvents = [];
-        public HashSet<TestScope> OpenedScopes = [];
-
-        public override bool IsEnabled(FunctionId functionId)
-            => true;
-
-        protected override void PostEvent(TelemetryEvent telemetryEvent)
-        {
-            PostedEvents.Add(telemetryEvent);
-        }
-
-        protected override object Start(string eventName, LogType type)
-        {
-            var scope = new TestScope(new TelemetryEvent(eventName), type);
-            OpenedScopes.Add(scope);
-            return scope;
-        }
-
-        protected override void End(object scope, TelemetryResult result)
-        {
-            Assert.True(OpenedScopes.Remove((TestScope)scope));
-        }
-
-        protected override TelemetryEvent GetEndEvent(object scope)
-            => ((TestScope)scope).EndEvent;
-    }
-
     private static IEnumerable<string> InspectProperties(TelemetryEvent @event, string? keyToIgnoreValueInspection = null)
         => @event.Properties.Select(p => $"{p.Key}={(keyToIgnoreValueInspection == p.Key ? string.Empty : InspectPropertyValue(p.Value))}");
 
@@ -77,7 +29,7 @@ public sealed class TelemetryLoggerTests
     [Theory, CombinatorialData]
     internal void IgnoredSeverity(LogLevel level)
     {
-        var logger = new TestLogger();
+        var logger = new TestTelemetryLogger();
 
         logger.Log(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, LogMessage.Create("test", level));
         Assert.Equal((level < LogLevel.Information) ? 0 : 1, logger.PostedEvents.Count);
@@ -86,7 +38,7 @@ public sealed class TelemetryLoggerTests
     [Fact]
     public void EventWithProperties()
     {
-        var logger = new TestLogger();
+        var logger = new TestTelemetryLogger();
 
         logger.Log(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, KeyValueLogMessage.Create(p =>
         {
@@ -110,7 +62,7 @@ public sealed class TelemetryLoggerTests
     [Theory, CombinatorialData]
     public void LogBlockStartEnd(bool logDelta)
     {
-        var logger = new TestLogger(logDelta);
+        var logger = new TestTelemetryLogger(logDelta);
 
         logger.LogBlockStart(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, KeyValueLogMessage.Create(p => p.Add("test", "start"), logLevel: LogLevel.Information), blockId: 1, CancellationToken.None);
 

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace System.Collections.Immutable
 {
@@ -11,7 +11,7 @@ namespace System.Collections.Immutable
     {
         public static ImmutableHashSet<T> AddRange<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
         {
-            using var builder = PooledHashSet<T>.GetInstance();
+            using var _1 = PooledHashSet<T>.GetInstance(out var builder);
 
             foreach (var item in set1)
             {
@@ -51,7 +51,7 @@ namespace System.Collections.Immutable
                 return set1.Contains(set2.First()) ? set2 : ImmutableHashSet<T>.Empty;
             }
 
-            using var builder = PooledHashSet<T>.GetInstance();
+            using var _ = PooledHashSet<T>.GetInstance(out var builder);
             foreach (var item in set1)
             {
                 if (set2.Contains(item))
@@ -88,15 +88,6 @@ namespace System.Collections.Immutable
             }
 
             return true;
-        }
-
-        public static void AddIfNotNull<T>(this ImmutableHashSet<T>.Builder builder, T? item)
-            where T : class
-        {
-            if (item != null)
-            {
-                builder.Add(item);
-            }
         }
     }
 }

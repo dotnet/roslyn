@@ -21,6 +21,7 @@ using System.Xml.Linq;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader.Tools;
@@ -384,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         output = output.Trim();
                     }
 
-                    Assert.Equal(expectedOutput, output);
+                    AssertEx.Equal(expectedOutput, output);
                     Assert.Empty(errorOutput);
                 }
             }
@@ -399,13 +400,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _readersByName = readersByName;
             }
 
-            public PEReader ResolveAssembly(AssemblyName assemblyName)
+            public PEReader ResolveAssembly(AssemblyNameInfo assemblyName)
             {
                 Debug.Assert(assemblyName.Name is not null);
                 return Resolve(assemblyName.Name);
             }
 
-            public PEReader ResolveModule(AssemblyName referencingAssembly, string fileName)
+            public PEReader ResolveModule(AssemblyNameInfo referencingAssembly, string fileName)
             {
                 throw new NotImplementedException();
             }
@@ -488,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 int errorCount = 0;
                 try
                 {
-                    verifier.SetSystemModuleName(new AssemblyName(corlibName));
+                    verifier.SetSystemModuleName(AssemblyNameInfo.Parse(corlibName));
                     result = verifier.Verify(mainModule);
                     errorCount = result.Count();
                 }

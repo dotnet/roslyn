@@ -3,21 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports System.Diagnostics.CodeAnalysis
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Editing
-#Else
-Imports Microsoft.CodeAnalysis.Editing
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicSyntaxFacts
@@ -259,6 +254,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             End If
 
             Return False
+        End Function
+
+        Public Function HasImplicitBaseConstructorInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.HasImplicitBaseConstructorInitializer
+            Dim constructorNode = DirectCast(node, ConstructorBlockSyntax)
+            If constructorNode.Statements.Count = 0 Then
+                Return True
+            End If
+
+            Dim firstStatement = constructorNode.Statements(0)
+            Return Not firstStatement.DescendantNodes().OfType(Of MemberAccessExpressionSyntax)().Any(Function(m) m.IsConstructorInitializer())
         End Function
 
         Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsQueryKeyword
@@ -838,8 +843,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return Nothing
         End Function
 
-        Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
-            Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
+        Public Function GetMembersOfTypeDeclaration(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
+            Dim block = TryCast(node, TypeBlockSyntax)
+            Return If(block Is Nothing, Nothing, block.Members)
+        End Function
+
+        Public Function GetMembersOfNamespaceDeclaration(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfNamespaceDeclaration
+            Dim block = TryCast(node, NamespaceBlockSyntax)
+            Return If(block Is Nothing, Nothing, block.Members)
+        End Function
+
+        Public Function GetMembersOfCompilationUnit(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfCompilationUnit
+            Dim block = TryCast(node, CompilationUnitSyntax)
+            Return If(block Is Nothing, Nothing, block.Members)
         End Function
 
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTopLevelNodeWithMembers
@@ -1052,44 +1068,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
             Return node
         End Function
-
-        Public Function GetConstructors(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode) Implements ISyntaxFacts.GetConstructors
-            Dim compilationUnit = TryCast(root, CompilationUnitSyntax)
-            If compilationUnit Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
-            End If
-
-            Dim constructors = New List(Of SyntaxNode)()
-            AppendConstructors(compilationUnit.Members, constructors, cancellationToken)
-            Return constructors
-        End Function
-
-        Private Shared Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As List(Of SyntaxNode), cancellationToken As CancellationToken)
-            For Each member As StatementSyntax In members
-                cancellationToken.ThrowIfCancellationRequested()
-
-                Dim constructor = TryCast(member, ConstructorBlockSyntax)
-                If constructor IsNot Nothing Then
-                    constructors.Add(constructor)
-                    Continue For
-                End If
-
-                Dim [namespace] = TryCast(member, NamespaceBlockSyntax)
-                If [namespace] IsNot Nothing Then
-                    AppendConstructors([namespace].Members, constructors, cancellationToken)
-                End If
-
-                Dim [class] = TryCast(member, ClassBlockSyntax)
-                If [class] IsNot Nothing Then
-                    AppendConstructors([class].Members, constructors, cancellationToken)
-                End If
-
-                Dim [struct] = TryCast(member, StructureBlockSyntax)
-                If [struct] IsNot Nothing Then
-                    AppendConstructors([struct].Members, constructors, cancellationToken)
-                End If
-            Next
-        End Sub
 
         Public Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan Implements ISyntaxFacts.GetInactiveRegionSpanAroundPosition
             Dim trivia = tree.FindTriviaToLeft(position, cancellationToken)
@@ -1869,6 +1847,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             openParen = parenthesizedExpression.OpenParenToken
             expression = parenthesizedExpression.Expression
             closeParen = parenthesizedExpression.CloseParenToken
+        End Sub
+
+        Public Sub GetPartsOfPostfixUnaryExpression(node As SyntaxNode, ByRef operand As SyntaxNode, ByRef operatorToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfPostfixUnaryExpression
+            Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Sub
 
         Public Sub GetPartsOfPrefixUnaryExpression(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef operand As SyntaxNode) Implements ISyntaxFacts.GetPartsOfPrefixUnaryExpression

@@ -5,26 +5,24 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Do we need to implement ISynthesizedMethodBodyImplementationSymbol?
+    internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol // Tracked by https://github.com/dotnet/roslyn/issues/78959 : Do we need to implement ISynthesizedMethodBodyImplementationSymbol?
     {
         private string? lazyDocComment;
+        private StrongBox<byte?>? lazyNullableContext;
 
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
-            : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
+            : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters), propagateTypeParameterAttributes: true)
         {
             Debug.Assert(sourceMethod.GetIsNewExtensionMember());
             Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
-            Debug.Assert(!sourceMethod.IsExtern);
-            Debug.Assert(!sourceMethod.IsExternal);
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Are we creating type parameters with the right emit behavior? Attributes, etc.
-            //            Also, they should be IsImplicitlyDeclared
         }
 
         public override int Arity => TypeParameters.Length;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override MethodKind MethodKind => MethodKind.Ordinary;
         public override bool IsImplicitlyDeclared => true;
 
-        internal override bool HasSpecialName => false;
+        internal override bool HasSpecialName => _originalMethod.HasSpecialNameAttribute;
 
         internal override int ParameterCount
         {
@@ -57,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsAccessCheckedOnOverride => false;
 
-        public sealed override bool IsExtern => false;
-        public sealed override DllImportData? GetDllImportData() => null;
-        internal sealed override bool IsExternal => false;
+        public sealed override bool IsExtern => _originalMethod.IsExtern;
+        public sealed override DllImportData? GetDllImportData() => _originalMethod.GetDllImportData();
+        internal sealed override bool IsExternal => _originalMethod.IsExternal;
 
         internal sealed override bool IsDeclaredReadOnly => false;
 
@@ -67,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
+            // Copy ORPA from the property onto the implementation accessors
             if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
             {
                 foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
@@ -78,8 +77,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
             SourceMethodSymbol.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
+        }
+
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            if (_originalMethod is SourcePropertyAccessorSymbol accessor)
+            {
+                accessor.AddSynthesizedReturnTypeFlowAnalysisAttributes(ref attributes);
+            }
+
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+        }
+
+        internal override byte? GetLocalNullableContextValue()
+        {
+            if (lazyNullableContext is null)
+            {
+                byte? nullableContext = SourceMemberMethodSymbol.ComputeNullableContextValue(this);
+                Interlocked.CompareExchange(ref lazyNullableContext, new StrongBox<byte?>(nullableContext), comparand: null);
+            }
+
+            return lazyNullableContext.Value;
         }
 
         public override bool IsStatic => true;
@@ -103,8 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_originalMethod.IsStatic)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Need to confirm if this rewrite going to break LocalStateTracingInstrumenter
-                //            Specifically BoundParameterId, etc.   
                 parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.ContainingType).ExtensionParameter!));
             }
 
@@ -115,6 +132,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(parameters.Count == ParameterCount);
             return parameters.ToImmutableAndFree();
+        }
+
+        internal static int GetImplementationParameterOrdinal(ParameterSymbol underlyingParameter)
+        {
+            if (underlyingParameter.ContainingSymbol is NamedTypeSymbol)
+            {
+                return 0;
+            }
+
+            var ordinal = underlyingParameter.Ordinal;
+
+            if (underlyingParameter.ContainingSymbol.IsStatic)
+            {
+                return ordinal;
+            }
+
+            return ordinal + 1;
         }
 
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
@@ -160,21 +194,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    if (this._underlyingParameter.ContainingSymbol is NamedTypeSymbol)
-                    {
-                        return 0;
-                    }
-
-                    var ordinal = this._underlyingParameter.Ordinal;
-
-                    if (this._underlyingParameter.ContainingSymbol.IsStatic)
-                    {
-                        return ordinal;
-                    }
-
-                    return ordinal + 1;
+                    return GetImplementationParameterOrdinal(this._underlyingParameter);
                 }
             }
+
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            {
+                if (_underlyingParameter is SynthesizedAccessorValueParameterSymbol valueParameter)
+                {
+                    valueParameter.AddSynthesizedFlowAnalysisAttributes(ref attributes);
+                }
+
+                // Synthesized nullability attributes are context-dependent, so we intentionally do not call base.AddSynthesizedAttributes here
+                // as that would delegate to underlying parameter symbol
+                SourceParameterSymbolBase.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
+            }
+
+            internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
+            {
+                get
+                {
+                    var originalIndexes = this._underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+                    if (originalIndexes.IsDefaultOrEmpty || this._underlyingParameter.ContainingSymbol.IsStatic)
+                    {
+                        return originalIndexes;
+                    }
+
+                    // If this is the extension method receiver (ie, parameter 0), then any non-empty list of indexes must
+                    // be an error, and we should have already returned an empty list.
+                    Debug.Assert(_underlyingParameter.ContainingSymbol is not NamedTypeSymbol);
+                    return originalIndexes.SelectAsArray(static (index) => index switch
+                    {
+                        BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => throw ExceptionUtilities.Unreachable(),
+                        BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver => 0,
+                        BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter,
+                        BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter => BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter,
+                        >= 0 => index + 1,
+                        _ => throw ExceptionUtilities.UnexpectedValue(index),
+                    });
+                }
+            }
+
+            internal sealed override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
         }
     }
 }

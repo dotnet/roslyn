@@ -4,15 +4,15 @@
 
 using System;
 using System.IO;
-using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Xunit.Abstractions;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public sealed class CscTests
+    public sealed class CscTests : TestBase
     {
         public ITestOutputHelper TestOutputHelper { get; }
 
@@ -485,14 +485,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolExe = "";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            // StartsWith because it can be csc.exe or csc.dll
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
         }
 
         [Fact]
@@ -650,106 +649,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
-        [Fact]
-        public void PathToManagedTool_Normal()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+        public void StdLib()
         {
-            var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
-            var relativePath = RuntimeHostInfo.IsCoreClrRuntime
-                ? Path.Combine("bincore", "csc.dll")
-                : "csc.exe";
-            var task = new Csc();
-            Assert.Equal(Path.Combine(taskPath, relativePath), task.PathToBuiltInTool);
-        }
-
-#if NETFRAMEWORK
-
-        [Fact]
-        public void PathToManagedTool_Bridge()
-        {
-            var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
-            var task = new Csc()
+            var csc = new Csc
             {
-                IsSdkFrameworkToCoreBridgeTask = true
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
             };
-            Assert.Equal(Path.Combine(taskPath, "..", "bincore", "csc.dll"), task.PathToBuiltInTool);
+
+            AssertEx.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
-
-#endif
-
-        [Fact]
-        public void IsManagedToolRunningOnCoreClr_Normal()
-        {
-            var task = new Csc();
-            Assert.Equal(RuntimeHostInfo.IsCoreClrRuntime, task.IsBuiltinToolRunningOnCoreClr);
-        }
-
-        [Fact]
-        public void IsManagedToolRunningOnCoreClr_Bridge()
-        {
-#if NET
-            Assert.False(ManagedToolTask.CalculateIsSdkFrameworkToCoreBridgeTask());
-#else
-            var task = new Csc();
-            Assert.False(task.IsBuiltinToolRunningOnCoreClr);
-#endif
-        }
-
-#if NETFRAMEWORK && DEBUG
-
-        [Theory]
-        [InlineData("binfx", true, true)]
-        [InlineData("binfx", false, false)]
-        [InlineData("other", true, false)]
-        [InlineData("other", false, false)]
-        public void CalculateIsSdkFrameworkToCoreBridgeTask_DirectoryName(string dirName, bool makeBincore, bool expected)
-        {
-            LoadInAppDomain(dirName, (appDomain, taskAssemblyName, dirPath) =>
-            {
-                if (makeBincore)
-                {
-                    _ = Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(dirPath), "bincore"));
-                }
-
-                var testHost = (TaskTestHost)appDomain.CreateInstanceAndUnwrap(taskAssemblyName, typeof(TaskTestHost).FullName);
-                Assert.Equal(expected, testHost.IsSdkFrameworkToCoreBridgeTask);
-            });
-        }
-
-        [Fact]
-        public void CalculateIsSdkFrameworkToCoreBridgeTask_CscPresent()
-        {
-            LoadInAppDomain("binfx", (appDomain, taskAssemblyName, dirPath) =>
-            {
-                File.WriteAllText(Path.Combine(dirPath, "csc.exe"), "real code");
-                var testHost = (TaskTestHost)appDomain.CreateInstanceAndUnwrap(taskAssemblyName, typeof(TaskTestHost).FullName);
-                Assert.False(testHost.IsSdkFrameworkToCoreBridgeTask);
-            });
-        }
-
-        private static void LoadInAppDomain(string dirName, Action<AppDomain, string, string> action)
-        {
-            using var tempRoot = new TempRoot();
-            var dirPath = tempRoot.CreateDirectory().CreateDirectory(dirName).Path;
-            var taskAssembly = typeof(ManagedCompiler).Assembly;
-            var taskFilePath = taskAssembly.Location!;
-            var taskPath = Path.GetDirectoryName(taskFilePath);
-            foreach (var dllPath in Directory.EnumerateFiles(taskPath, "*.dll"))
-            {
-                File.Copy(dllPath, Path.Combine(dirPath, Path.GetFileName(dllPath)));
-            }
-
-            var appDomain = Roslyn.Test.Utilities.Desktop.AppDomainUtils.Create("TestAppDomain", dirPath);
-            try
-            {
-                action(appDomain, taskAssembly.FullName, dirPath);
-            }
-            finally
-            {
-                AppDomain.Unload(appDomain);
-            }
-        }
-
-#endif
-
     }
 }

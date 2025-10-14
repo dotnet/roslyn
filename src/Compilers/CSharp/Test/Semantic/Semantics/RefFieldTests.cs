@@ -372,6 +372,32 @@ ref struct B
             CompileAndVerify(comp, verify: Verification.Skipped);
         }
 
+        [WorkItem(78700, "https://github.com/dotnet/roslyn/issues/78700")]
+        [Fact]
+        public void StaticRefFieldInClass()
+        {
+            var code = """
+                class Program
+                {
+                    static int g_3 = -6;
+                    static int g_4 = 123;
+                    static ref int g_2 = ref g_3;
+
+                    static void Main(){
+                        g_2 = ref g_4;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(code, references: [], parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS0106: The modifier 'static' is not valid for this item
+                //     static ref int g_2 = ref g_3;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "g_2").WithArguments("static").WithLocation(5, 20),
+                // (5,20): error CS9059: A ref field can only be declared in a ref struct.
+                //     static ref int g_2 = ref g_3;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "g_2").WithLocation(5, 20));
+        }
+
         [Fact]
         public void RefAndReadonlyRefStruct_01()
         {
@@ -2067,6 +2093,42 @@ $@"#pragma warning disable 169
                 // (4,13): error CS9059: A ref field can only be declared in a ref struct.
                 //     ref int F;
                 Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void NonRefStructContainerWithStaticRefField(string type)
+        {
+            var source =
+$@"#pragma warning disable 169
+{type} R
+{{
+    static ref int F;
+}}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(4, 12),
+                // (4,20): error CS0106: The modifier 'static' is not valid for this item
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("static").WithLocation(4, 20),
+                // (4,20): error CS9059: A ref field can only be declared in a ref struct.
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 20));
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): error CS0106: The modifier 'static' is not valid for this item
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("static").WithLocation(4, 20),
+                // (4,20): error CS9059: A ref field can only be declared in a ref struct.
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 20));
         }
 
         /// <summary>
@@ -11307,7 +11369,7 @@ class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
                 // (6,18): error CS8917: The delegate type could not be inferred.
                 //         var f1 = (scoped scoped R r) => { };
@@ -31928,6 +31990,136 @@ Block[B2] - Exit
                 // (11,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         M(GetValue().F);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetValue().F").WithArguments("1", "ref").WithLocation(11, 11));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        public void Repro_80244_NetCoreApp()
+        {
+            var comp = CreateCompilation("""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                ref struct SpanReader
+                {
+                    long _spanEndStreamOffset;
+                    ReadOnlySpan<byte> _buffer;
+                    public SpanReader(ReadOnlySpan<byte> buffer, long spanStartStreamOffset)
+                    {
+                        _buffer = buffer;
+                        _spanEndStreamOffset = spanStartStreamOffset + buffer.Length;
+                    }
+
+                    public ref readonly T ReadRef<T>() where T : struct
+                    {
+                        if (_buffer.Length >= Unsafe.SizeOf<T>())
+                        {
+                            ref readonly T ret = ref MemoryMarshal.Cast<byte, T>(_buffer)[0];
+                            _buffer = _buffer.Slice(Unsafe.SizeOf<T>());
+                            return ref ret;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp,
+                parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        [InlineData(LanguageVersion.CSharp8), InlineData(LanguageVersion.CSharp14)]
+        public void Repro_80244_NetStandard(LanguageVersion consumerLanguageVersion)
+        {
+            var spanCompilation = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8);
+            var spanReference = spanCompilation.EmitToImageReference();
+            var source0 = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public static class Unsafe
+                    {
+                        public static int SizeOf<T>() => throw null!;
+                    }
+                }
+
+                namespace System.Runtime.InteropServices
+                {
+                    public static class MemoryMarshal
+                    {
+                        public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(ReadOnlySpan<TFrom> span)
+                            where TFrom : struct
+                            => throw null!;
+                    }
+                }
+                """;
+            var source1 = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                ref struct SpanReader
+                {
+                    long _spanEndStreamOffset;
+                    ReadOnlySpan<byte> _buffer;
+                    public SpanReader(ReadOnlySpan<byte> buffer, long spanStartStreamOffset)
+                    {
+                        _buffer = buffer;
+                        _spanEndStreamOffset = spanStartStreamOffset + buffer.Length;
+                    }
+
+                    public ref readonly T ReadRef<T>() where T : struct
+                    {
+                        if (_buffer.Length >= Unsafe.SizeOf<T>())
+                        {
+                            ref readonly T ret = ref MemoryMarshal.Cast<byte, T>(_buffer)[0];
+                            _buffer = _buffer.Slice(Unsafe.SizeOf<T>());
+                            return ref ret;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source0, source1],
+                references: [spanReference],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(consumerLanguageVersion),
+                targetFramework: TargetFramework.NetStandard20);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        public void Repro_80244_Simple()
+        {
+            var source0 = """
+                public ref struct RS
+                {
+                    public ref byte this[int i] => throw null!;
+                }
+                """;
+
+            var reference = CreateCompilation(source0, parseOptions: TestOptions.Regular8).EmitToImageReference();
+            var source1 = """
+                class Program
+                {
+                    static ref byte M1(RS rs)
+                    {
+                        ref byte ret = ref rs[1];
+                        return ref ret;
+                    }
+
+                    static ref byte M2(RS rs)
+                    {
+                        return ref rs[1];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source1, references: [reference], parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

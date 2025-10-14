@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
@@ -592,6 +593,130 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "field").WithLocation(4, 39));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_03()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class DemoCscBreaks
+                {
+                    public List<string> WillBreak => MethodReturningLambda(() => field ?? new List<string>());
+
+                    private T MethodReturningLambda<T>(Func<T> thisGet) => thisGet();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+            var fieldType = model.GetTypeInfo(fieldExpression);
+            AssertEx.Equal("System.Collections.Generic.List<System.String!>?", fieldType.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, fieldType.Type.NullableAnnotation);
+
+            // Note that the member symbol does not expose the inferred nullable annotation via 'FieldSymbol.TypeWithAnnotations'.
+            var fieldSymbol = comp.GetMember<FieldSymbol>("DemoCscBreaks.<WillBreak>k__BackingField");
+            Assert.Equal(NullableAnnotation.NotAnnotated, fieldSymbol.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, ((SynthesizedBackingFieldSymbol)fieldSymbol).GetInferredNullableAnnotation());
+
+            var publicFieldSymbol = fieldSymbol.GetPublicSymbol();
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, publicFieldSymbol.NullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_04()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class Program
+                {
+                    public List<string> Prop
+                    {
+                        get => M(() => field);
+                        set => M(() => field = value ?? new List<string>());
+                    }
+
+                    private T M<T>(Func<T> fn) => fn();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,25): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public List<string> Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 25));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpressions = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().ToArray();
+            Assert.Equal(2, fieldExpressions.Length);
+            verify(fieldExpressions[0]);
+            // https://github.com/dotnet/roslyn/issues/77215: a setter should have a maybe-null initial state for the 'field'.
+            verify(fieldExpressions[1]);
+
+            void verify(FieldExpressionSyntax fieldExpression)
+            {
+                var fieldType = model.GetTypeInfo(fieldExpression);
+                AssertEx.Equal("System.Collections.Generic.List<System.String!>!", fieldType.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, fieldType.Type.NullableAnnotation);
+
+                var fieldSymbol = comp.GetMember<FieldSymbol>("Program.<Prop>k__BackingField");
+                Assert.Equal(NullableAnnotation.NotAnnotated, fieldSymbol.TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.NotAnnotated, ((SynthesizedBackingFieldSymbol)fieldSymbol).GetInferredNullableAnnotation());
+
+                var publicFieldSymbol = fieldSymbol.GetPublicSymbol();
+                Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, publicFieldSymbol.NullableAnnotation);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_05()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class Program
+                {
+                    public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
+
+                    private T M<T>(Func<T> fn) => fn();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,26): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 26),
+                // (7,58): warning CS8602: Dereference of a possibly null reference.
+                //     public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field[0]").WithLocation(7, 58));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+            var fieldType = model.GetTypeInfo(fieldExpression);
+            AssertEx.Equal("System.Collections.Generic.List<System.String?>!", fieldType.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, fieldType.Type.NullableAnnotation);
+
+            var fieldSymbol = comp.GetMember<FieldSymbol>("Program.<Prop>k__BackingField");
+            Assert.Equal(NullableAnnotation.NotAnnotated, fieldSymbol.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, ((SynthesizedBackingFieldSymbol)fieldSymbol).GetInferredNullableAnnotation());
+
+            var publicFieldSymbol = fieldSymbol.GetPublicSymbol();
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, publicFieldSymbol.NullableAnnotation);
+        }
+
         [Fact]
         public void LocalFunction_01()
         {
@@ -655,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void ImplicitAccessorBody_01(
             [CombinatorialValues("class", "struct", "ref struct", "record", "record struct")] string typeKind,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 {{typeKind}} A
@@ -687,45 +812,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,26): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public static object P1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 26),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(3, 26),
                     // (3,46): error CS0103: The name 'field' does not exist in the current context
                     //     public static object P1 { get; set { _ = field; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 46),
-                    // (4,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,26): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public static object P2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 26),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P2").WithArguments("field keyword", "14.0").WithLocation(4, 26),
                     // (4,44): error CS0103: The name 'field' does not exist in the current context
                     //     public static object P2 { get { return field; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 44),
-                    // (5,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,26): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public static object P3 { get { return null; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(5, 26),
-                    // (6,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P3").WithArguments("field keyword", "14.0").WithLocation(5, 26),
+                    // (6,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public object Q1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q1").WithArguments("field keyword").WithLocation(6, 19),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q1").WithArguments("field keyword", "14.0").WithLocation(6, 19),
                     // (6,39): error CS0103: The name 'field' does not exist in the current context
                     //     public object Q1 { get; set { _ = field; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(6, 39),
-                    // (7,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (7,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public object Q2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q2").WithArguments("field keyword").WithLocation(7, 19),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q2").WithArguments("field keyword", "14.0").WithLocation(7, 19),
                     // (7,37): error CS0103: The name 'field' does not exist in the current context
                     //     public object Q2 { get { return field; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(7, 37),
-                    // (8,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (8,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public object Q3 { get { return field; } init; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q3").WithArguments("field keyword").WithLocation(8, 19),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q3").WithArguments("field keyword", "14.0").WithLocation(8, 19),
                     // (8,37): error CS0103: The name 'field' does not exist in the current context
                     //     public object Q3 { get { return field; } init; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 37),
-                    // (9,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (9,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public object Q4 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q4").WithArguments("field keyword").WithLocation(9, 19),
-                    // (10,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q4").WithArguments("field keyword", "14.0").WithLocation(9, 19),
+                    // (10,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public object Q5 { get; init { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q5").WithArguments("field keyword").WithLocation(10, 19));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q5").WithArguments("field keyword", "14.0").WithLocation(10, 19));
             }
             else
             {
@@ -825,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ImplicitAccessorBody_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = """
                 interface I
@@ -847,24 +972,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static object P1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 19),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(3, 19),
                     // (3,39): error CS0103: The name 'field' does not exist in the current context
                     //     static object P1 { get; set { _ = field; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 39),
-                    // (4,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static object P2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 19),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P2").WithArguments("field keyword", "14.0").WithLocation(4, 19),
                     // (4,37): error CS0103: The name 'field' does not exist in the current context
                     //     static object P2 { get { return field; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 37),
-                    // (5,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static object P3 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(5, 19),
-                    // (6,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P3").WithArguments("field keyword", "14.0").WithLocation(5, 19),
+                    // (6,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static object P4 { get { return null; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("field keyword").WithLocation(6, 19));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P4").WithArguments("field keyword", "14.0").WithLocation(6, 19));
             }
             else
             {
@@ -935,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ImplicitAccessorBody_03(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion, bool useInit)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion, bool useInit)
         {
             string setter = useInit ? "init" : "set ";
             string source = $$"""
@@ -956,33 +1081,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,12): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,12): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     object Q1 { get; set  { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q1").WithArguments("field keyword").WithLocation(3, 12),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q1").WithArguments("field keyword", "14.0").WithLocation(3, 12),
                     // (3,12): error CS0525: Interfaces cannot contain instance fields
                     //     object Q1 { get; set  { _ = field; } }
                     Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q1").WithLocation(3, 12),
                     // (3,33): error CS0103: The name 'field' does not exist in the current context
                     //     object Q1 { get; set  { _ = field; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 33),
-                    // (4,12): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,12): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     object Q2 { get { return field; } set ; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q2").WithArguments("field keyword").WithLocation(4, 12),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q2").WithArguments("field keyword", "14.0").WithLocation(4, 12),
                     // (4,12): error CS0525: Interfaces cannot contain instance fields
                     //     object Q2 { get { return field; } set ; }
                     Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q2").WithLocation(4, 12),
                     // (4,30): error CS0103: The name 'field' does not exist in the current context
                     //     object Q2 { get { return field; } set ; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 30),
-                    // (5,12): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,12): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     object Q3 { get; set  { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q3").WithArguments("field keyword").WithLocation(5, 12),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q3").WithArguments("field keyword", "14.0").WithLocation(5, 12),
                     // (5,12): error CS0525: Interfaces cannot contain instance fields
                     //     object Q3 { get; set  { } }
                     Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q3").WithLocation(5, 12),
-                    // (6,12): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,12): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     object Q4 { get { return null; } set ; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q4").WithArguments("field keyword").WithLocation(6, 12),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Q4").WithArguments("field keyword", "14.0").WithLocation(6, 12),
                     // (6,12): error CS0525: Interfaces cannot contain instance fields
                     //     object Q4 { get { return null; } set ; }
                     Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q4").WithLocation(6, 12));
@@ -1037,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void ImplicitAccessorBody_04(
             [CombinatorialValues("class", "struct", "ref struct", "record", "record struct")] string typeKind,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 {{typeKind}} A
@@ -1070,24 +1195,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,23): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,23): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public static int P1 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 23),
-                    // (4,23): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(3, 23),
+                    // (4,23): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public static int P2 { get { return -2; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 23),
-                    // (5,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P2").WithArguments("field keyword", "14.0").WithLocation(4, 23),
+                    // (5,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public int P3 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(5, 16),
-                    // (6,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P3").WithArguments("field keyword", "14.0").WithLocation(5, 16),
+                    // (6,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public int P4 { get { return -4; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("field keyword").WithLocation(6, 16),
-                    // (7,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P4").WithArguments("field keyword", "14.0").WithLocation(6, 16),
+                    // (7,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public int P5 { get; init { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P5").WithArguments("field keyword").WithLocation(7, 16),
-                    // (8,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P5").WithArguments("field keyword", "14.0").WithLocation(7, 16),
+                    // (8,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public int P6 { get { return -6; } init; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P6").WithArguments("field keyword").WithLocation(8, 16));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P6").WithArguments("field keyword", "14.0").WithLocation(8, 16));
             }
             else
             {
@@ -1134,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void ImplicitAccessorBody_05(
             [CombinatorialValues("class", "struct", "ref struct", "record", "record struct")] string typeKind,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 {{typeKind}} A
@@ -1167,39 +1292,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,23): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,23): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public static int P1 { get; set { field = value * 2; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 23),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(3, 23),
                     // (3,39): error CS0103: The name 'field' does not exist in the current context
                     //     public static int P1 { get; set { field = value * 2; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 39),
-                    // (4,23): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,23): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public static int P2 { get { return field * -1; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 23),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P2").WithArguments("field keyword", "14.0").WithLocation(4, 23),
                     // (4,41): error CS0103: The name 'field' does not exist in the current context
                     //     public static int P2 { get { return field * -1; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 41),
-                    // (5,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public int P3 { get; set { field = value * 2; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(5, 16),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P3").WithArguments("field keyword", "14.0").WithLocation(5, 16),
                     // (5,32): error CS0103: The name 'field' does not exist in the current context
                     //     public int P3 { get; set { field = value * 2; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 32),
-                    // (6,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public int P4 { get { return field * -1; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("field keyword").WithLocation(6, 16),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P4").WithArguments("field keyword", "14.0").WithLocation(6, 16),
                     // (6,34): error CS0103: The name 'field' does not exist in the current context
                     //     public int P4 { get { return field * -1; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(6, 34),
-                    // (7,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (7,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public int P5 { get; init { field = value * 2; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P5").WithArguments("field keyword").WithLocation(7, 16),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P5").WithArguments("field keyword", "14.0").WithLocation(7, 16),
                     // (7,33): error CS0103: The name 'field' does not exist in the current context
                     //     public int P5 { get; init { field = value * 2; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(7, 33),
-                    // (8,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (8,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public int P6 { get { return field * -1; } init; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P6").WithArguments("field keyword").WithLocation(8, 16),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P6").WithArguments("field keyword", "14.0").WithLocation(8, 16),
                     // (8,34): error CS0103: The name 'field' does not exist in the current context
                     //     public int P6 { get { return field * -1; } init; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 34));
@@ -1453,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void FieldAttribute_NotAutoProperty(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useInit)
         {
             string setter = useInit ? "init" : "set";
@@ -8010,7 +8135,7 @@ class C<T>
                     }
                 }
                 """;
-            var parseOptions = TestOptions.RegularNext;
+            var parseOptions = TestOptions.Regular14;
             if (useDEBUG)
             {
                 parseOptions = parseOptions.WithPreprocessorSymbols("DEBUG");
@@ -8316,7 +8441,7 @@ class C<T>
         [Theory]
         [CombinatorialData]
         public void PartialProperty_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool useInit)
         {
             string setter = useInit ? "init" : "set";
@@ -8352,12 +8477,12 @@ class C<T>
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,27): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,27): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public partial object P3 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(4, 27),
-                    // (6,27): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P3").WithArguments("field keyword", "14.0").WithLocation(4, 27),
+                    // (6,27): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public partial object P4 { get => null; set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("field keyword").WithLocation(6, 27));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P4").WithArguments("field keyword", "14.0").WithLocation(6, 27));
             }
             else
             {
@@ -8558,7 +8683,7 @@ class C<T>
         [Theory]
         [CombinatorialData]
         public void PartialProperty_Interface_02A(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool reverseOrder)
         {
             string sourceA = $$"""
@@ -8583,15 +8708,15 @@ class C<T>
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,20): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,20): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     partial object P1 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 20),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(3, 20),
                     // (3,20): error CS0525: Interfaces cannot contain instance fields
                     //     partial object P1 { get; set; }
                     Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(3, 20),
-                    // (4,20): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,20): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     partial object P2 { get => null; init; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 20),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P2").WithArguments("field keyword", "14.0").WithLocation(4, 20),
                     // (4,20): error CS0525: Interfaces cannot contain instance fields
                     //     partial object P2 { get; init; }
                     Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P2").WithLocation(4, 20));
@@ -8633,7 +8758,7 @@ class C<T>
         [Theory]
         [CombinatorialData]
         public void PartialProperty_Interface_02B(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool reverseOrder)
         {
             string sourceA = $$"""
@@ -8658,12 +8783,12 @@ class C<T>
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,27): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,27): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static partial object P1 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 27),
-                    // (4,27): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(3, 27),
+                    // (4,27): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static partial object P2 { get => null; set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 27));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P2").WithArguments("field keyword", "14.0").WithLocation(4, 27));
             }
             else
             {
@@ -10160,7 +10285,7 @@ class C<T>
         [Theory]
         [CombinatorialData]
         public void InterpolatedString(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 using System;
@@ -10192,9 +10317,9 @@ class C<T>
                     // (4,32): error CS0103: The name 'field' does not exist in the current context
                     //     public object P1 => $"P1: {field is null}";
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 32),
-                    // (5,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,19): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     public object P2 { get; set { field = value; field = $"{field}"; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(5, 19),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P2").WithArguments("field keyword", "14.0").WithLocation(5, 19),
                     // (5,35): error CS0103: The name 'field' does not exist in the current context
                     //     public object P2 { get; set { field = value; field = $"{field}"; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 35),
@@ -10264,7 +10389,7 @@ class C<T>
         [Theory]
         [CombinatorialData]
         public void InterpolatedString_Alignment(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 using System;
@@ -10321,9 +10446,9 @@ class C<T>
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,50): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    // (6,50): warning CS9258: In language version 14.0, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     public int P1 { get { Console.WriteLine($"{x,field}"); return 1; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(6, 50),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("14.0").WithLocation(6, 50),
                     // (6,50): error CS0150: A constant value is expected
                     //     public int P1 { get { Console.WriteLine($"{x,field}"); return 1; } }
                     Diagnostic(ErrorCode.ERR_ConstantExpected, "field").WithLocation(6, 50));
@@ -10361,7 +10486,7 @@ class C<T>
         [Theory]
         [CombinatorialData]
         public void InterpolatedString_Format(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 using System;
@@ -12637,6 +12762,227 @@ class C<T>
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // unexpected warning
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(14, 9));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78592")]
+        [InlineData(""" = "a";""", "")]
+        [InlineData("", """ = "a";""")]
+        public void PartialProperty_AutoImplGetter_PropertyInitializer(string defInitializer, string implInitializer)
+        {
+            var source = $$"""
+                #nullable enable
+
+                partial class C
+                {
+                    public partial string Prop { get; set; }{{defInitializer}}
+                }
+
+                partial class C
+                {
+                    public partial string Prop { get; set => Set(ref field, value); }{{implInitializer}}
+
+                    private void Set(ref string dest, string value)
+                    {
+                        dest = value;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78592")]
+        public void Repro_78592()
+        {
+            var source1 = """
+                #nullable enable
+
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                namespace TestLibrary
+                {
+                    public partial class Class1
+                    {
+                        public partial int P1 { get; set; } = -1;
+
+                        protected virtual bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+                        {
+                            if (EqualityComparer<T>.Default.Equals(storage, value))
+                            {
+                                return false;
+                            }
+
+                            storage = value;
+
+                            return true;
+                        }
+                    }
+
+                }
+                """;
+
+            var source2 = """
+                namespace TestLibrary
+                {
+                    public partial class Class1
+                    {
+                        public partial int P1 { get; set => SetProperty(ref field, value); }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source1, source2]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        [InlineData("""get { return field + "a"; }""")]
+        [InlineData("""get => field + "a";""")]
+        public void PublicAPI_01(string accessor)
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        {{accessor}}
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Equal("System.String C.<Prop>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        [InlineData("""set { field = value; }""")]
+        [InlineData("""set => field = value;""")]
+        public void PublicAPI_02(string accessor)
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        {{accessor}}
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Equal("System.String C.<Prop>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void PublicAPI_03()
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0103: The name 'field' does not exist in the current context
+                //         get => field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 16));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>());
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(node => node.ToString() == "field").Single();
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void PublicAPI_04()
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            comp.VerifyAnalyzerDiagnostics(analyzers: [new TestAnalyzer1()],
+                expected: [Diagnostic("TEST_Field", "field").WithLocation(5, 16)]);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0103: The name 'field' does not exist in the current context
+                //         get => field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 16));
+            comp.VerifyAnalyzerDiagnostics(analyzers: [new TestAnalyzer1()],
+                expected: [Diagnostic("TEST_Invalid", "field").WithLocation(5, 16)]);
+        }
+
+        private class TestAnalyzer1 : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor_Field = new(id: "TEST_Field", title: "Test", messageFormat: "", category: "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            public static readonly DiagnosticDescriptor Descriptor_Invalid = new(id: "TEST_Invalid", title: "Test", messageFormat: "", category: "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor_Field, Descriptor_Invalid];
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockAction(context =>
+                {
+                    foreach (var block in context.OperationBlocks)
+                    {
+                        var walker = new OperationWalker1();
+                        walker.Visit(block);
+
+                        if (walker.FieldReference is not null)
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor_Field, walker.FieldReference.Syntax.Location));
+
+                        if (walker.Invalid is not null)
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor_Invalid, walker.Invalid.Syntax.Location));
+                    }
+                });
+            }
+        }
+
+        private class OperationWalker1 : OperationWalker
+        {
+            public IOperation FieldReference = null;
+            public IOperation Invalid = null;
+
+            public override void VisitFieldReference(IFieldReferenceOperation operation)
+            {
+                FieldReference = operation;
+                base.VisitFieldReference(operation);
+            }
+
+            public override void VisitInvalid(IInvalidOperation operation)
+            {
+                Invalid = operation;
+                base.VisitInvalid(operation);
+            }
         }
     }
 }

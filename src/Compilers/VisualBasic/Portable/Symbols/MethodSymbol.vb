@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Source: Returns whether this method is an iterator; i.e., does it have the Iterator modifier?
         ''' Metadata: Returns False; methods from metadata cannot be an iterator.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsIterator As Boolean
+        Public MustOverride ReadOnly Property IsIterator As Boolean Implements IMethodSymbol.IsIterator
 
         ''' <summary>
         ''' Indicates whether the accessor is marked with the 'init' modifier.
@@ -1235,6 +1235,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitMethod(Me)
         End Function
+
+        Public ReadOnly Property AssociatedExtensionImplementation As IMethodSymbol Implements IMethodSymbol.AssociatedExtensionImplementation
+            Get
+                Return Nothing
+            End Get
+        End Property
 
 #End Region
 

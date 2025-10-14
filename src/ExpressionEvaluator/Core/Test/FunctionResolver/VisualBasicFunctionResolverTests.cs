@@ -4,11 +4,11 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
-using System;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests

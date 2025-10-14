@@ -18,6 +18,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -1051,6 +1052,11 @@ namespace Microsoft.CodeAnalysis
         internal bool HasDefaultMemberAttribute(EntityHandle token, out string memberName)
         {
             return HasStringValuedAttribute(token, AttributeDescription.DefaultMemberAttribute, out memberName);
+        }
+
+        internal bool HasExtensionMarkerAttribute(EntityHandle token, out string markerName)
+        {
+            return HasStringValuedAttribute(token, AttributeDescription.ExtensionMarkerAttribute, out markerName);
         }
 
         internal bool HasGuidAttribute(EntityHandle token, out string guidValue)
@@ -2330,19 +2336,6 @@ namespace Microsoft.CodeAnalysis
                 CrackStringInAttributeValue(out string? @string, ref sig))
             {
                 value = new BoolAndStringData(sense, @string);
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
-
-        private static bool CrackBoolAndBoolInAttributeValue(out (bool, bool) value, ref BlobReader sig)
-        {
-            if (CrackBooleanInAttributeValue(out bool item1, ref sig) &&
-                CrackBooleanInAttributeValue(out bool item2, ref sig))
-            {
-                value = (item1, item2);
                 return true;
             }
 

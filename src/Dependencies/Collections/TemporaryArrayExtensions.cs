@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.CodeAnalysis.Shared.Collections
+namespace Microsoft.CodeAnalysis.Collections
 {
     internal static class TemporaryArrayExtensions
     {

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    private readonly ClientCapabilities _clientCapabilitiesWithFileWatcherSupport = new ClientCapabilities
+    private readonly ClientCapabilities _clientCapabilitiesWithFileWatcherSupport = new()
     {
         Workspace = new WorkspaceClientCapabilities
         {
@@ -102,10 +102,8 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         Assert.Empty(dynamicCapabilitiesRpcTarget.Registrations);
     }
 
-    private static async Task WaitForFileWatcherAsync(TestLspServer testLspServer)
-    {
-        await testLspServer.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-    }
+    private static Task WaitForFileWatcherAsync(TestLspServer testLspServer)
+        => testLspServer.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
     private static FileSystemWatcher GetSingleFileWatcher(DynamicCapabilitiesRpcTarget dynamicCapabilities)
     {

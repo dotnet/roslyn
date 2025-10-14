@@ -7,9 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.CodeAnalysis;
@@ -67,10 +66,10 @@ internal sealed class WorkspaceEventMap
         private readonly ImmutableArray<Registry> _registries = registries;
 
         public static EventHandlerSet Create(WorkspaceEventHandlerAndOptions handlerAndOptions)
-            => new EventHandlerSet([new Registry(handlerAndOptions)]);
+            => new([new Registry(handlerAndOptions)]);
 
         public EventHandlerSet AddHandler(WorkspaceEventHandlerAndOptions handlerAndOptions)
-            => new EventHandlerSet(_registries.Add(new Registry(handlerAndOptions)));
+            => new(_registries.Add(new Registry(handlerAndOptions)));
 
         public EventHandlerSet RemoveHandler(WorkspaceEventHandlerAndOptions handlerAndOptions)
         {

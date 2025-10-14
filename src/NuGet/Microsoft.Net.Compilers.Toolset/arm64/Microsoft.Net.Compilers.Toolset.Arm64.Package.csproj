@@ -32,7 +32,7 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\csc\arm64\csc-arm64.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\arm64\vbc-arm64.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\arm64\VBCSCompiler-arm64.csproj" PrivateAssets="All"/>
 
     <ProjectReference Update="@(ProjectReference)"

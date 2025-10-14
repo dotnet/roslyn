@@ -13,19 +13,16 @@ public sealed class CSharpPropiSnippetProviderTests : AbstractCSharpAutoProperty
 
     protected override string DefaultPropertyBlockText => "{ get; init; }";
 
-    public override async Task InsertSnippetInReadonlyStructTest()
-    {
-        await VerifyDefaultPropertyAsync("""
+    public override Task InsertSnippetInReadonlyStructTest()
+        => VerifyDefaultPropertyAsync("""
             readonly struct MyStruct
             {
                 $$
             }
             """);
-    }
 
-    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
-    {
-        await VerifyDefaultPropertyAsync("""
+    public override Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
+        => VerifyDefaultPropertyAsync("""
             partial struct MyStruct
             {
                 $$
@@ -35,11 +32,9 @@ public sealed class CSharpPropiSnippetProviderTests : AbstractCSharpAutoProperty
             {
             }
             """);
-    }
 
-    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
-    {
-        await VerifyDefaultPropertyAsync("""
+    public override Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
+        => VerifyDefaultPropertyAsync("""
             struct MyStruct
             {
                 $$
@@ -49,17 +44,14 @@ public sealed class CSharpPropiSnippetProviderTests : AbstractCSharpAutoProperty
             {
             }
             """);
-    }
 
-    public override async Task VerifySnippetInInterfaceTest()
-    {
-        await VerifyDefaultPropertyAsync("""
+    public override Task VerifySnippetInInterfaceTest()
+        => VerifyDefaultPropertyAsync("""
             interface MyInterface
             {
                 $$
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]

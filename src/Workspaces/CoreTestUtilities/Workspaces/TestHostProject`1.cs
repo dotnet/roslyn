@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Test.Utilities;
@@ -262,7 +263,7 @@ public abstract class TestHostProject<TDocument> : AbstractTestHostProject
                 isSubmission: IsSubmission),
             CompilationOptions,
             ParseOptions,
-            documents: Documents.Where(d => !d.IsSourceGenerated).Select(d => d.ToDocumentInfo()),
+            documents: Documents.SelectAsArray(d => !d.IsSourceGenerated, d => d.ToDocumentInfo()),
             ProjectReferences,
             MetadataReferences,
             AnalyzerReferences,

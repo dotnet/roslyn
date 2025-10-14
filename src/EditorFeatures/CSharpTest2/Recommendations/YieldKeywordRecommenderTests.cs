@@ -12,109 +12,85 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class YieldKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestEmptyStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestEmptyStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestBeforeStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestBeforeStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             $$
             return true;
             """));
-    }
 
     [Fact]
-    public async Task TestAfterStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             return true;
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterBlock()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             if (true) {
             }
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterYield()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterYield()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"yield $$"));
-    }
 
     [Fact]
-    public async Task TestNotInClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInClass()
+        => VerifyAbsenceAsync("""
             class C
             {
               $$
             }
             """);
-    }
 }

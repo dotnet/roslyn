@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWorkspaceFactory> workspaceFactory, ILoggerFactory loggerFactory) : IDynamicFileInfoProvider, ILspService, IOnInitialized
+internal sealed partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWorkspaceFactory> workspaceFactory, ILoggerFactory loggerFactory) : IDynamicFileInfoProvider, ILspService, IOnInitialized, IDisposable
 {
     private RazorWorkspaceService? _razorWorkspaceService;
     private RazorLspDynamicFileInfoProvider? _dynamicFileInfoProvider;
@@ -37,7 +37,7 @@ internal sealed partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWo
 
         _razorWorkspaceService.NotifyDynamicFile(projectId);
 
-        var dynamicInfo = await _dynamicFileInfoProvider.GetDynamicFileInfoAsync(workspaceFactory.Value.Workspace, projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+        var dynamicInfo = await _dynamicFileInfoProvider.GetDynamicFileInfoAsync(workspaceFactory.Value.HostWorkspace, projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
         if (dynamicInfo is null)
         {
             return null;
@@ -78,6 +78,13 @@ internal sealed partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWo
             return;
         }
 
-        await _dynamicFileInfoProvider.RemoveDynamicFileInfoAsync(workspaceFactory.Value.Workspace, projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+        await _dynamicFileInfoProvider.RemoveDynamicFileInfoAsync(workspaceFactory.Value.HostWorkspace, projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+    }
+
+    public void Dispose()
+    {
+        // Dispose is called when the LSP server is being shut down. Clear the dynamic file provider in case a workspace
+        // event is raised after, as the actual provider will try to make LSP requests.
+        _dynamicFileInfoProvider = null;
     }
 }

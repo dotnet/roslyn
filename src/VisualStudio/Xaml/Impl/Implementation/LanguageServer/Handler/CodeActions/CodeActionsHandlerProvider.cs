@@ -13,27 +13,17 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
 
 [ExportStatelessXamlLspService(typeof(CodeActionsHandler)), Shared]
-internal sealed class XamlCodeActionsHandler : CodeActionsHandler
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public XamlCodeActionsHandler(
-        ICodeFixService codeFixService,
-        ICodeRefactoringService codeRefactoringService,
-        IGlobalOptionService globalOptions) : base(codeFixService, codeRefactoringService, globalOptions)
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class XamlCodeActionsHandler(
+    ICodeFixService codeFixService,
+    ICodeRefactoringService codeRefactoringService,
+    IGlobalOptionService globalOptions) : CodeActionsHandler(codeFixService, codeRefactoringService, globalOptions);
 
 [ExportStatelessXamlLspService(typeof(CodeActionResolveHandler)), Shared]
-internal sealed class XamlCodeActionResolveHandler : CodeActionResolveHandler
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public XamlCodeActionResolveHandler(
-        ICodeFixService codeFixService,
-        ICodeRefactoringService codeRefactoringService,
-        IGlobalOptionService globalOptions) : base(codeFixService, codeRefactoringService, globalOptions)
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class XamlCodeActionResolveHandler(
+    ICodeFixService codeFixService,
+    ICodeRefactoringService codeRefactoringService,
+    IGlobalOptionService globalOptions) : CodeActionResolveHandler(codeFixService, codeRefactoringService, globalOptions);

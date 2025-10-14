@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
-        public static readonly TheoryData<LanguageVersion> LanguageVersions13AndNewer = new TheoryData<LanguageVersion>([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
+        public static readonly TheoryData<LanguageVersion> LanguageVersions13AndNewer = new TheoryData<LanguageVersion>([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14]);
 
         protected static readonly string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
@@ -725,7 +725,7 @@ namespace System.Diagnostics.CodeAnalysis
             #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
             """;
 
-        internal const string CompilerFeatureRequiredAttributeIL = @"
+        internal static readonly string CompilerFeatureRequiredAttributeIL = @"
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
      extends [mscorlib]System.Attribute
  {
@@ -813,7 +813,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
-        internal const string OverloadResolutionPriorityAttributeDefinition = """
+        internal static readonly string OverloadResolutionPriorityAttributeDefinition = """
             namespace System.Runtime.CompilerServices;
 
             [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
@@ -823,7 +823,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
-        internal const string OverloadResolutionPriorityAttributeILDefinition = """
+        internal static readonly string OverloadResolutionPriorityAttributeILDefinition = """
             .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute
                 extends [mscorlib]System.Attribute
             {
@@ -865,7 +865,7 @@ namespace System.Diagnostics.CodeAnalysis
         /// <summary>
         /// The shape of the attribute comes from https://github.com/dotnet/runtime/issues/103430
         /// </summary>
-        internal const string CompilerLoweringPreserveAttributeDefinition = """
+        internal static readonly string CompilerLoweringPreserveAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
@@ -874,6 +874,399 @@ namespace System.Diagnostics.CodeAnalysis
                     public CompilerLoweringPreserveAttribute() { }
                 }
             }
+            """;
+
+        internal static readonly string ExtensionMarkerAttributeDefinition = """
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Delegate, Inherited = false)]
+    public sealed class ExtensionMarkerAttribute : Attribute
+    {
+        public ExtensionMarkerAttribute(string name)
+            => Name = name;
+
+        public string Name { get; }
+    }
+}
+""";
+
+        #region A string containing expression-tree dumping utilities
+        protected static readonly string ExpressionTestLibrary = """
+using System;
+using System.Globalization;
+using System.Linq.Expressions;
+using System.Text;
+
+public class TestBase
+{
+    protected static void DCheck<T>(Expression<T> e, string expected) { Check(e.Dump(), expected); }
+    protected static void Check<T>(Expression<Func<T>> e, string expected) { Check(e.Dump(), expected); }
+    protected static void Check<T1, T2>(Expression<Func<T1, T2>> e, string expected) { Check(e.Dump(), expected); }
+    protected static void Check<T1, T2, T3>(Expression<Func<T1, T2, T3>> e, string expected) { Check(e.Dump(), expected); }
+    protected static void Check<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4>> e, string expected) { Check(e.Dump(), expected); }
+    protected static string ToString<T>(Expression<Func<T>> e) { return e.Dump(); }
+    protected static string ToString<T1, T2>(Expression<Func<T1, T2>> e) { return e.Dump(); }
+    protected static string ToString<T1, T2, T3>(Expression<Func<T1, T2, T3>> e) { return e.Dump(); }
+    private static void Check(string actual, string expected)
+    {
+        if (expected != actual)
+        {
+            Console.WriteLine("FAIL");
+            Console.WriteLine("expected: " + expected);
+            Console.WriteLine("actual:   " + actual);
+        }
+    }
+}
+
+public static class ExpressionExtensions
+{
+    public static string Dump<T>(this Expression<T> self)
+    {
+        return ExpressionPrinter.Print(self.Body);
+    }
+}
+
+class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
+{
+    private StringBuilder s = new StringBuilder();
+
+    public static string Print(Expression e)
+    {
+        var p = new ExpressionPrinter();
+        p.Visit(e);
+        return p.s.ToString();
+    }
+
+    public override Expression Visit(Expression node)
+    {
+        if (node == null) { s.Append("null"); return null; }
+        s.Append(node.NodeType.ToString());
+        s.Append("(");
+        base.Visit(node);
+        s.Append(" Type:" + node.Type);
+        s.Append(")");
+        return null;
+    }
+
+    protected override MemberBinding VisitMemberBinding(MemberBinding node)
+    {
+        if (node == null) { s.Append("null"); return null; }
+        return base.VisitMemberBinding(node);
+    }
+
+    protected override MemberMemberBinding VisitMemberMemberBinding(MemberMemberBinding node)
+    {
+        s.Append("MemberMemberBinding(Member=");
+        s.Append(node.Member.ToString());
+        foreach (var b in node.Bindings)
+        {
+            s.Append(" ");
+            VisitMemberBinding(b);
+        }
+        s.Append(")");
+        return null;
+    }
+
+    protected override MemberListBinding VisitMemberListBinding(MemberListBinding node)
+    {
+        s.Append("MemberListBinding(Member=");
+        s.Append(node.Member.ToString());
+        foreach (var i in node.Initializers)
+        {
+            s.Append(" ");
+            VisitElementInit(i);
+        }
+        s.Append(")");
+        return null;
+    }
+
+    protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
+    {
+        s.Append("MemberAssignment(Member=");
+        s.Append(node.Member.ToString());
+        s.Append(" Expression=");
+        Visit(node.Expression);
+        s.Append(")");
+        return null;
+    }
+
+    protected override Expression VisitMemberInit(MemberInitExpression node)
+    {
+        s.Append("NewExpression: ");
+        Visit(node.NewExpression);
+        s.Append(" Bindings:[");
+        bool first = true;
+        foreach (var b in node.Bindings)
+        {
+            if (!first) s.Append(" ");
+            VisitMemberBinding(b);
+            first = false;
+        }
+        s.Append("]");
+        return null;
+    }
+
+    protected override Expression VisitBinary(BinaryExpression node)
+    {
+        Visit(node.Left);
+        s.Append(" ");
+        Visit(node.Right);
+        if (node.Conversion != null)
+        {
+            s.Append(" Conversion:");
+            Visit(node.Conversion);
+        }
+        if (node.IsLifted) s.Append(" Lifted");
+        if (node.IsLiftedToNull) s.Append(" LiftedToNull");
+        if (node.Method != null) s.Append(" Method:[" + node.Method + "]");
+        return null;
+    }
+
+    protected override Expression VisitConditional(ConditionalExpression node)
+    {
+        Visit(node.Test);
+        s.Append(" ? ");
+        Visit(node.IfTrue);
+        s.Append(" : ");
+        Visit(node.IfFalse);
+        return null;
+    }
+
+    protected override Expression VisitConstant(ConstantExpression node)
+    {
+        s.Append(node.Value == null ? "null" : GetCultureInvariantString(node.Value));
+        return null;
+    }
+
+    protected override Expression VisitDefault(DefaultExpression node)
+    {
+        return null;
+    }
+
+    protected override Expression VisitIndex(IndexExpression node)
+    {
+        Visit(node.Object);
+        s.Append("[");
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append("]");
+        if (node.Indexer != null) s.Append(" Indexer:" + node.Indexer);
+        return null;
+    }
+
+    protected override Expression VisitInvocation(InvocationExpression node)
+    {
+        Visit(node.Expression);
+        s.Append("(");
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append(")");
+        return null;
+    }
+
+    protected override Expression VisitLambda<T>(Expression<T> node)
+    {
+        s.Append("(");
+        int n = node.Parameters.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Parameters[i]);
+        }
+        s.Append(") => ");
+        if (node.Name != null) s.Append(node.Name);
+        Visit(node.Body);
+        if (node.ReturnType != null) s.Append(" ReturnType:" + node.ReturnType);
+        if (node.TailCall) s.Append(" TailCall");
+        return null;
+    }
+
+    protected override Expression VisitListInit(ListInitExpression node)
+    {
+        Visit(node.NewExpression);
+        s.Append("{");
+        int n = node.Initializers.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Initializers[i]);
+        }
+        s.Append("}");
+        return null;
+    }
+
+    protected override ElementInit VisitElementInit(ElementInit node)
+    {
+        Visit(node);
+        return null;
+    }
+
+    private void Visit(ElementInit node)
+    {
+        s.Append("ElementInit(");
+        s.Append(node.AddMethod);
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            s.Append(" ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append(")");
+    }
+
+    protected override Expression VisitMember(MemberExpression node)
+    {
+        Visit(node.Expression);
+        s.Append(".");
+        s.Append(node.Member.Name);
+        return null;
+    }
+
+    protected override Expression VisitMethodCall(MethodCallExpression node)
+    {
+        Visit(node.Object);
+        s.Append(".[" + node.Method + "]");
+        s.Append("(");
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(", ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append(")");
+        return null;
+    }
+
+    protected override Expression VisitNew(NewExpression node)
+    {
+        s.Append((node.Constructor != null) ? "[" + node.Constructor + "]" : "<.ctor>");
+        s.Append("(");
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(", ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append(")");
+        if (node.Members != null)
+        {
+            n = node.Members.Count;
+            if (n != 0)
+            {
+                s.Append("{");
+                for (int i = 0; i < n; i++)
+                {
+                    var info = node.Members[i];
+                    if (i != 0) s.Append(" ");
+                    s.Append(info);
+                }
+                s.Append("}");
+            }
+        }
+        return null;
+    }
+
+    protected override Expression VisitNewArray(NewArrayExpression node)
+    {
+        s.Append("[");
+        int n = node.Expressions.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Expressions[i]);
+        }
+        s.Append("]");
+        return null;
+    }
+
+    protected override Expression VisitParameter(ParameterExpression node)
+    {
+        s.Append(node.Name);
+        if (node.IsByRef) s.Append(" ByRef");
+        return null;
+    }
+
+    protected override Expression VisitTypeBinary(TypeBinaryExpression node)
+    {
+        Visit(node.Expression);
+        s.Append(" TypeOperand:" + node.TypeOperand);
+        return null;
+    }
+
+    protected override Expression VisitUnary(UnaryExpression node)
+    {
+        Visit(node.Operand);
+        if (node.IsLifted) s.Append(" Lifted");
+        if (node.IsLiftedToNull) s.Append(" LiftedToNull");
+        if (node.Method != null) s.Append(" Method:[" + node.Method + "]");
+        return null;
+    }
+
+    public static string GetCultureInvariantString(object value)
+    {
+        var valueType = value.GetType();
+        if (valueType == typeof(string))
+        {
+            return value as string;
+        }
+
+        if (valueType == typeof(DateTime))
+        {
+            return ((DateTime)value).ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+        }
+
+        if (valueType == typeof(float))
+        {
+            return ((float)value).ToString(CultureInfo.InvariantCulture);
+        }
+
+        if (valueType == typeof(double))
+        {
+            return ((double)value).ToString(CultureInfo.InvariantCulture);
+        }
+
+        if (valueType == typeof(decimal))
+        {
+            return ((decimal)value).ToString(CultureInfo.InvariantCulture);
+        }
+
+        return value.ToString();
+    }
+}
+""";
+        #endregion A string containing expression-tree dumping utilities
+
+        internal const string RuntimeAsyncAwaitHelpers = """
+            namespace System.Runtime.CompilerServices
+            {
+                public static class AsyncHelpers
+                {
+                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    {}
+                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    {}
+
+                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                }
+            }
+            """;
+
+        internal const string RuntimeAsyncMethodGenerationAttributeDefinition = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method)]
+            public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
             """;
 
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
@@ -1446,7 +1839,7 @@ namespace System.Diagnostics.CodeAnalysis
             return compilation;
         }
 
-        private static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
+        protected static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
         {
             bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
 
@@ -2114,6 +2507,8 @@ namespace System.Diagnostics.CodeAnalysis
                 return ImmutableArray.Create<ILVisualizer.LocalInfo>();
             }
 
+            Debug.Assert(builder.LocalSlotManager != null);
+
             var result = new ILVisualizer.LocalInfo[localInfos.Length];
             for (int i = 0; i < result.Length; i++)
             {
@@ -2243,7 +2638,7 @@ namespace System.Diagnostics.CodeAnalysis
         {
             var tree = compilation.SyntaxTrees[0];
             SyntaxNode? syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
-            Debug.Assert(syntaxNode is not null, "Did you forget to place /*<bind>*/ comments in your source?");
+            Debug.Assert(syntaxNode is not null, $"Ensure a /*<bind>*/ comment is used around syntax matching the type argument for '{nameof(TSyntaxNode)}'.");
             VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph);
         }
 
@@ -2532,11 +2927,11 @@ namespace System.Diagnostics.CodeAnalysis
         internal static ImmutableDictionary<string, ReportDiagnostic> ReportStructInitializationWarnings { get; } = ImmutableDictionary.CreateRange(
             new[]
             {
-                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationPropertySupportedVersion), ReportDiagnostic.Warn),
-                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationFieldSupportedVersion), ReportDiagnostic.Warn),
-                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationThisSupportedVersion), ReportDiagnostic.Warn),
-                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion), ReportDiagnostic.Warn),
-                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisSupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePair.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationPropertySupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePair.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationFieldSupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePair.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationThisSupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePair.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePair.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisSupportedVersion), ReportDiagnostic.Warn),
             });
 
         #endregion
@@ -2779,6 +3174,25 @@ namespace System.Runtime.CompilerServices
                 };
             }
         }
+        #endregion
+
+        #region Runtime Async
+
+        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
+
+        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
+        {
+            parseOptions ??= WithRuntimeAsync(TestOptions.RegularPreview);
+            var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName: "");
+            if (options == null)
+            {
+                options = CheckForTopLevelStatements(syntaxTrees);
+                options = options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
+            }
+
+            return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
+        }
+
         #endregion
 
         protected static readonly string s_IAsyncEnumerable = @"

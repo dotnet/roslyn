@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
@@ -16,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
     ''' whose current option is set to something other than 'Ignore'.
     ''' </summary>
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-    Partial Public Class RemoveUnnecessaryParenthesesTests
+    Partial Public NotInheritable Class RemoveUnnecessaryParenthesesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Private Shared ReadOnly CheckOverflow As CompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, checkOverflow:=True)
@@ -42,10 +41,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
                 RemoveUnnecessaryParenthesesTests.CheckOverflow,
                 RemoveUnnecessaryParenthesesTests.DoNotCheckOverflow)
 
-            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses, index:=index, compilationOptions:=compilationOptions)
+            Await TestInRegularAndScriptAsync(initial, expected, New TestParameters(options:=RemoveAllUnnecessaryParentheses, index:=index, compilationOptions:=compilationOptions))
 
             If (offeredWhenRequireAllParenthesesForClarityIsEnabled) Then
-                Await TestInRegularAndScriptAsync(initial, expected, options:=RequireAllParenthesesForClarity, index:=index, compilationOptions:=compilationOptions)
+                Await TestInRegularAndScriptAsync(initial, expected, New TestParameters(options:=RequireAllParenthesesForClarity, index:=index, compilationOptions:=compilationOptions))
             Else
                 Await TestMissingAsync(initial, parameters:=New TestParameters(options:=RequireAllParenthesesForClarity, compilationOptions:=compilationOptions))
             End If
@@ -83,7 +82,7 @@ end class", New TestParameters(options:=RequireArithmeticBinaryParenthesesForCla
 
         <Fact>
         Public Async Function TestArithmeticRequiredForClarity2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M()
         dim x = a orelse $$(b andalso c)
@@ -108,7 +107,7 @@ end class", New TestParameters(options:=RequireOtherBinaryParenthesesForClarity)
 
         <Fact>
         Public Async Function TestLogicalRequiredForClarity2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M()
         dim x = a + $$(b * c)
@@ -478,7 +477,7 @@ end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
 
         <Fact>
         Public Async Function TestForOverloadedOperatorOnLeft() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M(c1 as C, c2 as C, c3 as C)
         dim x = $$(c1 + c2) + c3
@@ -565,7 +564,7 @@ end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParenthe
 
         <Fact>
         Public Async Function TestRemoveShiftWithSamePrecedence() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M()
         dim x = $$(1 << 2) << 3
@@ -652,7 +651,16 @@ end class"
 
                 Assert.Equal("[1,2]", diagnostic.Properties.Item(WellKnownDiagnosticTags.Unnecessary))
             End Using
+        End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78187")>
+        Public Async Function TestWithNullMemberAccess() As Task
+            Await TestMissingAsync(
+"class C
+    sub M()
+        RoundTime($$(d.EndDate - d.StartDate)?.TotalMinutes / 60)
+    end sub
+end class", New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
     End Class
 End Namespace

@@ -18,13 +18,13 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
-public abstract class AbstractUnncessarySuppressionDiagnosticTest : AbstractUserDiagnosticTest_NoEditor
+public abstract class AbstractUnnecessarySuppressionDiagnosticTest(ITestOutputHelper logger)
+    : AbstractUserDiagnosticTest_NoEditor<
+        TestHostDocument,
+        TestHostProject,
+        TestHostSolution,
+        TestWorkspace>(logger)
 {
-    protected AbstractUnncessarySuppressionDiagnosticTest(ITestOutputHelper logger)
-        : base(logger)
-    {
-    }
-
     internal abstract CodeFixProvider CodeFixProvider { get; }
     internal abstract AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer SuppressionAnalyzer { get; }
     internal abstract ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers { get; }
@@ -40,7 +40,7 @@ public abstract class AbstractUnncessarySuppressionDiagnosticTest : AbstractUser
     {
         AddAnalyzersToWorkspace(workspace);
         var document = GetDocumentAndSelectSpan(workspace, out var span);
-        return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
+        return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
     }
 
     internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
@@ -51,7 +51,7 @@ public abstract class AbstractUnncessarySuppressionDiagnosticTest : AbstractUser
         GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 
         // Include suppressed diagnostics as they are needed by unnecessary suppressions analyzer.
-        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: true, parameters.includeNonLocalDocumentDiagnostics);
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: true);
         var diagnostics = await testDriver.GetAllDiagnosticsAsync(document, span);
 
         // Filter out suppressed diagnostics before invoking code fix.

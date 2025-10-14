@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Roslyn.LanguageServer.Protocol;
@@ -126,7 +127,7 @@ internal sealed class SourceGeneratorRefreshQueue :
         if (!hasOpenSourceGeneratedDocuments)
         {
             // There are no opened source generated documents - we don't need to bother asking the client to refresh anything.
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         try
@@ -139,7 +140,7 @@ internal sealed class SourceGeneratorRefreshQueue :
             // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
         }
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public void Dispose()

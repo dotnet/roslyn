@@ -2,22 +2,36 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <!--
-      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.AnalyzerUtilities,
-      Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.AnalyzerUtilities package.
-    -->
-    <PackageId>*$(MSBuildProjectFile)*</PackageId>
+
+    <IsPackable>true</IsPackable>
+    <IsShippingPackage>true</IsShippingPackage>
+    <PackageDescription>Analyzer utilities for various analyses, including Dataflow analysis based on ControlFlowGraph API in Microsoft.CodeAnalysis.</PackageDescription>
+    <PackageReleaseNotes>Analyzer utilities for various analyses, including Dataflow analysis based on ControlFlowGraph API in Microsoft.CodeAnalysis.</PackageReleaseNotes>
+    <PackageTags>Roslyn Analyzer Utilities CodeAnalysis Dataflow ControlFlowGraph FlowAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+
     <ExcludeCodeMetricsUtilities>true</ExcludeCodeMetricsUtilities>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
 
     <!-- RS0026: Avoid public API overloads with differences in optional parameters -->
     <NoWarn>$(NoWarn);RS0026</NoWarn>
-    <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="System.Threading.Channels" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
+  <Choose>
+    <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
     <InternalsVisibleTo Include="Analyzer.Utilities.UnitTests" />
   </ItemGroup>
@@ -27,4 +41,12 @@
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+
+  <Import Project="..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+
+  <Import Project="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems" Label="Shared"/>
+  <Import Project="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
 </Project>
