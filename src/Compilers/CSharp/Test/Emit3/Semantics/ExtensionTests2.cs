@@ -34428,5 +34428,170 @@ static class E
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
+
+    [Fact]
+    public void ConversionInParamsArguments_02()
+    {
+        var code = """
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
+object.M("", $"test");
+
+public static class E
+{
+    extension(object)
+    {
+        public static void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+        {
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false)]);
+        comp.VerifyEmitDiagnostics(
+            // (11,41): error CS8946: 'CustomHandler[]' is not an interpolated string handler type.
+            //         public static void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+            Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgument(nameof(s))").WithArguments("CustomHandler[]").WithLocation(11, 41));
+
+        code = """
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
+"".M($"test");
+
+public static class E
+{
+    extension(string s)
+    {
+        public void M([InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+        {
+        }
+    }
+}
+""";
+
+        comp = CreateCompilation([code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false)]);
+        comp.VerifyEmitDiagnostics(
+            // (11,24): error CS8946: 'CustomHandler[]' is not an interpolated string handler type.
+            //         public void M([InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+            Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgument(nameof(s))").WithArguments("CustomHandler[]").WithLocation(11, 24));
+    }
+
+    [Fact]
+    public void OptionalArguments_01()
+    {
+        var src = """
+new object().M1();
+object.M2();
+
+static class E
+{
+    extension(object o)
+    {
+        public void M1(int x = 4, int y = 2) { System.Console.Write($"ran1 {x}{y} "); }
+        public static void M2(int x = 4, int y = 2) { System.Console.Write($"ran2 {x}{y} "); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran1 42 ran2 42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OptionalArguments_02()
+    {
+        var src = """
+new object().M1(y: 3);
+object.M2(y: 3);
+
+static class E
+{
+    extension(object o)
+    {
+        public void M1(int x = 4, int y = 2) { System.Console.Write($"ran1 {x}{y} "); }
+        public static void M2(int x = 4, int y = 2) { System.Console.Write($"ran2 {x}{y} "); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran1 43 ran2 43").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OptionalArguments_03()
+    {
+        var src = """
+new object().M1(z: 3, x: 1);
+object.M2(z: 3, x: 1);
+
+static class E
+{
+    extension(object o)
+    {
+        public void M1(int x, int y = 2, params int[] z) { System.Console.Write($"ran1 {x}{y}{z[0]} "); }
+        public static void M2(int x, int y = 2, params int[] z) { System.Console.Write($"ran2 {x}{y}{z[0]} "); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran1 123 ran2 123").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ThisModifier_01()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M1(this int i = 0) => throw null;
+        public static void M2(this int i = 0) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,24): error CS0027: Keyword 'this' is not available in the current context
+            //         public void M1(this int i = 0) => throw null;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(5, 24),
+            // (6,31): error CS0027: Keyword 'this' is not available in the current context
+            //         public static void M2(this int i = 0) => throw null;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 31));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        var m1 = extension.GetMember<MethodSymbol>("M1");
+        Assert.False(m1.IsExtensionMethod);
+
+        var m2 = extension.GetMember<MethodSymbol>("M2");
+        Assert.False(m2.IsExtensionMethod);
+    }
+
+    [Fact]
+    public void ThisModifier_02()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M1(int i, this int j) => throw null;
+        public static void M2(int i, this int j) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,31): error CS0027: Keyword 'this' is not available in the current context
+            //         public void M1(int i, this int j) => throw null;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(5, 31),
+            // (6,38): error CS0027: Keyword 'this' is not available in the current context
+            //         public static void M2(int i, this int j) => throw null;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 38));
+    }
 }
 
