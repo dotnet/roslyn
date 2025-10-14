@@ -5123,7 +5123,7 @@ public class C
                 // (9,9): error CS0103: The name 'M1' does not exist in the current context
                 //         M1(new(out var x), x);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(9, 9),
-                // (9,28): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (9,28): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M1(new(out var x), x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 28)
                 );
@@ -5152,7 +5152,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,28): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (10,28): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2(new(out var y), y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(10, 28)
                 );
@@ -5181,7 +5181,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,33): error CS9335: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                // (11,33): error CS9339: Reference to an implicitly-typed variable 'z' is not permitted in this location.
                 //         M2(new(new(out var z)), z);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(11, 33)
                 );
@@ -5297,7 +5297,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (13,44): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (13,44): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {F1 = GetInt(out var x)}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(13, 44)
                 );
@@ -5366,7 +5366,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (15,41): error CS9335: Reference to an implicitly-typed variable 'u' is not permitted in this location.
+                // (15,41): error CS9339: Reference to an implicitly-typed variable 'u' is not permitted in this location.
                 //         M2(new() {F3 = new(out var u)}, u);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "u").WithArguments("u").WithLocation(15, 41)
                 );
@@ -5435,7 +5435,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (17,49): error CS9335: Reference to an implicitly-typed variable 'w' is not permitted in this location.
+                // (17,49): error CS9339: Reference to an implicitly-typed variable 'w' is not permitted in this location.
                 //         M2(new() {F3 = new(GetInt(out var w))}, w);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "w").WithArguments("w").WithLocation(17, 49)
                 );
@@ -5489,7 +5489,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,45): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (10,45): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {[GetInt(out var x)] = 1}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(10, 45)
                 );
@@ -5598,7 +5598,7 @@ public class C : IEnumerable<C>
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (24,37): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (24,37): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {GetC(out var x)}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(24, 37)
                 );
@@ -5645,7 +5645,7 @@ public class C : IEnumerable<C>
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (26,36): error CS9335: Reference to an implicitly-typed variable 'u' is not permitted in this location.
+                // (26,36): error CS9339: Reference to an implicitly-typed variable 'u' is not permitted in this location.
                 //         M2(new() {new(out var u)}, u);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "u").WithArguments("u").WithLocation(26, 36)
                 );
@@ -5729,7 +5729,7 @@ public class C : IEnumerable<C>
                 // (22,19): error CS1061: 'C' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         M2(new() {new(out var u)}, u);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new(out var u)").WithArguments("C", "Add").WithLocation(22, 19),
-                // (22,36): error CS9335: Reference to an implicitly-typed variable 'u' is not permitted in this location.
+                // (22,36): error CS9339: Reference to an implicitly-typed variable 'u' is not permitted in this location.
                 //         M2(new() {new(out var u)}, u);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "u").WithArguments("u").WithLocation(22, 36)
                 );
@@ -5848,7 +5848,7 @@ public class C : IEnumerable<C>
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (25,36): error CS9335: Reference to an implicitly-typed variable 'v' is not permitted in this location.
+                // (25,36): error CS9339: Reference to an implicitly-typed variable 'v' is not permitted in this location.
                 //         M2(new() {{new(out var v), v}});
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "v").WithArguments("v").WithLocation(25, 36)
                 );
@@ -5931,7 +5931,7 @@ public class C : IEnumerable<C>
                 // (23,19): error CS1061: 'C' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         M2(new() {{new(out var v), v}});
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "{new(out var v), v}").WithArguments("C", "Add").WithLocation(23, 19),
-                // (23,36): error CS9335: Reference to an implicitly-typed variable 'v' is not permitted in this location.
+                // (23,36): error CS9339: Reference to an implicitly-typed variable 'v' is not permitted in this location.
                 //         M2(new() {{new(out var v), v}});
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "v").WithArguments("v").WithLocation(23, 36)
                 );
@@ -5955,7 +5955,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,40): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,40): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         var a = new[] {new(out var x), x};
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 40)
                 );
@@ -5999,7 +5999,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,42): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,42): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         var a = new C[] {new(out var x), x};
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 42)
                 );
@@ -6043,7 +6043,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,34): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,34): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         C[] a = {new(out var x), x};
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 34)
                 );
@@ -6087,7 +6087,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,46): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,46): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         var a = new C[,] {{new(out var x)}, {x}};
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 46)
                 );
@@ -6197,7 +6197,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (13,57): error CS9335: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                // (13,57): error CS9339: Reference to an implicitly-typed variable 'z' is not permitted in this location.
                 //         M2(new[] {new() {F1 = GetInt(out var z)}, new C(z)}, 3);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(13, 57)
                 );
@@ -6346,7 +6346,7 @@ public class C : IEnumerable<int>
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (25,52): error CS9335: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                // (25,52): error CS9339: Reference to an implicitly-typed variable 'z' is not permitted in this location.
                 //         M2(new[] {new() {GetInt(out var z)}, new C(z)}, 3);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(25, 52)
                 );
@@ -6376,7 +6376,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (12,58): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (12,58): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {F1 = new[] {new(out var x), new C()}}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(12, 58)
                 );
@@ -6433,7 +6433,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (14,53): error CS9335: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                // (14,53): error CS9339: Reference to an implicitly-typed variable 'z' is not permitted in this location.
                 //         M2(new() {F1 = new[] {new(out var z), new C(z)}}, 3);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(14, 53)
                 );
@@ -6466,7 +6466,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,52): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (11,52): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {F1 = new[] {GetInt(out var x)}}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 52)
                 );
@@ -6597,7 +6597,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (11,45): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (11,45): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new(new[] {new(out var x), new C(x)}), 1);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 45)
                 );
@@ -6681,7 +6681,7 @@ public class C
                 // (8,17): error CS9176: There is no target type for the collection expression.
                 //         var a = [new(out var x), x];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[new(out var x), x]").WithLocation(8, 17),
-                // (8,34): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,34): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         var a = [new(out var x), x];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 34)
                 );
@@ -6703,7 +6703,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,34): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,34): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         C[] a = [new(out var x), x];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 34)
                 );
@@ -6803,7 +6803,7 @@ public class C
                 // (8,21): error CS9176: There is no target type for the collection expression.
                 //         C[] a = [.. [new(out var x), x], null];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[new(out var x), x]").WithLocation(8, 21),
-                // (8,38): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,38): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         C[] a = [.. [new(out var x), x], null];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 38)
                 );
@@ -6825,7 +6825,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,44): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,44): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         C[] a = [.. new[] {new(out var x), x}, null];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 44)
                 );
@@ -6847,7 +6847,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,38): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,38): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         C[][] a = [[new(out var x)], x];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 38)
                 );
@@ -6887,7 +6887,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,37): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,37): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         C[][] a = [[new(out var x), x], null];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 37)
                 );
@@ -6909,7 +6909,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,52): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,52): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         C[][] a = [new[] {new(out var x), (C)null, x}, null];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 52)
                 );
@@ -6934,7 +6934,7 @@ public class C
                 // (8,22): error CS9176: There is no target type for the collection expression.
                 //         C[][] a = [..[[new(out var x)], x]];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[[new(out var x)], x]").WithLocation(8, 22),
-                // (8,41): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,41): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         C[][] a = [..[[new(out var x)], x]];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 41)
                 );
@@ -6978,7 +6978,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,47): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,47): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         var a = new C[][] {[new(out var x)], [x]};
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 47)
                 );
@@ -7006,7 +7006,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (12,52): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (12,52): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {F1 = [new(out var x), new C()]}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(12, 52)
                 );
@@ -7063,7 +7063,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,46): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (11,46): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {F1 = [GetInt(out var x)]}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 46)
                 );
@@ -7116,7 +7116,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,44): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (8,44): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2([new(out var y), new C(out _)], y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 44)
                 );
@@ -7144,7 +7144,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (12,54): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (12,54): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {F1 = [[new(out var x), new C()]]}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(12, 54)
                 );
@@ -7201,7 +7201,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,48): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (11,48): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {F1 = [[GetInt(out var x)]]}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 48)
                 );
@@ -7254,7 +7254,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,46): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (8,46): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2([[new(out var y), new C(out _)]], y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 46)
                 );
@@ -7285,7 +7285,7 @@ public class C
                 // (12,28): error CS9176: There is no target type for the collection expression.
                 //         M2(new() {F1 = [.. [new(out var x), new C()]]}, x);
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[new(out var x), new C()]").WithLocation(12, 28),
-                // (12,57): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (12,57): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {F1 = [.. [new(out var x), new C()]]}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(12, 57)
                 );
@@ -7350,7 +7350,7 @@ public class C
                 // (11,28): error CS9176: There is no target type for the collection expression.
                 //         M2(new() {F1 = [.. [GetInt(out var x)]]}, x);
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[GetInt(out var x)]").WithLocation(11, 28),
-                // (11,51): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (11,51): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {F1 = [.. [GetInt(out var x)]]}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 51)
                 );
@@ -7434,7 +7434,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (8,30): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (8,30): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2([new(out var y)], y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 30)
                 );
@@ -7461,7 +7461,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (11,39): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (11,39): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new([new(out var x), new C(x)]), 1);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 39)
                 );
@@ -7489,7 +7489,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (12,49): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (12,49): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2(new([new(out var y), new C(out _)]), y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(12, 49)
                 );
@@ -7517,7 +7517,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (13,48): error CS9335: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                // (13,48): error CS9339: Reference to an implicitly-typed variable 'z' is not permitted in this location.
                 //         M2(new([new(out var z), new C(out _)], z), 3);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(13, 48)
                 );
@@ -7569,7 +7569,7 @@ public class C
                 // (8,18): error CS8754: There is no target type for 'new()'
                 //         var a = (new(out var x), x);
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 18),
-                // (8,34): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,34): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         var a = (new(out var x), x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 34)
                 );
@@ -7591,7 +7591,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,39): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,39): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         (C, int) a = (new(out var x), x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 39)
                 );
@@ -7613,7 +7613,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,51): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,51): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         ((C, int), int) a = ((new(out var x), 1), x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 51)
                 );
@@ -7637,7 +7637,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,44): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (8,44): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2((new(out var y), new C(out _)), y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 44)
                 );
@@ -7661,7 +7661,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,46): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (8,46): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2([(new(out var y), new C(out _))], y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 46)
                 );
@@ -7685,7 +7685,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,38): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (8,38): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2(((new(out var y), 1), 2), y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 38)
                 );
@@ -7713,7 +7713,7 @@ public class C
                 // (9,16): error CS1503: Argument 1: cannot convert from '(new(), var)' to '(C, int)'
                 //         M2(new((new(out var x), x), 1), 1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "(new(out var x), x)").WithArguments("1", "(new(), var)", "(C, int)").WithLocation(9, 16),
-                // (9,33): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (9,33): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new((new(out var x), x), 1), 1);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 33)
                 );
@@ -7739,7 +7739,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (10,41): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (10,41): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2(new((new(out var y), 2), 2), y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(10, 41)
                 );
@@ -7765,7 +7765,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (11,37): error CS9335: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                // (11,37): error CS9339: Reference to an implicitly-typed variable 'z' is not permitted in this location.
                 //         M2(new((new(out var z), 3), z), 3);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(11, 37)
                 );
@@ -7816,7 +7816,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (10,34): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (10,34): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new([(new(out var x), x)], 1), 1);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(10, 34)
                 );
@@ -7843,7 +7843,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (11,43): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (11,43): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2(new([(new(out var y), 2)], 2), y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(11, 43)
                 );
@@ -7870,7 +7870,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (12,39): error CS9335: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                // (12,39): error CS9339: Reference to an implicitly-typed variable 'z' is not permitted in this location.
                 //         M2(new([(new(out var z), 3)], z), 3);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(12, 39)
                 );
@@ -7897,7 +7897,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (13,45): error CS9335: Reference to an implicitly-typed variable 'u' is not permitted in this location.
+                // (13,45): error CS9339: Reference to an implicitly-typed variable 'u' is not permitted in this location.
                 //         M2(new([(new(out var u), 4), (new C(u), 4)], 4), 4);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "u").WithArguments("u").WithLocation(13, 45)
                 );
@@ -7952,7 +7952,7 @@ public class C
                 // (9,16): error CS1503: Argument 1: cannot convert from '(collection expression, var)' to '(C[], int)'
                 //         M2(new(([new(out var x)], x), 1), 1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "([new(out var x)], x)").WithArguments("1", "(collection expression, var)", "(C[], int)").WithLocation(9, 16),
-                // (9,35): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (9,35): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new(([new(out var x)], x), 1), 1);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 35)
                 );
@@ -7978,7 +7978,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (10,43): error CS9335: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                // (10,43): error CS9339: Reference to an implicitly-typed variable 'y' is not permitted in this location.
                 //         M2(new(([new(out var y)], 2), 2), y);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(10, 43)
                 );
@@ -8004,7 +8004,7 @@ public class C
 ";
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
-                // (11,39): error CS9335: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                // (11,39): error CS9339: Reference to an implicitly-typed variable 'z' is not permitted in this location.
                 //         M2(new(([new(out var z)], 3), z), 3);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(11, 39)
                 );
@@ -8051,7 +8051,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,38): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,38): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         var a = b ? new(out var x) : x;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 38)
                 );
@@ -8073,7 +8073,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,36): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,36): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         C a = b ? new(out var x) : x;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 36)
                 );
@@ -8098,7 +8098,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,33): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (9,33): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M1(b ? new(out var x) : x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 33)
                 );
@@ -8325,7 +8325,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,30): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (8,30): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         _ = new(out var x) + x;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 30)
                 );
@@ -8377,7 +8377,7 @@ public class C
                 // (9,12): error CS8754: There is no target type for 'new()'
                 //         => new(out var x)[x];
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(9, 12),
-                // (9,27): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (9,27): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         => new(out var x)[x];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 27)
                 );
@@ -8402,7 +8402,7 @@ public class C
                 // (9,12): error CS8754: There is no target type for 'new()'
                 //         => new(out var x)?[x];
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(9, 12),
-                // (9,28): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (9,28): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         => new(out var x)?[x];
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 28)
                 );
@@ -8425,7 +8425,7 @@ public class C
                 // (7,12): error CS0149: Method name expected
                 //         => new(out var x)(x);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "new(out var x)").WithLocation(7, 12),
-                // (7,27): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (7,27): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         => new(out var x)(x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(7, 27)
                 );
@@ -8492,7 +8492,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,46): error CS9335: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                // (10,46): error CS9339: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         M2(new() {[a is var x ? 0 : 1] = 1}, x);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(10, 46)
                 );
