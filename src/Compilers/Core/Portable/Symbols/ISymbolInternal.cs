@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Symbols
 
         /// <summary>
         /// Similar to getting the first location from <see cref="Locations"/>.  However, this can be more efficient as
-        /// an intermediary array does not need to be created.  This can often be advantageous for perf as most symbols
+        /// an intermediary array may not need to be created.  This can often be advantageous for perf as most symbols
         /// only have a single location, and most clients only need the first location for some purpose (like error
         /// reporting).
         /// </summary>
