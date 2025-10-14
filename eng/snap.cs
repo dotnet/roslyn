@@ -119,15 +119,6 @@ if (sourceVersionsProps != null)
     suggestedTargetBranchName = $"release/dev{vsMajorVersion}.{sourceVersionsProps.MinorVersion}";
 }
 
-// Find the latest branch starting with release/.
-suggestedTargetBranchName ??= (await Cli.Wrap("git")
-    .WithArguments(["for-each-ref", "--sort=-committerdate", "--format=%(refname:short)", "refs/remotes/*/release/*", "--count=1"])
-    .ExecuteBufferedAsync())
-    .StandardOutput
-    .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-    .Select(static s => s.IndexOf('/') is var slashIndex and >= 0 ? s[(slashIndex + 1)..] : s)
-    .FirstOrDefault();
-
 var targetBranchName = console.Prompt(TextPrompt<string>.Create("Target branch",
     defaultValue: suggestedTargetBranchName ?? "release/insiders"));
 
