@@ -4729,11 +4729,7 @@ public class C
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput,
-                verify: Verification.FailsILVerify with
-                {
-                    ILVerifyMessage = "[MoveNext]: Leave into try block. { Offset = 0x11a }"
-                });
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
                 {
@@ -4859,7 +4855,7 @@ public class C
                         IL_00f9:  ldarg.0
                         IL_00fa:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
                         IL_00ff:  brfalse.s  IL_0103
-                        IL_0101:  br.s       IL_0104
+                        IL_0101:  leave.s    IL_0130
                         IL_0103:  nop
                         IL_0104:  leave.s    IL_011c
                       }
@@ -4873,7 +4869,7 @@ public class C
                         IL_0113:  ldarg.0
                         IL_0114:  ldc.i4.1
                         IL_0115:  stfld      "bool C.<M>d__0.<>w__disposeMode"
-                        IL_011a:  leave.s    IL_0104
+                        IL_011a:  leave.s    IL_0130
                       }
                       IL_011c:  leave.s    IL_0130
                     }
