@@ -15,61 +15,36 @@ public sealed class DefaultBinLogPathProviderTests
     private const string DefaultFileName = "msbuild";
     private const string DefaultExtension = ".binlog";
 
-    private readonly string LogDirectory = $".{Path.PathSeparator}logs";
-    private const string LogFileName = "mylog";
-    private const string LogExtension = ".mylog";
+    private static string RelativeLogDirectory => $".{Path.DirectorySeparatorChar}logs";
+    private static string LogDirectory => Path.GetFullPath(RelativeLogDirectory);
+    private static string LogFileName => "mylog";
+    private static string LogExtension => ".mylog";
 
     [Fact]
-    public void DefaultBinLogPathProvider_ProducesUniquePaths()
+    public void DefaultBinLogPathProvider_ExpandsRelativePath()
     {
-        var logPath = Path.Combine(LogDirectory, LogFileName + LogExtension);
-        var provider = new DefaultBinLogPathProvider(logPath);
-
-        var newLogPaths = Enumerable.Range(0, 10)
-            .Select(_ => provider.GetNewLogPath())
-            .ToImmutableHashSet();
-        Assert.Equal(10, newLogPaths.Count);
-
-        foreach (var newLogPath in newLogPaths)
-        {
-            var newLogDirectory = Path.GetDirectoryName(newLogPath);
-            var newLogFileName = Path.GetFileNameWithoutExtension(newLogPath);
-            var newLogExtension = Path.GetExtension(newLogPath);
-
-            Assert.Equal(LogDirectory, newLogDirectory);
-            Assert.StartsWith(LogFileName, newLogFileName);
-            Assert.Equal(LogExtension, newLogExtension);
-        }
+        var logPath = Path.Combine(RelativeLogDirectory, LogFileName + LogExtension);
+        var provider = new BinLogPathProvider(logPath);
+        AssertUniquePaths(provider, LogDirectory, LogFileName, LogExtension);
     }
 
     [Fact]
     public void DefaultBinLogPathProvider_UsesDefaultExtension()
     {
         var logPath = Path.Combine(LogDirectory, LogFileName);
-        var provider = new DefaultBinLogPathProvider(logPath);
-
-        var newLogPaths = Enumerable.Range(0, 10)
-            .Select(_ => provider.GetNewLogPath())
-            .ToImmutableHashSet();
-        Assert.Equal(10, newLogPaths.Count);
-
-        foreach (var newLogPath in newLogPaths)
-        {
-            var newLogDirectory = Path.GetDirectoryName(newLogPath);
-            var newLogFileName = Path.GetFileNameWithoutExtension(newLogPath);
-            var newLogExtension = Path.GetExtension(newLogPath);
-
-            Assert.Equal(LogDirectory, newLogDirectory);
-            Assert.StartsWith(LogFileName, newLogFileName);
-            Assert.Equal(DefaultExtension, newLogExtension);
-        }
+        var provider = new BinLogPathProvider(logPath);
+        AssertUniquePaths(provider, LogDirectory, LogFileName, DefaultExtension);
     }
 
     [Fact]
     public void DefaultBinLogPathProvider_UsesDefaultFileName()
     {
-        var provider = new DefaultBinLogPathProvider(LogDirectory + Path.DirectorySeparatorChar);
+        var provider = new BinLogPathProvider(LogDirectory + Path.DirectorySeparatorChar);
+        AssertUniquePaths(provider, LogDirectory, DefaultFileName, DefaultExtension);
+    }
 
+    private static void AssertUniquePaths(BinLogPathProvider provider, string expectedDirectory, string expectedFilePrefix, string expectedExtension)
+    {
         var newLogPaths = Enumerable.Range(0, 10)
             .Select(_ => provider.GetNewLogPath())
             .ToImmutableHashSet();
@@ -81,9 +56,9 @@ public sealed class DefaultBinLogPathProviderTests
             var newLogFileName = Path.GetFileNameWithoutExtension(newLogPath);
             var newLogExtension = Path.GetExtension(newLogPath);
 
-            Assert.Equal(LogDirectory, newLogDirectory);
-            Assert.StartsWith(DefaultFileName, newLogFileName);
-            Assert.Equal(DefaultExtension, newLogExtension);
+            Assert.Equal(expectedDirectory, newLogDirectory);
+            Assert.StartsWith(expectedFilePrefix, newLogFileName);
+            Assert.Equal(expectedExtension, newLogExtension);
         }
     }
 }

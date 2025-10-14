@@ -179,8 +179,8 @@ public partial class MSBuildProjectLoader
             SetSolutionProperties(absoluteSolutionPath);
         }
 
-        var binLogPathProvider = IsBinaryLogger(msbuildLogger)
-            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters!)
+        var binLogPathProvider = IsBinaryLogger(msbuildLogger, out var fileName)
+            ? new BinLogPathProvider(fileName)
             : null;
 
         var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
@@ -242,8 +242,8 @@ public partial class MSBuildProjectLoader
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
-        var binLogPathProvider = IsBinaryLogger(msbuildLogger)
-            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters!)
+        var binLogPathProvider = IsBinaryLogger(msbuildLogger, out var fileName)
+            ? new BinLogPathProvider(fileName)
             : null;
 
         var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
@@ -266,27 +266,38 @@ public partial class MSBuildProjectLoader
         return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static bool IsBinaryLogger([NotNullWhen(returnValue: true)] ILogger? logger)
+    private static bool IsBinaryLogger([NotNullWhen(returnValue: true)] ILogger? logger, out string? fileName)
     {
-        // We validate the type name to avoid taking a dependency on the Microsoft.Build package.
-        return logger?.GetType().FullName == "Microsoft.Build.Logging.BinaryLogger";
+        // We validate the type name to avoid taking a dependency on the Microsoft.Build package
+        // because it brings along additional dependencies and servicing requirements.
+        if (logger?.GetType().FullName != "Microsoft.Build.Logging.BinaryLogger")
+        {
+            fileName = null;
+            return false;
+        }
+
+        // The logger.Parameters could contain more than just the filename, such as "ProjectImports" or "OmitInitialInfo".
+        // Attempt to get the parsed filname directly from the logger if possible.
+        var fileNameProperty = logger.GetType().GetProperty("FileName");
+        fileName = (string?)fileNameProperty?.GetValue(logger) ?? logger.Parameters;
+        return true;
     }
 
-    internal sealed class DefaultBinLogPathProvider : IBinLogPathProvider
+    internal sealed class BinLogPathProvider : IBinLogPathProvider
     {
         private const string DefaultFileName = "msbuild";
         private const string DefaultExtension = ".binlog";
 
-        private readonly string _path;
+        private readonly string _directory;
         private readonly string _filename;
         private readonly string _extension;
-        private int _suffix = 0;
+        private int _suffix = -1;
 
-        public DefaultBinLogPathProvider(string logFilePath)
+        public BinLogPathProvider(string? logFilePath)
         {
-            Contract.ThrowIfNull(logFilePath);
+            logFilePath ??= DefaultFileName + DefaultExtension;
 
-            _path = Path.GetDirectoryName(logFilePath) ?? ".";
+            _directory = Path.GetDirectoryName(logFilePath) ?? ".";
             _filename = Path.GetFileNameWithoutExtension(logFilePath) is { Length: > 0 } fileName
                 ? fileName
                 : DefaultFileName;
@@ -297,12 +308,13 @@ public partial class MSBuildProjectLoader
 
         public string? GetNewLogPath()
         {
-            var newLogPath = _suffix == 0
-                ? Path.Combine(_path, _filename + _extension)
-                : Path.Combine(_path, $"{_filename}-{_suffix}{_extension}");
+            var suffix = Interlocked.Increment(ref _suffix);
 
-            _suffix++;
-            return newLogPath;
+            var newPath = suffix == 0
+                ? Path.Combine(_directory, _filename + _extension)
+                : Path.Combine(_directory, $"{_filename}-{suffix}{_extension}");
+
+            return Path.GetFullPath(newPath);
         }
     }
 }
