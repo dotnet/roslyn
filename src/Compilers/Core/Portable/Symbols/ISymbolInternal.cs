@@ -89,7 +89,18 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         bool IsDefinition { get; }
 
+        /// <summary>
+        /// Similar to getting the first location from <see cref="Locations"/>.  However, this can be more efficient as
+        /// an intermediary array does not need to be created.  This can often be advantageous for perf as most symbols
+        /// only have a single location, and most clients only need the first location for some purpose (like error
+        /// reporting).
+        /// </summary>
         Location GetFirstLocation();
+
+        /// <summary>
+        /// Equivalent to calling <see cref="GetFirstLocation"/>,  except that if <see cref="Locations"/> is empty this
+        /// will return <see cref="Location.None"/>.
+        /// </summary>
         Location GetFirstLocationOrNone();
 
         /// <summary>
