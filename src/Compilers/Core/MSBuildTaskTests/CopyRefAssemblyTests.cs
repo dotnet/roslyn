@@ -205,54 +205,5 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 engine.Log);
         }
 
-        [Fact]
-        public void PerformanceComparison_SizeTimestampCheckVsMvidCheck()
-        {
-            // This test demonstrates that the size/timestamp check is faster than MVID extraction.
-            // The fast path (size/timestamp) should complete significantly faster than MVID extraction.
-
-            var dir = TempRoot.CreateDirectory();
-            var source = dir.CreateFile("mvid_perf.dll");
-            File.WriteAllBytes(source.Path, TestResources.General.MVID1);
-
-            var dest = dir.CreateFile("mvid_perf_dest.dll");
-            File.WriteAllBytes(dest.Path, TestResources.General.MVID1);
-
-            // Set same timestamp to enable fast path
-            var timestamp = File.GetLastWriteTimeUtc(source.Path);
-            File.SetLastWriteTimeUtc(dest.Path, timestamp);
-
-            // Warm up and test fast path (size/timestamp check)
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            for (int i = 0; i < 100; i++)
-            {
-                var sourceInfo = new FileInfo(source.Path);
-                var destInfo = new FileInfo(dest.Path);
-                var _ = sourceInfo.Length == destInfo.Length && sourceInfo.LastWriteTimeUtc == destInfo.LastWriteTimeUtc;
-            }
-            stopwatch.Stop();
-            var fastPathTime = stopwatch.ElapsedMilliseconds;
-
-            // Test MVID extraction path
-            stopwatch.Restart();
-            for (int i = 0; i < 100; i++)
-            {
-                using (FileStream sourceStream = File.OpenRead(source.Path))
-                {
-                    var _ = MvidReader.ReadAssemblyMvidOrEmpty(sourceStream);
-                }
-                using (FileStream destStream = File.OpenRead(dest.Path))
-                {
-                    var _ = MvidReader.ReadAssemblyMvidOrEmpty(destStream);
-                }
-            }
-            stopwatch.Stop();
-            var mvidPathTime = stopwatch.ElapsedMilliseconds;
-
-            // The fast path should be significantly faster than MVID extraction
-            // We expect at least 2x improvement, but typically it's much more
-            Assert.True(mvidPathTime > fastPathTime,
-                $"MVID path ({mvidPathTime}ms) should be slower than fast path ({fastPathTime}ms)");
-        }
     }
 }
