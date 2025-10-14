@@ -311,9 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             static bool PreferGenericOverNonGeneric(Symbol currentSymbol, Symbol newSymbol)
-            {
-                return currentSymbol is NamedTypeSymbol { Arity: 0 } && newSymbol is NamedTypeSymbol { Arity: > 0 };
-            }
+                => currentSymbol is NamedTypeSymbol { Arity: 0 } && newSymbol is NamedTypeSymbol { Arity: > 0 };
         }
 
         // global pool
