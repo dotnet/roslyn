@@ -174,7 +174,7 @@ internal static class IStreamingFindUsagesPresenterExtensions
             foreach (var sourceSpan in item.SourceSpans)
             {
                 var document = sourceSpan.Document;
-
+                
                 // Check if this document is generated code
                 var generatedCodeService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
                 if (generatedCodeService != null)
