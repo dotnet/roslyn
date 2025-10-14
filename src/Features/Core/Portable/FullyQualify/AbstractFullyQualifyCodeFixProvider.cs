@@ -25,8 +25,9 @@ internal abstract class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
         var document = context.Document;
 
         // Don't bother executing this within a source-generated document.  Changing the code here isn't actually
-        // possible, and we don't need to make pointless calls to oop to compute things.
-        if (document.Id.IsSourceGenerated)
+        // possible, and we don't need to make pointless calls to oop to compute things. The exception is Razor
+        // which uses generated documents, but does its own mapping of changes back to the original source.
+        if (document.Id.IsSourceGenerated && !document.IsRazorSourceGeneratedDocument())
             return;
 
         var service = document.GetRequiredLanguageService<IFullyQualifyService>();
