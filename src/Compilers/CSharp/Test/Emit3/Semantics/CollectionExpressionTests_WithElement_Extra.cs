@@ -3153,8 +3153,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(in ro)];
                 c.Report();
                 """;
-        var comp = CreateCompilation([sourceA, sourceB1, s_collectionExtensions], targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics(
+        CompileAndVerify(
+            [sourceA, sourceB1, s_collectionExtensions], targetFramework: TargetFramework.Net80,
+            expectedOutput: IncludeExpectedOutput("[0], [1], [2], [3], [4], [5], ")).VerifyDiagnostics(
             // (11,15): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             // c = [with(ref x)];
             Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(11, 15));
@@ -3166,7 +3167,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 ref readonly int ro = ref x;
                 c = [with(ref ro)];
                 """;
-        comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+        var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
             // (5,15): error CS1510: A ref or out value must be an assignable variable
             // c = [with(ref ro)];
