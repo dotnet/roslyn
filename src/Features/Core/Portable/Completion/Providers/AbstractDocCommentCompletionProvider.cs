@@ -287,7 +287,7 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
         // If so, we should not insert '=""' as it would result in duplicate quotes.
         // Instead, adjust the replacement text and position.
         var textAfterSpan = replacementSpan.End;
-        // Skip any whitespace after the replacement span
+        // Skip any whitespace after the replacement span (typically at most 1 space in practice)
         while (textAfterSpan < text.Length && char.IsWhiteSpace(text[textAfterSpan]))
         {
             textAfterSpan++;
@@ -309,8 +309,11 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
                 afterCaretText = string.Empty;
             }
             
-            // Position the caret right before the opening quote
-            newPosition = replacementSpan.Start + replacementText.Length + (textAfterSpan - replacementSpan.End) + 1;
+            // Position the caret right before the opening quote.
+            // This accounts for: the start of replacement + the new text length + any whitespace + position after '='
+            var whitespaceLength = textAfterSpan - replacementSpan.End;
+            var positionAfterEquals = 1; // Move past the '=' character
+            newPosition = replacementSpan.Start + replacementText.Length + whitespaceLength + positionAfterEquals;
         }
 
         if (commitChar.HasValue && !char.IsWhiteSpace(commitChar.Value) && commitChar.Value != replacementText[^1])
