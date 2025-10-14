@@ -225,7 +225,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
             Text = text,
         };
 
-        if (documentSpan is var (document, _))
+        if (documentSpan is var (document, _, _))
         {
             result.DocumentName = document.Name;
             result.ProjectName = document.Project.Name;
