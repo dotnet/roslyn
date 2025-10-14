@@ -117,13 +117,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.VisitStatement(statement)
         End Sub
 
-        Protected Overrides Sub VisitTryBlock(tryBlock As BoundStatement, node As BoundTryStatement, ByRef tryState As LocalState)
+        Protected Overrides Sub VisitTryBlock(tryBlock As BoundStatement, node As BoundTryStatement)
             If node.CatchBlocks.IsEmpty Then
-                MyBase.VisitTryBlock(tryBlock, node, tryState)
+                MyBase.VisitTryBlock(tryBlock, node)
 
             Else
                 Dim oldPendings As SavedPending = Me.SavePending()
-                MyBase.VisitTryBlock(tryBlock, node, tryState)
+                MyBase.VisitTryBlock(tryBlock, node)
 
                 ' NOTE: C# generates errors for 'yield return' inside try statement here;
                 '       it is valid in VB though.
@@ -132,9 +132,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Protected Overrides Sub VisitCatchBlock(node As BoundCatchBlock, ByRef finallyState As LocalState)
+        Protected Overrides Sub VisitCatchBlock(node As BoundCatchBlock)
             Dim oldPendings As SavedPending = Me.SavePending()
-            MyBase.VisitCatchBlock(node, finallyState)
+            MyBase.VisitCatchBlock(node)
 
             For Each branch In Me.PendingBranches
                 if branch.Branch.Kind = BoundKind.YieldStatement
@@ -148,10 +148,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.RestorePending(oldPendings)
         End Sub
 
-        Protected Overrides Sub VisitFinallyBlock(finallyBlock As BoundStatement, ByRef endState As LocalState)
+        Protected Overrides Sub VisitFinallyBlock(finallyBlock As BoundStatement)
             Dim oldPending1 As SavedPending = SavePending() ' we do not support branches into a finally block
             Dim oldPending2 As SavedPending = SavePending() ' track only the branches out of the finally block
-            MyBase.VisitFinallyBlock(finallyBlock, endState)
+            MyBase.VisitFinallyBlock(finallyBlock)
             RestorePending(oldPending2) ' resolve branches that remain within the finally block
             For Each branch In Me.PendingBranches
 

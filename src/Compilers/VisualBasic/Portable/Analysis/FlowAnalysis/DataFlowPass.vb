@@ -1440,19 +1440,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' that collects UN-assignments only and is not affected by subsequent assignments.
         Private _tryState As OptionalState
 
-        Protected Overrides Sub VisitTryBlock(tryBlock As BoundStatement, node As BoundTryStatement, ByRef _tryState As LocalState)
+        Protected Overrides Sub VisitTryBlock(tryBlock As BoundStatement, node As BoundTryStatement)
             If Me.TrackUnassignments Then
-
                 ' store original try state
                 Dim oldTryState As OptionalState = Me._tryState
 
                 ' start with AllBitsSet (means there were no assignments)
                 Me._tryState = AllBitsSet()
                 ' visit try block. Any assignment inside the region will UN-assign corresponding bit in the tryState.
-                MyBase.VisitTryBlock(tryBlock, node, _tryState)
+                MyBase.VisitTryBlock(tryBlock, node)
 
-                ' merge resulting tryState into tryState that we were given.
-                Me.IntersectWith(_tryState, Me._tryState.Value)
                 ' restore and merge old state with new changes.
                 If oldTryState.HasValue Then
                     Dim tryState = Me._tryState.Value
@@ -1462,18 +1459,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me._tryState = oldTryState
                 End If
             Else
-                MyBase.VisitTryBlock(tryBlock, node, _tryState)
+                MyBase.VisitTryBlock(tryBlock, node)
             End If
         End Sub
 
-        Protected Overrides Sub VisitCatchBlock(catchBlock As BoundCatchBlock, ByRef finallyState As LocalState)
+        Protected Overrides Sub VisitCatchBlock(catchBlock As BoundCatchBlock)
             If Me.TrackUnassignments Then
-
                 Dim oldTryState As OptionalState = Me._tryState
 
                 Me._tryState = AllBitsSet()
-                Me.VisitCatchBlockInternal(catchBlock, finallyState)
-                Me.IntersectWith(finallyState, Me._tryState.Value)
+                Me.VisitCatchBlockInternal(catchBlock)
 
                 If oldTryState.HasValue Then
                     Dim tryState = Me._tryState.Value
@@ -1483,11 +1478,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me._tryState = oldTryState
                 End If
             Else
-                Me.VisitCatchBlockInternal(catchBlock, finallyState)
+                Me.VisitCatchBlockInternal(catchBlock)
             End If
         End Sub
 
-        Private Sub VisitCatchBlockInternal(catchBlock As BoundCatchBlock, ByRef finallyState As LocalState)
+        Private Sub VisitCatchBlockInternal(catchBlock As BoundCatchBlock)
             Dim local = catchBlock.LocalOpt
             If local IsNot Nothing Then
                 GetOrCreateSlot(local)
@@ -1498,28 +1493,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Assign(exceptionSource, value:=Nothing, assigned:=True)
             End If
 
-            MyBase.VisitCatchBlock(catchBlock, finallyState)
+            MyBase.VisitCatchBlock(catchBlock)
         End Sub
 
-        Protected Overrides Sub VisitFinallyBlock(finallyBlock As BoundStatement, ByRef unsetInFinally As LocalState)
-            If Me.TrackUnassignments Then
-                Dim oldTryState As OptionalState = Me._tryState
+        Protected Overrides Sub VisitFinallyBlock(finallyBlock As BoundStatement)
+            Dim oldTryState As OptionalState = Me._tryState
 
-                Me._tryState = AllBitsSet()
-                MyBase.VisitFinallyBlock(finallyBlock, unsetInFinally)
-                Me.IntersectWith(unsetInFinally, Me._tryState.Value)
+            Me._tryState = AllBitsSet()
+            MyBase.VisitFinallyBlock(finallyBlock)
 
-                If oldTryState.HasValue Then
-                    Dim tryState = Me._tryState.Value
-                    Me.IntersectWith(tryState, oldTryState.Value)
-                    Me._tryState = tryState
-                Else
-                    Me._tryState = oldTryState
-                End If
+            If oldTryState.HasValue Then
+                Dim tryState = Me._tryState.Value
+                Me.IntersectWith(tryState, oldTryState.Value)
+                Me._tryState = tryState
             Else
-                MyBase.VisitFinallyBlock(finallyBlock, unsetInFinally)
+                Me._tryState = oldTryState
             End If
         End Sub
+
+        Protected Overrides Function GetUnsetInFinally() As LocalState
+            If Me.TrackUnassignments AndAlso Me._tryState.HasValue Then
+                Return Me._tryState.Value
+            Else
+                Return AllBitsSet()
+            End If
+        End Function
 
 #End Region
 

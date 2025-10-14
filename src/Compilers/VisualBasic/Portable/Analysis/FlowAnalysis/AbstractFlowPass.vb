@@ -2026,14 +2026,14 @@ lUnsplitAndFinish:
 
             Dim initialState = Me.State.Clone()
             InitializeBlockStatement(level, i)
-            VisitTryBlock(node.TryBlock, node, initialState)
+            VisitTryBlock(node.TryBlock, node)
             Dim finallyState = initialState.Clone()
             Dim endState = Me.State
 
             For Each catchBlock In node.CatchBlocks
                 Me.SetState(initialState.Clone())
                 InitializeBlockStatement(level, i)
-                VisitCatchBlock(catchBlock, finallyState)
+                VisitCatchBlock(catchBlock)
                 IntersectWith(endState, Me.State)
             Next
 
@@ -2041,9 +2041,9 @@ lUnsplitAndFinish:
                 Dim tryAndCatchPending As SavedPending = SavePending()
 
                 Me.SetState(finallyState)
-                Dim unsetInFinally = AllBitsSet()
                 InitializeBlockStatement(level, i)
-                VisitFinallyBlock(node.FinallyBlockOpt, unsetInFinally)
+                VisitFinallyBlock(node.FinallyBlockOpt)
+                Dim unsetInFinally = GetUnsetInFinally()
                 For Each pend In tryAndCatchPending.PendingBranches
                     ' Do not union if branch is a Yield statement
                     Dim unionBranchWithFinallyState As Boolean = pend.Branch.Kind <> BoundKind.YieldStatement
@@ -2082,11 +2082,11 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
-        Protected Overridable Sub VisitTryBlock(tryBlock As BoundStatement, node As BoundTryStatement, ByRef tryState As LocalState)
+        Protected Overridable Sub VisitTryBlock(tryBlock As BoundStatement, node As BoundTryStatement)
             VisitStatement(tryBlock)
         End Sub
 
-        Protected Overridable Overloads Sub VisitCatchBlock(catchBlock As BoundCatchBlock, ByRef finallyState As LocalState)
+        Protected Overridable Overloads Sub VisitCatchBlock(catchBlock As BoundCatchBlock)
             If catchBlock.ExceptionSourceOpt IsNot Nothing Then
                 VisitLvalue(catchBlock.ExceptionSourceOpt)
             End If
@@ -2102,9 +2102,13 @@ lUnsplitAndFinish:
             VisitBlock(catchBlock.Body)
         End Sub
 
-        Protected Overridable Sub VisitFinallyBlock(finallyBlock As BoundStatement, ByRef unsetInFinally As LocalState)
+        Protected Overridable Sub VisitFinallyBlock(finallyBlock As BoundStatement)
             VisitStatement(finallyBlock)
         End Sub
+
+        Protected Overridable Function GetUnsetInFinally() As LocalState
+            Return AllBitsSet()
+        End Function
 
         Public Overrides Function VisitArrayAccess(node As BoundArrayAccess) As BoundNode
             VisitRvalue(node.Expression)

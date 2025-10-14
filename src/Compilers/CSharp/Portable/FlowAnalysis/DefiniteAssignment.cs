@@ -2632,7 +2632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        protected override void VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             DeclareVariables(catchBlock.Locals);
 
@@ -2642,7 +2642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Assign(exceptionSource, value: null, read: false);
             }
 
-            base.VisitCatchBlock(catchBlock, ref finallyState);
+            base.VisitCatchBlock(catchBlock);
 
             foreach (var local in catchBlock.Locals)
             {

@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState unsetInFinally)
+        protected override void VisitFinallyBlock(BoundStatement finallyBlock)
         {
             if (_seenYieldInCurrentTry)
             {
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new OutsideVariablesUsedInside(this, this.topLevelMethod, this).Visit(finallyBlock);
             }
 
-            base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+            base.VisitFinallyBlock(finallyBlock);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
