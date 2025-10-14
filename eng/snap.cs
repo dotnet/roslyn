@@ -99,6 +99,7 @@ var sourceRepoShort = console.Prompt(TextPrompt<string>.Create("Source repo in t
     }));
 
 var sourceRepoUrl = $"https://github.com/{sourceRepoShort}";
+var gitHub = new GitHubUtil(logger, sourceRepoShort);
 
 // Ask for source and target branches.
 
@@ -127,8 +128,8 @@ var targetVersionsProps = await VersionsProps.LoadAsync(httpClient, sourceRepoSh
 console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] has version [teal]{targetVersionsProps?.ToString() ?? "N/A"}[/]");
 
 // Find which VS the branches insert to.
-var sourcePublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, sourceBranchName);
-var targetPublishDataTask = PublishData.LoadAsync(httpClient, sourceRepoShort, targetBranchName);
+var sourcePublishDataTask = PublishData.LoadAsync(httpClient, gitHub, sourceBranchName);
+var targetPublishDataTask = PublishData.LoadAsync(httpClient, gitHub, targetBranchName);
 var sourcePublishData = await sourcePublishDataTask;
 sourcePublishData.Report(console);
 var targetPublishData = await targetPublishDataTask;
@@ -439,55 +440,33 @@ var milestoneIssues = (await Cli.Wrap("gh")
     ?? throw new InvalidOperationException($"Null issue list in milestone {nextMilestoneName}");
 
 // Move closed issues from Next to target milestone.
-actions.Add($"Move [teal]{milestoneIssues.Length}[/] issues from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]", async () =>
+if (milestoneIssues.Length != 0)
 {
-    await ensureTargetMilestoneCreatedAsync();
-
-    await console.ProgressLine().StartAsync(async progress =>
+    actions.Add($"Move [teal]{milestoneIssues.Length}[/] issues from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]", async () =>
     {
-        var task = progress.AddTask("Processing issues", maxValue: milestoneIssues.Length);
-        foreach (var issue in milestoneIssues)
+        await ensureTargetMilestoneCreatedAsync();
+
+        await console.ProgressLine().StartAsync(async progress =>
         {
-            await Cli.Wrap("gh")
-                .WithArguments(["issue", "edit", $"{issue.Number}",
-                    "--repo", sourceRepoShort,
-                    "--milestone", targetMilestone])
-                .ExecuteBufferedAsync(logger);
-            task.Increment(1);
-        }
-        task.StopTask();
+            var task = progress.AddTask("Processing issues", maxValue: milestoneIssues.Length);
+            foreach (var issue in milestoneIssues)
+            {
+                await Cli.Wrap("gh")
+                    .WithArguments(["issue", "edit", $"{issue.Number}",
+                        "--repo", sourceRepoShort,
+                        "--milestone", targetMilestone])
+                    .ExecuteBufferedAsync(logger);
+                task.Increment(1);
+            }
+            task.StopTask();
+        });
     });
-});
+}
 
 // Merge between branches.
 actions.Add($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]", async () =>
 {
     var prTitle = $"Snap {sourceBranchName} into {targetBranchName}";
-
-    // Checkout the repo.
-    var repoCheckoutDir = Path.Join(Path.GetTempPath(), "snap-script", $"{sourceRepoShort.Split('/').Last()}");
-    if (!Directory.Exists(repoCheckoutDir))
-    {
-        console.WriteLine($"Checking out repository '{sourceRepoShort}' to '{repoCheckoutDir}'");
-        Directory.CreateDirectory(repoCheckoutDir);
-        await Cli.Wrap("git")
-            .WithArguments(["clone", sourceRepoUrl, repoCheckoutDir])
-            .ExecuteBufferedAsync(logger);
-    }
-    else
-    {
-        console.WriteLine($"Using existing checkout of repository '{sourceRepoShort}' at '{repoCheckoutDir}'");
-        await Cli.Wrap("git")
-            .WithWorkingDirectory(repoCheckoutDir)
-            .WithArguments(["remote", "set-url", "origin", sourceRepoUrl])
-            .ExecuteBufferedAsync(logger);
-    }
-
-    // Fetch the commit.
-    await Cli.Wrap("git")
-        .WithWorkingDirectory(repoCheckoutDir)
-        .WithArguments(["fetch", "origin", lastPrCommitDetails.Sha])
-        .ExecuteBufferedAsync(logger);
 
     // Check whether the target branch exists.
     var targetBranchExists = (await Cli.Wrap("gh")
@@ -499,48 +478,20 @@ actions.Add($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBra
     {
         // Target branch does not exist, checkout the commit and just push to the new branch.
         console.MarkupLineInterpolated($"Target branch [teal]{targetBranchName}[/] does not exist, will be created.");
-        await Cli.Wrap("git")
-            .WithWorkingDirectory(repoCheckoutDir)
-            .WithArguments(["checkout", lastPrCommitDetails.Sha, "-b", targetBranchName])
-            .ExecuteBufferedAsync(logger);
-        await Cli.Wrap("git")
-            .WithWorkingDirectory(repoCheckoutDir)
-            .WithArguments(["push", "origin", "HEAD"])
-            .ExecuteBufferedAsync(logger);
+        await gitHub.CreateBranchAsync(targetBranchName, lastPrCommitDetails.ToCommit());
         console.MarkupLineInterpolated($"Pushed new branch [teal]{targetBranchName}[/] to [teal]{sourceRepoShort}[/].");
     }
     else
     {
         // Target branch exists, merge changes up to the commit.
-        var snapBranchName = $"snap-{sourceBranchName.Replace('/', '-')}-to-{targetBranchName.Replace('/', '-')}-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
-        console.WriteLine("Merging branches.");
-        await Cli.Wrap("git")
-            .WithWorkingDirectory(repoCheckoutDir)
-            .WithArguments(["fetch", "origin", targetBranchName])
-            .ExecuteBufferedAsync(logger);
-        await Cli.Wrap("git")
-            .WithWorkingDirectory(repoCheckoutDir)
-            .WithArguments(["checkout", "FETCH_HEAD", "-b", snapBranchName])
-            .ExecuteBufferedAsync(logger);
-        await Cli.Wrap("git")
-            .WithWorkingDirectory(repoCheckoutDir)
-            .WithArguments(["merge", "--no-ff", "--no-commit", lastPrCommitDetails.Sha])
-            .ExecuteBufferedAsync(logger);
-        await Cli.Wrap("git")
-            .WithWorkingDirectory(repoCheckoutDir)
-            .WithArguments(["commit", "-m", prTitle])
-            .ExecuteBufferedAsync(logger);
 
-        // Push the changes.
-        await Cli.Wrap("git")
-            .WithWorkingDirectory(repoCheckoutDir)
-            .WithArguments(["push", "origin", "HEAD"])
-            .ExecuteBufferedAsync(logger);
+        // Create a branch for the PR.
+        var snapBranchName = $"snap-{sourceBranchName.Replace('/', '-')}-to-{targetBranchName.Replace('/', '-')}-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+        await gitHub.CreateBranchAsync(snapBranchName, lastPrCommitDetails.ToCommit());
 
         // Open the PR.
         console.WriteLine("Opening snap PR.");
         var createPrResult = await Cli.Wrap("gh")
-            .WithWorkingDirectory(repoCheckoutDir)
             .WithArguments([
                 "pr", "create",
                 "--title", prTitle,
@@ -555,23 +506,17 @@ actions.Add($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBra
 
 // Change PublishData.json.
 // Needs to be done after the merge which would create the target branch if it doesn't exist yet.
-var sourcePublishDataAfterSnap = sourcePublishData with
-{
-    Data = new PublishDataJson(
-        BranchInfo: new BranchInfo(
-            VsBranch: sourceVsBranchAfterSnap,
-            InsertionTitlePrefix: sourceVsPrefixAfterSnap,
-            InsertionCreateDraftPR: sourceVsAsDraftAfterSnap)),
-};
+var sourcePublishDataAfterSnap = sourcePublishData.WithData(new PublishDataJson(
+    BranchInfo: new BranchInfo(
+        VsBranch: sourceVsBranchAfterSnap,
+        InsertionTitlePrefix: sourceVsPrefixAfterSnap,
+        InsertionCreateDraftPR: sourceVsAsDraftAfterSnap)));
 sourcePublishDataAfterSnap.SaveIfNeeded(logger, actions, sourcePublishData);
-var targetPublishDataAfterSnap = targetPublishData with
-{
-    Data = new PublishDataJson(
-        BranchInfo: new BranchInfo(
-            VsBranch: targetVsBranchAfterSnap,
-            InsertionTitlePrefix: targetVsPrefixAfterSnap,
-            InsertionCreateDraftPR: targetVsAsDraftAfterSnap)),
-};
+var targetPublishDataAfterSnap = targetPublishData.WithData(new PublishDataJson(
+    BranchInfo: new BranchInfo(
+        VsBranch: targetVsBranchAfterSnap,
+        InsertionTitlePrefix: targetVsPrefixAfterSnap,
+        InsertionCreateDraftPR: targetVsAsDraftAfterSnap)));
 targetPublishDataAfterSnap.SaveIfNeeded(logger, actions, targetPublishData);
 
 // Perform actions.
@@ -608,7 +553,10 @@ file sealed record Commit(string Oid)
     public override string ToString() => Oid;
 }
 
-file sealed record CommitDetails(string Sha, CommitDetailsCommit Commit);
+file sealed record CommitDetails(string Sha, CommitDetailsCommit Commit)
+{
+    public Commit ToCommit() => new(Sha);
+}
 
 file sealed record CommitDetailsCommit(string Message);
 
@@ -617,35 +565,75 @@ file sealed record Milestone(int Number, string Title)
     public override string ToString() => Title;
 }
 
-file sealed record PublishData(
-    string RepoOwnerAndName,
-    string BranchName,
-    PublishDataJson? Data)
+file sealed class GitHubUtil(
+    Logger logger,
+    string repoOwnerAndName)
 {
+    public string RepoOwnerAndName => repoOwnerAndName;
+
+    public async Task<Commit> GetBranchHeadAsync(string branchName)
+    {
+        var sha = (await Cli.Wrap("gh")
+            .WithArguments(["api", $"repos/{repoOwnerAndName}/git/refs/heads/{branchName}"])
+            .ExecuteBufferedAsync(logger))
+            .StandardOutput
+            .Trim()
+            .ParseJson<JsonElement>()
+            .GetProperty("object")
+            .GetProperty("sha")
+            .GetString()
+            ?? throw new InvalidOperationException($"Null branch '{branchName}' in '{repoOwnerAndName}'");
+        return new Commit(sha);
+    }
+
+    public async Task CreateBranchAsync(string name, Commit head)
+    {
+        await Cli.Wrap("gh")
+            .WithArguments(["api", "-X", "POST", $"repos/{repoOwnerAndName}/git/refs",
+                "--field", $"ref=refs/heads/{name}",
+                "--field", $"sha={head.Oid}"])
+            .ExecuteBufferedAsync(logger);
+    }
+}
+
+file sealed class PublishData(
+    GitHubUtil gitHub,
+    string branchName,
+    PublishDataJson? data)
+{
+    public string RepoOwnerAndName => gitHub.RepoOwnerAndName;
+    public string BranchName => branchName;
+    public PublishDataJson? Data => data;
+
+    public PublishData WithData(PublishDataJson newData)
+    {
+        return new(gitHub, branchName, newData);
+    }
+
     /// <returns>
     /// <see langword="null"/> if the repo or branch does not exist.
     /// </returns>
-    public static async Task<PublishData> LoadAsync(HttpClient httpClient, string repoOwnerAndName, string branchName)
+    public static async Task<PublishData> LoadAsync(HttpClient httpClient, GitHubUtil gitHub, string branchName)
     {
         try
         {
-            var data = await httpClient.GetFromJsonAsync<PublishDataJson>($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/eng/config/PublishData.json")
+            var data = await httpClient.GetFromJsonAsync<PublishDataJson>($"https://raw.githubusercontent.com/{gitHub.RepoOwnerAndName}/{branchName}/eng/config/PublishData.json")
                 ?? throw new InvalidOperationException("Null PublishData.json");
-            return new PublishData(RepoOwnerAndName: repoOwnerAndName, BranchName: branchName, Data: data);
+            return new PublishData(gitHub, branchName, data);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            return new PublishData(RepoOwnerAndName: repoOwnerAndName, BranchName: branchName, Data: null);
+            return new PublishData(gitHub, branchName, data: null);
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Cannot load PublishData.json from '{repoOwnerAndName}' branch '{branchName}'", ex);
+            throw new InvalidOperationException($"Cannot load PublishData.json from '{gitHub.RepoOwnerAndName}' branch '{branchName}'", ex);
         }
     }
 
     public void Report(IAnsiConsole console)
     {
-        console.MarkupLineInterpolated($"Branch [teal]{BranchName}[/] inserts to VS [teal]{Data?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{Data?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
+        console.MarkupLineInterpolated($"Branch [teal]{branchName}[/] inserts to VS [teal]{data?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{data?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
     }
 
     public void SaveIfNeeded(Logger logger, ActionList actions, PublishData? original)
@@ -658,8 +646,8 @@ file sealed record PublishData(
             return;
         }
 
-        Debug.Assert(Data != null);
-        Debug.Assert(!Data.Equals(original?.Data));
+        Debug.Assert(data != null);
+        Debug.Assert(!data.Equals(original?.Data));
 
         var title = $"Update [teal]{BranchName}[/] PublishData.json";
         actions.Add(title, async () =>
@@ -667,24 +655,9 @@ file sealed record PublishData(
             var prTitle = "Update PublishData.json";
             var updateBranchName = $"snap-publish-data-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
 
-            // Get base branch SHA.
-            var baseBranchSha = (await Cli.Wrap("gh")
-                .WithArguments(["api", $"repos/{RepoOwnerAndName}/git/refs/heads/{BranchName}"])
-                .ExecuteBufferedAsync(logger))
-                .StandardOutput
-                .Trim()
-                .ParseJson<JsonElement>()
-                .GetProperty("object")
-                .GetProperty("sha")
-                .GetString()
-                ?? throw new InvalidOperationException($"Null branch '{BranchName}' in '{RepoOwnerAndName}'");
-
             // Create a branch for the PR.
-            await Cli.Wrap("gh")
-                .WithArguments(["api", "-X", "POST", $"repos/{RepoOwnerAndName}/git/refs",
-                    "--field", $"ref=refs/heads/{updateBranchName}",
-                    "--field", $"sha={baseBranchSha}"])
-                .ExecuteBufferedAsync(logger);
+            var baseBranchHead = await gitHub.GetBranchHeadAsync(branchName);
+            await gitHub.CreateBranchAsync(updateBranchName, baseBranchHead);
 
             // Obtain SHA of the file (needed for the update API call).
             var fileSha = (await Cli.Wrap("gh")
@@ -699,7 +672,7 @@ file sealed record PublishData(
                 ?? throw new InvalidOperationException("Null file SHA");
 
             // Apply changes.
-            var serialized = Data.ToJson();
+            var serialized = data.ToJson();
             await Cli.Wrap("gh")
                 .WithArguments(["api", "-X", "PUT", $"repos/{RepoOwnerAndName}/contents/eng/config/PublishData.json",
                     "--field", $"message={prTitle}",
