@@ -61,12 +61,13 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     /// <param name="capabilities">Array of capabilities retrieved from the runtime to dictate supported rude edits.</param>
     public async Task StartSessionAsync(Solution solution, ImmutableArray<string> capabilities, CancellationToken cancellationToken)
     {
+        // Hydrate the solution snapshot with file content.
+        await EditAndContinueService.HydrateDocumentsAsync(solution, cancellationToken).ConfigureAwait(false);
+
         var newSessionId = await _encService.StartDebuggingSessionAsync(
             solution,
             new DebuggerService(capabilities),
             NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [],
-            captureAllMatchingDocuments: true,
             reportDiagnostics: false,
             cancellationToken).ConfigureAwait(false);
 

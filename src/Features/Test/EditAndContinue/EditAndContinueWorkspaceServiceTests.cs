@@ -36,8 +36,8 @@ using static ActiveStatementTestHelpers;
 [UseExportProvider]
 public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorkspaceTestBase
 {
-    [Theory, CombinatorialData]
-    public async Task StartDebuggingSession_CapturingDocuments(bool captureAllDocuments)
+    [Fact]
+    public async Task StartDebuggingSession_CapturingDocuments()
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -132,19 +132,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             loader: new FailingTextLoader(),
             filePath: sourceFileD.Path));
 
-        var captureMatchingDocuments = captureAllDocuments
-            ? []
-            : (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
-
-        var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments, captureAllDocuments, reportDiagnostics: true, CancellationToken.None);
+        var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, reportDiagnostics: true, cancellationToken: CancellationToken.None);
         var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
-        var matchingDocuments = debuggingSession.LastCommittedSolution.Test_GetDocumentStates();
-        AssertEx.Equal(
-        [
-            "(A, MatchesBuildOutput)",
-            "(C, MatchesBuildOutput)"
-        ], matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+        Assert.Empty(debuggingSession.LastCommittedSolution.Test_GetDocumentStates());
 
         // change content of B on disk again:
         sourceFileB.WriteAllText("class B { int F() => 3; }", encodingB);
@@ -896,7 +887,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     }
 
     [Theory, CombinatorialData]
-    public async Task DesignTimeOnlyDocument_Wpf([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language, bool delayLoad, bool open, bool designTimeOnlyAddedAfterSessionStarts)
+    public async Task DesignTimeOnlyDocument_Wpf(
+        [CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language,
+        bool delayLoad,
+        bool designTimeOnlyAddedAfterSessionStarts)
     {
         var source = "class A { }";
         var sourceDesignTimeOnly = (language == LanguageNames.CSharp) ? "class B { }" : "Class C : End Class";
@@ -940,8 +934,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // make sure renames are not supported:
         _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
-        var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : [];
-        var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments: openDocumentIds, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
+        var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, reportDiagnostics: true, cancellationToken: CancellationToken.None);
         var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
         if (designTimeOnlyAddedAfterSessionStarts)
@@ -5500,10 +5493,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 solution,
                 _debuggerService,
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: [],
-                captureAllMatchingDocuments: true,
                 reportDiagnostics: true,
-                CancellationToken.None);
+                cancellationToken: CancellationToken.None);
 
             var solution1 = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { System.Console.WriteLine(" + i + "); } }"));
 

@@ -373,67 +373,6 @@ internal sealed class CommittedSolution
         return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(log, filePath, sourceText.Encoding, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
     }
 
-    internal static async Task<IEnumerable<KeyValuePair<DocumentId, DocumentState>>> GetMatchingDocumentsAsync(
-        TraceLog log,
-        IEnumerable<(Project, IEnumerable<CodeAnalysis.DocumentState>)> documentsByProject,
-        Func<Project, CompilationOutputs> compilationOutputsProvider,
-        IPdbMatchingSourceTextProvider sourceTextProvider,
-        CancellationToken cancellationToken)
-    {
-        var projectTasks = documentsByProject.Select(async projectDocumentStates =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var (project, documentStates) = projectDocumentStates;
-
-            // Skip projects that do not support Roslyn EnC (e.g. F#, etc).
-            // Source files of these may not even be captured in the solution snapshot.
-            if (!project.SupportsEditAndContinue())
-            {
-                return [];
-            }
-
-            using var debugInfoReaderProvider = GetMethodDebugInfoReader(log, compilationOutputsProvider(project), project.Name);
-            if (debugInfoReaderProvider == null)
-            {
-                return [];
-            }
-
-            var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
-
-            var documentTasks = documentStates.Select(async documentState =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (documentState.SupportsEditAndContinue())
-                {
-                    var sourceFilePath = documentState.FilePath;
-                    Contract.ThrowIfNull(sourceFilePath);
-
-                    // Hydrate the solution snapshot with the content of the file.
-                    // It's important to do this before we start watching for changes so that we have a baseline we can compare future snapshots to.
-                    var sourceText = await documentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    // TODO: https://github.com/dotnet/roslyn/issues/51993
-                    // avoid rereading the file in common case - the workspace should create source texts with the right checksum algorithm and encoding
-                    if (TryReadSourceFileChecksumFromPdb(log, debugInfoReader, sourceFilePath, out var requiredChecksum, out var checksumAlgorithm) == true &&
-                        await TryGetMatchingSourceTextAsync(log, sourceText, sourceFilePath, currentDocument: null, sourceTextProvider, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) is { HasValue: true, Value: not null })
-                    {
-                        return documentState.Id;
-                    }
-                }
-
-                return null;
-            });
-
-            return await Task.WhenAll(documentTasks).ConfigureAwait(false);
-        });
-
-        var documentIdArrays = await Task.WhenAll(projectTasks).ConfigureAwait(false);
-
-        return documentIdArrays.SelectMany(ids => ids.WhereNotNull()).Select(id => KeyValuePair.Create(id, DocumentState.MatchesBuildOutput));
-    }
-
     private static DebugInformationReaderProvider? GetMethodDebugInfoReader(TraceLog log, CompilationOutputs compilationOutputs, string projectName)
     {
         DebugInformationReaderProvider? debugInfoReaderProvider;

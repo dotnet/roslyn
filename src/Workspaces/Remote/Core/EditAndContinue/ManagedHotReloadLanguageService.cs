@@ -90,10 +90,8 @@ internal sealed partial class ManagedHotReloadLanguageService(
                 compileTimeSolution,
                 _debuggerService,
                 PdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: [],
-                captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {

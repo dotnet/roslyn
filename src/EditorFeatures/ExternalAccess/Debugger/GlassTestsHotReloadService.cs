@@ -34,8 +34,6 @@ internal sealed class GlassTestsHotReloadService
             solution,
             new ManagedHotReloadServiceBridge(_debuggerService),
             NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [],
-            captureAllMatchingDocuments: true,
             reportDiagnostics: false,
             cancellationToken).ConfigureAwait(false);
 

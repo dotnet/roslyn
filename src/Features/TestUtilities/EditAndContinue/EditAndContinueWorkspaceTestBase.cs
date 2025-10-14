@@ -175,10 +175,8 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             solution,
             _debuggerService,
             sourceTextProvider: sourceTextProvider ?? NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [],
-            captureAllMatchingDocuments: false,
             reportDiagnostics: true,
-            CancellationToken.None);
+            cancellationToken: CancellationToken.None);
 
         var session = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
