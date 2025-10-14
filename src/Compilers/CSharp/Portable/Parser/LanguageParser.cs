@@ -13909,7 +13909,7 @@ done:
             // If we see a keyword followed by '=', use EatTokenEvenWithIncorrectKind to produce
             // a better error message (ERR_IdentifierExpectedKW) and recover well.
             SyntaxToken identifier;
-            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.EqualsToken)
+            if (IsReservedKeywordFollowedByEquals())
             {
                 var keyword = this.EatTokenEvenWithIncorrectKind(SyntaxKind.IdentifierToken);
                 identifier = ConvertToIdentifier(keyword);
@@ -13924,6 +13924,11 @@ done:
                 identifier,
                 this.EatToken(SyntaxKind.EqualsToken),
                 this.ParseExpressionCore());
+        }
+
+        private bool IsReservedKeywordFollowedByEquals()
+        {
+            return SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
         }
 
         private WhereClauseSyntax ParseWhereClause()
