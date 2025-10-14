@@ -194,9 +194,9 @@ under `AppData`, not from `Program File`).
 2. `build.cmd -pack -c Release` on your `roslyn` repo
     - Note that `-c Debug` can also be used (along with changing `Release` to `Debug` in `RestoreAdditionalProjectSources` property value below). This will allow checking the compiler's debug assertions when building the runtime.
     - It's good for us to investigate scenarios where compiling the runtime libraries causes the compiler's debug assertions to fail. However, assertion failures can obscure whether or not the compiler ultimately succeeds at building the runtime and producing correct binaries. So, if the goal is to only check for "functional breaks", then using a Release mode compiler to start with can be preferable.
-4. Open your NuGet package cache (its location is likely `%NUGET_PACKAGES%\microsoft.net.compilers.toolset` or `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset`).
-5. Delete the version of the toolset that you just packed so that the new one will get put into the cache.
-6. Modify your local enlistment of `runtime` similarly to [this commit](https://github.com/RikkiGibson/runtime/commit/runtime-local-roslyn-build-example) then build again
+3. Open your NuGet package cache (its location is likely `%NUGET_PACKAGES%\microsoft.net.compilers.toolset` or `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset`).
+4. Delete the version of the toolset that you just packed so that the new one will get put into the cache.
+5. Modify your local enlistment of `runtime` similarly to [this commit](https://github.com/RikkiGibson/runtime/commit/runtime-local-roslyn-build-example) then build again
     - add `<RestoreAdditionalProjectSources><PATH-TO-YOUR-ROSLYN-ENLISTMENT>\artifacts\packages\Release\Shipping\</RestoreAdditionalProjectSources>` using the local path to your `roslyn` repo to `Directory.Build.props`
     - add `<UsingToolMicrosoftNetCompilers>true</UsingToolMicrosoftNetCompilers>` and `<MicrosoftNetCompilersToolsetVersion>5.3.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
 
