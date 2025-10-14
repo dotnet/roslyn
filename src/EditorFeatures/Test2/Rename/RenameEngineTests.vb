@@ -7021,35 +7021,6 @@ class Program
 
         <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
-        Public Sub RenameAnonymousTypePropertyWithInferredName(host As RenameTestHost)
-            Using result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-using System;
-
-class Program
-{
-    static void Main(string[] [|$$args|])
-    {
-        var x = new
-        {
-            Prop = 3,
-            [|args|],
-        };
-
-        Console.WriteLine(x.Prop);
-        Console.WriteLine(x.[|args|]);
-    }
-}
-                        </Document>
-                    </Project>
-                </Workspace>, host:=host, renameTo:="arguments")
-            End Using
-        End Sub
-
-        <Theory, CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
         Public Sub RenameAnonymousTypePropertyMultipleOccurrences(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

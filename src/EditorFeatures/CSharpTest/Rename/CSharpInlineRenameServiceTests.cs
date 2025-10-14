@@ -95,8 +95,7 @@ public sealed class CSharpInlineRenameServiceTests
             CancellationToken.None);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/883")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/883")]
     public async Task VerifyAnonymousTypeMemberRenameIsAllowed()
     {
         var markup = """
