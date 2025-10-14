@@ -263,14 +263,12 @@ console.WriteLine();
 console.MarkupLine("[purple]Pull Requests[/] (point of snap)");
 console.WriteLine();
 
-const string prJsonFields = "number,title,mergedAt,mergeCommit";
-
 var lastMergedSearchFilter = $"is:merged base:{sourceBranchName}";
 var lastMergedPullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
         "--repo", sourceRepoShort,
         "--search", lastMergedSearchFilter,
-        "--json", prJsonFields,
+        "--json", PullRequest.JsonFields,
         "--limit", "5"])
     .ExecuteBufferedAsync())
     .StandardOutput
@@ -293,7 +291,7 @@ var milestonePullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
         "--repo", sourceRepoShort,
         "--search", milestoneSearchFilter,
-        "--json", prJsonFields])
+        "--json", PullRequest.JsonFields])
     .ExecuteBufferedAsync())
     .StandardOutput
     .ParseJsonList<PullRequest>()
@@ -324,7 +322,7 @@ var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumb
     ?? (await Cli.Wrap("gh")
     .WithArguments(["pr", "view", $"{lastPrNumber}",
         "--repo", sourceRepoShort,
-        "--json", prJsonFields])
+        "--json", PullRequest.JsonFields])
     .ExecuteBufferedAsync())
     .StandardOutput
     .ParseJsonList<PullRequest>()
@@ -345,8 +343,48 @@ if (lastPr.MergeCommit.Oid != lastPrCommitDetails.Sha)
 
 console.MarkupLineInterpolated($"Last included commit will be [teal]{lastPrCommitDetails.Sha}[/]: {lastPrCommitDetails.Commit.Message.GetFirstLine()}");
 
-// Determine PRs to move between milestones.
+// Find all milestones.
+var milestones = (await Cli.Wrap("gh")
+    .WithArguments(["api", $"repos/{sourceRepoShort}/milestones", "--paginate",
+        "--jq", ".[] | {number:.number,title:.title}"])
+    .ExecuteBufferedAsync())
+    .StandardOutput
+    .ParseJsonNewLineDelimitedList<Milestone>()
+    .AssertNonNullElements("Null milestone in list")
+    .OrderByDescending(static m => m.Number)
+    .ToArray();
 
+// Determine target milestone.
+var suggestedTargetVsVersion = VsVersion.TryParse(targetVsBranchAfterSnap) ?? suggestedTargetVsVersionAfterSnap;
+var targetMilestone = console.Prompt(TextPrompt<string>.Create("Target milestone",
+    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersion != null
+        ? $"VS {suggestedTargetVsVersion.Major}.{suggestedTargetVsVersion.Minor}"
+        : milestones.FirstOrDefault()?.Title));
+
+var selectedMilestone = milestones.FirstOrDefault(m => m.Title == targetMilestone);
+if (selectedMilestone is null)
+{
+    console.MarkupLineInterpolated($"[green]Note:[/] Milestone [teal]{targetMilestone}[/] does not exist yet (will be created when needed)");
+}
+
+async Task<Milestone> ensureTargetMilestoneCreatedAsync()
+{
+    if (selectedMilestone is null)
+    {
+        console.MarkupLineInterpolated($"Creating milestone [teal]{targetMilestone}[/]");
+        selectedMilestone = (await Cli.Wrap("gh")
+            .WithArguments(["api", "-X", "POST", $"repos/{sourceRepoShort}/milestones",
+                "--field", $"title={targetMilestone}"])
+            .ExecuteBufferedAsync(logger))
+            .StandardOutput
+            .ParseJson<Milestone>()
+            ?? throw new InvalidOperationException($"Null returned when creating milestone {targetMilestone}");
+    }
+
+    return selectedMilestone;
+}
+
+// Determine PRs to move between milestones.
 if (milestonePullRequests is [var defaultLastMilestonePr, ..])
 {
     var lastMilestonePr = milestonePullRequests.FirstOrDefault(pr => pr.Number == lastPr.Number);
@@ -362,42 +400,11 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     var lastMilestonePrIndex = milestonePullRequests.IndexOf(lastMilestonePr);
     Debug.Assert(lastMilestonePrIndex >= 0);
 
-    // Find all milestones.
-    var milestones = (await Cli.Wrap("gh")
-        .WithArguments(["api", $"repos/{sourceRepoShort}/milestones", "--paginate",
-            "--jq", ".[] | {number:.number,title:.title}"])
-        .ExecuteBufferedAsync())
-        .StandardOutput
-        .ParseJsonNewLineDelimitedList<Milestone>()
-        .AssertNonNullElements("Null milestone in list")
-        .OrderByDescending(static m => m.Number)
-        .ToArray();
-
-    // Determine target milestone.
-    var suggestedTargetVsVersion = VsVersion.TryParse(targetVsBranchAfterSnap) ?? suggestedTargetVsVersionAfterSnap;
-    var targetMilestone = console.Prompt(TextPrompt<string>.Create("Target milestone",
-        defaultValueIfNotNullOrEmpty: suggestedTargetVsVersion != null
-            ? $"VS {suggestedTargetVsVersion.Major}.{suggestedTargetVsVersion.Minor}"
-            : milestones.FirstOrDefault()?.Title));
-
-    var selectedMilestone = milestones.FirstOrDefault(m => m.Title == targetMilestone);
-    if (selectedMilestone is null)
-    {
-        console.MarkupLineInterpolated($"[green]Note:[/] Milestone [teal]{targetMilestone}[/] does not exist yet (will be created when needed)");
-    }
-
     // Move PRs to target milestone.
     var prsToChangeMilestonesOf = milestonePullRequests.AsSpan(lastMilestonePrIndex..).ToArray();
     actions.Add($"Move [teal]{prsToChangeMilestonesOf.Length}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]", async () =>
     {
-        if (selectedMilestone is null)
-        {
-            console.MarkupLineInterpolated($"Creating milestone [teal]{targetMilestone}[/]");
-            var createMilestoneResult = await Cli.Wrap("gh")
-                .WithArguments(["api", "-X", "POST", $"repos/{sourceRepoShort}/milestones",
-                    "--field", $"title={targetMilestone}"])
-                .ExecuteBufferedAsync(logger);
-        }
+        await ensureTargetMilestoneCreatedAsync();
 
         await console.ProgressLine().StartAsync(async progress =>
         {
@@ -415,6 +422,40 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
         });
     });
 }
+
+// Find closed issues in milestone Next.
+var issueMilestoneSearchFilter = $"is:closed milestone:{nextMilestoneName}";
+var milestoneIssues = (await Cli.Wrap("gh")
+    .WithArguments(["issue", "list",
+        "--repo", sourceRepoShort,
+        "--search", issueMilestoneSearchFilter,
+        "--json", Issue.JsonFields])
+    .ExecuteBufferedAsync())
+    .StandardOutput
+    .ParseJsonList<Issue>()
+    ?.ToArray()
+    ?? throw new InvalidOperationException($"Null issue list in milestone {nextMilestoneName}");
+
+// Move closed issues from Next to target milestone.
+actions.Add($"Move [teal]{milestoneIssues.Length}[/] issues from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]", async () =>
+{
+    await ensureTargetMilestoneCreatedAsync();
+
+    await console.ProgressLine().StartAsync(async progress =>
+    {
+        var task = progress.AddTask("Processing issues", maxValue: milestoneIssues.Length);
+        foreach (var issue in milestoneIssues)
+        {
+            await Cli.Wrap("gh")
+                .WithArguments(["issue", "edit", $"{issue.Number}",
+                    "--repo", sourceRepoShort,
+                    "--milestone", targetMilestone])
+                .ExecuteBufferedAsync(logger);
+            task.Increment(1);
+        }
+        task.StopTask();
+    });
+});
 
 // Merge between branches.
 actions.Add($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]", async () =>
@@ -548,7 +589,16 @@ return 0;
 
 file sealed record PullRequest(int Number, string Title, DateTimeOffset MergedAt, Commit MergeCommit)
 {
+    public const string JsonFields = "number,title,mergedAt,mergeCommit";
+
     public override string ToString() => $"#{Number}: {Title} ({MergedAt})";
+}
+
+file sealed record Issue(int Number, string Title)
+{
+    public const string JsonFields = "number,title";
+
+    public override string ToString() => $"#{Number}: {Title}";
 }
 
 file sealed record Commit(string Oid)
