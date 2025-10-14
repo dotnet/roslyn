@@ -251,9 +251,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var withinAssembly = within is AssemblySymbol assembly ? assembly : ((NamedTypeSymbol)within).ContainingAssembly;
             if ((object)type.ContainingAssembly != (object)withinAssembly)
             {
-                // Skip the attribute check if the type itself is EmbeddedAttribute to avoid infinite recursion,
-                // but only return false if it actually has the attribute applied to it.
-                if (!type.IsMicrosoftCodeAnalysisEmbeddedAttribute() && type.IsHiddenByCodeAnalysisEmbeddedAttribute())
+                // If the type itself is EmbeddedAttribute, assume it was correctly applied to itself and return false.
+                if (type.IsMicrosoftCodeAnalysisEmbeddedAttribute() || type.IsHiddenByCodeAnalysisEmbeddedAttribute())
                 {
                     return false;
                 }
