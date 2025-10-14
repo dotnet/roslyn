@@ -11025,8 +11025,8 @@ End Class
         End Property
 
         Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-            context.ReportDiagnostic(Diagnostic.Create(Warning01, context.Symbol.GetFirstLocation()))
-            context.ReportDiagnostic(Diagnostic.Create(Warning03, context.Symbol.GetFirstLocation()))
+            context.ReportDiagnostic(Diagnostic.Create(Warning01, context.Symbol.Locations.First()))
+            context.ReportDiagnostic(Diagnostic.Create(Warning03, context.Symbol.Locations.First()))
         End Sub
     End Class
 
@@ -11049,7 +11049,7 @@ End Class
         End Property
 
         Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-            context.ReportDiagnostic(Diagnostic.Create(Warning04, context.Symbol.GetFirstLocation()))
+            context.ReportDiagnostic(Diagnostic.Create(Warning04, context.Symbol.Locations.First()))
         End Sub
     End Class
 

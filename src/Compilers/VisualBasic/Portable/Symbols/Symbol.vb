@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public MustOverride ReadOnly Property Locations As ImmutableArray(Of Location)
 
         Public Function GetFirstLocation() As Location Implements ISymbolInternal.GetFirstLocation
-            Return Me.Locations(0)
+            Return Me.GetFirstLocation()
         End Function
 
         Public Function GetFirstLocationOrNone() As Location Implements ISymbolInternal.GetFirstLocationOrNone
