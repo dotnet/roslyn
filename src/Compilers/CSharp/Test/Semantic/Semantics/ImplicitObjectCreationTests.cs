@@ -5938,6 +5938,108 @@ public class C : IEnumerable<C>
         }
 
         [Fact]
+        public void OutVar_27()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        new(out var x).M1(x);
+    }
+
+    void M1(int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8754: There is no target type for 'new()'
+                //         new(out var x).M1(x);
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void OutVar_28()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        new(out var x).M1(x);
+    }
+}
+
+static class E
+{
+    public static void M1(this C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8754: There is no target type for 'new()'
+                //         new(out var x).M1(x);
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void OutVar_29()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        new(out var x).M1(x);
+    }
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public void M1(int x) { }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8754: There is no target type for 'new()'
+                //         new(out var x).M1(x);
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void OutVar_30()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M0(new(out var x)).M1(x);
+    }
+
+    C M0(C x) => x;
+    void M1(int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void OutVar_ArrayInitializer_01()
         {
             var source = @"
@@ -8306,6 +8408,56 @@ public class C
                 // (8,59): error CS0103: The name 'x' does not exist in the current context
                 //         C a = b switch { true => new(out var x), false => x };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(8, 59)
+                );
+        }
+
+        [Fact]
+        public void OutVar_SwitchExpression_03()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+    public C() {}
+
+    public void M(bool b)
+    {
+        M1(b switch { true => new(out var x), false => x });
+    }
+
+    void M1(C x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,56): error CS0103: The name 'x' does not exist in the current context
+                //         M1(b switch { true => new(out var x), false => x });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(9, 56)
+                );
+        }
+
+        [Fact]
+        public void OutVar_SwitchExpression_04()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+    public C() {}
+
+    public void M(bool b)
+    {
+        M2(b switch { true => new(out var y), false => new C() }, y);
+    }
+
+    void M2(C x, C y) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,67): error CS0103: The name 'y' does not exist in the current context
+                //         M2(b switch { true => new(out var y), false => new C() }, y);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(9, 67)
                 );
         }
 

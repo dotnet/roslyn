@@ -811,8 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // inside an argument of a 'new()' have known type before the 'new()' is converted. For example,
                     // the following code is legal because of that:
                     // 
-                    //      M1(new() (M2(out var x)), x);
-                    //      M1(new() (M2() is var y)), y);
+                    //      M1(new(M2(out var x)), x);
+                    //      M1(new(M2() is var y)), y);
                     //
 
                     if (_forbiddenZone.Contains(reference))
@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 // For simplicity, we may assign nodes that themselves don't represent expressions to 'typeIsKnownAfterBinding'. 
 
-                SyntaxNode? typeIsKnownAfterBinding = nodeEnclosingDeclaration; // Strictly speaking, when we are dealind with an argument list,
+                SyntaxNode? typeIsKnownAfterBinding = nodeEnclosingDeclaration; // Strictly speaking, when we are dealing with an argument list,
                                                                                 // the type is known after an overload resolution for an operation 
                                                                                 // owning the argument list is performed and the arguments are converted
                                                                                 // accordingly. But for our purposes simply pretending that this happens
@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 case BinaryExpressionSyntax { RawKind: (int)SyntaxKind.CoalesceExpression } coalesce when coalesce.Left == nodeEnclosingDeclaration:
                                 case AssignmentExpressionSyntax assignment when assignment.Left == nodeEnclosingDeclaration:
                                 case InitializerExpressionSyntax { RawKind: (int)SyntaxKind.CollectionInitializerExpression }:
-                                    // Ok to reference in this context given the curent binding behavior. 
+                                    // Ok to reference in this context given the current binding behavior. 
                                     break;
                                 default:
                                     forbiddenDiagnostic = ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInForbiddenZone;
@@ -913,8 +913,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case InitializerExpressionSyntax { RawKind: (int)SyntaxKind.ArrayInitializerExpression }: // All initializer elements are bound first and only then they are converted to element type.
                         case ExpressionElementSyntax or CollectionExpressionSyntax: // All collection expression elements are bound first and only then they are converted to element type.
                         case TupleExpressionSyntax: // All tuple elements are bound first and only then they are converted.
-                            // Untill conversion happens, the state of type knowledge doesn't change.
-                            // For our puposes, we pretend that the parent node (quite possibly an inderect parent, depending on the nesting structure) initiates the conversion.
+                            // Until conversion happens, the state of type knowledge doesn't change.
+                            // For our puposes, we pretend that the parent node (quite possibly an indirect parent, depending on the nesting structure) initiates the conversion.
                             break;
 
                         default:
@@ -937,6 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 static bool typeMightBecomeUnknown(SyntaxNode nodeEnclosingDeclaration, SyntaxNode reference)
                 {
+                    // Type might become unknown if we are inside an implicit object creation expression and the reference is not inside that expression.
                     return nodeEnclosingDeclaration.Ancestors(ascendOutOfTrivia: false).OfType<ImplicitObjectCreationExpressionSyntax>().Any(static (creation, reference) => !creation.Contains(reference), reference);
                 }
             }
