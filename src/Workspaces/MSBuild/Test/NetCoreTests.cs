@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -93,6 +94,29 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         var semanticModel = await document.GetSemanticModelAsync();
         var diagnostics = semanticModel.GetDiagnostics();
         Assert.Empty(diagnostics);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_BinaryLogger()
+    {
+        CreateFiles(GetNetCoreAppFiles());
+
+        var projectFilePath = GetSolutionFileName("Project.csproj");
+        var projectDir = Path.GetDirectoryName(projectFilePath);
+        var binLogPath = Path.Combine(projectDir, "build.binlog");
+
+        DotNetRestore("Project.csproj");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(projectFilePath, new BinaryLogger() { Parameters = binLogPath });
+
+        // The binarylog could have been given a suffix to avoid filename collisions when used by multiple buildhosts.
+        var buildLogPaths = Directory.EnumerateFiles(projectDir, "build*.binlog").ToImmutableArray();
+        var buildLogPath = Assert.Single(buildLogPaths);
+        var buildLogInfo = new FileInfo(buildLogPath);
+        Assert.True(buildLogInfo.Length > 0);
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -260,7 +284,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
 
         // Assert the TFM is accessible from project extensions.
-        // The test project extension sets the default namespace based on the TFM.  
+        // The test project extension sets the default namespace based on the TFM.
         foreach (var project in workspace.CurrentSolution.Projects)
         {
             switch (project.Name)
