@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 {
@@ -7290,6 +7290,81 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (8,34): error CS9400: 'with(...)' element must be the first element
             //         HashSet<string> s = ["", with(e = Create<T>())];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 34));
+    }
+
+    [Fact]
+    public void NullableAnalysis_03()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            class Program
+            {
+                static IEqualityComparer<T> Create<T>()
+                {
+                    IEqualityComparer<T>? e = null;
+                    HashSet<string> s = [e.ToString(), with(e = Create<T>())];
+                    return e;
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (8,30): warning CS8602: Dereference of a possibly null reference.
+            //         HashSet<string> s = [e.ToString(), with(e = Create<T>())];
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e").WithLocation(8, 30),
+            // (8,44): error CS9400: 'with(...)' element must be the first element
+            //         HashSet<string> s = [e.ToString(), with(e = Create<T>())];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 44));
+    }
+
+    [Fact]
+    public void NullableAnalysis_04()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            class Program
+            {
+                static IEqualityComparer<T> Create<T>()
+                {
+                    IEqualityComparer<T>? e = Create<T>();
+                    HashSet<string> s = [(e = null).ToString(), with((IEqualityComparer<string>)(object)e.ToString())];
+                    return e;
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (8,31): warning CS8602: Dereference of a possibly null reference.
+            //         HashSet<string> s = [(e = null).ToString(), with((IEqualityComparer<string>)(object)e.ToString())];
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e = null").WithLocation(8, 31),
+            // (8,53): error CS9400: 'with(...)' element must be the first element
+            //         HashSet<string> s = [(e = null).ToString(), with((IEqualityComparer<string>)(object)e.ToString())];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 53));
+    }
+
+    [Fact]
+    public void NullableAnalysis_05()
+    {
+        string source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEqualityComparer<string> Create()
+                    {
+                        IEqualityComparer<string>? e = Create();
+                        HashSet<string> s = [with((e = null)), e.ToString()];
+                        return e;
+                    }
+                }
+                """;
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (8,48): warning CS8602: Dereference of a possibly null reference.
+            //         HashSet<string> s = [with((e = null)), e.ToString()];
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e").WithLocation(8, 48));
     }
 
     [Fact]

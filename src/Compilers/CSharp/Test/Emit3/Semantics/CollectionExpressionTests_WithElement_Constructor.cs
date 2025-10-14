@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpTestBase
 {
