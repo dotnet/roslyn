@@ -8,6 +8,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using ICSharpCode.Decompiler.IL.Transforms;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -713,21 +714,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var typeName = SyntaxFactory.ParseTypeName("", options: parseOptions);
             Assert.Same(parseOptions, typeName.SyntaxTree.Options);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23877")]
-        public void TestParseAttributeArgumentListWithInvalidString()
-        {
-            // Regression test for issue where ParseAttributeArgumentList would throw NullReferenceException
-            // when given an invalid string without parentheses
-            var result = SyntaxFactory.ParseAttributeArgumentList("somethingWithoutBrackets");
-
-            Assert.NotNull(result);
-            Assert.True(result.GetDiagnostics().Any(), "Expected diagnostics for invalid input");
-
-            // Verify the structure is as expected - should have missing open/close parens and errors
-            Assert.True(result.OpenParenToken.IsMissing);
-            Assert.True(result.CloseParenToken.IsMissing);
         }
     }
 }

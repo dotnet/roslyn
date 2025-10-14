@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using ICSharpCode.Decompiler.IL.Transforms;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11129,6 +11130,30 @@ I1(x);";
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23877")]
+        public void TestParseAttributeArgumentListWithInvalidString()
+        {
+            // Regression test for issue where ParseAttributeArgumentList would throw NullReferenceException
+            // when given an invalid string without parentheses
+            var result = SyntaxFactory.ParseAttributeArgumentList("somethingWithoutBrackets");
+
+            Assert.NotNull(result);
+            Assert.True(result.GetDiagnostics().Any(), "Expected diagnostics for invalid input");
+
+            // Verify the structure is as expected - should have missing open/close parens and errors
+            Assert.True(result.OpenParenToken.IsMissing);
+            Assert.True(result.CloseParenToken.IsMissing);
+
+            UsingNode(result);
+
+            M(SyntaxKind.AttributeArgumentList);
+            {
+                M(SyntaxKind.OpenParenToken);
+                M(SyntaxKind.CloseParenToken);
             }
             EOF();
         }
