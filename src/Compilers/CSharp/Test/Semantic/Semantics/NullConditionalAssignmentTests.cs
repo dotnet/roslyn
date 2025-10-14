@@ -2893,7 +2893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 graph, symbol);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void PointerReturnType_Simple()
         {
             var source = """
@@ -2919,7 +2919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void PointerReturnType_WithUsage()
         {
             var source = """
@@ -2948,7 +2948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void PointerReturnType_IntPointer()
         {
             var source = """
@@ -2967,7 +2967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void PointerReturnType_VoidPointer()
         {
             var source = """
@@ -2986,7 +2986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void PointerReturnType_Chained()
         {
             var source = """
@@ -3012,7 +3012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void PointerReturnType_StatementContext()
         {
             var source = """
@@ -3034,7 +3034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void FunctionPointerReturnType_StillRejected()
         {
             var source = """
