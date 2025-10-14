@@ -294,6 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="text">The raw text of the identifier name, including any escapes or leading '@' character.</param>        
         public static SyntaxToken Identifier(string text)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(ElasticMarker.UnderlyingNode, text, ElasticMarker.UnderlyingNode));
         }
 

@@ -714,5 +714,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var typeName = SyntaxFactory.ParseTypeName("", options: parseOptions);
             Assert.Same(parseOptions, typeName.SyntaxTree.Options);
         }
+
+        [Fact]
+        public void Identifier_Null_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => SyntaxFactory.Identifier(null));
+        }
     }
 }
