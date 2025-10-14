@@ -29,7 +29,7 @@ internal partial struct SymbolKey
             // the anonymous-function, then use that anonymous-functoin to get at
             // the synthesized anonymous delegate.
             visitor.WriteBoolean(symbol.IsAnonymousDelegateType());
-            visitor.WriteLocation(symbol.GetFirstLocation());
+            visitor.WriteLocation(symbol.Locations.First());
         }
 
         public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)

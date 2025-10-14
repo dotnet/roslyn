@@ -272,7 +272,7 @@ internal sealed partial class SymbolEquivalenceComparer
         private static bool HaveSameLocation(ISymbol x, ISymbol y)
         {
             return x.Locations.Length == 1 && y.Locations.Length == 1 &&
-                x.GetFirstLocation().Equals(y.GetFirstLocation());
+                x.Locations.First().Equals(y.Locations.First());
         }
 
         private bool ModulesAreEquivalent(IModuleSymbol x, IModuleSymbol y)

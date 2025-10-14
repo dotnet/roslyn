@@ -244,7 +244,7 @@ internal abstract class AbstractReassignedVariableService<
             // error scenarios.
             if (parameter.Locations.Length > 0)
             {
-                var parameterLocation = parameter.GetFirstLocation();
+                var parameterLocation = parameter.Locations[0];
                 if (parameterLocation.SourceTree == semanticModel.SyntaxTree)
                 {
                     location = parameterLocation.SourceSpan;

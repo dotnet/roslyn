@@ -20,7 +20,7 @@ internal static partial class IFindReferencesResultExtensions
         this ISymbol definition)
     {
         return definition.IsKind(SymbolKind.Namespace)
-            ? [definition.GetFirstLocation()]
+            ? [definition.Locations.First()]
             : definition.Locations;
     }
 
