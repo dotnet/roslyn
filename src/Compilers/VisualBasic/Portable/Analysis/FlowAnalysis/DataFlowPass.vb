@@ -1450,13 +1450,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' visit try block. Any assignment inside the region will UN-assign corresponding bit in the tryState.
                 MyBase.VisitTryBlock(tryBlock, node)
 
+                ' Save the new state before restoring
+                Dim newTryState = Me._tryState.Value
+
                 ' restore and merge old state with new changes.
                 If oldTryState.HasValue Then
-                    Dim tryState = Me._tryState.Value
+                    Dim tryState = newTryState
                     Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState
                 Else
-                    Me._tryState = oldTryState
+                    Me._tryState = newTryState
                 End If
             Else
                 MyBase.VisitTryBlock(tryBlock, node)
@@ -1508,6 +1511,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._tryState = tryState
             Else
                 Me._tryState = oldTryState
+            End If
+        End Sub
+
+        Protected Overrides Sub UpdateStateAfterTryBlock(ByRef state As LocalState)
+            If Me.TrackUnassignments AndAlso Me._tryState.HasValue Then
+                Me.IntersectWith(state, Me._tryState.Value)
+            End If
+        End Sub
+
+        Protected Overrides Sub UpdateStateAfterCatchBlock(ByRef state As LocalState)
+            If Me.TrackUnassignments AndAlso Me._tryState.HasValue Then
+                Me.IntersectWith(state, Me._tryState.Value)
             End If
         End Sub
 

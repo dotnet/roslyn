@@ -2027,6 +2027,7 @@ lUnsplitAndFinish:
             Dim initialState = Me.State.Clone()
             InitializeBlockStatement(level, i)
             VisitTryBlock(node.TryBlock, node)
+            UpdateStateAfterTryBlock(initialState)
             Dim finallyState = initialState.Clone()
             Dim endState = Me.State
 
@@ -2034,6 +2035,7 @@ lUnsplitAndFinish:
                 Me.SetState(initialState.Clone())
                 InitializeBlockStatement(level, i)
                 VisitCatchBlock(catchBlock)
+                UpdateStateAfterCatchBlock(finallyState)
                 IntersectWith(endState, Me.State)
             Next
 
@@ -2104,6 +2106,14 @@ lUnsplitAndFinish:
 
         Protected Overridable Sub VisitFinallyBlock(finallyBlock As BoundStatement)
             VisitStatement(finallyBlock)
+        End Sub
+
+        Protected Overridable Sub UpdateStateAfterTryBlock(ByRef state As LocalState)
+            ' Base implementation does nothing
+        End Sub
+
+        Protected Overridable Sub UpdateStateAfterCatchBlock(ByRef state As LocalState)
+            ' Base implementation does nothing
         End Sub
 
         Protected Overridable Function GetUnsetInFinally() As LocalState
