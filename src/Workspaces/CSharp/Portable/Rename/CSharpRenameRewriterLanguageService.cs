@@ -513,6 +513,58 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
             return result;
         }
 
+        public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
+        {
+            // First, visit the node to process any renames in the expression
+            var result = (AnonymousObjectMemberDeclaratorSyntax)base.VisitAnonymousObjectMemberDeclarator(node)!;
+
+            // If this is an inferred member (no explicit name), and the expression contains a rename location,
+            // we need to add an explicit name to preserve the member name
+            if (result.NameEquals == null)
+            {
+                // Check if the expression contains any tokens that are rename locations
+                var tokens = result.Expression.DescendantTokens(descendIntoTrivia: false);
+                foreach (var token in tokens)
+                {
+                    if (IsRenameLocation(token))
+                    {
+                        // Get the inferred name (which is the name of the last part of the expression)
+                        var inferredName = GetInferredMemberName(node.Expression);
+                        if (inferredName != null)
+                        {
+                            // Create an explicit name using the replacement text
+                            var nameEquals = SyntaxFactory.NameEquals(
+                                SyntaxFactory.IdentifierName(_replacementText));
+
+                            // Update the declarator with the explicit name
+                            result = result.Update(nameEquals, result.Expression);
+
+                            // Track the modified span
+                            var oldSpan = node.Span;
+                            AddModifiedSpan(oldSpan, result.Span);
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static string? GetInferredMemberName(ExpressionSyntax expression)
+        {
+            // Get the inferred name from the expression
+            // For member access like "obj.Member", the inferred name is "Member"
+            // For identifier like "args", the inferred name is "args"
+            return expression switch
+            {
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
+                IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
+                _ => null
+            };
+        }
+
         private bool IsRenameLocation(SyntaxToken token)
         {
             if (!_isProcessingComplexifiedSpans)
