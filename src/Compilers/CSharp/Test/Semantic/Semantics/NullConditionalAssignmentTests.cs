@@ -2892,5 +2892,167 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """,
                 graph, symbol);
         }
+
+        [Fact]
+        public void PointerReturnType_Simple()
+        {
+            var source = """
+                public unsafe class A
+                {
+                    public byte* Ptr = null;
+                }
+
+                unsafe class Test
+                {
+                    static void M1(A a)
+                    {
+                        byte* ptr = a?.Ptr;
+                    }
+
+                    static void M2(A a)
+                    {
+                        var result = a?.Ptr;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void PointerReturnType_WithUsage()
+        {
+            var source = """
+                using System;
+
+                public unsafe class A
+                {
+                    public byte* Ptr = null;
+                }
+
+                unsafe class Test
+                {
+                    static void Main()
+                    {
+                        var a = new A();
+                        byte* ptr1 = a?.Ptr;
+                        Console.Write(ptr1 == null ? "null" : "not null");
+
+                        a = null;
+                        byte* ptr2 = a?.Ptr;
+                        Console.Write(ptr2 == null ? " null" : " not null");
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "null null");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PointerReturnType_IntPointer()
+        {
+            var source = """
+                unsafe class Test
+                {
+                    public int* Value = null;
+
+                    static void M(Test t)
+                    {
+                        int* p = t?.Value;
+                        var v = t?.Value;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void PointerReturnType_VoidPointer()
+        {
+            var source = """
+                unsafe class Test
+                {
+                    public void* Data = null;
+
+                    static void M(Test t)
+                    {
+                        void* p = t?.Data;
+                        var d = t?.Data;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void PointerReturnType_Chained()
+        {
+            var source = """
+                unsafe struct Node
+                {
+                    public Node* Next;
+                    public int Value;
+
+                    public Node(int v) { Next = null; Value = v; }
+                }
+
+                unsafe class Test
+                {
+                    public Node* Head = null;
+
+                    static void M(Test t)
+                    {
+                        Node* n1 = t?.Head;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void PointerReturnType_StatementContext()
+        {
+            var source = """
+                public unsafe class A
+                {
+                    public byte* Ptr = null;
+                    public void DoSomething() { }
+                }
+
+                unsafe class Test
+                {
+                    static void M(A a)
+                    {
+                        a?.DoSomething();  // Statement context - method call works
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void FunctionPointerReturnType_StillRejected()
+        {
+            var source = """
+                unsafe class Test
+                {
+                    public delegate*<int, void> FPtr = null;
+
+                    static void M(Test t)
+                    {
+                        var f = t?.FPtr;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (7,19): error CS8978: 'delegate*<int, void>' cannot be made nullable.
+                //         var f = t?.FPtr;
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".FPtr").WithArguments("delegate*<int, void>").WithLocation(7, 19));
+        }
     }
 }
