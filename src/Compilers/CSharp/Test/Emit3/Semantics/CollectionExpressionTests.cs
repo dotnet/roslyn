@@ -26457,13 +26457,7 @@ partial class Program
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // (8,17): error CS8347: Cannot use a result of 'ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)' in this context because it may expose variables referenced by parameter 'reference' outside of their declaration scope
-                //         items = new ReadOnlySpan<int>(ref x);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "new ReadOnlySpan<int>(ref x)").WithArguments("System.ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)", "reference").WithLocation(8, 17),
-                // (8,43): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //         items = new ReadOnlySpan<int>(ref x);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(8, 43));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -26476,17 +26470,67 @@ partial class Program
                 {
                     public C(scoped ReadOnlySpan<int> items)
                     {
-                        items = [0];
+                        int x = 0;
+                        items = [x];
                     }
 
                     void M(scoped ReadOnlySpan<int> items)
                     {
-                        items = [0];
+                        int x = 0;
+                        items = [x];
                     }
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void SpanAssignment_ScopedParameter_PrimaryConstructor_Span()
+        {
+            string source = """
+                using System;
+
+                class C(scoped ReadOnlySpan<int> items)
+                {
+                    private int x = M0(M1(out int x1), items = new ReadOnlySpan<int>(ref x1));
+
+                    static int M0(int x0, ReadOnlySpan<int> items) => items[0];
+                    static int M1(out int x1) { return x1 = 0; }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,34): warning CS9113: Parameter 'items' is unread.
+                // class C(scoped ReadOnlySpan<int> items)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "items").WithArguments("items").WithLocation(3, 34),
+                // (5,48): error CS8347: Cannot use a result of 'ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)' in this context because it may expose variables referenced by parameter 'reference' outside of their declaration scope
+                //     private int x = M0(M1(out int x1), items = new ReadOnlySpan<int>(ref x1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new ReadOnlySpan<int>(ref x1)").WithArguments("System.ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)", "reference").WithLocation(5, 48),
+                // (5,74): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //     private int x = M0(M1(out int x1), items = new ReadOnlySpan<int>(ref x1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(5, 74));
+        }
+
+        [Fact]
+        public void SpanAssignment_ScopedParameter_PrimaryConstructor_CollectionExpression()
+        {
+            string source = """
+                using System;
+
+                class C(scoped ReadOnlySpan<int> items)
+                {
+                    private int x = M0(items = [M1()]);
+
+                    static int M0(ReadOnlySpan<int> x) => x[0];
+                    static int M1() => 0;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,34): warning CS9113: Parameter 'items' is unread.
+                // class C(scoped ReadOnlySpan<int> items)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "items").WithArguments("items").WithLocation(3, 34));
         }
 
         [Fact]

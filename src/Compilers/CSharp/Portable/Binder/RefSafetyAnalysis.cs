@@ -364,12 +364,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitConstructorMethodBody(BoundConstructorMethodBody node)
-        {
-            using var _ = new LocalScope(this, node.Locals);
-            return base.VisitConstructorMethodBody(node);
-        }
-
         public override BoundNode? VisitForStatement(BoundForStatement node)
         {
             using var outerLocals = new LocalScope(this, node.OuterLocals);
