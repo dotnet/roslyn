@@ -888,7 +888,7 @@ public partial class C
                 // file class C
                 Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("C", "path/to/file.cs").WithLocation(5, 12));
             var classC = comp.GetMember("C");
-            Assert.Equal(source1, classC.Locations[0].SourceTree);
+            Assert.Equal(source1, classC.GetFirstLocation().SourceTree);
             AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C", classC.MetadataName);
         }
     }
@@ -935,7 +935,7 @@ public partial class C
                 // file class C
                 Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("C", "path/to/file.cs").WithLocation(5, 12));
             var member = comp.GetMember("C");
-            Assert.Equal(source1, member.Locations[0].SourceTree);
+            Assert.Equal(source1, member.GetFirstLocation().SourceTree);
             AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C", member.MetadataName);
         }
     }
@@ -970,7 +970,7 @@ public partial class C
                 // file class C<T>
                 Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("NS1.NS2.C<T>", "path/to/file.cs").WithLocation(5, 12));
             var classC = comp.GetMember("NS1.NS2.C");
-            Assert.Equal(source1, classC.Locations[0].SourceTree);
+            Assert.Equal(source1, classC.GetFirstLocation().SourceTree);
             AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C`1", classC.MetadataName);
         }
     }
@@ -1000,7 +1000,7 @@ public partial class C
         {
             comp.VerifyEmitDiagnostics();
             var classC = comp.GetMember("C");
-            Assert.Equal(source1, classC.Locations[0].SourceTree);
+            Assert.Equal(source1, classC.GetFirstLocation().SourceTree);
             AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C", classC.MetadataName);
         }
     }

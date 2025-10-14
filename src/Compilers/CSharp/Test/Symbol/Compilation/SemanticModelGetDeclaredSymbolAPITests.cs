@@ -3900,7 +3900,7 @@ partial class program
             var model = comp.GetSemanticModel(tree);
             var param = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Where(p => p.Identifier.ValueText == "name").First();
             var symbol = model.GetDeclaredSymbol(param);
-            Assert.Equal(param.Identifier.Span, symbol.Locations[0].SourceSpan);
+            Assert.Equal(param.Identifier.Span, symbol.GetFirstLocation().SourceSpan);
         }
 
         [WorkItem(542217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542217")]

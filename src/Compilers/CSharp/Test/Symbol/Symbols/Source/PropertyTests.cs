@@ -410,7 +410,7 @@ class C
             Assert.False(backField.Locations.IsEmpty);
             var prop = type01.GetMembers("Prop").Single() as PropertySymbol;
             Assert.Equal(prop.Locations.Length, backField.Locations.Length);
-            Assert.Equal(prop.Locations[0].ToString(), backField.Locations[0].ToString());
+            Assert.Equal(prop.GetFirstLocation().ToString(), backField.GetFirstLocation().ToString());
             // -------------------------------------
             mems = type02.GetMembers();
             backField = null;
@@ -429,7 +429,7 @@ class C
             Assert.False(backField.Locations.IsEmpty);
             prop = type02.GetMembers("Prop").Single() as PropertySymbol;
             Assert.Equal(prop.Locations.Length, backField.Locations.Length);
-            Assert.Equal(prop.Locations[0].ToString(), backField.Locations[0].ToString());
+            Assert.Equal(prop.GetFirstLocation().ToString(), backField.GetFirstLocation().ToString());
         }
 
         [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]

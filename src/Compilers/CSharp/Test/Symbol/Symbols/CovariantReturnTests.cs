@@ -670,7 +670,7 @@ public class Derived2 : Base
             {
                 var isCovariant = !method.ReturnType.Equals(method.OverriddenMethod.ReturnType);
                 Assert.Equal(needsAttribute, isCovariant);
-                var attributeExpected = isCovariant && !method.Locations[0].IsInSource;
+                var attributeExpected = isCovariant && !method.GetFirstLocation().IsInSource;
                 var attrs = method.GetAttributes("System.Runtime.CompilerServices", "PreserveBaseOverridesAttribute");
                 Assert.Equal(attributeExpected, !attrs.IsEmpty());
             }

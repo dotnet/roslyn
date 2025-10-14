@@ -198,7 +198,7 @@ internal sealed partial class SymbolicRenameLocations
             // destructors declarations that match the name
             if (referencedSymbol.Kind == SymbolKind.NamedType && referencedSymbol.Locations.All(l => l.IsInSource))
             {
-                var firstLocation = referencedSymbol.Locations[0];
+                var firstLocation = referencedSymbol.GetFirstLocation();
                 var syntaxFacts = solution.GetRequiredDocument(firstLocation.SourceTree!)
                                           .GetRequiredLanguageService<ISyntaxFactsService>();
 

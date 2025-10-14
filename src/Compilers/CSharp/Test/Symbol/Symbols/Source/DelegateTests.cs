@@ -72,8 +72,8 @@ class A {
             var a = global.GetTypeMembers("A", 0).Single();
             var d = a.GetMembers("D")[0] as NamedTypeSymbol;
             var tmp = d.GetMembers();
-            Assert.Equal(d.Locations[0], d.DelegateInvokeMethod.Locations[0], EqualityComparer<Location>.Default);
-            Assert.Equal(d.Locations[0], d.InstanceConstructors[0].Locations[0], EqualityComparer<Location>.Default);
+            Assert.Equal(d.GetFirstLocation(), d.DelegateInvokeMethod.GetFirstLocation(), EqualityComparer<Location>.Default);
+            Assert.Equal(d.GetFirstLocation(), d.InstanceConstructors[0].GetFirstLocation(), EqualityComparer<Location>.Default);
         }
 
         [Fact]

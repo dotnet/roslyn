@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var c = s.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
             AssertPos(c, 20, 1);
             var obj = c.BaseType();
-            Assert.Equal("MetadataFile(CommonLanguageRuntimeLibrary)", obj.Locations[0].ToString());
+            Assert.Equal("MetadataFile(CommonLanguageRuntimeLibrary)", obj.GetFirstLocation().ToString());
             var f = c.GetMembers("F").Single() as FieldSymbol;
             AssertPos(f, 26, 1);
             var m = c.GetMembers("M").Single() as MethodSymbol;

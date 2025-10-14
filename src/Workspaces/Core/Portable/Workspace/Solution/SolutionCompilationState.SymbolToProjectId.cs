@@ -79,7 +79,7 @@ internal sealed partial class SolutionCompilationState
             // projects, but which have the same syntax-tree (which is only in one project).  We need to actually
             // check it's assembly symbol so that we get the actual project it is from (the original project, or the
             // retargetted project).
-            var syntaxTree = symbol.Locations[0].SourceTree;
+            var syntaxTree = symbol.GetFirstLocation().SourceTree;
             Contract.ThrowIfNull(syntaxTree);
 
             var documentId = this.GetDocumentState(syntaxTree, projectId: null)?.Id;

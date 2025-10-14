@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis
             {
                 context.RegisterCodeBlockAction(codeBlockContext =>
                 {
-                    codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockTopLevelRule, codeBlockContext.OwningSymbol.Locations[0], codeBlockContext.OwningSymbol.Name));
+                    codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockTopLevelRule, codeBlockContext.OwningSymbol.GetFirstLocation(), codeBlockContext.OwningSymbol.Name));
                 });
 
                 if (!_onlyStatelessAction)
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         compilationStartContext.RegisterCodeBlockAction(codeBlockContext =>
                         {
-                            codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockPerCompilationRule, codeBlockContext.OwningSymbol.Locations[0], codeBlockContext.OwningSymbol.Name));
+                            codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockPerCompilationRule, codeBlockContext.OwningSymbol.GetFirstLocation(), codeBlockContext.OwningSymbol.Name));
                         });
                     });
                 }
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis
                 context.RegisterSymbolAction(context =>
                 {
                     CallbackSymbols.Add(context.Symbol);
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, context.Symbol.Locations[0]));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, context.Symbol.GetFirstLocation()));
                 }, SymbolKind.NamedType);
             }
         }
@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis
                 var ns = (INamespaceSymbol)context.Symbol;
                 if (ns.ContainingAssembly != context.Compilation.Assembly || ns.ConstituentNamespaces.Length > 1)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, ns.Locations[0]));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, ns.GetFirstLocation()));
                 }
             }
         }
@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis
             {
                 context.RegisterSymbolAction(symbolContext =>
                 {
-                    symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, symbolContext.Symbol.Locations[0]));
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, symbolContext.Symbol.GetFirstLocation()));
                 }, SymbolKind.NamedType);
             }
 
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis
                 context.RegisterSymbolAction(symbolContext =>
                 {
                     // Report diagnostic with incorrect number of message format arguments.
-                    symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, symbolContext.Symbol.Locations[0], symbolContext.Symbol.Name));
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, symbolContext.Symbol.GetFirstLocation(), symbolContext.Symbol.Name));
                 }, SymbolKind.NamedType);
             }
         }
@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // ok, now report diagnostic on the symbol.
-                    var diagnostic = Diagnostic.Create(Descriptor, symbolContext.Symbol.Locations[0], symbolContext.Symbol.Name);
+                    var diagnostic = Diagnostic.Create(Descriptor, symbolContext.Symbol.GetFirstLocation(), symbolContext.Symbol.Name);
                     symbolContext.ReportDiagnostic(diagnostic);
                 }, SymbolKind.NamedType);
             }
@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (gate.CurrentCount != registeredActionCounts - 1)
                 {
-                    var diagnostic = Diagnostic.Create(Descriptor, symbolContext.Symbol.Locations[0]);
+                    var diagnostic = Diagnostic.Create(Descriptor, symbolContext.Symbol.GetFirstLocation());
                     symbolContext.ReportDiagnostic(diagnostic);
                 }
             }
@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis
                     case ActionKind.OperationBlockEnd:
                         context.RegisterOperationBlockStartAction(blockStartContext =>
                         {
-                            blockStartContext.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
+                            blockStartContext.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.GetFirstLocation()));
                             CacheAndVerifyControlFlowGraph(blockStartContext.OperationBlocks, op => (blockStartContext.GetControlFlowGraph(op), blockStartContext.OwningSymbol));
                         });
 
@@ -1341,7 +1341,7 @@ namespace Microsoft.CodeAnalysis
                     case ActionKind.OperationBlock:
                         context.RegisterOperationBlockAction(blockContext =>
                         {
-                            ReportDiagnostic(blockContext.ReportDiagnostic, blockContext.OwningSymbol.Locations[0]);
+                            ReportDiagnostic(blockContext.ReportDiagnostic, blockContext.OwningSymbol.GetFirstLocation());
                             CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, op => (blockContext.GetControlFlowGraph(op), blockContext.OwningSymbol));
                         });
 
@@ -1389,7 +1389,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     foreach (var operationRoot in c.OperationBlocks)
                     {
-                        var diagnostic = Diagnostic.Create(Descriptor, c.OwningSymbol.Locations[0], c.OwningSymbol.Name, operationRoot.Kind);
+                        var diagnostic = Diagnostic.Create(Descriptor, c.OwningSymbol.GetFirstLocation(), c.OwningSymbol.Name, operationRoot.Kind);
                         c.ReportDiagnostic(diagnostic);
                     }
                 });
@@ -1657,7 +1657,7 @@ namespace Microsoft.CodeAnalysis
 
             private void ReportSymbolDiagnostics(ISymbol symbol, Action<Diagnostic> addDiagnostic)
             {
-                ReportDiagnosticsCore(addDiagnostic, symbol.Locations[0], symbol.Name);
+                ReportDiagnosticsCore(addDiagnostic, symbol.GetFirstLocation(), symbol.Name);
             }
 
             private void ReportTreeDiagnostics(SyntaxTree tree, Action<Diagnostic> addDiagnostic)
@@ -1703,7 +1703,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         foreach (var namedType in namedTypes)
                         {
-                            var diagnostic = Diagnostic.Create(Rule, namedType.Locations[0], namedType.Name, namedTypes.Count);
+                            var diagnostic = Diagnostic.Create(Rule, namedType.GetFirstLocation(), namedType.Name, namedTypes.Count);
                             compilationEndContext.ReportDiagnostic(diagnostic);
                         }
                     });
@@ -1811,7 +1811,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    var diagnostic = Diagnostic.Create(descriptor, symbolContext.Symbol.Locations[0], symbolContext.Symbol.Name);
+                    var diagnostic = Diagnostic.Create(descriptor, symbolContext.Symbol.GetFirstLocation(), symbolContext.Symbol.Name);
                     symbolContext.ReportDiagnostic(diagnostic);
                 }, SymbolKind.NamedType);
 
@@ -1861,7 +1861,7 @@ namespace Microsoft.CodeAnalysis
 
             private void SymbolAction(SymbolAnalysisContext context)
             {
-                context.ReportDiagnostic(Diagnostic.Create(ParameterDescriptor, context.Symbol.Locations[0]));
+                context.ReportDiagnostic(Diagnostic.Create(ParameterDescriptor, context.Symbol.GetFirstLocation()));
             }
         }
 
@@ -2460,7 +2460,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private void ReportDiagnostic(ISymbol symbol, Action<Diagnostic> reportDiagnostic)
-                => reportDiagnostic(Diagnostic.Create(_rule, symbol.Locations[0], symbol.Name));
+                => reportDiagnostic(Diagnostic.Create(_rule, symbol.GetFirstLocation(), symbol.Name));
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -2542,7 +2542,7 @@ namespace Microsoft.CodeAnalysis
                         throw new NotImplementedException();
                     }
 
-                    var diagnostic = Diagnostic.Create(Descriptor, context.Symbol.Locations[0], _reportedSeverity, additionalLocations: null, properties: null, messageArgs: null);
+                    var diagnostic = Diagnostic.Create(Descriptor, context.Symbol.GetFirstLocation(), _reportedSeverity, additionalLocations: null, properties: null, messageArgs: null);
                     context.ReportDiagnostic(diagnostic);
                 },
                 SymbolKind.NamedType);
@@ -2570,7 +2570,7 @@ namespace Microsoft.CodeAnalysis
             private void OnOperationBlockStart(OperationBlockStartAnalysisContext context)
             {
                 context.RegisterOperationBlockEndAction(
-                    endContext => endContext.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.OwningSymbol.Locations[0])));
+                    endContext => endContext.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.OwningSymbol.GetFirstLocation())));
             }
         }
 
@@ -2610,7 +2610,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     context.RegisterSymbolAction(
-                        context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
+                        context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.GetFirstLocation())),
                         SymbolKind.Field);
                 }
             }
@@ -2940,7 +2940,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterSyntaxNodeAction(context => HandleCallback(context.Node.GetLocation(), context.Compilation, context.ReportDiagnostic, context.CancellationToken), CodeAnalysis.CSharp.SyntaxKind.ClassDeclaration);
                         break;
                     case AnalyzerRegisterActionKind.Symbol:
-                        context.RegisterSymbolAction(context => HandleCallback(context.Symbol.Locations[0], context.Compilation, context.ReportDiagnostic, context.CancellationToken), SymbolKind.NamedType);
+                        context.RegisterSymbolAction(context => HandleCallback(context.Symbol.GetFirstLocation(), context.Compilation, context.ReportDiagnostic, context.CancellationToken), SymbolKind.NamedType);
                         break;
                     case AnalyzerRegisterActionKind.Operation:
                         context.RegisterOperationAction(context => HandleCallback(context.Operation.Syntax.GetLocation(), context.Compilation, context.ReportDiagnostic, context.CancellationToken), OperationKind.VariableDeclaration);

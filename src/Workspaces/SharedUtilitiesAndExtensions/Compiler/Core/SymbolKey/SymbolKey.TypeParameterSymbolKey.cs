@@ -17,7 +17,7 @@ internal partial struct SymbolKey
             if (symbol.TypeParameterKind == TypeParameterKind.Cref)
             {
                 visitor.WriteBoolean(true);
-                visitor.WriteLocation(symbol.Locations[0]);
+                visitor.WriteLocation(symbol.GetFirstLocation());
             }
             else
             {
