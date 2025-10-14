@@ -9,6 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
+[CompilerTrait(CompilerFeature.CollectionExpressions)]
 public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpTestBase
 {
     private static string IncludeExpectedOutput(string expectedOutput) => expectedOutput;

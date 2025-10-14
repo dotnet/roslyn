@@ -20,6 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.CollectionExpressions)]
     public class CollectionExpressionTests : CSharpTestBase
     {
         private static readonly IEnumerable<KeyValuePair<string, ReportDiagnostic>> WithSpanAllocWarning = new[]

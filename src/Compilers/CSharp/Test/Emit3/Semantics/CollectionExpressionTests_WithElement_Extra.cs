@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
+[CompilerTrait(CompilerFeature.CollectionExpressions)]
 public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 {
     private static string? IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
