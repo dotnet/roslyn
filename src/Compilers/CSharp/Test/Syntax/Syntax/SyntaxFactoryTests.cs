@@ -721,10 +721,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // Regression test for issue where ParseAttributeArgumentList would throw NullReferenceException
             // when given an invalid string without parentheses
             var result = SyntaxFactory.ParseAttributeArgumentList("somethingWithoutBrackets");
-            
+
             Assert.NotNull(result);
             Assert.True(result.GetDiagnostics().Any(), "Expected diagnostics for invalid input");
-            
+
             // Verify the structure is as expected - should have missing open/close parens and errors
             Assert.True(result.OpenParenToken.IsMissing);
             Assert.True(result.CloseParenToken.IsMissing);
