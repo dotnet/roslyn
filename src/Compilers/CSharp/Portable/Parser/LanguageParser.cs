@@ -13904,17 +13904,12 @@ done:
         private LetClauseSyntax ParseLetClause()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword);
-            var letKeyword = this.EatContextualToken(SyntaxKind.LetKeyword);
-
-            // If we see a keyword followed by '=', use EatTokenAsKind to produce
-            // a better error message (ERR_IdentifierExpectedKW) and recover well.
-            var identifier = SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.EqualsToken
-                ? this.EatTokenAsKind(SyntaxKind.IdentifierToken)
-                : this.ParseIdentifierToken();
-
             return _syntaxFactory.LetClause(
-                letKeyword,
-                identifier,
+                this.EatContextualToken(SyntaxKind.LetKeyword),
+                // If we see a keyword followed by '=', use EatTokenAsKind to produce a better error message and recover well.
+                SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.EqualsToken
+                    ? this.EatTokenAsKind(SyntaxKind.IdentifierToken)
+                    : this.ParseIdentifierToken(),
                 this.EatToken(SyntaxKind.EqualsToken),
                 this.ParseExpressionCore());
         }
