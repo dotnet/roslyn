@@ -11141,11 +11141,10 @@ I1(x);";
             var result = SyntaxFactory.ParseAttributeArgumentList("somethingWithoutBrackets");
 
             Assert.NotNull(result);
-            Assert.True(result.GetDiagnostics().Any(), "Expected diagnostics for invalid input");
-
-            // Verify the structure is as expected - should have missing open/close parens and errors
-            Assert.True(result.OpenParenToken.IsMissing);
-            Assert.True(result.CloseParenToken.IsMissing);
+            result.GetDiagnostics().Verify(
+                // (1,1): error CS1073: Unexpected token 'somethingWithoutBrackets'
+                // somethingWithoutBrackets
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("somethingWithoutBrackets").WithLocation(1, 1));
 
             UsingNode(result);
 
