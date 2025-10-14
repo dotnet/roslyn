@@ -714,5 +714,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var typeName = SyntaxFactory.ParseTypeName("", options: parseOptions);
             Assert.Same(parseOptions, typeName.SyntaxTree.Options);
         }
+
+        [Fact]
+        public void TestParseAttributeArgumentListWithInvalidString()
+        {
+            // Regression test for issue where ParseAttributeArgumentList would throw NullReferenceException
+            // when given an invalid string without brackets
+            var result = SyntaxFactory.ParseAttributeArgumentList("somethingWithoutBrackets");
+            
+            Assert.NotNull(result);
+            Assert.True(result.GetDiagnostics().Any(), "Expected diagnostics for invalid input");
+            
+            // Verify the structure is as expected - should have missing open/close parens and errors
+            Assert.True(result.OpenParenToken.IsMissing);
+            Assert.True(result.CloseParenToken.IsMissing);
+        }
     }
 }
