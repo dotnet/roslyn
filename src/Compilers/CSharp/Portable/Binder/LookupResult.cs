@@ -309,11 +309,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Same goodness. Include all symbols
                 _symbolList.Add(result.Symbol);
             }
-        }
 
-        private static bool PreferGenericOverNonGeneric(Symbol currentSymbol, Symbol newSymbol)
-        {
-            return currentSymbol is NamedTypeSymbol { Arity: 0 } && newSymbol is NamedTypeSymbol { Arity: > 0 };
+            static bool PreferGenericOverNonGeneric(Symbol currentSymbol, Symbol newSymbol)
+            {
+                return currentSymbol is NamedTypeSymbol { Arity: 0 } && newSymbol is NamedTypeSymbol { Arity: > 0 };
+            }
         }
 
         // global pool
