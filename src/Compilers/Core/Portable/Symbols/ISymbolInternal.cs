@@ -89,6 +89,9 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         bool IsDefinition { get; }
 
+        Location GetFirstLocation();
+        Location GetFirstLocationOrNone();
+
         /// <summary>
         /// Gets the locations where the symbol was originally defined, either in source or
         /// metadata. Some symbols (for example, partial classes) may be defined in more than one
