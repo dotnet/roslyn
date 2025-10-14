@@ -2141,8 +2141,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inConversion,
             BindingDiagnosticBag diagnostics)
         {
-            var syntax = node.Syntax;
-            var builder = ArrayBuilder<BoundNode>.GetInstance(node.Elements.Length);
+            var withArguments = node.WithElement?.Arguments ?? [];
+
+            var builder = ArrayBuilder<BoundNode>.GetInstance(withArguments.Length + node.Elements.Length);
+
+            foreach (var argument in withArguments)
+            {
+                builder.Add(BindToNaturalType(argument, diagnostics, reportNoTargetType: !targetType.IsErrorType()));
+            }
+
             foreach (var element in node.Elements)
             {
                 var result = element is BoundExpression expression ?
@@ -2150,15 +2157,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     element;
                 builder.Add(result);
             }
+
             return new BoundCollectionExpression(
-                syntax,
+                node.Syntax,
                 collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderMethod: null,
                 collectionBuilderElementsPlaceholder: null,
                 wasTargetTyped: inConversion,
-                hasWithElement: node.WithElement != null,
+                // Regardless of whether there was a 'with' element, we are in an error recovery scenario, and we've
+                // moved all with arguments to the front of the elements list.  So treat this as not having a 'with'
+                // element.
+                hasWithElement: false,
                 node,
                 elements: builder.ToImmutableAndFree(),
                 targetType,
