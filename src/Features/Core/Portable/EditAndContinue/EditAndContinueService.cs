@@ -160,7 +160,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates: [], Log, AnalysisLog, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, Log, AnalysisLog, reportDiagnostics);
 
             lock (_debuggingSessions)
             {
