@@ -181,7 +181,6 @@ public sealed class CSharpSourceGenerators()
     }
 
     [IdeFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/77895")]
     public async Task GoToDefinitionWithPartialUserAndGeneratedCode()
     {
         // This test verifies that when a type has both user code and generated code definitions,

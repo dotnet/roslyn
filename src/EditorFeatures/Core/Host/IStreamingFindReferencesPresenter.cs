@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -169,7 +170,9 @@ internal static class IStreamingFindUsagesPresenterExtensions
         {
             foreach (var sourceSpan in item.SourceSpans)
             {
-                if (!await sourceSpan.Document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
+                var document = sourceSpan.Document;
+                var isGenerated = await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false);
+                if (!isGenerated)
                     return location;
             }
         }
