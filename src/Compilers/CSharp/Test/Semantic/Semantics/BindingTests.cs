@@ -4080,5 +4080,126 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (a) .
 
             VerifyOperationTree(comp, model.GetOperation(ifStmt), operationString);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericAndNonGenericType()
+        {
+            var text = """
+                class MyExpression { }
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int, string> x;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,9): error CS0305: Using the generic type 'MyExpression<T>' requires 1 type arguments
+                //         MyExpression<int, string> x;
+                Diagnostic(ErrorCode.ERR_BadArity, "MyExpression<int, string>").WithArguments("MyExpression<T>", "type", "1").WithLocation(8, 9),
+                // (8,35): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression<int, string> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericAndNonGenericType_SingleTypeArgument()
+        {
+            var text = """
+                class MyExpression { }
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int> x = null;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,27): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         MyExpression<int> x = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestNonGenericTypeOnly()
+        {
+            var text = """
+                class MyExpression { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int> x;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,9): error CS0308: The non-generic type 'MyExpression' cannot be used with type arguments
+                //         MyExpression<int> x;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "MyExpression<int>").WithArguments("MyExpression", "type").WithLocation(7, 9),
+                // (7,27): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression<int> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericTypeOnly()
+        {
+            var text = """
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int, string> x;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,9): error CS0305: Using the generic type 'MyExpression<T>' requires 1 type arguments
+                //         MyExpression<int, string> x;
+                Diagnostic(ErrorCode.ERR_BadArity, "MyExpression<int, string>").WithArguments("MyExpression<T>", "type", "1").WithLocation(7, 9),
+                // (7,35): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression<int, string> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestMultipleGenericTypes()
+        {
+            var text = """
+                class MyExpression { }
+                class MyExpression<T> { }
+                class MyExpression<T1, T2> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int, string, bool> x;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (9,9): error CS0305: Using the generic type 'MyExpression<T>' requires 1 type arguments
+                //         MyExpression<int, string, bool> x;
+                Diagnostic(ErrorCode.ERR_BadArity, "MyExpression<int, string, bool>").WithArguments("MyExpression<T>", "type", "1").WithLocation(9, 9),
+                // (9,41): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression<int, string, bool> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(9, 41));
+        }
     }
 }
