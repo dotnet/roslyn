@@ -463,16 +463,15 @@ if (milestoneIssues.Length != 0)
     });
 }
 
+var snapBranchName = $"snap-{sourceBranchName.Replace('/', '-')}-to-{targetBranchName.Replace('/', '-')}-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+
 // Merge between branches.
 actions.Add($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBranchName}[/] up to and including PR [teal]#{lastPr.Number}[/]", async () =>
 {
     var prTitle = $"Snap {sourceBranchName} into {targetBranchName}";
 
     // Check whether the target branch exists.
-    var targetBranchExists = (await Cli.Wrap("gh")
-        .WithArguments(["api", $"repos/{sourceRepoShort}/branches/{targetBranchName}"])
-        .WithValidation(CommandResultValidation.None)
-        .ExecuteBufferedAsync(logger)).IsSuccess;
+    var targetBranchExists = await gitHub.DoesBranchExistAsync(targetBranchName);
 
     if (!targetBranchExists)
     {
@@ -486,7 +485,6 @@ actions.Add($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBra
         // Target branch exists, merge changes up to the commit.
 
         // Create a branch for the PR.
-        var snapBranchName = $"snap-{sourceBranchName.Replace('/', '-')}-to-{targetBranchName.Replace('/', '-')}-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
         await gitHub.CreateBranchAsync(snapBranchName, lastPrCommitDetails.ToCommit());
 
         // Open the PR.
@@ -511,13 +509,13 @@ var sourcePublishDataAfterSnap = sourcePublishData.WithData(new PublishDataJson(
         VsBranch: sourceVsBranchAfterSnap,
         InsertionTitlePrefix: sourceVsPrefixAfterSnap,
         InsertionCreateDraftPR: sourceVsAsDraftAfterSnap)));
-sourcePublishDataAfterSnap.SaveIfNeeded(logger, actions, sourcePublishData);
+sourcePublishDataAfterSnap.PushOrOpenPrIfNeeded(actions, sourcePublishData);
 var targetPublishDataAfterSnap = targetPublishData.WithData(new PublishDataJson(
     BranchInfo: new BranchInfo(
         VsBranch: targetVsBranchAfterSnap,
         InsertionTitlePrefix: targetVsPrefixAfterSnap,
         InsertionCreateDraftPR: targetVsAsDraftAfterSnap)));
-targetPublishDataAfterSnap.SaveIfNeeded(logger, actions, targetPublishData);
+targetPublishDataAfterSnap.PushOrOpenPrIfNeeded(actions, targetPublishData, snapBranchName);
 
 // Perform actions.
 console.WriteLine();
@@ -569,7 +567,26 @@ file sealed class GitHubUtil(
     Logger logger,
     string repoOwnerAndName)
 {
+    public Logger Logger => logger;
     public string RepoOwnerAndName => repoOwnerAndName;
+
+    public async Task<bool> DoesBranchExistAsync(string branchName)
+    {
+        return (await Cli.Wrap("gh")
+            .WithArguments(["api", $"repos/{repoOwnerAndName}/branches/{branchName}"])
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteBufferedAsync(logger))
+            .IsSuccess;
+    }
+
+    public async Task CreateBranchAsync(string name, Commit head)
+    {
+        await Cli.Wrap("gh")
+            .WithArguments(["api", "-X", "POST", $"repos/{repoOwnerAndName}/git/refs",
+                "--field", $"ref=refs/heads/{name}",
+                "--field", $"sha={head.Oid}"])
+            .ExecuteBufferedAsync(logger);
+    }
 
     public async Task<Commit> GetBranchHeadAsync(string branchName)
     {
@@ -584,15 +601,6 @@ file sealed class GitHubUtil(
             .GetString()
             ?? throw new InvalidOperationException($"Null branch '{branchName}' in '{repoOwnerAndName}'");
         return new Commit(sha);
-    }
-
-    public async Task CreateBranchAsync(string name, Commit head)
-    {
-        await Cli.Wrap("gh")
-            .WithArguments(["api", "-X", "POST", $"repos/{repoOwnerAndName}/git/refs",
-                "--field", $"ref=refs/heads/{name}",
-                "--field", $"sha={head.Oid}"])
-            .ExecuteBufferedAsync(logger);
     }
 }
 
@@ -636,13 +644,16 @@ file sealed class PublishData(
         console.MarkupLineInterpolated($"Branch [teal]{branchName}[/] inserts to VS [teal]{data?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{data?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
     }
 
-    public void SaveIfNeeded(Logger logger, ActionList actions, PublishData? original)
+    public void PushOrOpenPrIfNeeded(ActionList actions, PublishData? original, string? updateBranchName = null)
     {
+        var logger = gitHub.Logger;
+        var console = actions.Console;
+
         Debug.Assert(original is null || (original.RepoOwnerAndName == RepoOwnerAndName && original.BranchName == BranchName));
 
         if (this.Equals(original))
         {
-            actions.Console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{BranchName}[/] PublishData.json already up to date");
+            console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{BranchName}[/] PublishData.json already up to date");
             return;
         }
 
@@ -653,11 +664,16 @@ file sealed class PublishData(
         actions.Add(title, async () =>
         {
             var prTitle = "Update PublishData.json";
-            var updateBranchName = $"snap-publish-data-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+            updateBranchName ??= $"snap-publish-data-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+
+            var updateBranchExists = await gitHub.DoesBranchExistAsync(updateBranchName);
 
             // Create a branch for the PR.
-            var baseBranchHead = await gitHub.GetBranchHeadAsync(branchName);
-            await gitHub.CreateBranchAsync(updateBranchName, baseBranchHead);
+            if (!updateBranchExists)
+            {
+                var baseBranchHead = await gitHub.GetBranchHeadAsync(branchName);
+                await gitHub.CreateBranchAsync(updateBranchName, baseBranchHead);
+            }
 
             // Obtain SHA of the file (needed for the update API call).
             var fileSha = (await Cli.Wrap("gh")
@@ -681,16 +697,23 @@ file sealed class PublishData(
                     "--field", $"content={Convert.ToBase64String(Encoding.UTF8.GetBytes(serialized))}"])
                 .ExecuteBufferedAsync(logger);
 
-            // Open the PR.
-            var createPrResult = await Cli.Wrap("gh")
-                .WithArguments(["pr", "create",
-                    "--title", prTitle,
-                    "--body", "Auto-generated by snap script.",
-                    "--head", updateBranchName,
-                    "--base", BranchName,
-                    "--repo", RepoOwnerAndName])
-                .ExecuteBufferedAsync(logger);
-            actions.Console.WriteLine(createPrResult.StandardOutput.Trim());
+            // Open the PR (unless the branch already exists - then this is part of already-opened snap PR).
+            if (!updateBranchExists)
+            {
+                var createPrResult = await Cli.Wrap("gh")
+                    .WithArguments(["pr", "create",
+                        "--title", prTitle,
+                        "--body", "Auto-generated by snap script.",
+                        "--head", updateBranchName,
+                        "--base", BranchName,
+                        "--repo", RepoOwnerAndName])
+                    .ExecuteBufferedAsync(logger);
+                console.WriteLine(createPrResult.StandardOutput.Trim());
+            }
+            else
+            {
+                console.MarkupLineInterpolated($"[green]Note:[/] Pushed to [teal]{updateBranchName}[/].");
+            }
         });
     }
 }
