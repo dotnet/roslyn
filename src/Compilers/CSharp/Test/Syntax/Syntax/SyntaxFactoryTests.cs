@@ -8,7 +8,6 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using ICSharpCode.Decompiler.IL.Transforms;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
