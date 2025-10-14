@@ -7330,5 +7330,69 @@ select t";
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10446")]
+        public void LetClauseWithKeywordAsIdentifier()
+        {
+            // Test that using a keyword in a let clause produces a clear error message
+            // and recovers well without cascading errors
+            string source = "from m in methods let params = m.GetParameters() select m";
+            UsingExpression(source,
+                // (1,23): error CS1041: Identifier expected; 'params' is a keyword
+                // from m in methods let params = m.GetParameters() select m
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "params").WithArguments("", "params").WithLocation(1, 23));
+
+            N(SyntaxKind.QueryExpression);
+            {
+                N(SyntaxKind.FromClause);
+                {
+                    N(SyntaxKind.FromKeyword);
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.InKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "methods");
+                    }
+                }
+                N(SyntaxKind.QueryBody);
+                {
+                    N(SyntaxKind.LetClause);
+                    {
+                        N(SyntaxKind.LetKeyword);
+                        N(SyntaxKind.IdentifierToken, "params");
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "m");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "GetParameters");
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SelectClause);
+                    {
+                        N(SyntaxKind.SelectKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "m");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
     }
 }
