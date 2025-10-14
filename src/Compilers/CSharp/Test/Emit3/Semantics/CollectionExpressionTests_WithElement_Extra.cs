@@ -1503,7 +1503,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
                 }
                 """;
-        // Added execution output verification.
+
         var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
@@ -2714,7 +2714,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(y: 6, x: 7), 8];
                 c.Report();
                 """;
-        // Added execution output verification.
+
         var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
@@ -2832,7 +2832,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(ref r)];
                 c.Report();
                 """;
-        // Added execution output verification.
+
         var verifier = CompileAndVerify(
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
@@ -3279,7 +3279,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(out r), 3];
                 c.Report();
                 """;
-        // Added execution output verification.
+
         var verifier = CompileAndVerify(
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
@@ -3418,7 +3418,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(out x, y), 3];
                 c.Report();
                 """;
-        // Added execution output verification.
+
         var verifier = CompileAndVerify(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80,
