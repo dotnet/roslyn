@@ -1936,9 +1936,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 }
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
-        // https://github.com/dotnet/roslyn/issues/77866: [with(x)] and [with(x), y] should
-        // result in errors since x should not be included in the params argument. Should
-        // be fixed when the last parameter of the builder method is the items parameter.
+
         comp.VerifyEmitDiagnostics(
             // (15,14): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
             //         c = [with(x)];
@@ -5312,8 +5310,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     }
                 }
                 """;
-        // https://github.com/dotnet/roslyn/issues/77866: 1, ..., 2, ..., should be evaluated before 3, ..., 4, ... .
-        // Should be fixed when the last parameter of the builder method is the items parameter.
+
         var comp = CreateCompilation(
             [sourceA, sourceB, sourceC],
             targetFramework: TargetFramework.Net80);
