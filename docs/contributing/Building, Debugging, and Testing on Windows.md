@@ -192,7 +192,8 @@ under `AppData`, not from `Program File`).
 
 1. Make sure that you can build the `runtime` repo as baseline (run `build.cmd libs+libs.tests`, which should be sufficient to build all C# code, installing any prerequisites if prompted to, and perhaps `git clean -xdf` and `build.cmd -restore` initially - see [runtime repo documentation](https://github.com/dotnet/runtime/blob/main/docs/workflow/README.md) for specific prerequisites and build instructions)
 2. `build.cmd -pack -c Release` on your `roslyn` repo
-    - Note that you could also consider `-c Debug` 
+    - Note that `-c Debug` can also be used (along with changing `Release` to `Debug` in `RestoreAdditionalProjectSources` property value below). This will allow checking the compiler's debug assertions when building the runtime.
+    - It's good for us to investigate scenarios where compiling the runtime libraries causes the compiler's debug assertions to fail. However, assertion failures can obscure whether or not the compiler ultimately succeeds at building the runtime and producing correct binaries. So, if the goal is to only check for "functional breaks", then using a Release mode compiler to start with can be preferable.
 4. Open your NuGet package cache (its location is likely `%NUGET_PACKAGES%\microsoft.net.compilers.toolset` or `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset`).
 5. Delete the version of the toolset that you just packed so that the new one will get put into the cache.
 6. Modify your local enlistment of `runtime` similarly to [this commit](https://github.com/RikkiGibson/runtime/commit/runtime-local-roslyn-build-example) then build again
