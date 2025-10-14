@@ -120,6 +120,14 @@ internal static class IStreamingFindUsagesPresenterExtensions
         if (presenter == null)
             return null;
 
+<<<<<<< HEAD
+=======
+        // Find the first location from a non-generated document to navigate to automatically.
+        // This way the user gets taken to their user code while still being able to see all the results
+        // (including generated code) in the tool window.
+        var preferredLocation = GetPreferredNonGeneratedLocation(builder);
+
+>>>>>>> 39c4cf77da7 (Compute if a doc is generated code or not in OOP not on the host)
         var navigableItems = builder.SelectAsArray(t => t.item);
         return new NavigableLocation(async (options, cancellationToken) =>
         {
@@ -145,4 +153,27 @@ internal static class IStreamingFindUsagesPresenterExtensions
             return true;
         });
     }
+<<<<<<< HEAD
+=======
+
+    /// <summary>
+    /// Finds the first navigable location from a non-generated document in the list of definition items.
+    /// This allows Go To Definition to automatically navigate to user code when there are multiple locations
+    /// including generated code.
+    /// </summary>
+    private static INavigableLocation? GetPreferredNonGeneratedLocation(
+        ArrayBuilder<(DefinitionItem item, INavigableLocation location)> builder)
+    {
+        foreach (var (item, location) in builder)
+        {
+            foreach (var sourceSpan in item.SourceSpans)
+            {
+                if (!sourceSpan.IsGeneratedCode)
+                    return location;
+            }
+        }
+
+        return null;
+    }
+>>>>>>> 39c4cf77da7 (Compute if a doc is generated code or not in OOP not on the host)
 }

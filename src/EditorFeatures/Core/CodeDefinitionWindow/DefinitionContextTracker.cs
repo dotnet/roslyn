@@ -171,7 +171,8 @@ internal sealed class DefinitionContextTracker : ITextViewConnectionListener
             if (symbol != null)
             {
                 var symbolNavigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
-                var definitionItem = symbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: false);
+                var definitionItem = await symbol.ToNonClassifiedDefinitionItemAsync(
+                    document.Project.Solution, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
                 var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
                 if (result != null)
