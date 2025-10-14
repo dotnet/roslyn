@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestParseAttributeArgumentListWithInvalidString()
         {
             // Regression test for issue where ParseAttributeArgumentList would throw NullReferenceException
-            // when given an invalid string without brackets (parentheses)
+            // when given an invalid string without parentheses
             var result = SyntaxFactory.ParseAttributeArgumentList("somethingWithoutBrackets");
             
             Assert.NotNull(result);
