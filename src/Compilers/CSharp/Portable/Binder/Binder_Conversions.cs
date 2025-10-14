@@ -1060,7 +1060,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var builderMethod in collectionBuilderMethods)
                 {
                     var projection = new SynthesizedCollectionBuilderProjectedMethodSymbol(builderMethod);
+
+                    // See documentation on SynthesizedCollectionBuilderProjectedMethodSymbol for why Arity must be 0
+                    // for the projection method.  Similarly, in GetCollectionBuilderMethods we filter out any methods
+                    // that would result in a projection with a last 'params' parameter.
                     Debug.Assert(projection.Arity == 0);
+                    Debug.Assert(projection.ParameterCount == 0 || !projection.Parameters.Last().IsParams);
+
                     projectionMethods.Add(projection);
                 }
 
@@ -1100,7 +1106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundValuePlaceholder? collectionBuilderElementsPlaceholder;
 
                 if (projectionInvocationExpression is not BoundCall projectionCall ||
-                    projectionCall.Expanded ||
                     projectionCall.Method is not SynthesizedCollectionBuilderProjectedMethodSymbol { UnderlyingMethod: var underlyingMethod })
                 {
                     // PROTOTYPE: consider giving error if the projection bound in 'Expanded' form.  This means we had
@@ -1118,6 +1123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // We should have already filtered out any methods that would result in an 'Expanded' last params
+                    // parameter in GetCollectionBuilderMethods. 
+                    Debug.Assert(!projectionCall.Expanded);
+
                     // Now that we've settled on the actual collection builder method to call, do a final round of
                     // checks on it in case there are reasons it will have a problem.
                     collectionBuilderMethod = underlyingMethod;
@@ -1166,9 +1175,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultKind: LookupResultKind.Viable,
                         type: collectionBuilderMethod.ReturnType).MakeCompilerGenerated();
 
-                    // Wrap in a conversion if necessary.  Note that GetAndValidateCollectionBuilderMethods guarantees
-                    // that either return and target type are identical, or that a valid implicit conversion exists
-                    // between them.
+                    // Wrap in a conversion if necessary.  Note that GetCollectionBuilderMethods guarantees that either
+                    // return and target type are identical, or that a valid implicit conversion exists between them.
                     collectionCreation = @this.CreateConversion(builderCall, targetType, diagnostics);
                 }
 
@@ -1281,8 +1289,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
+                    // Last parameter must be some ReadOnlySpan<T>
                     if (method.Parameters is not [.., { RefKind: RefKind.None, Type: NamedTypeSymbol parameterType }]
                         || !readOnlySpanType.Equals(parameterType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        continue;
+                    }
+
+                    // Filter out methods that have a params parameter in the non-last position.  Note: it is not legal
+                    // to make a method with such a parameter in C# or VB.  However, it could be possible to read in
+                    // such a method from metadata.  By filtering these out, we can sidestep thorny issues that would
+                    // arise when trying to call the synthesized projected version of this method with the
+                    // ReadOnlySpan<T> parameter removed.
+                    if (method.Parameters is [.., { IsParams: true }, _])
                     {
                         continue;
                     }
