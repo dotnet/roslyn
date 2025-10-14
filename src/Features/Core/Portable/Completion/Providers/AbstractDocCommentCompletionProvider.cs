@@ -283,10 +283,24 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
         var replacementText = beforeCaretText;
         var newPosition = replacementSpan.Start + beforeCaretText.Length;
 
+        // Check if '="' already follows the replacement span. If so, we should not insert '=""' 
+        // as it would result in duplicate quotes. Instead, adjust the replacement text and position.
         if (text.Length > replacementSpan.End + 1
             && text[replacementSpan.End] == '='
             && text[replacementSpan.End + 1] == '"')
         {
+            // If the replacement text ends with '="', remove it to avoid duplication
+            if (replacementText.EndsWith("=\""))
+            {
+                replacementText = replacementText[..^2];
+                newPosition -= 2;
+            }
+            // Also remove the closing '"' from afterCaretText if it exists, as it would be a duplicate
+            if (afterCaretText == "\"")
+            {
+                afterCaretText = string.Empty;
+            }
+            
             newPosition += 2;
         }
 

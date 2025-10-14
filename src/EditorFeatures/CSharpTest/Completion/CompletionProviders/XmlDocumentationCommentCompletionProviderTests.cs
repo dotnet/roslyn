@@ -687,6 +687,30 @@ public sealed class XmlDocumentationCommentCompletionProviderTests : AbstractCSh
             }
             """, null);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
+    public Task SeeAttributeNames_ReplacingCrefWithLangword()
+        => VerifyProviderCommitAsync("""
+            class C
+            {
+                /// <summary>
+                /// <see cref$$=""/>
+                /// </summary>
+                static void Goo()
+                {
+                }
+            }
+            """, "langword", """
+            class C
+            {
+                /// <summary>
+                /// <see langword=""/>
+                /// </summary>
+                static void Goo()
+                {
+                }
+            }
+            """, null);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37504")]
     public Task SeeAlsoAttributeNames()
         => VerifyItemsExistAsync("""
