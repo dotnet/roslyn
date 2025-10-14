@@ -715,41 +715,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(parseOptions, typeName.SyntaxTree.Options);
         }
 
-        [Fact]
+        [Fact, WorkItem(17637, "https://github.com/dotnet/roslyn/issues/17637")]
         public void Identifier_Null_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => SyntaxFactory.Identifier(null));
         }
 
-        [Fact]
+        [Fact, WorkItem(17637, "https://github.com/dotnet/roslyn/issues/17637")]
         public void Identifier_WithTrivia_NullText_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => 
                 SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), null, SyntaxFactory.TriviaList()));
         }
 
-        [Fact]
+        [Fact, WorkItem(17637, "https://github.com/dotnet/roslyn/issues/17637")]
         public void Identifier_WithContextualKind_NullText_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => 
                 SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, null, "value", SyntaxFactory.TriviaList()));
         }
 
-        [Fact]
+        [Fact, WorkItem(17637, "https://github.com/dotnet/roslyn/issues/17637")]
         public void Identifier_WithContextualKind_NullValueText_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => 
                 SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, "text", null, SyntaxFactory.TriviaList()));
         }
 
-        [Fact]
+        [Fact, WorkItem(17637, "https://github.com/dotnet/roslyn/issues/17637")]
         public void VerbatimIdentifier_NullText_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => 
                 SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), null, "value", SyntaxFactory.TriviaList()));
         }
 
-        [Fact]
+        [Fact, WorkItem(17637, "https://github.com/dotnet/roslyn/issues/17637")]
         public void VerbatimIdentifier_NullValueText_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => 
