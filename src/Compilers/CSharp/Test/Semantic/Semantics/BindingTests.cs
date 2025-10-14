@@ -1833,9 +1833,9 @@ class C
                 // (20,27): error CS0305: Using the generic type 'N.A<T>' requires '1' type arguments
                 // 
                 Diagnostic(ErrorCode.ERR_BadArity, "A").WithArguments("N.A<T>", "type", "1"),
-                // (21,34): error CS0308: The non-generic type 'N.B' cannot be used with type arguments
+                // (21,34): error CS0305: Using the generic type 'N.B<T1, T2>' requires '2' type arguments
                 // 
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "B<int>").WithArguments("N.B", "type")
+                Diagnostic(ErrorCode.ERR_BadArity, "B<int>").WithArguments("N.B<T1, T2>", "type", "2")
                 );
         }
 
