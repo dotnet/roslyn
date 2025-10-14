@@ -86,12 +86,11 @@ internal sealed partial class ManagedHotReloadLanguageService(
             var compileTimeSolution = GetCurrentCompileTimeSolution(currentDesignTimeSolution);
 
             // TODO: use remote proxy once we transition to pull diagnostics
-            _debuggingSession = await encService.StartDebuggingSessionAsync(
+            _debuggingSession = encService.StartDebuggingSession(
                 compileTimeSolution,
                 _debuggerService,
                 PdbMatchingSourceTextProvider.Instance,
-                reportDiagnostics: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                reportDiagnostics: true);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {

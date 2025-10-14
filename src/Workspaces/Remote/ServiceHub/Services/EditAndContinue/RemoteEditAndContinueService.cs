@@ -82,13 +82,13 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// </summary>
     public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, bool reportDiagnostics, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(solutionChecksum, async solution =>
+        return RunServiceAsync(solutionChecksum, solution =>
         {
             var debuggerService = new ManagedEditAndContinueDebuggerService(_callback, callbackId);
             var sourceTextProvider = new SourceTextProvider(_callback, callbackId);
 
-            var sessionId = await GetService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, reportDiagnostics, cancellationToken).ConfigureAwait(false);
-            return sessionId;
+            var sessionId = GetService().StartDebuggingSession(solution, debuggerService, sourceTextProvider, reportDiagnostics);
+            return ValueTask.FromResult(sessionId);
         }, cancellationToken);
     }
 

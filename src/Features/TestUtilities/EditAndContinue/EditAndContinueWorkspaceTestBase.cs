@@ -165,18 +165,17 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return service;
     }
 
-    internal async Task<DebuggingSession> StartDebuggingSessionAsync(
+    internal DebuggingSession StartDebuggingSession(
         EditAndContinueService service,
         Solution solution,
         CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput,
         IPdbMatchingSourceTextProvider? sourceTextProvider = null)
     {
-        var sessionId = await service.StartDebuggingSessionAsync(
+        var sessionId = service.StartDebuggingSession(
             solution,
             _debuggerService,
             sourceTextProvider: sourceTextProvider ?? NullPdbMatchingSourceTextProvider.Instance,
-            reportDiagnostics: true,
-            cancellationToken: CancellationToken.None);
+            reportDiagnostics: true);
 
         var session = service.GetTestAccessor().GetDebuggingSession(sessionId);
 

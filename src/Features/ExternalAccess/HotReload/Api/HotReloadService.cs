@@ -164,12 +164,11 @@ internal sealed class HotReloadService(SolutionServices services, Func<ValueTask
         // It's important to do this before we start watching for changes so that we have a baseline we can compare future snapshots to.
         await EditAndContinueService.HydrateDocumentsAsync(solution, cancellationToken).ConfigureAwait(false);
 
-        var newSessionId = await _encService.StartDebuggingSessionAsync(
+        var newSessionId = _encService.StartDebuggingSession(
             solution,
             new DebuggerService(capabilitiesProvider),
             NullPdbMatchingSourceTextProvider.Instance,
-            reportDiagnostics: false,
-            cancellationToken).ConfigureAwait(false);
+            reportDiagnostics: false);
 
         Contract.ThrowIfFalse(_sessionId == default, "Session already started");
         _sessionId = newSessionId;

@@ -57,8 +57,8 @@ internal sealed class MockEditAndContinueService() : IEditAndContinueService
     public void OnSourceFileUpdated(Document document)
         => OnSourceFileUpdatedImpl?.Invoke(document);
 
-    public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, bool reportDiagnostics, CancellationToken cancellationToken)
-        => new((StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, sourceTextProvider, reportDiagnostics));
+    public DebuggingSessionId StartDebuggingSession(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, bool reportDiagnostics)
+        => (StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, sourceTextProvider, reportDiagnostics);
 
     public void SetFileLoggingDirectory(string? logDirectory)
         => throw new NotImplementedException();

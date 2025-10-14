@@ -148,12 +148,11 @@ internal sealed class EditAndContinueService : IEditAndContinueService
                 projectState.AnalyzerConfigDocumentStates.States.Values);
     }
 
-    public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
+    public DebuggingSessionId StartDebuggingSession(
         Solution solution,
         IManagedHotReloadService debuggerService,
         IPdbMatchingSourceTextProvider sourceTextProvider,
-        bool reportDiagnostics,
-        CancellationToken cancellationToken)
+        bool reportDiagnostics)
     {
         try
         {
@@ -172,7 +171,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             return sessionId;
 
         }
-        catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+        catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
         {
             throw ExceptionUtilities.Unreachable();
         }

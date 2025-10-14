@@ -127,7 +127,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
         if (client == null)
         {
-            var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, reportDiagnostics, cancellationToken).ConfigureAwait(false);
+            var sessionId = GetLocalService().StartDebuggingSession(solution, debuggerService, sourceTextProvider, reportDiagnostics);
             return new RemoteDebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
         }
 
