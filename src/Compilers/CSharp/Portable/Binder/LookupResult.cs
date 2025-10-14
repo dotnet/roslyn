@@ -286,11 +286,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.SetFrom(result);
             }
+            else if (Kind == LookupResultKind.WrongArity && result.Kind == LookupResultKind.WrongArity)
+            {
+                // When both results are WrongArity, prefer the generic type over the non-generic one
+                // if the user supplied type arguments
+                if (PreferGenericOverNonGeneric(this.SingleSymbolOrDefault, result.Symbol))
+                {
+                    this.SetFrom(result);
+                }
+                else if (!PreferGenericOverNonGeneric(result.Symbol, this.SingleSymbolOrDefault))
+                {
+                    // Neither is preferred, add both symbols
+                    if ((object)result.Symbol != null)
+                    {
+                        _symbolList.Add(result.Symbol);
+                    }
+                }
+                // else: existing result is preferred (generic over non-generic), keep it
+            }
             else if ((object)result.Symbol != null)
             {
                 // Same goodness. Include all symbols
                 _symbolList.Add(result.Symbol);
             }
+        }
+
+        private static bool PreferGenericOverNonGeneric(Symbol currentSymbol, Symbol newSymbol)
+        {
+            // Prefer a generic type (arity > 0) over a non-generic type (arity == 0)
+            // when both are NamedTypeSymbols with WrongArity
+            if (currentSymbol is NamedTypeSymbol currentType && newSymbol is NamedTypeSymbol newType)
+            {
+                // Prefer the one with arity > 0 (generic) over arity == 0 (non-generic)
+                if (currentType.Arity == 0 && newType.Arity > 0)
+                {
+                    return true; // prefer new symbol (generic) over current (non-generic)
+                }
+            }
+            return false;
         }
 
         // global pool
