@@ -1846,17 +1846,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol;
         }
 
-        internal static bool TryGetWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location, [NotNullWhen(true)] out NamedTypeSymbol? typeSymbol)
+        internal static bool TryGetOptionalWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location, [NotNullWhen(true)] out NamedTypeSymbol? typeSymbol)
         {
             typeSymbol = compilation.GetWellKnownType(type);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
-            if (typeSymbol.GetUseSiteInfo().DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            var useSiteInfo = typeSymbol.GetUseSiteInfo();
+            if (useSiteInfo.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
             {
                 typeSymbol = null;
                 return false;
             }
 
-            ReportUseSite(typeSymbol, diagnostics, location);
+            // Ignore warnings
+            useSiteInfo = new UseSiteInfo<AssemblySymbol>(diagnosticInfo: null, useSiteInfo.PrimaryDependency, useSiteInfo.SecondaryDependencies);
+            diagnostics.Add(useSiteInfo, location);
             return true;
         }
 #nullable disable

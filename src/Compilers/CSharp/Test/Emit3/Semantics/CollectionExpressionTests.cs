@@ -43983,5 +43983,101 @@ class Program
                 };
             }
         }
+
+        [Fact]
+        public void BuiltInInlineArrayTypes_DependencyTracking()
+        {
+            var librarySource = """
+                namespace System.Runtime.CompilerServices
+                {
+                    [InlineArray(2)]
+                    public struct InlineArray2<T>
+                    {
+                        private T _element0;
+                    }
+                }
+                """;
+
+            var libraryComp = CreateCompilation(librarySource, targetFramework: TargetFramework.Net80);
+            libraryComp.VerifyDiagnostics();
+            var libraryRef = libraryComp.ToMetadataReference();
+
+            string consumerSource = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        int i = 1;
+                        MyCollection<int> m = [i, i + 1];
+                        m.Report();
+                    }
+                }
+                """;
+
+            var consumerComp = CreateCompilation([consumerSource, s_collectionExtensionsWithSpan], options: TestOptions.ReleaseExe, references: [libraryRef], targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(consumerComp, expectedOutput: IncludeExpectedOutput("[1, 2],"), verify: Verification.FailsILVerify with
+            {
+                ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
+            }).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       57 (0x39)
+                  .maxstack  3
+                  .locals init (int V_0, //i
+                                System.Runtime.CompilerServices.InlineArray2<int> V_1)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_1
+                  IL_0004:  initobj    "System.Runtime.CompilerServices.InlineArray2<int>"
+                  IL_000a:  ldloca.s   V_1
+                  IL_000c:  ldc.i4.0
+                  IL_000d:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray2<int>, int>(ref System.Runtime.CompilerServices.InlineArray2<int>, int)"
+                  IL_0012:  ldloc.0
+                  IL_0013:  stind.i4
+                  IL_0014:  ldloca.s   V_1
+                  IL_0016:  ldc.i4.1
+                  IL_0017:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray2<int>, int>(ref System.Runtime.CompilerServices.InlineArray2<int>, int)"
+                  IL_001c:  ldloc.0
+                  IL_001d:  ldc.i4.1
+                  IL_001e:  add
+                  IL_001f:  stind.i4
+                  IL_0020:  ldloca.s   V_1
+                  IL_0022:  ldc.i4.2
+                  IL_0023:  call       "System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray2<int>, int>(in System.Runtime.CompilerServices.InlineArray2<int>, int)"
+                  IL_0028:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+                  IL_002d:  box        "MyCollection<int>"
+                  IL_0032:  ldc.i4.0
+                  IL_0033:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0038:  ret
+                }
+                """);
+
+            // Verify that the library reference is included in used assembly references
+            var usedRefs = consumerComp.GetUsedAssemblyReferences();
+            Assert.Contains(libraryRef, usedRefs);
+
+        }
     }
 }
