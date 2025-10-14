@@ -26436,6 +26436,60 @@ partial class Program
         }
 
         [Fact]
+        public void SpanAssignment_ScopedParameter_Constructor_Span()
+        {
+            string source = """
+                using System;
+
+                class C
+                {
+                    public C(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = new ReadOnlySpan<int>(ref x);
+                    }
+
+                    void M(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = new ReadOnlySpan<int>(ref x);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (8,17): error CS8347: Cannot use a result of 'ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)' in this context because it may expose variables referenced by parameter 'reference' outside of their declaration scope
+                //         items = new ReadOnlySpan<int>(ref x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new ReadOnlySpan<int>(ref x)").WithArguments("System.ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)", "reference").WithLocation(8, 17),
+                // (8,43): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         items = new ReadOnlySpan<int>(ref x);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(8, 43));
+        }
+
+        [Fact]
+        public void SpanAssignment_ScopedParameter_Constructor_CollectionExpression()
+        {
+            string source = """
+                using System;
+
+                class C
+                {
+                    public C(scoped ReadOnlySpan<int> items)
+                    {
+                        items = [0];
+                    }
+
+                    void M(scoped ReadOnlySpan<int> items)
+                    {
+                        items = [0];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void SpanAssignment_NestedScope_05()
         {
             string source = """
