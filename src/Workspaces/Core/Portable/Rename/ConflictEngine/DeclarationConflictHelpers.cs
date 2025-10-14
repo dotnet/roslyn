@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
 internal static class DeclarationConflictHelpers
 {
-    public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IMethodSymbol renamedMethod, bool trimOptionalParameters, bool distinguishRefKind = true)
+    public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IMethodSymbol renamedMethod, bool trimOptionalParameters, bool distinguishRefKind)
     {
         var potentiallyConflictingMethods =
             renamedMethod.ContainingType.GetMembers(renamedMethod.Name)
@@ -23,7 +23,7 @@ internal static class DeclarationConflictHelpers
             method => GetAllSignatures(((IMethodSymbol)method).Parameters, trimOptionalParameters, distinguishRefKind));
     }
 
-    public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IPropertySymbol renamedProperty, bool trimOptionalParameters, bool distinguishRefKind = true)
+    public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IPropertySymbol renamedProperty, bool trimOptionalParameters, bool distinguishRefKind)
     {
         var potentiallyConflictingProperties =
             renamedProperty.ContainingType.GetMembers(renamedProperty.Name)
