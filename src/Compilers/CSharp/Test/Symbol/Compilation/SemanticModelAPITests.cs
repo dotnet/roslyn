@@ -972,7 +972,7 @@ partial class Partial001
             Assert.NotNull(sym2);
             Assert.Equal("System.UInt64 x", sym1.ToTestDisplayString());
             Assert.Equal("System.UInt64 x", sym2.ToTestDisplayString());
-            Assert.NotEqual(sym1.GetFirstLocation(), sym2.GetFirstLocation());
+            Assert.NotEqual(sym1.Locations[0], sym2.Locations[0]);
         }
 
         [Fact, WorkItem(544473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544473")]
@@ -1013,7 +1013,7 @@ partial class Partial001
             Assert.NotNull(sym2);
             Assert.Equal("T", sym1.ToTestDisplayString());
             Assert.Equal("T", sym2.ToTestDisplayString());
-            Assert.NotEqual(sym1.GetFirstLocation(), sym2.GetFirstLocation());
+            Assert.NotEqual(sym1.Locations[0], sym2.Locations[0]);
         }
 
         [Fact]
@@ -1195,7 +1195,7 @@ public class Test
             var paras = descendants.OfType<ParameterSyntax>();
             Assert.Equal(1, paras.Count());
             var parasym = model.GetDeclaredSymbol(paras.First());
-            var ploc = parasym.GetFirstLocation();
+            var ploc = parasym.Locations[0];
 
             var args = descendants.OfType<ArgumentSyntax>().Where(s => s.ToString() == "index").Select(s => s);
             Assert.Equal(2, args.Count());
@@ -1204,8 +1204,8 @@ public class Test
             Assert.NotNull(argsym1);
             Assert.NotNull(argsym2);
 
-            Assert.Equal(ploc, argsym1.GetFirstLocation());
-            Assert.Equal(ploc, argsym2.GetFirstLocation());
+            Assert.Equal(ploc, argsym1.Locations[0]);
+            Assert.Equal(ploc, argsym2.Locations[0]);
 
             Assert.Equal(parasym.Kind, argsym1.Kind);
             Assert.Equal(parasym.Kind, argsym2.Kind);

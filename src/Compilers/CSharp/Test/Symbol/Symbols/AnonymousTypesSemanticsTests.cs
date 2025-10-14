@@ -1992,7 +1992,7 @@ unsafe class C
             Assert.Equal(0, type.Interfaces.Length);
 
             Assert.Equal(1, type.Locations.Length);
-            Assert.Equal(typeSpan, type.GetFirstLocation().SourceSpan);
+            Assert.Equal(typeSpan, type.Locations[0].SourceSpan);
 
             foreach (int field in fields)
             {
@@ -2021,7 +2021,7 @@ unsafe class C
             Assert.NotNull(property);
             Assert.Equal(fieldName, property.Name);
             Assert.Equal(1, property.Locations.Length);
-            Assert.Equal(span, property.GetFirstLocation().SourceSpan);
+            Assert.Equal(span, property.Locations[0].SourceSpan);
 
             IMethodSymbol getter = property.GetMethod;
             Assert.NotNull(getter);

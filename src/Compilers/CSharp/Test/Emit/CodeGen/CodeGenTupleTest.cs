@@ -17373,7 +17373,7 @@ class C
 
             Assert.Equal(SymbolKind.Field, sym.Symbol.Kind);
             Assert.Equal("Alice", sym.Symbol.Name);
-            Assert.Equal(nc.Name.GetLocation(), sym.Symbol.GetFirstLocation());
+            Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations[0]);
         }
 
         [Fact]
@@ -17408,7 +17408,7 @@ class C
 
             Assert.Equal(SymbolKind.Field, bobField.Kind);
             var secondElement = nodes.OfType<TupleExpressionSyntax>().First().Arguments[1];
-            Assert.Equal(secondElement.GetLocation(), bobField.GetFirstLocation());
+            Assert.Equal(secondElement.GetLocation(), bobField.Locations[0]);
         }
 
         [Fact]

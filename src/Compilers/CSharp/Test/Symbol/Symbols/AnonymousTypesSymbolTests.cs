@@ -1643,7 +1643,7 @@ class Program
             Assert.NotNull(sym.Symbol);
             Assert.True(sym.Symbol.GetSymbol().IsFromCompilation(comp), "IsFromCompilation");
             Assert.False(sym.Symbol.Locations.IsEmpty, "Symbol Location");
-            Assert.True(sym.Symbol.GetFirstLocation().IsInSource);
+            Assert.True(sym.Symbol.Locations[0].IsInSource);
 
             var info = model.GetTypeInfo(expr);
             Assert.NotNull(info.Type);
@@ -1652,7 +1652,7 @@ class Program
             {
                 Assert.True(m.GetSymbol().IsFromCompilation(comp), "IsFromCompilation");
                 Assert.False(m.Locations.IsEmpty, String.Format("No Location: {0}", m));
-                Assert.True(m.GetFirstLocation().IsInSource);
+                Assert.True(m.Locations[0].IsInSource);
             }
         }
 
@@ -1695,12 +1695,12 @@ class Program
             // different locations.
             Assert.Equal(typeA3, typeA4);
             Assert.NotSame(typeA3, typeA4);
-            Assert.NotEqual(typeA3.GetFirstLocation(), typeA4.GetFirstLocation());
+            Assert.NotEqual(typeA3.Locations[0], typeA4.Locations[0]);
 
             // The locations of a3's type should be the type declared in statement 1, the location
             // of a4's type should be the type declared in statement 2.
-            Assert.True(statement1.Span.Contains(typeA3.GetFirstLocation().SourceSpan));
-            Assert.True(statement2.Span.Contains(typeA4.GetFirstLocation().SourceSpan));
+            Assert.True(statement1.Span.Contains(typeA3.Locations[0].SourceSpan));
+            Assert.True(statement2.Span.Contains(typeA4.Locations[0].SourceSpan));
         }
 
         private static readonly SyntaxTree s_equalityComparerSourceTree = Parse(@"

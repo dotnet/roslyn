@@ -15999,7 +15999,7 @@ dotnet_diagnostic.CS9204.severity = warning
             context.RegisterSymbolAction(
                 (symbolContext) =>
                 {
-                    symbolContext.ReportDiagnostic(Diagnostic.Create(Warning01, symbolContext.Symbol.GetFirstLocation()));
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Warning01, symbolContext.Symbol.Locations.First()));
                 },
                 SymbolKind.NamedType);
         }
@@ -16016,7 +16016,7 @@ dotnet_diagnostic.CS9204.severity = warning
             context.RegisterSymbolAction(
                 static (symbolContext) =>
                 {
-                    symbolContext.ReportDiagnostic(Diagnostic.Create(Warning02, symbolContext.Symbol.GetFirstLocation()));
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Warning02, symbolContext.Symbol.Locations.First()));
                 },
                 SymbolKind.NamedType);
         }

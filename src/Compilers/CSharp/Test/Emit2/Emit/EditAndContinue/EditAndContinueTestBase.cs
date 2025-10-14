@@ -91,8 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static Func<SyntaxNode, SyntaxNode> GetEquivalentNodesMap(MethodSymbol method1, MethodSymbol method0)
         {
-            var tree1 = method1.GetFirstLocation().SourceTree;
-            var tree0 = method0.GetFirstLocation().SourceTree;
+            var tree1 = method1.Locations[0].SourceTree;
+            var tree0 = method0.Locations[0].SourceTree;
             Assert.NotEqual(tree1, tree0);
 
             var locals0 = GetAllLocals(method0);

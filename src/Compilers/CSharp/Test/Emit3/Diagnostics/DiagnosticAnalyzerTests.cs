@@ -270,7 +270,7 @@ public class C
 
             private void AnalyzeSymbol(SymbolAnalysisContext context)
             {
-                var diag1 = CodeAnalysis.Diagnostic.Create(s_descriptor, context.Symbol.GetFirstLocation(), "NamedType");
+                var diag1 = CodeAnalysis.Diagnostic.Create(s_descriptor, context.Symbol.Locations[0], "NamedType");
                 context.ReportDiagnostic(diag1);
             }
         }
@@ -839,7 +839,7 @@ public class B
                 context.RegisterSymbolAction(ctxt =>
                 {
                     var method = ((IMethodSymbol)ctxt.Symbol);
-                    ctxt.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor1, method.GetFirstLocation(), method.ToDisplayString()));
+                    ctxt.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor1, method.Locations[0], method.ToDisplayString()));
                 }, SymbolKind.Method);
             }
         }

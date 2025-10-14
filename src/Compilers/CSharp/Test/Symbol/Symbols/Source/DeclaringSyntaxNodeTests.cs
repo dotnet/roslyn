@@ -347,7 +347,7 @@ class C1 {
             // Locations: Return the Span of that particular 
             //            AnonymousObjectCreationExpression's NewKeyword.
             Assert.Equal(1, localType.Locations.Length);
-            Assert.Equal(localType.GetFirstLocation(), anonObjectCreation.NewKeyword.GetLocation());
+            Assert.Equal(localType.Locations[0], anonObjectCreation.NewKeyword.GetLocation());
 
             // Members check
             int propIndex = 0;
@@ -380,7 +380,7 @@ class C1 {
                     // Locations: Return the Span of that particular 
                     //            AnonymousObjectMemberDeclarator's IdentifierToken.
                     Assert.Equal(1, member.Locations.Length);
-                    Assert.Equal(member.GetFirstLocation(), propertyInitializer.NameEquals.Name.GetLocation());
+                    Assert.Equal(member.Locations[0], propertyInitializer.NameEquals.Name.GetLocation());
 
                     propIndex++;
                 }

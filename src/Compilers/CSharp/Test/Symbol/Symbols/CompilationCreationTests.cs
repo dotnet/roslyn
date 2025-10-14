@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 for (int j = 0; j < numTrees; j++)
                 {
-                    Assert.Equal(Math.Sign(compilation.CompareSourceLocations(types[i].GetFirstLocation(), types[j].GetFirstLocation())), Math.Sign(i.CompareTo(j)));
+                    Assert.Equal(Math.Sign(compilation.CompareSourceLocations(types[i].Locations[0], types[j].Locations[0])), Math.Sign(i.CompareTo(j)));
                 }
             }
         }
@@ -2566,7 +2566,7 @@ class Module1
             PEAssemblySymbol Lib1_V1 = (PEAssemblySymbol)c1AsmSource.Modules[0].GetReferencedAssemblySymbols()[1];
             PEModuleSymbol module1 = (PEModuleSymbol)c1AsmSource.Modules[1];
 
-            Assert.Equal(LocationKind.MetadataFile, ((MetadataLocation)Lib1_V1.GetFirstLocation()).Kind);
+            Assert.Equal(LocationKind.MetadataFile, ((MetadataLocation)Lib1_V1.Locations[0]).Kind);
             SourceAssemblySymbol c2AsmSource = (SourceAssemblySymbol)c2.Assembly;
             RetargetingAssemblySymbol c1AsmRef = (RetargetingAssemblySymbol)c2AsmSource.Modules[0].GetReferencedAssemblySymbols()[2];
             PEAssemblySymbol Lib1_V2 = (PEAssemblySymbol)c2AsmSource.Modules[0].GetReferencedAssemblySymbols()[1];
