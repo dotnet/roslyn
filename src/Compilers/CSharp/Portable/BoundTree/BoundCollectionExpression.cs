@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
             {
-                Debug.Assert(this.CollectionCreation != null);
-                Debug.Assert(this.CollectionBuilderMethod != null);
-                Debug.Assert(this.CollectionBuilderElementsPlaceholder != null);
+                Debug.Assert(this.CollectionCreation is not null);
+                Debug.Assert(this.CollectionBuilderMethod is not null);
+                Debug.Assert(this.CollectionBuilderElementsPlaceholder is not null);
             }
         }
     }
