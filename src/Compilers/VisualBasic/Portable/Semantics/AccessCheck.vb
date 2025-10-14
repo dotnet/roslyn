@@ -167,8 +167,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' is being checked during attribute binding.
             Dim withinAssembly As AssemblySymbol = If(TryCast(within, AssemblySymbol), DirectCast(within, NamedTypeSymbol).ContainingAssembly)
             If typeSym.ContainingAssembly IsNot withinAssembly Then
-                ' If the type itself is EmbeddedAttribute, assume it was correctly applied to itself and return inaccessible.
-                If typeSym.IsMicrosoftCodeAnalysisEmbeddedAttribute() OrElse typeSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+                ' Skip the attribute check if the type itself is EmbeddedAttribute to avoid infinite recursion,
+                ' but only return inaccessible if it actually has the attribute applied to it.
+                If Not typeSym.IsMicrosoftCodeAnalysisEmbeddedAttribute() AndAlso typeSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
                     Return AccessCheckResult.Inaccessible
                 End If
             End If
