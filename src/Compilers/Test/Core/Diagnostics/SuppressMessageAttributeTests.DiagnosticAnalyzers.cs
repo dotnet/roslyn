@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         {
                             if (context.Symbol.Name.StartsWith(_errorSymbolPrefix, StringComparison.Ordinal))
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.Symbol.Locations.First(), messageArgs: context.Symbol.Name));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.Symbol.GetFirstLocation(), messageArgs: context.Symbol.Name));
                             }
                         },
                     SymbolKind.Event,
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 analysisContext.RegisterSymbolAction(
                     (context) =>
                         {
-                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.Symbol.Locations.First(), messageArgs: context.Symbol.Name));
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.Symbol.GetFirstLocation(), messageArgs: context.Symbol.Name));
                         },
                     SymbolKind.NamedType);
             }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     analysisContext.RegisterCodeBlockEndAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.OwningSymbol.Locations.First(), messageArgs: context.OwningSymbol.Name + ":end"));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.OwningSymbol.GetFirstLocation(), messageArgs: context.OwningSymbol.Name + ":end"));
                             });
 
                     analysisContext.RegisterSyntaxNodeAction(
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     analysisContext.RegisterCodeBlockEndAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.OwningSymbol.Locations.First(), messageArgs: context.OwningSymbol.Name + ":end"));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.OwningSymbol.GetFirstLocation(), messageArgs: context.OwningSymbol.Name + ":end"));
                             });
 
                     analysisContext.RegisterSyntaxNodeAction(

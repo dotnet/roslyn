@@ -240,28 +240,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ITypeSymbol? type = null;
 
-            if (this.IsMinimizing && !symbol.Locations.IsEmpty)
+            if (this.IsMinimizing &&
+                symbol.Locations is [{ IsInSource: true } location, ..] &&
+                location.SourceTree == SemanticModelOpt.SyntaxTree)
             {
-                var location = symbol.Locations.First();
-                if (location.IsInSource && location.SourceTree == SemanticModelOpt.SyntaxTree)
+                var token = location.SourceTree.GetRoot().FindToken(PositionOpt);
+                var queryBody = GetQueryBody(token);
+                if (queryBody != null)
                 {
-                    var token = location.SourceTree.GetRoot().FindToken(PositionOpt);
-                    var queryBody = GetQueryBody(token);
-                    if (queryBody != null)
-                    {
-                        // To heuristically determine the type of the range variable in a query
-                        // clause, we speculatively bind the name of the variable in the select
-                        // or group clause of the query body.
-                        var identifierName = SyntaxFactory.IdentifierName(symbol.Name);
-                        type = SemanticModelOpt.GetSpeculativeTypeInfo(
-                            queryBody.SelectOrGroup.Span.End - 1, identifierName, SpeculativeBindingOption.BindAsExpression).Type;
-                    }
+                    // To heuristically determine the type of the range variable in a query
+                    // clause, we speculatively bind the name of the variable in the select
+                    // or group clause of the query body.
+                    var identifierName = SyntaxFactory.IdentifierName(symbol.Name);
+                    type = SemanticModelOpt.GetSpeculativeTypeInfo(
+                        queryBody.SelectOrGroup.Span.End - 1, identifierName, SpeculativeBindingOption.BindAsExpression).Type;
+                }
 
-                    var identifier = token.Parent as IdentifierNameSyntax;
-                    if (identifier != null)
-                    {
-                        type = SemanticModelOpt.GetTypeInfo(identifier).Type;
-                    }
+                var identifier = token.Parent as IdentifierNameSyntax;
+                if (identifier != null)
+                {
+                    type = SemanticModelOpt.GetTypeInfo(identifier).Type;
                 }
             }
 
