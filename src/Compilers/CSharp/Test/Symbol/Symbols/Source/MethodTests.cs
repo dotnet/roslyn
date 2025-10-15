@@ -2580,7 +2580,7 @@ public partial class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13456")]
         public void PartialMethodsLocationsAndSyntaxReferences()
         {
-            var source = """
+            var source1 = """
                 namespace N1
                 {
                     partial class C1
@@ -2600,7 +2600,7 @@ public partial class C
                 }
                 """;
 
-            var comp = CreateCompilation([source, source2]);
+            var comp = CreateCompilation([(source1, "source1"), (source2, "source2")]);
             comp.VerifyDiagnostics();
 
             var methodSymbols = comp.GetSymbolsWithName("PartialM");
@@ -2624,6 +2624,9 @@ public partial class C
 
             // Verify the locations are different
             Assert.NotEqual(method.Locations[0], implementationPart.Locations[0]);
+
+            Assert.Equal("source1", method.Locations[0].SourceTree.FilePath);
+            Assert.Equal("source2", implementationPart.Locations[0].SourceTree.FilePath);
         }
     }
 }
