@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Threading;
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// only have a single location, and most clients only need the first location for some purpose (like error
         /// reporting).
         /// </summary>
+        /// <exception cref="InvalidOperationException">If the symbol has no locations.</exception>
         Location GetFirstLocation();
 
         /// <summary>

@@ -341,7 +341,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public MustOverride ReadOnly Property Locations As ImmutableArray(Of Location)
 
         Public Function GetFirstLocation() As Location Implements ISymbolInternal.GetFirstLocation
-            Return Me.Locations(0)
+            Dim locations = Me.Locations
+            If locations.Length = 0 Then
+                Throw New InvalidOperationException("Symbol has no locations")
+            End If
+
+            Return locations(0)
         End Function
 
         Public Function GetFirstLocationOrNone() As Location Implements ISymbolInternal.GetFirstLocationOrNone
