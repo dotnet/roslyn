@@ -2171,7 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderElementsPlaceholder: null,
                 wasTargetTyped: inConversion,
                 // Regardless of whether there was a 'with' element, we are in an error recovery scenario, and we've
-                // moved all with arguments to the front of the elements list.  So treat this as not having a 'with'
+                // converted the args into a BadExpression in collectionCreate.  So treat this as not having a 'with'
                 // element.
                 hasWithElement: false,
                 node,
