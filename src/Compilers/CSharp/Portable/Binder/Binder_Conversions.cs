@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var syntax = _node.Syntax;
 
-                var (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = BindCollectionBuilderInfo();
+                var (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(this);
                 if (collectionCreation is null || collectionBuilderMethod is null || collectionBuilderElementsPlaceholder is null)
                     return null;
 
@@ -1265,91 +1265,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _node,
                     elements,
                     _targetType);
-            }
 
-            private (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder) BindCollectionBuilderInfo()
-            {
-                var namedType = (NamedTypeSymbol)_targetType;
-
-                var collectionBuilderMethods = _binder.GetCollectionBuilderMethods(_node.Syntax, namedType, _diagnostics, forParams: false);
-                if (collectionBuilderMethods.IsEmpty)
-                    return default;
-
-                var projectionMethods = ArrayBuilder<MethodSymbol>.GetInstance(collectionBuilderMethods.Length);
-                foreach (var builderMethod in collectionBuilderMethods)
+                (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(CollectionExpressionConverter @this)
                 {
-                    var projection = new SynthesizedCollectionBuilderProjectedMethodSymbol(builderMethod);
+                    var namedType = (NamedTypeSymbol)@this._targetType;
 
-                    // See documentation on SynthesizedCollectionBuilderProjectedMethodSymbol for why Arity must be 0
-                    // for the projection method.  Similarly, in GetCollectionBuilderMethods we filter out any methods
-                    // that would result in a projection with a last 'params' parameter.
-                    Debug.Assert(projection.Arity == 0);
-                    Debug.Assert(projection.ParameterCount == 0 || !projection.Parameters.Last().IsParams);
+                    var collectionBuilderMethods = @this._binder.GetCollectionBuilderMethods(@this._node.Syntax, namedType, @this._diagnostics, forParams: false);
+                    if (collectionBuilderMethods.IsEmpty)
+                        return default;
 
-                    projectionMethods.Add(projection);
-                }
+                    var projectionMethods = ArrayBuilder<MethodSymbol>.GetInstance(collectionBuilderMethods.Length);
+                    foreach (var builderMethod in collectionBuilderMethods)
+                    {
+                        var projection = new SynthesizedCollectionBuilderProjectedMethodSymbol(builderMethod);
 
-                var analyzedArguments = _node.WithElement is null
-                    ? AnalyzedArguments.GetInstance()
-                    : AnalyzedArguments.GetInstance(_node.WithElement.Arguments, _node.WithElement.ArgumentRefKindsOpt, _node.WithElement.ArgumentNamesOpt);
+                        // See documentation on SynthesizedCollectionBuilderProjectedMethodSymbol for why Arity must be 0
+                        // for the projection method.  Similarly, in GetCollectionBuilderMethods we filter out any methods
+                        // that would result in a projection with a last 'params' parameter.
+                        Debug.Assert(projection.Arity == 0);
+                        Debug.Assert(projection.ParameterCount == 0 || !projection.Parameters.Last().IsParams);
 
-                var useSiteInfo = _binder.GetNewCompoundUseSiteInfo(_diagnostics);
-                var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
+                        projectionMethods.Add(projection);
+                    }
 
-                var syntax = _node.WithElement?.Syntax ?? _node.Syntax;
+                    var analyzedArguments = @this._node.WithElement is null
+                        ? AnalyzedArguments.GetInstance()
+                        : AnalyzedArguments.GetInstance(@this._node.WithElement.Arguments, @this._node.WithElement.ArgumentRefKindsOpt, @this._node.WithElement.ArgumentNamesOpt);
 
-                // All the methods should have the same name, so we can grab what we need off of the first in the list.
-                var methodName = collectionBuilderMethods[0].Name;
-                Debug.Assert(collectionBuilderMethods.All(t => t.Name == methodName));
+                    var useSiteInfo = @this._binder.GetNewCompoundUseSiteInfo(@this._diagnostics);
+                    var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
-                var methodGroup = new BoundMethodGroup(
-                    syntax,
-                    // Intentionally no type arguments here.  Projection methods are guaranteed to not be generic so we
-                    // do not want any sort of generic shenanigans to occur here.
-                    typeArgumentsOpt: default,
-                    name: methodName,
-                    methods: projectionMethods.ToImmutableAndFree(),
-                    lookupSymbolOpt: null,
-                    lookupError: null,
-                    BoundMethodGroupFlags.None,
-                    functionType: null,
-                    receiverOpt: null,
-                    resultKind: LookupResultKind.Viable).MakeCompilerGenerated();
+                    var syntax = @this._node.WithElement?.Syntax ?? @this._node.Syntax;
 
-                var projectionInvocationExpression = _binder.BindInvocationExpression(
-                    syntax, syntax, methodName, methodGroup,
-                    analyzedArguments, _diagnostics, acceptOnlyMethods: true);
+                    // All the methods should have the same name, so we can grab what we need off of the first in the list.
+                    var methodName = collectionBuilderMethods[0].Name;
+                    Debug.Assert(collectionBuilderMethods.All(t => t.Name == methodName));
 
-                BoundExpression? collectionCreation;
-                MethodSymbol? collectionBuilderMethod;
-                BoundValuePlaceholder? collectionBuilderElementsPlaceholder;
+                    var methodGroup = new BoundMethodGroup(
+                        syntax,
+                        // Intentionally no type arguments here.  Projection methods are guaranteed to not be generic so we
+                        // do not want any sort of generic shenanigans to occur here.
+                        typeArgumentsOpt: default,
+                        name: methodName,
+                        methods: projectionMethods.ToImmutableAndFree(),
+                        lookupSymbolOpt: null,
+                        lookupError: null,
+                        BoundMethodGroupFlags.None,
+                        functionType: null,
+                        receiverOpt: null,
+                        resultKind: LookupResultKind.Viable).MakeCompilerGenerated();
 
-                if (projectionInvocationExpression is not BoundCall projectionCall ||
-                    projectionCall.Method is not SynthesizedCollectionBuilderProjectedMethodSymbol { UnderlyingMethod: var underlyingMethod })
-                {
-                    // PROTOTYPE: consider giving error if the projection bound in 'Expanded' form.  This means we had
-                    // something like.
-                    //
-                    //      Goo(params int[] x, ReadOnlySpan<int> y)
-                    //
-                    // Which is already extremely strange as having a params argument that is not last would need
-                    // special crafting to create (likely in metadata only).
-                    //
-                    // We could also consider removing this from the set of candidate methods when building them.
-                    collectionCreation = null;
-                    collectionBuilderMethod = null;
-                    collectionBuilderElementsPlaceholder = null;
-                }
-                else
-                {
+                    var projectionInvocationExpression = @this._binder.BindInvocationExpression(
+                        syntax, syntax, methodName, methodGroup,
+                        analyzedArguments, @this._diagnostics, acceptOnlyMethods: true);
+
+                    if (projectionInvocationExpression is not BoundCall projectionCall ||
+                        projectionCall.Method is not SynthesizedCollectionBuilderProjectedMethodSymbol { UnderlyingMethod: var underlyingMethod })
+                    {
+                        overloadResolutionResult.Free();
+                        analyzedArguments.Free();
+
+                        return default;
+                    }
+
                     // We should have already filtered out any methods that would result in an 'Expanded' last params
                     // parameter in GetCollectionBuilderMethods. 
                     Debug.Assert(!projectionCall.Expanded);
 
                     // Now that we've settled on the actual collection builder method to call, do a final round of
                     // checks on it in case there are reasons it will have a problem.
-                    collectionBuilderMethod = underlyingMethod;
-                    _binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, _diagnostics);
+                    var collectionBuilderMethod = underlyingMethod;
+                    @this._binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, @this._diagnostics);
 
                     // Take our successful call to the projection method and rewrite it to call the original collection
                     // builder method it was projected from. Because we don't know how the actual elements will be
@@ -1360,7 +1346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // CollectionBuilder.Create<T1, T2, ..>(a, b, c, <placeholder for [x, y, z]>).
 
                     var readonlySpanParameter = collectionBuilderMethod.Parameters.Last();
-                    collectionBuilderElementsPlaceholder = new BoundValuePlaceholder(syntax, readonlySpanParameter.Type) { WasCompilerGenerated = true };
+                    var collectionBuilderElementsPlaceholder = new BoundValuePlaceholder(syntax, readonlySpanParameter.Type) { WasCompilerGenerated = true };
 
                     var arguments = projectionCall.Arguments;
                     var argumentNames = projectionCall.ArgumentNamesOpt;
@@ -1396,13 +1382,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Wrap in a conversion if necessary.  Note that GetCollectionBuilderMethods guarantees that either
                     // return and target type are identical, or that a valid implicit conversion exists between them.
-                    collectionCreation = _binder.CreateConversion(builderCall, _targetType, _diagnostics);
+                    var collectionCreation = @this._binder.CreateConversion(builderCall, @this._targetType, @this._diagnostics);
+
+                    overloadResolutionResult.Free();
+                    analyzedArguments.Free();
+
+                    return (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder);
                 }
-
-                overloadResolutionResult.Free();
-                analyzedArguments.Free();
-
-                return (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder);
             }
         }
 
