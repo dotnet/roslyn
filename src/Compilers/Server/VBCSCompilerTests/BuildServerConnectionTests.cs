@@ -234,8 +234,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var pipeName = ServerUtil.GetPipeName();
                 var result = BuildServerConnection.TryCreateServer(clientDirectory, pipeName, testLogger, out var processId);
                 
-                // Verify that an error was logged about DOTNET_HOST_PATH not being provided
-                Assert.Contains(logs, log => log.Contains("Error") && log.Contains("DOTNET_HOST_PATH"));
+                // Verify that a warning was logged about DOTNET_HOST_PATH not being provided
+                Assert.Contains(logs, log => log.Contains("Warning") && log.Contains("DOTNET_HOST_PATH"));
             }
             finally
             {
