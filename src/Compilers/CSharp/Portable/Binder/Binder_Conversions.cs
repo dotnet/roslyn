@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly TypeSymbol _targetType = targetType;
             private readonly Conversion _conversion = conversion;
             private readonly BindingDiagnosticBag _diagnostics = diagnostics;
-
+            
             public BoundCollectionExpression Do()
             {
                 var collectionTypeKind = _conversion.GetCollectionExpressionTypeKind(out var elementType, out MethodSymbol? constructor, out bool isExpanded);
@@ -841,14 +841,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionTypeKind == CollectionExpressionTypeKind.None)
                 {
                     Debug.Assert(_conversion.Kind is ConversionKind.NoConversion);
-                    return _binder.BindCollectionExpressionForErrorRecovery(node, _targetType, inConversion: false, diagnostics);
+                    return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: false, diagnostics);
                 }
 
                 Debug.Assert(elementType is { });
-                var syntax = node.Syntax;
-                if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, _binder.Compilation))
+                var syntax = _node.Syntax;
+                if (LocalRewriter.IsAllocatingRefStructCollectionExpression(_node, collectionTypeKind, elementType, _binder.Compilation))
                 {
-                    diagnostics.Add(node.HasSpreadElements(out _, out _)
+                    diagnostics.Add(_node.HasSpreadElements(out _, out _)
                         ? ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate
                         : ErrorCode.WRN_CollectionExpressionRefStructMayAllocate,
                         syntax, _targetType);
@@ -878,14 +878,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var collectionBuilderMethods = _binder.GetCollectionBuilderMethods(syntax, namedType, diagnostics, forParams: false);
                             if (collectionBuilderMethods.IsEmpty)
                             {
-                                return _binder.BindCollectionExpressionForErrorRecovery(node, _targetType, inConversion: true, diagnostics);
+                                return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, diagnostics);
                             }
 
                             (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(
-                                _binder, node, _targetType, collectionBuilderMethods, diagnostics);
+                                _binder, _node, _targetType, collectionBuilderMethods, diagnostics);
                             if (collectionCreation is null || collectionBuilderMethod is null || collectionBuilderElementsPlaceholder is null)
                             {
-                                return _binder.BindCollectionExpressionForErrorRecovery(node, _targetType, inConversion: true, diagnostics);
+                                return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, diagnostics);
                             }
 
                             var lastParameterType = collectionBuilderMethod.Parameters.Last().Type;
@@ -898,12 +898,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (_targetType.OriginalDefinition.Equals(_binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything))
                         {
                             diagnostics.Add(ErrorCode.ERR_CollectionExpressionImmutableArray, syntax, _targetType.OriginalDefinition);
-                            return _binder.BindCollectionExpressionForErrorRecovery(node, _targetType, inConversion: true, diagnostics);
+                            return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, diagnostics);
                         }
                         break;
                 }
 
-                var elements = node.Elements;
+                var elements = _node.Elements;
                 var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
                 BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
 
@@ -914,23 +914,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(inProgressConstructor is not null);
                         diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
-                        return _binder.BindCollectionExpressionForErrorRecovery(node, namedType, inConversion: true, diagnostics);
+                        return _binder.BindCollectionExpressionForErrorRecovery(_node, namedType, inConversion: true, diagnostics);
                     }
 
                     implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
 
-                    collectionCreation = _binder.BindCollectionConstructorConstruction(syntax, _targetType, constructor, node.WithElement, diagnostics);
+                    collectionCreation = _binder.BindCollectionConstructorConstruction(syntax, _targetType, constructor, _node.WithElement, diagnostics);
                     Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                     if (collectionCreation.HasErrors)
                     {
-                        return _binder.BindCollectionExpressionForErrorRecovery(node, _targetType, inConversion: true, diagnostics);
+                        return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, diagnostics);
                     }
 
                     if (!elements.IsDefaultOrEmpty && _binder.HasCollectionInitializerTypeInProgress(syntax, _targetType))
                     {
                         diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, _targetType);
-                        return _binder.BindCollectionExpressionForErrorRecovery(node, _targetType, inConversion: true, diagnostics);
+                        return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, diagnostics);
                     }
 
                     var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, _targetType, _binder);
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol? list_T__ctor = null;
                     MethodSymbol? list_T__ctorInt32 = null;
                     if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
-                        node.HasSpreadElements(out _, out _))
+                        _node.HasSpreadElements(out _, out _))
                     {
                         // Verify the existence of the List<T> members that may be used in lowering, even
                         // though not all will be used for any particular collection expression. Checking all
@@ -978,20 +978,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                     }
 
-                    if (node.WithElement != null)
+                    if (_node.WithElement != null)
                     {
                         if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface)
                         {
                             Debug.Assert(constructor is null, "Only initialized in ImplementsIEnumerable case in Conversions.GetCollectionExpressionConversion.");
                             collectionCreation = _binder.BindCollectionArrayInterfaceConstruction(
-                                _targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
+                                _targetType, list_T__ctor, list_T__ctorInt32, _node.WithElement, diagnostics);
                         }
                         else if (collectionTypeKind is not CollectionExpressionTypeKind.CollectionBuilder)
                         {
                             // Array, Span, ReadOnlySpan
                             diagnostics.Add(
                                 ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
-                                node.WithElement.Syntax.GetFirstToken().GetLocation(),
+                                _node.WithElement.Syntax.GetFirstToken().GetLocation(),
                                 _targetType);
                         }
                     }
@@ -1033,11 +1033,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionBuilderMethod,
                     collectionBuilderElementsPlaceholder,
                     wasTargetTyped: true,
-                    hasWithElement: node.WithElement != null,
-                    node,
+                    hasWithElement: _node.WithElement != null,
+                    _node,
                     builder.ToImmutableAndFree(),
                     _targetType)
-                { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
+                { WasCompilerGenerated = _node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = _node.IsParamsArrayOrCollection };
 
                 BoundNode bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics, Binder binder)
                 {
