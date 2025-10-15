@@ -946,13 +946,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
 
-                    case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        if (_targetType.OriginalDefinition.Equals(_binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything))
-                        {
-                            _diagnostics.Add(ErrorCode.ERR_CollectionExpressionImmutableArray, syntax, _targetType.OriginalDefinition);
-                            return null;
-                        }
-                        break;
                 }
 
                 var elements = _node.Elements;
@@ -1053,6 +1046,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionTypeKind,
                     placeholder: null,
                     collectionCreation: null,
+                    collectionBuilderMethod: null,
+                    collectionBuilderElementsPlaceholder: null,
+                    wasTargetTyped: true,
+                    // Since a with-element is not legal here, we can just treat these as if they don't have one at all.
+                    hasWithElement: false,
+                    _node,
+                    elements,
+                    _targetType);
+            }
+
+            private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayInterfaceType(ImmutableArray<BoundNode> elements)
+            {
+                var syntax = _node.Syntax;
+
+                var collectionCreation = BindCollectionArrayInterfaceConstruction();
+
+                return new BoundCollectionExpression(
+                    syntax,
+                    CollectionExpressionTypeKind.ArrayInterface,
+                    placeholder: null,
+                    collectionCreation,
                     collectionBuilderMethod: null,
                     collectionBuilderElementsPlaceholder: null,
                     wasTargetTyped: true,
@@ -1343,16 +1357,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder);
             }
 
-            private BoundExpression? BindCollectionArrayInterfaceConstruction(
-                TypeSymbol targetType,
-                MethodSymbol? list_T__ctor,
-                MethodSymbol? list_T__ctorInt32,
-                BoundUnconvertedWithElement withElement)
+            private BoundExpression? BindCollectionArrayInterfaceConstruction()
             {
-                Debug.Assert(targetType.IsArrayInterface(out _));
+                var withElement = _node.WithElement;
+                if (withElement is null)
+                    return null;
+
+                Debug.Assert(_targetType.IsArrayInterface(out _));
 
                 var withSyntax = withElement.Syntax;
-                if (targetType.IsReadOnlyArrayInterface(out _))
+                if (_targetType.IsReadOnlyArrayInterface(out _))
                 {
                     // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
                     // the parameterless `with()` is allowed.
@@ -1367,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var isMutableArray = targetType.IsMutableArrayInterface(out var typeArgument);
+                var isMutableArray = _targetType.IsMutableArrayInterface(out var typeArgument);
                 Debug.Assert(isMutableArray);
 
                 // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg `with()` and
@@ -1386,6 +1400,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constructedListType = _binder
                     .GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo)
                     .Construct([typeArgument]);
+
+                // Don't need to report diagnostics here.  Our caller will have already done this.
+                var list_T__ctor = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, BindingDiagnosticBag.Discarded, syntax: _node.Syntax);
+                var list_T__ctorInt32 = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, BindingDiagnosticBag.Discarded, syntax: _node.Syntax);
 
                 var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
                 candidateConstructorsBuilder.AddIfNotNull(list_T__ctor?.AsMember(constructedListType));
