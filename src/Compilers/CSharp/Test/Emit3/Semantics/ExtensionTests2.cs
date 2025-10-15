@@ -35238,9 +35238,9 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension<T>(I<T>).Add(T, params T[])' and 'E.extension<T>(I<T>).Add(T, params Span<T>)'
+            // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension<int>(I<int>).Add(int, params int[])' and 'E.extension<int>(I<int>).Add(int, params System.Span<int>)'
             // c.Add(x: 1, y: 2);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Add").WithArguments("E.extension<T>(I<T>).Add(T, params T[])", "E.extension<T>(I<T>).Add(T, params System.Span<T>)").WithLocation(2, 3));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Add").WithArguments("E.extension<int>(I<int>).Add(int, params int[])", "E.extension<int>(I<int>).Add(int, params System.Span<int>)").WithLocation(2, 3));
     }
 
     [Fact]
