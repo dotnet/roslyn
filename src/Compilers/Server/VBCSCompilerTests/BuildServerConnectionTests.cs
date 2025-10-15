@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             // We can't fully test TryCreateServer without a valid server executable, but we can test
             // the logging behavior by creating a mock scenario
 
-            var testLogger = new XunitCompilerServerLogger(TestOutputHelper, captureLogs: true);
+            var testLogger = new XunitCompilerServerLogger(TestOutputHelper);
 
             // Create a temporary directory with a fake server executable
             var clientDirectory = TempRoot.CreateDirectory().Path;
@@ -236,8 +236,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var result = BuildServerConnection.TryCreateServer(clientDirectory, pipeName, testLogger, out var processId);
 
                 // Verify that a warning was logged about DOTNET_HOST_PATH not being provided
-                Assert.NotNull(testLogger.CapturedLogs);
-                Assert.Contains(testLogger.CapturedLogs, log => log.Contains("Warning") && log.Contains("DOTNET_HOST_PATH"));
+                Assert.Contains(testLogger.CapturedLogs, log => log == "Warning: Unable to set DOTNET_ROOT environment variable. The DOTNET_HOST_PATH environment variable was not provided by MSBuild.");
             }
             finally
             {

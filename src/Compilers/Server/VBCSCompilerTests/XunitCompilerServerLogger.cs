@@ -12,21 +12,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         public ITestOutputHelper TestOutputHelper { get; }
         public bool IsLogging => true;
-        public List<string>? CapturedLogs { get; }
+        public List<string> CapturedLogs { get; } = new List<string>();
 
-        public XunitCompilerServerLogger(ITestOutputHelper testOutputHelper, bool captureLogs = false)
+        public XunitCompilerServerLogger(ITestOutputHelper testOutputHelper)
         {
             TestOutputHelper = testOutputHelper;
-            if (captureLogs)
-            {
-                CapturedLogs = new List<string>();
-            }
         }
 
         public void Log(string message)
         {
             TestOutputHelper.WriteLine(message);
-            CapturedLogs?.Add(message);
+            CapturedLogs.Add(message);
         }
     }
 }
