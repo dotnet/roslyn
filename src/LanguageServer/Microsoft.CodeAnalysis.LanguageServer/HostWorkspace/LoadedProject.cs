@@ -26,6 +26,7 @@ internal sealed class LoadedProject : IDisposable
     private readonly string _projectDirectory;
 
     private readonly ProjectSystemProject _projectSystemProject;
+    public ProjectSystemProject ProjectSystemProject => _projectSystemProject;
     public ProjectSystemProjectFactory ProjectFactory { get; }
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
     private readonly IFileChangeContext _sourceFileChangeContext;
