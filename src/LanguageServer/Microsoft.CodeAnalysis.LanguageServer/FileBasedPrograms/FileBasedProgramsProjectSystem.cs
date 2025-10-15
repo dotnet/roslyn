@@ -68,11 +68,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             if (_canonicalMiscFilesProject == null)
             {
                 _canonicalMiscFilesProject = new CanonicalMiscFilesProject(_workspaceFactory, _logger);
-                
+
                 // Perform the initial design-time build
                 await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPathProvider: null, loggerFactory: LoggerFactory);
                 var loadedProject = await _canonicalMiscFilesProject.EnsureInitializedAsync(buildHostProcessManager, _fileChangeWatcher, AdditionalProperties, cancellationToken);
-                
+
                 if (loadedProject == null)
                 {
                     _logger.LogError("Failed to initialize canonical miscellaneous files project. Falling back to per-file approach.");
@@ -125,10 +125,15 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             isFileBasedProgram = VirtualProjectXmlProvider.IsFileBasedProgram(documentFilePath, documentText);
         }
 
-        // For genuine miscellaneous files (not file-based programs), use the canonical project
+        // For genuine miscellaneous files (not file-based programs), try to use the canonical project
         if (doDesignTimeBuild && !isFileBasedProgram)
         {
-            return await AddMiscellaneousDocumentUsingCanonicalProjectAsync(documentFilePath, documentText, cancellationToken: CancellationToken.None);
+            var canonicalDocument = await AddMiscellaneousDocumentUsingCanonicalProjectAsync(documentFilePath, documentText, cancellationToken: CancellationToken.None);
+            if (canonicalDocument != null)
+            {
+                return canonicalDocument;
+            }
+            // If canonical project initialization failed, fall through to use the existing approach
         }
 
         // For file-based programs or when the feature is disabled, use the existing approach
@@ -164,7 +169,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
     {
         var documentPath = GetDocumentFilePath(uri);
-        
+
         // First try to remove from the canonical project
         using (await _canonicalProjectGate.DisposableWaitAsync(CancellationToken.None))
         {
