@@ -2543,6 +2543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_RedundantPattern
                 or ErrorCode.HDN_RedundantPatternStackGuard
                 or ErrorCode.ERR_BadVisBaseType
+                or ErrorCode.ERR_AmbigExtension
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

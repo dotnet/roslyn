@@ -8168,4 +8168,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadVisBaseType" xml:space="preserve">
     <value>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </value>
   </data>
+  <data name="ERR_AmbigExtension" xml:space="preserve">
+    <value>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</value>
+  </data>
 </root>

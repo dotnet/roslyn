@@ -67,6 +67,11 @@
         <target state="translated">'{0}' 연산자는 참조 형식인 것으로 알려지지 않은 형식 매개 변수이므로 'default' 및 '{1}' 형식의 피연산자에 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">'{0}' 식별자는 이 컨텍스트에서 '{1}' 형식과 '{2}' 매개 변수 사이에 모호합니다.</target>

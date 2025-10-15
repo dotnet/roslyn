@@ -67,6 +67,11 @@
         <target state="translated">無法將運算子 '{0}' 套用至 'default' 和類型為 '{1}' 的運算元，原因是其為未知參考型別的型別參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">在此內容中，類型 '{1}' 與參數 '{2}' 之間的識別碼 '{0}' 不明確。</target>

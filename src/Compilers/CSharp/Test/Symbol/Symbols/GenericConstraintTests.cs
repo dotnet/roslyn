@@ -6721,8 +6721,9 @@ class D2 : C<B<object>, A<object>>
     }
 }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (18,9): error CS1061: 'X' does not contain a definition for 'E1' and no extension method 'E1' accepting a first argument of type 'X' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("X", "E1").WithLocation(18, 11));
+                // (18,11): error CS0411: The type arguments for method 'M.E1<T>(IA<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         o.E1();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "E1").WithArguments("M.E1<T>(IA<T>)").WithLocation(18, 11));
         }
 
         [Fact]
