@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             currentLineWhitespace.Clear();
             ConsumeWhitespace(currentLineWhitespace);
 
-            if (!StartsWith(currentLineWhitespace, indentationWhitespace))
+            if (!RawStringIndentationHelper.StartsWith(currentLineWhitespace, indentationWhitespace))
             {
                 // We have a line where the indentation of that line isn't a prefix of indentation
                 // whitespace.
@@ -339,11 +339,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
                 // we do have is a prefix of the indentation whitespace.
                 var isBlankLine = SyntaxFacts.IsNewLine(TextWindow.PeekChar());
-                var isLegalBlankLine = isBlankLine && StartsWith(indentationWhitespace, currentLineWhitespace);
+                var isLegalBlankLine = isBlankLine && RawStringIndentationHelper.StartsWith(indentationWhitespace, currentLineWhitespace);
                 if (!isLegalBlankLine)
                 {
                     // Specialized error message if this is a spacing difference.
-                    if (CheckForSpaceDifference(
+                    if (RawStringIndentationHelper.CheckForSpaceDifference(
                             currentLineWhitespace, indentationWhitespace,
                             out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
                     {
@@ -387,58 +387,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static bool CheckForSpaceDifference(
-            StringBuilder currentLineWhitespace,
-            StringBuilder indentationLineWhitespace,
-            [NotNullWhen(true)] out string? currentLineMessage,
-            [NotNullWhen(true)] out string? indentationLineMessage)
-        {
-            for (int i = 0, n = Math.Min(currentLineWhitespace.Length, indentationLineWhitespace.Length); i < n; i++)
-            {
-                var currentLineChar = currentLineWhitespace[i];
-                var indentationLineChar = indentationLineWhitespace[i];
-
-                if (currentLineChar != indentationLineChar &&
-                    SyntaxFacts.IsWhitespace(currentLineChar) &&
-                    SyntaxFacts.IsWhitespace(indentationLineChar))
-                {
-                    currentLineMessage = CharToString(currentLineChar);
-                    indentationLineMessage = CharToString(indentationLineChar);
-                    return true;
-                }
-            }
-
-            currentLineMessage = null;
-            indentationLineMessage = null;
-            return false;
-        }
-
-        public static string CharToString(char ch)
-        {
-            return ch switch
-            {
-                '\t' => @"\t",
-                '\v' => @"\v",
-                '\f' => @"\f",
-                _ => @$"\u{(int)ch:x4}",
-            };
-        }
-
-        /// <summary>
-        /// Returns true if <paramref name="sb"/> starts with <paramref name="value"/>.
-        /// </summary>
-        private static bool StartsWith(StringBuilder sb, StringBuilder value)
-        {
-            if (sb.Length < value.Length)
-                return false;
-
-            for (int i = 0; i < value.Length; i++)
-            {
-                if (sb[i] != value[i])
-                    return false;
-            }
-
-            return true;
-        }
     }
 }

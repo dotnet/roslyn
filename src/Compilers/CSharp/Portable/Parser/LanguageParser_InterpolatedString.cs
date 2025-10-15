@@ -290,26 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ReadOnlySpan<char> indentationLineWhitespace,
             [NotNullWhen(true)] out string? currentLineMessage,
             [NotNullWhen(true)] out string? indentationLineMessage)
-        {
-            for (int i = 0, n = Math.Min(currentLineWhitespace.Length, indentationLineWhitespace.Length); i < n; i++)
-            {
-                var currentLineChar = currentLineWhitespace[i];
-                var indentationLineChar = indentationLineWhitespace[i];
-
-                if (currentLineChar != indentationLineChar &&
-                    SyntaxFacts.IsWhitespace(currentLineChar) &&
-                    SyntaxFacts.IsWhitespace(indentationLineChar))
-                {
-                    currentLineMessage = Lexer.CharToString(currentLineChar);
-                    indentationLineMessage = Lexer.CharToString(indentationLineChar);
-                    return true;
-                }
-            }
-
-            currentLineMessage = null;
-            indentationLineMessage = null;
-            return false;
-        }
+            => RawStringIndentationHelper.CheckForSpaceDifference(
+                currentLineWhitespace, indentationLineWhitespace,
+                out currentLineMessage, out indentationLineMessage);
 
         private static SyntaxToken TokenOrMissingToken(GreenNode? leading, SyntaxKind kind, string text, GreenNode? trailing)
             => text == ""
