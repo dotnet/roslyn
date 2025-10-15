@@ -126,6 +126,10 @@ public class MyTests
 - `TestWorkspace.CreateCSharp()` - Create test workspaces
 - `UseExportProviderAttribute` - Required for MEF-dependent tests
 
+### WorkItem Attribution
+- Add `[WorkItem("https://github.com/dotnet/roslyn/issues/issueNumber")]` attribute to tests that fix specific GitHub issues
+- This helps track which tests validate fixes for specific issues
+
 ## Coding Conventions
 
 ### Performance Rules

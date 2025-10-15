@@ -60,6 +60,7 @@ dotnet run --file eng/generate-compiler-code.cs
 - **Unit tests**: Test individual compiler phases (lexing, parsing)
 - **Compilation tests**: Create `Compilation` objects and verify symbols/diagnostics
 - **Cross-language patterns**: Many test patterns work for both C# and VB with minor syntax changes
+- **WorkItem Attribution**: Add `[WorkItem("https://github.com/dotnet/roslyn/issues/issueNumber")]` attribute to tests that fix specific GitHub issues
 
 ## Debugger Integration
 
