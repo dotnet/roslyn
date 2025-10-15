@@ -91,38 +91,6 @@ internal static class RawStringIndentationHelper
     }
 
     /// <summary>
-    /// Checks if two whitespace sequences differ at a specific character position where both
-    /// characters are whitespace but different types (e.g., tab vs space).
-    /// </summary>
-    private static bool CheckForSpaceDifference<TString, TStringHelper>(
-        TString currentLineWhitespace,
-        TString indentationLineWhitespace,
-        TStringHelper helper,
-        [NotNullWhen(true)] out string? currentLineMessage,
-        [NotNullWhen(true)] out string? indentationLineMessage)
-        where TStringHelper : struct, IStringHelper<TString>
-    {
-        for (int i = 0, n = Math.Min(helper.GetLength(currentLineWhitespace), helper.GetLength(indentationLineWhitespace)); i < n; i++)
-        {
-            var currentLineChar = helper.GetCharAt(currentLineWhitespace, i);
-            var indentationLineChar = helper.GetCharAt(indentationLineWhitespace, i);
-
-            if (currentLineChar != indentationLineChar &&
-                SyntaxFacts.IsWhitespace(currentLineChar) &&
-                SyntaxFacts.IsWhitespace(indentationLineChar))
-            {
-                currentLineMessage = CharToString(currentLineChar);
-                indentationLineMessage = CharToString(indentationLineChar);
-                return true;
-            }
-        }
-
-        currentLineMessage = null;
-        indentationLineMessage = null;
-        return false;
-    }
-
-    /// <summary>
     /// Converts a whitespace character to its string representation for error messages.
     /// </summary>
     private static string CharToString(char ch)
@@ -166,5 +134,37 @@ internal static class RawStringIndentationHelper
         }
 
         return default;
+    }
+
+    /// <summary>
+    /// Checks if two whitespace sequences differ at a specific character position where both
+    /// characters are whitespace but different types (e.g., tab vs space).
+    /// </summary>
+    private static bool CheckForSpaceDifference<TString, TStringHelper>(
+        TString currentLineWhitespace,
+        TString indentationLineWhitespace,
+        TStringHelper helper,
+        [NotNullWhen(true)] out string? currentLineMessage,
+        [NotNullWhen(true)] out string? indentationLineMessage)
+        where TStringHelper : struct, IStringHelper<TString>
+    {
+        for (int i = 0, n = Math.Min(helper.GetLength(currentLineWhitespace), helper.GetLength(indentationLineWhitespace)); i < n; i++)
+        {
+            var currentLineChar = helper.GetCharAt(currentLineWhitespace, i);
+            var indentationLineChar = helper.GetCharAt(indentationLineWhitespace, i);
+
+            if (currentLineChar != indentationLineChar &&
+                SyntaxFacts.IsWhitespace(currentLineChar) &&
+                SyntaxFacts.IsWhitespace(indentationLineChar))
+            {
+                currentLineMessage = CharToString(currentLineChar);
+                indentationLineMessage = CharToString(indentationLineChar);
+                return true;
+            }
+        }
+
+        currentLineMessage = null;
+        indentationLineMessage = null;
+        return false;
     }
 }
