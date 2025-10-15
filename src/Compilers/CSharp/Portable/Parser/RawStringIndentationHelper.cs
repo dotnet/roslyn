@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.Operations.CSharpOperationFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
@@ -127,5 +128,39 @@ internal static class RawStringIndentationHelper
             '\f' => @"\f",
             _ => @$"\u{(int)ch:x4}",
         };
+    }
+
+    public static (ErrorCode code, object[] arguments) CheckForIndentationError<TString, TStringHelper>(
+        TString currentLineWhitespace,
+        TString indentationWhitespace,
+        bool isBlankLine) where TStringHelper : struct, IStringHelper<TString>
+    {
+        var helper = default(TStringHelper);
+        if (!helper.StartsWith(currentLineWhitespace, indentationWhitespace))
+        {
+            // We have a line where the indentation of that line isn't a prefix of indentation
+            // whitespace.
+            //
+            // If we're not on a blank line then this is bad.  That's a content line that doesn't start
+            // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
+            // we do have is a prefix of the indentation whitespace.
+            var isLegalBlankLine = isBlankLine && helper.StartsWith(indentationWhitespace, currentLineWhitespace);
+            if (!isLegalBlankLine)
+            {
+                // Specialized error message if this is a spacing difference.
+                if (CheckForSpaceDifference<TString, TStringHelper>(
+                        currentLineWhitespace, indentationWhitespace,
+                        out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
+                {
+                    return (ErrorCode.ERR_LineContainsDifferentWhitespace, [currentLineWhitespaceChar, indentationWhitespaceChar]);
+                }
+                else
+                {
+                    return (ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, []);
+                }
+            }
+        }
+
+        return default;
     }
 }

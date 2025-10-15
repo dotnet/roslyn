@@ -4,10 +4,9 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RawStringIndentationHelper;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -330,39 +329,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             currentLineWhitespace.Clear();
             ConsumeWhitespace(currentLineWhitespace);
 
-            var helper = default(RawStringIndentationHelper.StringBuilderCharHelper);
-            if (!helper.StartsWith(currentLineWhitespace, indentationWhitespace))
+            var (errorCode, errorArguments) = CheckForIndentationError<StringBuilder, StringBuilderCharHelper>(
+                currentLineWhitespace, indentationWhitespace, isBlankLine: SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
+
+            if (errorCode != 0)
             {
-                // We have a line where the indentation of that line isn't a prefix of indentation
-                // whitespace.
-                //
-                // If we're not on a blank line then this is bad.  That's a content line that doesn't start
-                // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
-                // we do have is a prefix of the indentation whitespace.
-                var isBlankLine = SyntaxFacts.IsNewLine(TextWindow.PeekChar());
-                var isLegalBlankLine = isBlankLine && helper.StartsWith(indentationWhitespace, currentLineWhitespace);
-                if (!isLegalBlankLine)
-                {
-                    // Specialized error message if this is a spacing difference.
-                    if (RawStringIndentationHelper.CheckForSpaceDifference<StringBuilder, RawStringIndentationHelper.StringBuilderCharHelper>(
-                            currentLineWhitespace, indentationWhitespace,
-                            out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
-                    {
-                        this.AddError(
-                            lineStartPosition,
-                            width: TextWindow.Position - lineStartPosition,
-                            ErrorCode.ERR_LineContainsDifferentWhitespace,
-                            currentLineWhitespaceChar, indentationWhitespaceChar);
-                    }
-                    else
-                    {
-                        this.AddError(
-                            lineStartPosition,
-                            width: TextWindow.Position - lineStartPosition,
-                            ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
-                    }
-                    return;
-                }
+                this.AddError(
+                    lineStartPosition,
+                    width: TextWindow.Position - lineStartPosition,
+                    errorCode,
+                    errorArguments);
+                return;
             }
 
             // Skip the leading whitespace that matches the terminator line and add any whitespace past that to the

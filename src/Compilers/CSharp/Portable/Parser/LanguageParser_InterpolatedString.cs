@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RawStringIndentationHelper;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var result = SyntaxFactory.InterpolatedStringExpression(
                 getOpenQuote(),
-                getContent<(string, TextSpan), RawStringIndentationHelper.StringAndSpanCharHelper>((originalText, originalTextSpan)),
+                getContent<(string, TextSpan), StringAndSpanCharHelper>((originalText, originalTextSpan)),
                 getCloseQuote());
 
             interpolations.Free();
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent<TString, TStringHelper>(
-                TString originalTextSpan) where TStringHelper : struct, RawStringIndentationHelper.IStringHelper<TString>
+                TString originalTextSpan) where TStringHelper : struct, IStringHelper<TString>
             {
                 var helper = default(TStringHelper);
 
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Gets the indentation whitespace from the last line of a multi-line raw literal.
             TString getIndentationWhitespace<TString, TStringHelper>(TString originalTextSpan)
-                where TStringHelper : struct, RawStringIndentationHelper.IStringHelper<TString>
+                where TStringHelper : struct, IStringHelper<TString>
             {
                 // The content we want to create text token out of.  Effectively, what is in the text sections
                 // minus leading whitespace.
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 StringBuilder content,
                 bool isFirst,
                 bool isLast,
-                TString text) where TStringHelper : struct, RawStringIndentationHelper.IStringHelper<TString>
+                TString text) where TStringHelper : struct, IStringHelper<TString>
             {
                 var helper = default(TStringHelper);
 
@@ -192,38 +193,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         currentIndex = SkipWhitespace<TString, TStringHelper>(text, currentIndex);
                         var currentLineWhitespace = helper.Slice(text, lineStartPosition..currentIndex);
 
-                        if (!helper.StartsWith(currentLineWhitespace, indentationWhitespace))
+                        var isBlankLine = (currentIndex == textLength && isLast) || (currentIndex < textLength && SyntaxFacts.IsNewLine(helper.GetCharAt(text, currentIndex)));
+                        var (errorCode, errorArguments) = CheckForIndentationError<TString, TStringHelper>(
+                            currentLineWhitespace, indentationWhitespace, isBlankLine);
+
+                        if (errorCode != 0)
                         {
-                            // We have a line where the indentation of that line isn't a prefix of indentation
-                            // whitespace.
-                            //
-                            // If we're not on a blank line then this is bad.  That's a content line that doesn't start
-                            // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
-                            // we do have is a prefix of the indentation whitespace.
-                            var isBlankLine = (currentIndex == textLength && isLast) || (currentIndex < textLength && SyntaxFacts.IsNewLine(helper.GetCharAt(text, currentIndex)));
-                            var isLegalBlankLine = isBlankLine &&
-                                helper.StartsWith(indentationWhitespace, currentLineWhitespace);
-                            if (!isLegalBlankLine)
-                            {
-                                // Specialized error message if this is a spacing difference.
-                                if (RawStringIndentationHelper.CheckForSpaceDifference<TString, TStringHelper>(
-                                        currentLineWhitespace, indentationWhitespace,
-                                        out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
-                                {
-                                    indentationError ??= MakeError(
-                                        lineStartPosition,
-                                        width: currentIndex - lineStartPosition,
-                                        ErrorCode.ERR_LineContainsDifferentWhitespace,
-                                        currentLineWhitespaceChar, indentationWhitespaceChar);
-                                }
-                                else
-                                {
-                                    indentationError ??= MakeError(
-                                        lineStartPosition,
-                                        width: currentIndex - lineStartPosition,
-                                        ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
-                                }
-                            }
+                            indentationError = MakeError(
+                                lineStartPosition,
+                                width: currentIndex - lineStartPosition,
+                                errorCode,
+                                errorArguments);
+
                         }
                     }
 
@@ -240,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     SyntaxFactory.Literal(leading: null, textString, SyntaxKind.InterpolatedStringTextToken, valueString, trailing: null));
 
                 return indentationError != null
-                    ? node.WithDiagnosticsGreen(new[] { indentationError })
+                    ? node.WithDiagnosticsGreen([indentationError])
                     : node;
             }
 
@@ -285,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             SyntaxDiagnosticInfo? getInterpolationIndentationError<TString, TStringHelper>(
                 TString indentationWhitespace,
-                Lexer.Interpolation interpolation) where TStringHelper : struct, RawStringIndentationHelper.IStringHelper<TString>
+                Lexer.Interpolation interpolation) where TStringHelper : struct, IStringHelper<TString>
             {
                 var helper = default(TStringHelper);
                 if (needsDedentation && helper.GetLength(indentationWhitespace) > 0)
@@ -305,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //    ReadOnlySpan<char> indentationLineWhitespace,
         //    [NotNullWhen(true)] out string? currentLineMessage,
         //    [NotNullWhen(true)] out string? indentationLineMessage)
-        //    => RawStringIndentationHelper.CheckForSpaceDifference(
+        //    => CheckForSpaceDifference(
         //        currentLineWhitespace, indentationLineWhitespace,
         //        out currentLineMessage, out indentationLineMessage);
 
@@ -315,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : SyntaxFactory.Token(leading, kind, text, trailing);
 
         private static int SkipWhitespace<TString, TStringHelper>(TString text, int currentIndex)
-            where TStringHelper : struct, RawStringIndentationHelper.IStringHelper<TString>
+            where TStringHelper : struct, IStringHelper<TString>
         {
             var helper = default(TStringHelper);
             var textLength = helper.GetLength(text);
@@ -327,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static int ConsumeRemainingContentThroughNewLine<TString, TStringHelper>(
             StringBuilder content,
             TString text,
-            int currentIndex) where TStringHelper : struct, RawStringIndentationHelper.IStringHelper<TString>
+            int currentIndex) where TStringHelper : struct, IStringHelper<TString>
         {
             var helper = default(TStringHelper);
             var start = currentIndex;
