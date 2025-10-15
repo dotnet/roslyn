@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(collectionBuilderMethods.Length > 0);
 
-                var projectionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+                var projectionMethods = ArrayBuilder<MethodSymbol>.GetInstance(collectionBuilderMethods.Length);
                 foreach (var builderMethod in collectionBuilderMethods)
                 {
                     var projection = new SynthesizedCollectionBuilderProjectedMethodSymbol(builderMethod);
