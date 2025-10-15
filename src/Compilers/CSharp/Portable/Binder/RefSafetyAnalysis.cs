@@ -91,12 +91,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly RefSafetyAnalysis _analysis;
             private readonly ImmutableArray<LocalSymbol> _locals;
+            private readonly bool _adjustDepth;
 
-            public LocalScope(RefSafetyAnalysis analysis, ImmutableArray<LocalSymbol> locals)
+            public LocalScope(RefSafetyAnalysis analysis, ImmutableArray<LocalSymbol> locals, bool adjustDepth = true)
             {
                 _analysis = analysis;
                 _locals = locals;
-                _analysis._localScopeDepth = _analysis._localScopeDepth.Narrower();
+                _adjustDepth = adjustDepth;
+                if (adjustDepth)
+                    _analysis._localScopeDepth = _analysis._localScopeDepth.Narrower();
+
                 foreach (var local in locals)
                 {
                     _analysis.AddLocalScopes(local, refEscapeScope: _analysis._localScopeDepth, valEscapeScope: SafeContext.CallingMethod);
@@ -109,7 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _analysis.RemoveLocalScopes(local);
                 }
-                _analysis._localScopeDepth = _analysis._localScopeDepth.Wider();
+
+                if (_adjustDepth)
+                    _analysis._localScopeDepth = _analysis._localScopeDepth.Wider();
             }
         }
 
@@ -362,6 +368,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analysis = new RefSafetyAnalysis(_compilation, lambda, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.Body);
             return null;
+        }
+
+        public override BoundNode? VisitConstructorMethodBody(BoundConstructorMethodBody node)
+        {
+            // TODO2: coll-expr specific test
+            using var _ = new LocalScope(this, node.Locals, adjustDepth: false);
+            return base.VisitConstructorMethodBody(node);
         }
 
         public override BoundNode? VisitForStatement(BoundForStatement node)
