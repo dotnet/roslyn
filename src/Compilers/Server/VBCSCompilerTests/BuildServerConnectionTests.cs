@@ -212,28 +212,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var logs = new List<string>();
             var testLogger = new TestCompilerServerLogger(logs);
-            
+
             // Create a temporary directory with a fake server executable
             var clientDirectory = TempRoot.CreateDirectory().Path;
             var serverExePath = Path.Combine(clientDirectory, PlatformInformation.IsWindows ? "VBCSCompiler.exe" : "VBCSCompiler");
-            
+
             // Create an empty file to simulate the server executable
             File.WriteAllText(serverExePath, string.Empty);
-            
+
             // Save the original environment variables
             var originalDotNetHostPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
             var originalDotNetExperimentalHostPath = Environment.GetEnvironmentVariable("DOTNET_EXPERIMENTAL_HOST_PATH");
-            
+
             try
             {
                 // Clear both DOTNET_HOST_PATH environment variables to simulate the missing path scenario
                 Environment.SetEnvironmentVariable("DOTNET_HOST_PATH", null);
                 Environment.SetEnvironmentVariable("DOTNET_EXPERIMENTAL_HOST_PATH", null);
-                
+
                 // Try to create the server
                 var pipeName = ServerUtil.GetPipeName();
                 var result = BuildServerConnection.TryCreateServer(clientDirectory, pipeName, testLogger, out var processId);
-                
+
                 // Verify that a warning was logged about DOTNET_HOST_PATH not being provided
                 Assert.Contains(logs, log => log.Contains("Warning") && log.Contains("DOTNET_HOST_PATH"));
             }
@@ -248,14 +248,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private sealed class TestCompilerServerLogger : ICompilerServerLogger
         {
             private readonly List<string> _logs;
-            
+
             public TestCompilerServerLogger(List<string> logs)
             {
                 _logs = logs;
             }
-            
+
             public bool IsLogging => true;
-            
+
             public void Log(string message)
             {
                 _logs.Add(message);
