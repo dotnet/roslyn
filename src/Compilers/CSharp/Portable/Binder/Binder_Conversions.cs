@@ -1062,7 +1062,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var element = elements[i];
                     var elementConversion = elementConversions[i];
                     builder.Add(element is BoundCollectionExpressionSpreadElement spreadElement
-                        ? BindSpreadElement(
+                        ? bindSpreadElement(
+                            this,
                             spreadElement,
                             elementType,
                             elementConversion)
@@ -1079,34 +1080,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _conversion.MarkUnderlyingConversionsChecked();
 
                 return builder.ToImmutableAndFree();
-            }
 
-            private BoundCollectionExpressionSpreadElement BindSpreadElement(
-                BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion)
-            {
-                var enumeratorInfo = element.EnumeratorInfoOpt;
-                Debug.Assert(enumeratorInfo is { });
-                Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
+                BoundCollectionExpressionSpreadElement bindSpreadElement(
+                    CollectionExpressionConverter @this, BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion)
+                {
+                    var enumeratorInfo = element.EnumeratorInfoOpt;
+                    Debug.Assert(enumeratorInfo is { });
+                    Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
 
-                var expressionSyntax = element.Expression.Syntax;
-                var elementPlaceholder = new BoundValuePlaceholder(expressionSyntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
-                elementPlaceholder = (BoundValuePlaceholder)elementPlaceholder.WithSuppression(element.Expression.IsSuppressed);
-                var convertElement = _binder.CreateConversion(
-                    expressionSyntax,
-                    elementPlaceholder,
-                    elementConversion,
-                    isCast: false,
-                    conversionGroupOpt: null,
-                    destination: elementType,
-                    _diagnostics);
-                return element.Update(
-                    element.Expression,
-                    expressionPlaceholder: element.ExpressionPlaceholder,
-                    conversion: element.Conversion,
-                    enumeratorInfo,
-                    elementPlaceholder: elementPlaceholder,
-                    iteratorBody: new BoundExpressionStatement(expressionSyntax, convertElement) { WasCompilerGenerated = true },
-                    lengthOrCount: element.LengthOrCount);
+                    var expressionSyntax = element.Expression.Syntax;
+                    var elementPlaceholder = new BoundValuePlaceholder(expressionSyntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
+                    elementPlaceholder = (BoundValuePlaceholder)elementPlaceholder.WithSuppression(element.Expression.IsSuppressed);
+                    var convertElement = @this._binder.CreateConversion(
+                        expressionSyntax,
+                        elementPlaceholder,
+                        elementConversion,
+                        isCast: false,
+                        conversionGroupOpt: null,
+                        destination: elementType,
+                        @this._diagnostics);
+                    return element.Update(
+                        element.Expression,
+                        expressionPlaceholder: element.ExpressionPlaceholder,
+                        conversion: element.Conversion,
+                        enumeratorInfo,
+                        elementPlaceholder: elementPlaceholder,
+                        iteratorBody: new BoundExpressionStatement(expressionSyntax, convertElement) { WasCompilerGenerated = true },
+                        lengthOrCount: element.LengthOrCount);
+                }
             }
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayOrSpanType(
