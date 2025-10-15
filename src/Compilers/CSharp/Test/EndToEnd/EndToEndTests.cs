@@ -837,7 +837,7 @@ $@"        if (F({i}))
         [Theory]
         [InlineData("or", "1")]
         [InlineData("and not", "0")]
-        public void ManyBinaryPatterns(string pattern, string expectedOutput)
+        public void ManyBinaryPatterns_01(string pattern, string expectedOutput)
         {
             const string preamble = $"""
                 int i = 2;
@@ -885,6 +885,84 @@ $@"        if (F({i}))
                 for (; operation.Parent is not null; operation = operation.Parent) { }
 
                 Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
+            });
+        }
+
+        [Fact]
+        public void ManyBinaryPatterns_02()
+        {
+            const int numOfEnumMembers = 5_000;
+            const int capacity = 97953;
+
+            var builder = new StringBuilder(capacity);
+
+            builder.Append("""
+class ErrorFacts
+{
+    static bool Test(E code)
+    {
+        return code switch
+        {
+            E._0
+""");
+
+            for (int i = 1; i < numOfEnumMembers; i++)
+            {
+                builder.Append($"""
+
+or E._{i}
+""");
+            }
+
+            builder.Append("""
+                    => false,
+        };
+    }
+}
+
+enum E
+{
+    _0,
+""");
+
+            for (int i = 1; i < numOfEnumMembers; i++)
+            {
+                builder.Append($"""
+
+_{i},
+""");
+            }
+
+            builder.Append("""
+}
+""");
+
+            Assert.Equal(capacity, builder.Length);
+
+            var source = builder.ToString();
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false), parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+                var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+                Assert.Equal("E._0", model.GetSymbolInfo(node1).Symbol.ToTestDisplayString());
+                var node2 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last();
+                Assert.Equal($"E._{numOfEnumMembers - 1}", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
+
+                var operation = model.GetOperation(node1);
+                Assert.NotNull(operation);
+
+                for (; operation.Parent is not null; operation = operation.Parent) { }
+
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
+
+                model.GetDiagnostics().Verify(
+                    // (5,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(E)5000' is not covered.
+                    //         return code switch
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(E)" + numOfEnumMembers).WithLocation(5, 21)
+                    );
             });
         }
     }
