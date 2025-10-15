@@ -2141,11 +2141,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inConversion,
             BindingDiagnosticBag diagnostics)
         {
+            var reportNoTargetType = !targetType.IsErrorType();
             var withArguments = node.WithElement?.Arguments ?? [];
 
             var withArgumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(withArguments.Length);
             foreach (var argument in withArguments)
-                withArgumentsBuilder.Add(BindToNaturalType(argument, diagnostics, reportNoTargetType: !targetType.IsErrorType()));
+                withArgumentsBuilder.Add(BindToNaturalType(argument, diagnostics, reportNoTargetType));
 
             var naturalWithArguments = withArgumentsBuilder.ToImmutableAndFree();
             var collectionCreation = naturalWithArguments.Length > 0
@@ -2156,10 +2157,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in node.Elements)
             {
-                var result = element is BoundExpression expression ?
-                    BindToNaturalType(expression, diagnostics, reportNoTargetType: !targetType.IsErrorType()) :
-                    element;
-                elementsBuilder.Add(result);
+                elementsBuilder.Add(element is BoundExpression expression
+                    ? BindToNaturalType(expression, diagnostics, reportNoTargetType)
+                    : element);
             }
 
             return new BoundCollectionExpression(
