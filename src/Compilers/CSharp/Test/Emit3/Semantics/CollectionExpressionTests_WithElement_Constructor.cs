@@ -7,8 +7,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
+[CompilerTrait(CompilerFeature.CollectionExpressions)]
 public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpTestBase
 {
     private static string IncludeExpectedOutput(string expectedOutput) => expectedOutput;
@@ -1587,6 +1588,52 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("0"));
     }
 
+    [Theory]
+    [InlineData("List")]
+    [InlineData("IList")]
+    public void WithElement_NullableFlow(string type)
+    {
+        var source = $$"""
+            #nullable enable
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    {{type}}<int> list = [with((s = "").Length), 1];
+                    var v = s.ToString();
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("List")]
+    [InlineData("IList")]
+    public void WithElement_NullableFlow2(string type)
+    {
+        var source = $$"""
+            #nullable enable
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    {{type}}<int> list = [with((s = "").Length), s.Length];
+                    var v = s.ToString();
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
     #endregion
 
     #region Error Recovery Tests
@@ -1997,14 +2044,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        // PROTOTYPE: We are getting an unassigned variable warning on 'i' here, which is unexpected.
         CreateCompilation(source).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using System;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
-            // (15,13): warning CS0219: The variable 'i' is assigned but its value is never used
-            //         int i = 0;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(15, 13),
             // (16,25): error CS0266: Cannot implicitly convert type 'int' to 'short'. An explicit conversion exists (are you missing a cast?)
             //         Goo([with(() => i), () => (short)2]);
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i").WithArguments("int", "short").WithLocation(16, 25),

@@ -271,24 +271,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Do not leak unspeakable name of a Simple Program entry point through diagnostics,
             // and, for consistency, with other display options.
-            if ((symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedSimpleProgramEntryPointSymbol)
+            var underlyingMethod = (symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol;
+            if (underlyingMethod is SynthesizedSimpleProgramEntryPointSymbol)
             {
                 builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, "<top-level-statements-entry-point>"));
+                return builder;
             }
-            else
+
+            // Do not leak a collection builder projection method through diagnostics.  Any diagnostics about it should
+            // refer back to the original method it was projected from.
+            if (underlyingMethod is SynthesizedCollectionBuilderProjectedMethodSymbol projectedMethod)
             {
-                var visitor = SymbolDisplayVisitor.GetInstance(builder, format, semanticModelOpt, positionOpt);
-                symbol.Accept(visitor);
-
-                if (symbol is INamedTypeSymbol { IsExtension: true } extension
-                    && format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
-                {
-                    visitor.AddExtensionMarkerName(extension);
-                }
-
-                visitor.Free();
+                symbol = projectedMethod.UnderlyingMethod.ISymbol;
             }
 
+            var visitor = SymbolDisplayVisitor.GetInstance(builder, format, semanticModelOpt, positionOpt);
+            symbol.Accept(visitor);
+
+            if (symbol is INamedTypeSymbol { IsExtension: true } extension
+                && format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
+            {
+                visitor.AddExtensionMarkerName(extension);
+            }
+
+            visitor.Free();
             return builder;
         }
 

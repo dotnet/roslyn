@@ -3869,7 +3869,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the target-typing conversion is processed, the completion continuation will be given a target-type and
             // we'll be able to process the element conversions and compute the final visit result.
 
-            // PROTOTYPE: Visit node.CollectionCreation as well?
+            // Walk into the creation side first (generally, this corresponds to the 'with(...)' elements if present.
+            // This will ensure any nullable changes in those arguments are reflected before we walk into the elements.
+            // Note: the creation side may reference a placeholder representing the actual elements to add to the
+            // collection.  For example `SomeCollection.Create(withArg1, withArg2, <placeholder_for_elements>)`. In this
+            // case, we know the type of that place holder and that it is not nullable (it is a ReadOnlySpan).  Populate
+            // the right maps so walking into the creation understands this.
+
+            if (node.CollectionBuilderElementsPlaceholder != null)
+            {
+                AddPlaceholderReplacement(
+                    node.CollectionBuilderElementsPlaceholder,
+                    node.CollectionBuilderElementsPlaceholder,
+                    result: new VisitResult(
+                        node.CollectionBuilderElementsPlaceholder.Type,
+                        NullableAnnotation.NotAnnotated,
+                        NullableFlowState.NotNull));
+            }
+
+            Visit(node.CollectionCreation);
+
+            if (node.CollectionBuilderElementsPlaceholder != null)
+                RemovePlaceholderReplacement(node.CollectionBuilderElementsPlaceholder);
 
             var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 

@@ -2543,6 +2543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionArgumentsDynamicBinding
                 or ErrorCode.ERR_CollectionArgumentsMustBeEmpty
                 or ErrorCode.ERR_CollectionRefLikeElementType
+                or ErrorCode.ERR_BadCollectionArgumentsArgCount
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
