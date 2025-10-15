@@ -718,17 +718,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17637")]
         public void Identifier_Null_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => SyntaxFactory.Identifier(null));
+            Assert.Throws<ArgumentNullException>(() => SyntaxFactory.Identifier(text: null));
             Assert.Throws<ArgumentNullException>(() =>
-                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), null, SyntaxFactory.TriviaList()));
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), text: null, SyntaxFactory.TriviaList()));
             Assert.Throws<ArgumentNullException>(() =>
-                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, null, "value", SyntaxFactory.TriviaList()));
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, text: null, valueText: "value", SyntaxFactory.TriviaList()));
             Assert.Throws<ArgumentNullException>(() =>
-                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, "text", null, SyntaxFactory.TriviaList()));
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, text: "text", valueText: null, SyntaxFactory.TriviaList()));
             Assert.Throws<ArgumentNullException>(() =>
-                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), null, "value", SyntaxFactory.TriviaList()));
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), text: null, valueText: "value", SyntaxFactory.TriviaList()));
             Assert.Throws<ArgumentNullException>(() =>
-                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), "text", null, SyntaxFactory.TriviaList()));
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), text: "text", valueText: null, SyntaxFactory.TriviaList()));
         }
     }
 }
