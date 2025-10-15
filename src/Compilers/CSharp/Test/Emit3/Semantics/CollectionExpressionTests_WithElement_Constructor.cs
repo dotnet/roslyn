@@ -2044,7 +2044,6 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        // PROTOTYPE: We are getting an unassigned variable warning on 'i' here, which is unexpected.
         CreateCompilation(source).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using System;
