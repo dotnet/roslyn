@@ -844,6 +844,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: false, _diagnostics);
                 }
 
+                // If we're not in the collection-construction case, we do not allow ref-structs.  First, for the
+                // array/interface case, we can't make the storage to store the ref structs in.  Second, for the span
+                // case, spans are not 'allows ref struct' for their T element.  So they don't allow them either.  Finally,
+                // collection builders need to take in a ReadOnlySpan<T> so they are restricted for the same reason.
+                Debug.Assert(elementType is { });
+                if (collectionTypeKind != CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                    elementType.IsRefLikeOrAllowsRefLikeType())
+                {
+                    _diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, _node.Syntax);
+                }
+
                 Debug.Assert(elementType is { });
                 var syntax = _node.Syntax;
                 if (LocalRewriter.IsAllocatingRefStructCollectionExpression(_node, collectionTypeKind, elementType, _binder.Compilation))
@@ -955,15 +966,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // If we're not in the collection-construction case, we do not allow ref-structs.  First, for the
-                    // array/interface case, we can't make the storage to store the ref structs in.  Second, for the span
-                    // case, spans are not 'allows ref struct' for their T element.  So they don't allow them either.  Finally,
-                    // collection builders need to take in a ReadOnlySpan<T> so they are restricted for the same reason.
-                    if (elementType.IsRefLikeOrAllowsRefLikeType())
-                    {
-                        _diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, syntax);
-                    }
-
                     MethodSymbol? list_T__ctor = null;
                     MethodSymbol? list_T__ctorInt32 = null;
                     if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
