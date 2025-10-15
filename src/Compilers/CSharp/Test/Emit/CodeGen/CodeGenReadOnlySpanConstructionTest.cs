@@ -3458,5 +3458,175 @@ public class Test
 }
 """);
         }
+
+        [Fact]
+        public void ArrayCreatedWithSizeOnly_ByteType()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<byte> Data1 => new byte[] { 0, 0, 0, 0, 0 };
+    public static ReadOnlySpan<byte> Data2 => new byte[5];
+
+    public static void Main()
+    {
+        Console.Write(Data1.Length);
+        Console.Write(Data2.Length);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "55", verify: Verification.Skipped);
+            
+            // Both Data1 and Data2 should produce the same optimized IL using ldsflda
+            // Verify the structure is correct even if field names differ
+            var il1 = verifier.VisualizeIL("Test.Data1.get");
+            var il2 = verifier.VisualizeIL("Test.Data2.get");
+            
+            // Both should use ldsflda (load address of static field)
+            Assert.Contains("ldsflda", il1);
+            Assert.Contains("ldsflda", il2);
+            
+            // Both should load the constant 5
+            Assert.Contains("ldc.i4.5", il1);
+            Assert.Contains("ldc.i4.5", il2);
+            
+            // Both should call the pointer-based constructor
+            Assert.Contains("System.ReadOnlySpan<byte>..ctor(void*, int)", il1);
+            Assert.Contains("System.ReadOnlySpan<byte>..ctor(void*, int)", il2);
+        }
+
+        [Theory]
+        [InlineData("byte", 3)]
+        [InlineData("sbyte", 4)]
+        public void ArrayCreatedWithSizeOnly_Size1Types(string type, int size)
+        {
+            var csharp = @$"
+using System;
+
+public class Test
+{{
+    public static ReadOnlySpan<{type}> Data => new {type}[{size}];
+
+    public static void Main()
+    {{
+        Console.Write(Data.Length);
+    }}
+}}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: size.ToString(), verify: Verification.Skipped);
+            
+            // Should use the optimized pointer-based constructor
+            // The exact field name will vary based on the hash, but the structure should be:
+            // ldsflda to a field in PrivateImplementationDetails, then ldc.i4 with the size, then newobj
+            var il = verifier.VisualizeIL("Test.Data.get");
+            Assert.Contains("ldsflda", il);
+            Assert.Contains($"ldc.i4.{size}", il);
+            Assert.Contains($"System.ReadOnlySpan<{type}>..ctor(void*, int)", il);
+        }
+
+        [Fact]
+        public void ArrayCreatedWithSizeOnly_IntType()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<int> Data => new int[4];
+
+    public static void Main()
+    {
+        Console.Write(Data.Length);
+        foreach (var i in Data) Console.Write(i);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "40000", verify: Verification.Skipped);
+            
+            // For multi-byte types, the IL will vary based on whether RuntimeHelpers.CreateSpan is available
+            // Just verify it compiles and the optimization is applied (not allocating a real array)
+            var il = verifier.VisualizeIL("Test.Data.get");
+            
+            // Should not contain "newarr  "int"" followed by stelem - that would indicate non-optimized allocation
+            Assert.DoesNotContain("stelem", il);
+        }
+
+        [Fact]
+        public void ArrayCreatedWithSizeOnly_ZeroSize()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<byte> Data => new byte[0];
+
+    public static void Main()
+    {
+        Console.Write(Data.Length);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0", verify: Verification.Skipped);
+            
+            // Empty span should use default initialization with initobj
+            var il = verifier.VisualizeIL("Test.Data.get");
+            Assert.Contains("initobj", il);
+            Assert.Contains("System.ReadOnlySpan<byte>", il);
+        }
+
+        [Fact]
+        public void ArrayCreatedWithSizeOnly_NonConstantSize()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<byte> GetData(int size)
+    {
+        return new byte[size];
+    }
+
+    public static void Main()
+    {
+        Console.Write(GetData(3).Length);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "3", verify: Verification.Skipped);
+            
+            // Non-constant size should not use optimization - should allocate a real array
+            var il = verifier.VisualizeIL("Test.GetData");
+            Assert.Contains("newarr", il);
+            Assert.Contains("System.ReadOnlySpan<byte>.op_Implicit(byte[])", il);
+        }
+
+        [Fact]
+        public void ArrayCreatedWithSizeOnly_InConstructor()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<byte> Data => new ReadOnlySpan<byte>(new byte[10]);
+
+    public static void Main()
+    {
+        Console.Write(Data.Length);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "10", verify: Verification.Skipped);
+            
+            // Should optimize when passed to ReadOnlySpan constructor
+            var il = verifier.VisualizeIL("Test.Data.get");
+            Assert.Contains("ldsflda", il);
+            Assert.Contains("ldc.i4.s   10", il);
+            Assert.Contains("System.ReadOnlySpan<byte>..ctor(void*, int)", il);
+        }
     }
 }

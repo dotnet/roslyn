@@ -468,7 +468,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             ArrayTypeSymbol? arrayType = null;
             TypeSymbol? elementType = null;
-            if (wrappedExpression is not BoundArrayCreation { InitializerOpt: { } initializer } ac)
+            ImmutableArray<BoundExpression> initializers;
+            int elementCount;
+
+            if (wrappedExpression is not BoundArrayCreation ac)
             {
                 return false;
             }
@@ -477,8 +480,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             arrayType = (ArrayTypeSymbol)ac.Type;
             elementType = arrayType.ElementType;
 
-            ImmutableArray<BoundExpression> initializers = initializer.Initializers;
-            var elementCount = initializers.Length;
+            if (ac.InitializerOpt is { } initializer)
+            {
+                // Array created with initializer syntax: new T[] { ... }
+                initializers = initializer.Initializers;
+                elementCount = initializers.Length;
+            }
+            else if (ac.Bounds.Length == 1 && ac.Bounds[0].ConstantValueOpt is { } sizeConstant && sizeConstant.Discriminator == ConstantValueTypeDiscriminator.Int32)
+            {
+                // Array created with size syntax: new T[constSize]
+                // Treat this as equivalent to new T[] { default, default, ..., default }
+                var size = sizeConstant.Int32Value;
+                if (size < 0)
+                {
+                    return false;
+                }
+
+                elementCount = size;
+
+                // Create an array of default-valued bound literals
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(size);
+                var defaultConstant = ConstantValue.Default(elementType.EnumUnderlyingTypeOrSelf().SpecialType);
+                for (int i = 0; i < size; i++)
+                {
+                    builder.Add(new BoundLiteral(wrappedExpression.Syntax, defaultConstant, elementType));
+                }
+                initializers = builder.ToImmutableAndFree();
+            }
+            else
+            {
+                // Not a pattern we can optimize
+                return false;
+            }
             if (elementCount == 0)
             {
                 emitEmptyReadonlySpan(spanType, wrappedExpression, used, inPlaceTarget);
