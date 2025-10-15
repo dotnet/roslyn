@@ -24,17 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             [NotNullWhen(true)] out string? currentLineMessage,
             [NotNullWhen(true)] out string? indentationLineMessage)
         {
-            for (int i = 0, n = Math.Min(currentLineWhitespace.Length, indentationLineWhitespace.Length); i < n; i++)
+            var length = Math.Min(currentLineWhitespace.Length, indentationLineWhitespace.Length);
+            for (int i = 0; i < length; i++)
             {
-                var currentLineChar = currentLineWhitespace[i];
-                var indentationLineChar = indentationLineWhitespace[i];
-
-                if (currentLineChar != indentationLineChar &&
-                    SyntaxFacts.IsWhitespace(currentLineChar) &&
-                    SyntaxFacts.IsWhitespace(indentationLineChar))
+                if (CheckCharacterDifference(currentLineWhitespace[i], indentationLineWhitespace[i], 
+                    out currentLineMessage, out indentationLineMessage))
                 {
-                    currentLineMessage = CharToString(currentLineChar);
-                    indentationLineMessage = CharToString(indentationLineChar);
                     return true;
                 }
             }
@@ -55,19 +50,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             [NotNullWhen(true)] out string? currentLineMessage,
             [NotNullWhen(true)] out string? indentationLineMessage)
         {
-            for (int i = 0, n = Math.Min(currentLineWhitespace.Length, indentationLineWhitespace.Length); i < n; i++)
+            var length = Math.Min(currentLineWhitespace.Length, indentationLineWhitespace.Length);
+            for (int i = 0; i < length; i++)
             {
-                var currentLineChar = currentLineWhitespace[i];
-                var indentationLineChar = indentationLineWhitespace[i];
-
-                if (currentLineChar != indentationLineChar &&
-                    SyntaxFacts.IsWhitespace(currentLineChar) &&
-                    SyntaxFacts.IsWhitespace(indentationLineChar))
+                if (CheckCharacterDifference(currentLineWhitespace[i], indentationLineWhitespace[i],
+                    out currentLineMessage, out indentationLineMessage))
                 {
-                    currentLineMessage = CharToString(currentLineChar);
-                    indentationLineMessage = CharToString(indentationLineChar);
                     return true;
                 }
+            }
+
+            currentLineMessage = null;
+            indentationLineMessage = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Core logic to check if two characters are different whitespace types.
+        /// </summary>
+        private static bool CheckCharacterDifference(
+            char currentLineChar,
+            char indentationLineChar,
+            [NotNullWhen(true)] out string? currentLineMessage,
+            [NotNullWhen(true)] out string? indentationLineMessage)
+        {
+            if (currentLineChar != indentationLineChar &&
+                SyntaxFacts.IsWhitespace(currentLineChar) &&
+                SyntaxFacts.IsWhitespace(indentationLineChar))
+            {
+                currentLineMessage = CharToString(currentLineChar);
+                indentationLineMessage = CharToString(indentationLineChar);
+                return true;
             }
 
             currentLineMessage = null;
