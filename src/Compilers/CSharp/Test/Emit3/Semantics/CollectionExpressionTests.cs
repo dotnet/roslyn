@@ -46789,7 +46789,7 @@ class Program
                 """;
 
             var consumerComp = CreateCompilation([consumerSource, s_collectionExtensionsWithSpan], options: TestOptions.ReleaseExe, references: [libraryRef], targetFramework: TargetFramework.Net80);
-            var verifier = CompileAndVerify(consumerComp, expectedOutput: IncludeExpectedOutput("[1, 2],"), verify: Verification.FailsILVerify with
+            var verifier = CompileAndVerify(consumerComp, expectedOutput: IncludeExpectedOutput("[1, 2],"), verify: Verification.Fails with
             {
                 ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
             }).VerifyDiagnostics();
