@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -90,10 +91,18 @@ internal sealed class MutableConflictResolution(
         return intermediateSolution;
     }
 
-    internal void RenameDocumentToMatchNewSymbol(Document document)
+    internal void RenameDocumentToMatchNewSymbol(Document document, ISymbol symbol, string newSymbolName)
     {
         var extension = Path.GetExtension(document.Name);
-        var newName = Path.ChangeExtension(ReplacementText, extension);
+        
+        // Try to get the updated document name for nested types
+        var newName = WorkspacePathUtilities.GetUpdatedDocumentNameForSymbolRename(document, symbol, newSymbolName);
+        
+        // If we couldn't determine a name using nested type logic, fall back to simple rename
+        if (newName is null)
+        {
+            newName = Path.ChangeExtension(newSymbolName, extension);
+        }
 
         // If possible, check that the new file name is unique to on disk files as well 
         // as solution items.
@@ -116,7 +125,7 @@ internal sealed class MutableConflictResolution(
                         return;
                     }
 
-                    var nameWithoutExtension = ReplacementText + $"_{versionNumber++}";
+                    var nameWithoutExtension = Path.GetFileNameWithoutExtension(newName) + $"_{versionNumber++}";
                     newName = Path.ChangeExtension(nameWithoutExtension, extension);
                     newDocumentFilePath = Path.Combine(directory, newName);
                 }

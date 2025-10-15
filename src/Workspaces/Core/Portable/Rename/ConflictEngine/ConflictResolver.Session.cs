@@ -246,7 +246,7 @@ internal static partial class ConflictResolver
                     if (definitionDocuments.Count() == 1)
                     {
                         // At the moment, only single document renaming is allowed
-                        conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
+                        conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single(), _renameLocationSet.Symbol, _replacementText);
                     }
                 }
 
