@@ -1296,9 +1296,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    // Filter out methods that have a params parameter in the non-last position.  Note: it is not legal
-                    // to make a method with such a parameter in C# or VB.  However, it could be possible to read in
-                    // such a method from metadata.  By filtering these out, we can sidestep thorny issues that would
+                    // Filter out methods that have a params parameter in the second-to-last position.  Note: it is not
+                    // legal to make a method with such a parameter in C# or VB.  However, it could be possible to read
+                    // in such a method from metadata.  By filtering these out, we can sidestep thorny issues that would
                     // arise when trying to call the synthesized projected version of this method with the
                     // ReadOnlySpan<T> parameter removed.
                     if (method.Parameters is [.., { IsParams: true }, _])
