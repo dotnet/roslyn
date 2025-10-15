@@ -1963,7 +1963,7 @@
     <!-- Placeholder location where the collection builder elements will be placed.  Null for all other collection
          expression types.  For example, if the collection is `[with(a, b, c), x, y, z]` initial binding will produce
          `Factory.Create(a, b, c, <placeholder>)`.  The last arg will be replaced in lowering with the ReadOnlySpan for
-         `x, y, z`.  Note: this placeholder is fine as the actual values that will go into it are stored in 'Elements',
+         and will naturally be visited during all binding phases.  It is just the packaging and movement into the final
          and will naturally be visited during all binding phases.  It ist just the packaging and movement into the final
          arg that the lowering phase concerns itself with. -->
     <Field Name="CollectionBuilderElementsPlaceholder" Type="BoundValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
