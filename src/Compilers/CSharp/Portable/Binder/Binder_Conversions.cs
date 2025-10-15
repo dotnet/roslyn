@@ -2142,17 +2142,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var withArguments = node.WithElement?.Arguments ?? [];
+
             var withArgumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(withArguments.Length);
             foreach (var argument in withArguments)
                 withArgumentsBuilder.Add(BindToNaturalType(argument, diagnostics, reportNoTargetType: !targetType.IsErrorType()));
 
             var naturalWithArguments = withArgumentsBuilder.ToImmutableAndFree();
-            var badWithArguments = naturalWithArguments.Length > 0
+            var collectionCreation = naturalWithArguments.Length > 0
                 ? new BoundBadExpression(node.WithElement!.Syntax, LookupResultKind.Empty, symbols: [], naturalWithArguments, CreateErrorType())
                 : null;
 
-            var elementsBuilder = ArrayBuilder<BoundNode>.GetInstance((badWithArguments is null ? 1 : 0) + node.Elements.Length);
-            elementsBuilder.AddIfNotNull(badWithArguments);
+            var elementsBuilder = ArrayBuilder<BoundNode>.GetInstance(node.Elements.Length);
 
             foreach (var element in node.Elements)
             {
@@ -2166,7 +2166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Syntax,
                 collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
-                collectionCreation: null,
+                collectionCreation,
                 collectionBuilderMethod: null,
                 collectionBuilderElementsPlaceholder: null,
                 wasTargetTyped: inConversion,
