@@ -1747,4 +1747,31 @@ class C
                 class Something { }
             }
             """, new TestParameters(testHost: testHost));
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
+    public Task TestWithinSourceGeneratedFile(TestHost testHost)
+        => TestMissingAsync("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Console" CommonReferences="true">
+            <DocumentFromSourceGenerator>
+            using Goo;
+
+            Something a;
+            [|PInvoke|].GetMessage();
+
+            namespace Goo
+            {
+                class Something { }
+            }</DocumentFromSourceGenerator>
+            <DocumentFromSourceGenerator>
+            namespace Win32
+            {
+                public class PInvoke
+                {
+                }
+            }
+            </DocumentFromSourceGenerator>
+                </Project>
+            </Workspace>
+            """, new TestParameters(testHost: testHost));
 }

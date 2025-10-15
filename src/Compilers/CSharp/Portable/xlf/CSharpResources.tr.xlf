@@ -357,6 +357,11 @@
         <target state="translated">'{0}' türü 'using static' için geçerli değil. Yalnızca bir sınıf, yapı, arabirim, sabit liste, temsilci veya ad alanı kullanılabilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
         <target state="translated">'güvenli yield return' bloğunda 'yield return' kullanılamadı</target>
@@ -822,11 +827,6 @@
         <target state="translated">İfade ağacı, demetin == veya != işlecini içeremez.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
-        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">İfade ağacı UTF-8 dize dönüştürmesi veya sabit değer içermeyebilir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">İfade ağacı, with ifadesi içeremez.</target>
@@ -903,11 +903,6 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
-        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">'{0}' özelliği C# 8.0'da kullanılamaz. Lütfen {1} veya daha yüksek bir dil sürümü kullanın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' özelliği C# 8.0'da kullanılamaz. Lütfen {1} veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
@@ -2382,11 +2377,6 @@
         <target state="translated">Üst düzey deyimleri kullanan program yürütülebilir olmalıdır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
-        <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">Tek öğeli bir ayrıştırma deseni, kesinleştirme için başka bir söz dizimi gerektirir. ')' kapanış parantezinden sonra '_' atma belirleyicisinin eklenmesi önerilir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
         <target state="translated">'{0}', '{0}' için bir genel örnek veya uzantı tanımı içermediğinden '..' yayılma işleci, '{1}' türündeki değişkenler üzerinde çalışamaz</target>
@@ -2617,11 +2607,6 @@
         <target state="translated">Liste desenleri, '{0}' türünde bir değer için kullanılamaz.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
-        <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="translated">Dilim desenleri, '{0}' türünde bir değer için kullanılamaz.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
         <target state="translated">Sonlandırılmamış ham dize sabit değeri.</target>
@@ -2670,6 +2655,26 @@
       <trans-unit id="HDN_DuplicateWithGlobalUsing_Title">
         <source>The using directive appeared previously as global using</source>
         <target state="translated">Daha önce genel kullanım olarak görünen kullanım yönergesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard_Title">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -3012,6 +3017,21 @@
         <target state="translated">{0}, geçerli bir C# yayma işlemi değil</target>
         <note />
       </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="ParameterRequiresTypeOrIdentifier">
+        <source>ParameterSyntax requires either a type or an identifier.</source>
+        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
         <target state="translated">Diğer '{0}' erişimci tarafından '{1}' için özellik erişimcisi 'field' kullanamıyor.</target>
@@ -3090,16 +3110,6 @@
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
         <target state="translated">'SizeConst' öznitelik parametresi belirtilmelidir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing">
-        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">'{0}' argümanlarının bu kombinasyonu, '{1}' parametresi tarafından başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing_Title">
-        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Bu argüman kombinasyonu, parametre tarafından başvurulan değişkenleri bildirim kapsamı dışında gösterebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -3240,26 +3250,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Çözümleyici referansı birden çok kez belirtildi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall">
-        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Bu bağlamda '{0}' sonucunun kullanılması, '{1}' parametresi tarafından başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2">
-        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Bu bağlamda '{0}' sonucunun üyesinin kullanılması, '{1}' parametresi tarafından başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2_Title">
-        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Sonuç üyesinin bu bağlamda kullanılması, parametre tarafından başvurulan değişkenleri bildirim kapsamı dışında gösterebilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall_Title">
-        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Bu bağlamda sonucun kullanılması, parametre tarafından başvurulan değişkenleri bildirim kapsamı dışında gösterebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc">
@@ -3555,6 +3545,16 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">Türler ve diğer adlar 'record' olarak adlandırılmamalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
@@ -10392,11 +10392,6 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <target state="translated">System.Collections.IEnumerable' uygulamadığından '{0}' türü bir koleksiyon başlatıcısıyla başlatılamıyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantSetWin32Manifest">
-        <source>Error reading Win32 manifest file '{0}' -- '{1}'</source>
-        <target state="translated">'{0}' Win32 bildirim dosyası okunurken hata -- '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CantHaveManifestForModule">
         <source>Ignoring /win32manifest for module because it only applies to assemblies</source>
         <target state="translated">Yalnızca derlemeler için geçerli olduğundan modülde /win32manifest yoksayılıyor</target>
@@ -11277,11 +11272,6 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <target state="translated">Dizi erişiminin adlandırılmış bağımsız değişken belirticisi olamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotYetImplementedInRoslyn">
-        <source>This language feature ('{0}') is not yet implemented.</source>
-        <target state="translated">Bu dil özelliği ('{0}') henüz uygulanmadı.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultValueNotAllowed">
         <source>Default values are not valid in this context.</source>
         <target state="translated">Varsayılan değerler bu bağlamda geçerli değil.</target>
@@ -11810,36 +11800,6 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
         <source>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</source>
         <target state="translated">'{2}' bir Windows Çalışma Zamanı olayı ve '{3}' bir düzenli .NET olayı olduğundan '{0}' '{1}' öğesini uygulayamıyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
-        <source>Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</source>
-        <target state="translated">Tüm başvuruları kapsam dışı olmadan {0} öğesinin ayrılmış örneğinde System.IDisposable.Dispose() öğesini çağırın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1_Title">
-        <source>Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</source>
-        <target state="translated">Tüm başvuruları kapsam dışı olmadan önce ayrılmış örnekte System.IDisposable.Dispose() öğesini çağırın</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2">
-        <source>Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</source>
-        <target state="translated">{0} öğesinin ayrılmış örneği tüm istisna yolları boyunca atılmaz.  Tüm başvuruları kapsam dışı olmadan önce System.IDisposable.Dispose() öğesini çağırın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2_Title">
-        <source>Allocated instance is not disposed along all exception paths</source>
-        <target state="translated">Ayrılan örnek tüm özel durum yolları boyunca atılamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes">
-        <source>Object '{0}' can be disposed more than once.</source>
-        <target state="translated">'{0}' nesnesi birden çok kez atılabilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes_Title">
-        <source>Object can be disposed more than once</source>
-        <target state="translated">Nesne birden çok kez atılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewCoClassOnLink">
@@ -12525,11 +12485,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">Otomatik uygulanan özellikler geçersiz kılınan özelliğin tüm erişicilerini geçersiz kılmalıdır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
-        <source>Structs without explicit constructors cannot contain members with initializers.</source>
-        <target state="translated">Açık oluşturucuları olmayan yapı birimleri başlatıcıları olan üyeler içeremez.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EncodinglessSyntaxTree">
         <source>Cannot emit debug information for a source text without encoding.</source>
         <target state="translated">Kodlama olmadan bir kaynak metin için hata ayıklama bilgileri yayılamıyor.</target>
@@ -12543,11 +12498,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_SwitchFallOut">
         <source>Control cannot fall out of switch from final case label ('{0}')</source>
         <target state="translated">Denetim, son durum etiketi geçişi dışında kalamaz ('{0}')</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnexpectedBoundGenericName">
-        <source>Type arguments are not allowed in the nameof operator.</source>
-        <target state="translated">nameof işlecinde tür bağımsız değişkenlerine izin verilmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullPropagatingOpInExpressionTree">
@@ -12825,19 +12775,9 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">'{0}' öğesinin bir üyesi, başvuru ile döndürülemeyen bir değerle başlatıldığından başvuru ile döndürülemez</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal">
-        <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">'{0}' öğesi salt okunur olduğundan başvuru ile döndürülemez</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
         <source>Cannot return the range variable '{0}' by reference</source>
         <target state="translated">'{0}' aralık değişkeni başvuru ile döndürülemez</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocalCause">
-        <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">'{0}' öğesi bir '{1}' olduğundan başvuru ile döndürülemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">

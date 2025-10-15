@@ -841,7 +841,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
             }
             else if (renamedSymbol.Kind == SymbolKind.Method)
             {
-                conflicts.AddRange(DeclarationConflictHelpers.GetMembersWithConflictingSignatures((IMethodSymbol)renamedSymbol, trimOptionalParameters: false).Select(t => reverseMappedLocations[t]));
+                conflicts.AddRange(DeclarationConflictHelpers.GetMembersWithConflictingSignatures((IMethodSymbol)renamedSymbol, trimOptionalParameters: false, distinguishRefKind: true).Select(t => reverseMappedLocations[t]));
 
                 // we allow renaming overrides of VB property accessors with parameters in C#.
                 // VB has a special rule that properties are not allowed to have the same name as any of the parameters. 

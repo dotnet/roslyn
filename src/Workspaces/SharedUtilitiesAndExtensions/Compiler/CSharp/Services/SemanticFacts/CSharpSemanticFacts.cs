@@ -62,6 +62,12 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
 
         foreach (var ancestor in token.GetAncestors<SyntaxNode>())
         {
+            // In a conversion declaration, you can have `public static implicit operator X<T>` Being inside the type
+            // argument is a reference location, and not a token we want to think of as declaring the conversion
+            // operator.
+            if (ancestor is TypeArgumentListSyntax)
+                return null;
+
             var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
             if (symbol != null)
             {
