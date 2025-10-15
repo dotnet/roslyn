@@ -379,7 +379,7 @@ fallbackStrings:
             }
 
             Debug.Assert(precedingArgument is null || ReferenceEquals(precedingArgument, finalArguments[^1]));
-            Debug.Assert(singleConcatArgument is null ^ nestedConcatArguments.IsDefaultOrEmpty);
+            Debug.Assert(singleConcatArgument is null ^ nestedConcatArguments.IsDefault);
 
             if (singleConcatArgument is not null)
             {
