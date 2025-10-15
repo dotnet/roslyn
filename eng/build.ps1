@@ -736,7 +736,10 @@ try {
 
   # Workaround for MSBuild bug where DOTNET_HOST_PATH is sometimes unset before Csc task
   if (-not $env:DOTNET_HOST_PATH) {
-    $env:DOTNET_HOST_PATH = Join-Path $RepoRoot '.dotnet'
+    $env:DOTNET_HOST_PATH = Join-Path $RepoRoot '.dotnet' 'dotnet'
+    if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
+      $env:DOTNET_HOST_PATH = "$($env:DOTNET_HOST_PATH).exe"
+    }
   }
 
   Subst-TempDir
