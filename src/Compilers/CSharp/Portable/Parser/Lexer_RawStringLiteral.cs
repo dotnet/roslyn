@@ -329,8 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             currentLineWhitespace.Clear();
             ConsumeWhitespace(currentLineWhitespace);
 
-            var (errorCode, errorArguments) = CheckForIndentationError<StringBuilder, StringBuilderCharHelper>(
-                currentLineWhitespace, indentationWhitespace, isBlankLine: SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
+            var (errorCode, errorArguments) = CheckForIndentationError(
+                currentLineWhitespace, indentationWhitespace, isBlankLine: SyntaxFacts.IsNewLine(TextWindow.PeekChar()), default(StringBuilderCharHelper));
 
             if (errorCode != 0)
             {
