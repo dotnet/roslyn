@@ -855,6 +855,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _diagnostics.Add(ErrorCode.ERR_CollectionRefLikeElementType, _node.Syntax);
                 }
 
+                var result = TryConvertCollectionExpression(collectionTypeKind, elementType, constructor);
+                if (result is null)
+                    return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, _diagnostics);
+
+                result.WasCompilerGenerated = _node.IsParamsArrayOrCollection;
+                result.IsParamsArrayOrCollection = _node.IsParamsArrayOrCollection;
+
+                return result;
+            }
+
+            private readonly BoundCollectionExpression? TryConvertCollectionExpression(
+                CollectionExpressionTypeKind collectionTypeKind,
+                TypeSymbol elementType,
+                MethodSymbol? constructor)
+            {
                 Debug.Assert(elementType is { });
                 var syntax = _node.Syntax;
                 if (LocalRewriter.IsAllocatingRefStructCollectionExpression(_node, collectionTypeKind, elementType, _binder.Compilation))
@@ -888,16 +903,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var collectionBuilderMethods = _binder.GetCollectionBuilderMethods(syntax, namedType, _diagnostics, forParams: false);
                             if (collectionBuilderMethods.IsEmpty)
-                            {
-                                return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, _diagnostics);
-                            }
+                                return null;
 
                             (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(
                                 _binder, _node, _targetType, collectionBuilderMethods, _diagnostics);
                             if (collectionCreation is null || collectionBuilderMethod is null || collectionBuilderElementsPlaceholder is null)
-                            {
-                                return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, _diagnostics);
-                            }
+                                return null;
 
                             var lastParameterType = collectionBuilderMethod.Parameters.Last().Type;
                             Debug.Assert(lastParameterType.IsReadOnlySpan());
@@ -909,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (_targetType.OriginalDefinition.Equals(_binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything))
                         {
                             _diagnostics.Add(ErrorCode.ERR_CollectionExpressionImmutableArray, syntax, _targetType.OriginalDefinition);
-                            return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, _diagnostics);
+                            return null;
                         }
                         break;
                 }
@@ -925,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(inProgressConstructor is not null);
                         _diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
-                        return _binder.BindCollectionExpressionForErrorRecovery(_node, namedType, inConversion: true, _diagnostics);
+                        return null;
                     }
 
                     implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
@@ -934,14 +945,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                     if (collectionCreation.HasErrors)
-                    {
-                        return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, _diagnostics);
-                    }
+                        return null;
 
                     if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, _targetType))
                     {
                         _diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, _targetType);
-                        return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, _diagnostics);
+                        return null;
                     }
 
                     var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, _targetType, _binder);
@@ -1035,8 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasWithElement: _node.WithElement != null,
                     _node,
                     builder.ToImmutableAndFree(),
-                    _targetType)
-                { WasCompilerGenerated = _node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = _node.IsParamsArrayOrCollection };
+                    _targetType);
             }
 
             private BoundCollectionExpressionSpreadElement BindSpreadElement(
