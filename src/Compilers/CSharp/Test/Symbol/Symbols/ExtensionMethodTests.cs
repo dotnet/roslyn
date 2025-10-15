@@ -4160,5 +4160,145 @@ public static class C
                 //         c.M = 42;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "c.M").WithArguments("M", "method group").WithLocation(7, 9));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestInModifier()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+
+                static class Extensions
+                {
+                    public static void M1(this in S s) { }
+                    public static void M2(this in E e) { }
+                    public static void M3(this in C c) { }
+                    public static void M4(this in I i) { }
+                    public static void M5(this in D d) { }
+                    public static void M6(this in S[] s) { }
+                    public static void M7<T>(this in T t) where T : struct { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M3' must be a concrete (non-generic) value type.
+                //     public static void M3(this in C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M3").WithArguments("M3").WithLocation(11, 24),
+                // (12,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M4' must be a concrete (non-generic) value type.
+                //     public static void M4(this in I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M4").WithArguments("M4").WithLocation(12, 24),
+                // (13,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M5' must be a concrete (non-generic) value type.
+                //     public static void M5(this in D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M5").WithArguments("M5").WithLocation(13, 24),
+                // (14,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M6' must be a concrete (non-generic) value type.
+                //     public static void M6(this in S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M6").WithArguments("M6").WithLocation(14, 24),
+                // (15,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M7' must be a concrete (non-generic) value type.
+                //     public static void M7<T>(this in T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestRefReadonlyModifier()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+                
+                static class Extensions
+                {
+                    public static void M1(this ref readonly S s) { }
+                    public static void M2(this ref readonly E e) { }
+                    public static void M3(this ref readonly C c) { }
+                    public static void M4(this ref readonly I i) { }
+                    public static void M5(this ref readonly D d) { }
+                    public static void M6(this ref readonly S[] s) { }
+                    public static void M7<T>(this ref readonly T t) where T : struct { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M3' must be a concrete (non-generic) value type.
+                //     public static void M3(this ref readonly C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M3").WithArguments("M3").WithLocation(11, 24),
+                // (12,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M4' must be a concrete (non-generic) value type.
+                //     public static void M4(this ref readonly I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M4").WithArguments("M4").WithLocation(12, 24),
+                // (13,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M5' must be a concrete (non-generic) value type.
+                //     public static void M5(this ref readonly D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M5").WithArguments("M5").WithLocation(13, 24),
+                // (14,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M6' must be a concrete (non-generic) value type.
+                //     public static void M6(this ref readonly S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M6").WithArguments("M6").WithLocation(14, 24),
+                // (15,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M7' must be a concrete (non-generic) value type.
+                //     public static void M7<T>(this ref readonly T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24));
+        }
+
+        [ClrOnlyFact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestInModifierWithEnumType()
+        {
+            var source = """
+                int i = 0;
+                i.M1();
+
+                E e = (E)0;
+                e.M2();
+                
+                enum E;
+
+                static class Extensions
+                {
+                    public static void M1(this in int e)
+                    {
+                        System.Console.WriteLine("output");
+                    }
+
+                    public static void M2(this in E e)
+                    {
+                        System.Console.WriteLine("output");
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "output");
+        }
+
+        [ClrOnlyFact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestRefReadonlyModifierWithEnumType()
+        {
+            var source = """
+                int i = 0;
+                i.M1();
+                
+                E e = (E)0;
+                e.M2();
+                
+                enum E;
+                
+                static class Extensions
+                {
+                    public static void M1(this ref readonly int e)
+                    {
+                        System.Console.WriteLine("output");
+                    }
+                
+                    public static void M2(this ref readonly E e)
+                    {
+                        System.Console.WriteLine("output");
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "output");
+        }
     }
 }
