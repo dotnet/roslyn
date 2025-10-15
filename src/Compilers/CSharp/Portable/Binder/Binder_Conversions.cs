@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, _diagnostics);
                     }
 
-                    if (!elements.IsDefaultOrEmpty && _binder.HasCollectionInitializerTypeInProgress(syntax, _targetType))
+                    if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, _targetType))
                     {
                         _diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, _targetType);
                         return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, _diagnostics);
@@ -1315,24 +1315,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _binder.CreateBadClassCreationExpression(
                     withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, _diagnostics);
             }
-        }
 
-        private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
-        {
-            Binder? current = this;
-            while (current?.Flags.Includes(BinderFlags.CollectionInitializerAddMethod) == true)
+            private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
             {
-                if (current is CollectionInitializerAddMethodBinder binder &&
-                    binder.Syntax == syntax &&
-                    binder.CollectionType.OriginalDefinition.Equals(targetType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                for (var current = _binder;
+                     current?.Flags.Includes(BinderFlags.CollectionInitializerAddMethod) == true;
+                     current = current.Next)
                 {
-                    return true;
+                    if (current is CollectionInitializerAddMethodBinder binder &&
+                        binder.Syntax == syntax &&
+                        binder.CollectionType.OriginalDefinition.Equals(targetType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        return true;
+                    }
                 }
 
-                current = current.Next;
+                return false;
             }
-
-            return false;
         }
 
         /// <param name="forParams">Specifies whether this is finding collection builder methods for the <c>params
