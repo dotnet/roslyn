@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // newline-ends.
                 var afterNewLine = SlidingTextWindow.GetNewLineWidth(
                     helper.GetCharAt(closeQuoteText, 0), helper.GetCharAt(closeQuoteText, 1));
-                var afterWhitespace = SkipWhitespace(closeQuoteText, afterNewLine, helper);
+                var afterWhitespace = skipWhitespace(closeQuoteText, afterNewLine);
 
                 Debug.Assert(helper.GetCharAt(closeQuoteText, afterWhitespace) == '"');
                 return helper.Slice(closeQuoteText, afterNewLine..afterWhitespace);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Only bother reporting a single indentation error on a text chunk.
                     if (indentationError == null)
                     {
-                        currentIndex = SkipWhitespace(text, currentIndex, helper);
+                        currentIndex = skipWhitespace(text, currentIndex);
                         var currentLineWhitespace = helper.Slice(text, lineStartPosition..currentIndex);
 
                         var isBlankLine = (currentIndex == textLength && isLast) || (currentIndex < textLength && SyntaxFacts.IsNewLine(helper.GetCharAt(text, currentIndex)));
@@ -272,6 +272,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return null;
             }
 
+            int skipWhitespace(TString text, int currentIndex)
+            {
+                var textLength = helper.GetLength(text);
+                while (currentIndex < textLength && SyntaxFacts.IsWhitespace(helper.GetCharAt(text, currentIndex)))
+                    currentIndex++;
+                return currentIndex;
+            }
+
             int consumeRemainingContentThroughNewLine(StringBuilder content, TString text, int currentIndex)
             {
                 var start = currentIndex;
@@ -300,15 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => text == ""
                 ? SyntaxFactory.MissingToken(leading, kind, trailing)
                 : SyntaxFactory.Token(leading, kind, text, trailing);
-
-        private static int SkipWhitespace<TString, TStringHelper>(TString text, int currentIndex, TStringHelper helper)
-            where TStringHelper : struct, IStringHelper<TString>
-        {
-            var textLength = helper.GetLength(text);
-            while (currentIndex < textLength && SyntaxFacts.IsWhitespace(helper.GetCharAt(text, currentIndex)))
-                currentIndex++;
-            return currentIndex;
-        }
 
         private static InterpolationSyntax ParseInterpolation(
             CSharpParseOptions options,
