@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
 
-                var collectionCreation = BindCollectionConstructorConstruction(syntax, constructor);
+                var collectionCreation = bindCollectionConstructorConstruction(this, syntax, constructor);
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var elements = _node.Elements;
 
-                if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(this, syntax, _targetType))
+                if (!elements.IsDefaultOrEmpty && hasCollectionInitializerTypeInProgress(this, syntax, _targetType))
                 {
                     _diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, _targetType);
                     return null;
@@ -993,7 +993,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.ToImmutableAndFree(),
                     _targetType);
 
-                bool HasCollectionInitializerTypeInProgress(
+                BoundExpression bindCollectionConstructorConstruction(
+                    CollectionExpressionConverter @this, SyntaxNode syntax, MethodSymbol? constructor)
+                {
+                    //
+                    // !!! ATTENTION !!!
+                    //
+                    // In terms of errors relevant for HasCollectionExpressionApplicableConstructor check
+                    // this function should be kept in sync with HasCollectionExpressionApplicableConstructor.
+                    //
+
+                    var withElement = @this._node.WithElement;
+                    var analyzedArguments = withElement is null
+                        ? AnalyzedArguments.GetInstance()
+                        : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
+
+                    BoundExpression collectionCreation;
+                    if (@this._targetType is NamedTypeSymbol namedType)
+                    {
+                        var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, constructor);
+                        collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
+                        collectionCreation.WasCompilerGenerated = true;
+                    }
+                    else if (@this._targetType is TypeParameterSymbol typeParameter)
+                    {
+                        collectionCreation = @this._binder.BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: false, @this._diagnostics);
+                        collectionCreation.WasCompilerGenerated = true;
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(@this._targetType);
+                    }
+                    analyzedArguments.Free();
+                    return collectionCreation;
+                }
+
+                bool hasCollectionInitializerTypeInProgress(
                     CollectionExpressionConverter @this, SyntaxNode syntax, TypeSymbol targetType)
                 {
                     for (var current = @this._binder;
@@ -1010,42 +1045,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return false;
                 }
-            }
-
-            private readonly BoundExpression BindCollectionConstructorConstruction(
-                SyntaxNode syntax,
-                MethodSymbol? constructor)
-            {
-                //
-                // !!! ATTENTION !!!
-                //
-                // In terms of errors relevant for HasCollectionExpressionApplicableConstructor check
-                // this function should be kept in sync with HasCollectionExpressionApplicableConstructor.
-                //
-
-                var withElement = _node.WithElement;
-                var analyzedArguments = withElement is null
-                    ? AnalyzedArguments.GetInstance()
-                    : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
-
-                BoundExpression collectionCreation;
-                if (_targetType is NamedTypeSymbol namedType)
-                {
-                    var binder = new ParamsCollectionTypeInProgressBinder(namedType, _binder, constructor);
-                    collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, _diagnostics);
-                    collectionCreation.WasCompilerGenerated = true;
-                }
-                else if (_targetType is TypeParameterSymbol typeParameter)
-                {
-                    collectionCreation = _binder.BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: false, _diagnostics);
-                    collectionCreation.WasCompilerGenerated = true;
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(_targetType);
-                }
-                analyzedArguments.Free();
-                return collectionCreation;
             }
 
             private readonly ImmutableArray<BoundNode> BindElements(TypeSymbol elementType)
@@ -1153,15 +1152,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayInterfaceType(ImmutableArray<BoundNode> elements)
             {
-                var syntax = _node.Syntax;
-
-                var collectionCreation = BindCollectionArrayInterfaceConstruction();
-
                 return new BoundCollectionExpression(
-                    syntax,
+                    _node.Syntax,
                     CollectionExpressionTypeKind.ArrayInterface,
                     placeholder: null,
-                    collectionCreation,
+                    bindCollectionArrayInterfaceConstruction(this),
                     collectionBuilderMethod: null,
                     collectionBuilderElementsPlaceholder: null,
                     wasTargetTyped: true,
@@ -1170,84 +1165,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _node,
                     elements,
                     _targetType);
-            }
 
-            private BoundExpression? BindCollectionArrayInterfaceConstruction()
-            {
-                var withElement = _node.WithElement;
-                if (withElement is null)
-                    return null;
-
-                Debug.Assert(_targetType.IsArrayInterface(out _));
-
-                var withSyntax = withElement.Syntax;
-                if (_targetType.IsReadOnlyArrayInterface(out _))
+                BoundExpression? bindCollectionArrayInterfaceConstruction(CollectionExpressionConverter @this)
                 {
-                    // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
-                    // the parameterless `with()` is allowed.
-                    if (withElement.Arguments.Length > 0)
+                    var withElement = @this._node.WithElement;
+                    if (withElement is null)
+                        return null;
+
+                    Debug.Assert(@this._targetType.IsArrayInterface(out _));
+
+                    var withSyntax = withElement.Syntax;
+                    if (@this._targetType.IsReadOnlyArrayInterface(out _))
                     {
-                        _diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, withSyntax.GetFirstToken().GetLocation());
+                        // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
+                        // the parameterless `with()` is allowed.
+                        if (withElement.Arguments.Length > 0)
+                        {
+                            @this._diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, withSyntax.GetFirstToken().GetLocation());
+                        }
+
+                        // Note: we intentionally report null here.  Even though the code has `with()` in it, we're not actually
+                        // going to call a particular constructor.  The lowering phase will properly handle creating a read-only
+                        // interface instance.
+                        return null;
                     }
 
-                    // Note: we intentionally report null here.  Even though the code has `with()` in it, we're not actually
-                    // going to call a particular constructor.  The lowering phase will properly handle creating a read-only
-                    // interface instance.
-                    return null;
+                    var isMutableArray = @this._targetType.IsMutableArrayInterface(out var typeArgument);
+                    Debug.Assert(isMutableArray);
+
+                    // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg `with()` and
+                    // single int arg for the `List(int capacity)` case.
+                    //
+                    // This is from
+                    // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/collection-expressions.md#mutable-interface-translation
+                    // which dictates that IList<E> and ICollection<E> map to List<E>. and from
+                    // https://github.com/dotnet/csharplang/blob/90f1d8b0e9ba8a140f73aef376833969cce8bf9e/proposals/collection-expression-arguments.md?plain=1#L284
+                    // which dictates the two constructors we allow from that.
+
+                    var useSiteInfo = @this._binder.GetNewCompoundUseSiteInfo(@this._diagnostics);
+
+                    // Map to the corresponding List<E>() and List<E>(int) constructors in the constructed List<E> target.
+
+                    var constructedListType = @this._binder
+                        .GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo)
+                        .Construct([typeArgument]);
+
+                    // Don't need to report diagnostics here.  Our caller will have already done this.
+                    var list_T__ctor = (MethodSymbol?)@this._binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, BindingDiagnosticBag.Discarded, syntax: @this._node.Syntax);
+                    var list_T__ctorInt32 = (MethodSymbol?)@this._binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, BindingDiagnosticBag.Discarded, syntax: @this._node.Syntax);
+
+                    var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
+                    candidateConstructorsBuilder.AddIfNotNull(list_T__ctor?.AsMember(constructedListType));
+                    candidateConstructorsBuilder.AddIfNotNull(list_T__ctorInt32?.AsMember(constructedListType));
+                    var candidateConstructors = candidateConstructorsBuilder.ToImmutableAndFree();
+
+                    var analyzedArguments = AnalyzedArguments.GetInstance(
+                        withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
+
+                    // Now perform overload resolution given only those two constructors and no others.
+                    if (@this._binder.TryPerformOverloadResolutionWithConstructorSubset(
+                            constructedListType,
+                            ref candidateConstructors,
+                            candidateConstructors,
+                            analyzedArguments,
+                            constructedListType.Name,
+                            withSyntax.GetFirstToken().GetLocation(),
+                            suppressResultDiagnostics: false,
+                            @this._diagnostics,
+                            out var memberResolutionResult,
+                            ref useSiteInfo,
+                            isParamsModifierValidation: false))
+                    {
+                        return @this._binder.BindClassCreationExpressionContinued(
+                            withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
+                    }
+
+                    return @this._binder.CreateBadClassCreationExpression(
+                        withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
                 }
-
-                var isMutableArray = _targetType.IsMutableArrayInterface(out var typeArgument);
-                Debug.Assert(isMutableArray);
-
-                // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg `with()` and
-                // single int arg for the `List(int capacity)` case.
-                //
-                // This is from
-                // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/collection-expressions.md#mutable-interface-translation
-                // which dictates that IList<E> and ICollection<E> map to List<E>. and from
-                // https://github.com/dotnet/csharplang/blob/90f1d8b0e9ba8a140f73aef376833969cce8bf9e/proposals/collection-expression-arguments.md?plain=1#L284
-                // which dictates the two constructors we allow from that.
-
-                var useSiteInfo = _binder.GetNewCompoundUseSiteInfo(_diagnostics);
-
-                // Map to the corresponding List<E>() and List<E>(int) constructors in the constructed List<E> target.
-
-                var constructedListType = _binder
-                    .GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo)
-                    .Construct([typeArgument]);
-
-                // Don't need to report diagnostics here.  Our caller will have already done this.
-                var list_T__ctor = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, BindingDiagnosticBag.Discarded, syntax: _node.Syntax);
-                var list_T__ctorInt32 = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, BindingDiagnosticBag.Discarded, syntax: _node.Syntax);
-
-                var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
-                candidateConstructorsBuilder.AddIfNotNull(list_T__ctor?.AsMember(constructedListType));
-                candidateConstructorsBuilder.AddIfNotNull(list_T__ctorInt32?.AsMember(constructedListType));
-                var candidateConstructors = candidateConstructorsBuilder.ToImmutableAndFree();
-
-                var analyzedArguments = AnalyzedArguments.GetInstance(
-                    withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
-
-                // Now perform overload resolution given only those two constructors and no others.
-                if (_binder.TryPerformOverloadResolutionWithConstructorSubset(
-                        constructedListType,
-                        ref candidateConstructors,
-                        candidateConstructors,
-                        analyzedArguments,
-                        constructedListType.Name,
-                        withSyntax.GetFirstToken().GetLocation(),
-                        suppressResultDiagnostics: false,
-                        _diagnostics,
-                        out var memberResolutionResult,
-                        ref useSiteInfo,
-                        isParamsModifierValidation: false))
-                {
-                    return _binder.BindClassCreationExpressionContinued(
-                        withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, _diagnostics);
-                }
-
-                return _binder.CreateBadClassCreationExpression(
-                    withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, _diagnostics);
             }
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionBuilderType(ImmutableArray<BoundNode> elements)
