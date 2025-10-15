@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var elements = _node.Elements;
 
-                if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, _targetType))
+                if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(this, syntax, _targetType))
                 {
                     _diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, _targetType);
                     return null;
@@ -992,6 +992,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _node,
                     builder.ToImmutableAndFree(),
                     _targetType);
+
+                bool HasCollectionInitializerTypeInProgress(
+                    CollectionExpressionConverter @this, SyntaxNode syntax, TypeSymbol targetType)
+                {
+                    for (var current = @this._binder;
+                         current?.Flags.Includes(BinderFlags.CollectionInitializerAddMethod) == true;
+                         current = current.Next)
+                    {
+                        if (current is CollectionInitializerAddMethodBinder binder &&
+                            binder.Syntax == syntax &&
+                            binder.CollectionType.OriginalDefinition.Equals(targetType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
             }
 
             private readonly BoundExpression BindCollectionConstructorConstruction(
@@ -1028,23 +1046,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 analyzedArguments.Free();
                 return collectionCreation;
-            }
-
-            private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
-            {
-                for (var current = _binder;
-                     current?.Flags.Includes(BinderFlags.CollectionInitializerAddMethod) == true;
-                     current = current.Next)
-                {
-                    if (current is CollectionInitializerAddMethodBinder binder &&
-                        binder.Syntax == syntax &&
-                        binder.CollectionType.OriginalDefinition.Equals(targetType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
             }
 
             private readonly ImmutableArray<BoundNode> BindElements(TypeSymbol elementType)
