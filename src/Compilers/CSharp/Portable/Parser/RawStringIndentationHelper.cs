@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 /// </summary>
 internal static class RawStringIndentationHelper
 {
+    /// <summary>
+    /// Abstraction allowing us to have the same algorithms over StringBuilders or subspans of strings.
+    /// </summary>
     public interface IStringHelper<TString>
     {
         int GetLength(TString str);
@@ -27,6 +30,10 @@ internal static class RawStringIndentationHelper
         bool StartsWith(TString str, TString other);
     }
 
+    /// <summary>
+    /// Implementation over a subspan of a string. Note: a <![CDATA[ReadOnlySpan<char>]]> would be more natural.  However, we have
+    /// to run on runtimes that do not support ref struct generics.
+    /// </summary>
     public readonly struct StringAndSpanCharHelper : IStringHelper<(string str, TextSpan span)>
     {
         public int GetLength((string str, TextSpan span) tuple)
