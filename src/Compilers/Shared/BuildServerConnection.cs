@@ -479,9 +479,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Gets the environment variables that should be passed to the server process.
         /// </summary>
         /// <param name="currentEnvironment">Current environment variables to use as a base</param>
-        /// <param name="logger">Optional logger for logging environment variable setup</param>
         /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
-        internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null)
+        internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment)
         {
             if (RuntimeHostInfo.GetToolDotNetRoot() is not { } dotNetRoot)
             {
@@ -510,8 +509,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // Set our DOTNET_ROOT
             environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
 
-            logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
-
             return environmentVariables;
         }
 
@@ -531,9 +528,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
-            logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
+            var environmentVariables = GetServerEnvironmentVariables(Environment.GetEnvironmentVariables());
 
-            var environmentVariables = GetServerEnvironmentVariables(Environment.GetEnvironmentVariables(), logger);
+            if (environmentVariables != null)
+            {
+                logger.Log("Attempting to create process '{0}' {1} with {2}='{3}'",
+                    serverInfo.processFilePath,
+                    serverInfo.commandLineArguments,
+                    RuntimeHostInfo.DotNetRootEnvironmentName,
+                    environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName]);
+            }
+            else
+            {
+                logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
+                logger.LogError("Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild.",
+                    RuntimeHostInfo.DotNetRootEnvironmentName,
+                    "DOTNET_HOST_PATH");
+            }
 
             if (PlatformInformation.IsWindows)
             {
