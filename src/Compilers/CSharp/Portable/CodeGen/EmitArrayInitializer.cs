@@ -508,6 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // Create an array of default-valued bound literals
                 // We need to verify that we can create default constants for this element type
+                // before allocating the builder array
                 var underlyingType = elementType.EnumUnderlyingTypeOrSelf();
                 var defaultConstant = ConstantValue.Default(underlyingType.SpecialType);
                 
