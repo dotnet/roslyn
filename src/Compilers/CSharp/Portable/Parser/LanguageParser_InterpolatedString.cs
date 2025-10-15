@@ -52,10 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // trying in the presence of errors as we may not even be able to determine what the dedentation should be.
             var needsDedentation = kind == Lexer.InterpolatedStringKind.MultiLineRaw && error == null;
 
-            var result = SyntaxFactory.InterpolatedStringExpression(
-                getOpenQuote(),
-                getContent((originalText, originalTextSpan), default(StringAndSpanCharHelper)),
-                getCloseQuote());
+            var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent((originalText, originalTextSpan), default(StringAndSpanCharHelper)), getCloseQuote());
 
             interpolations.Free();
             if (error != null)
