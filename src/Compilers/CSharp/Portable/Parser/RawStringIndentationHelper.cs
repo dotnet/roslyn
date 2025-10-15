@@ -6,7 +6,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.Operations.CSharpOperationFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
@@ -88,7 +87,7 @@ internal static class RawStringIndentationHelper
     /// Checks if two whitespace sequences differ at a specific character position where both
     /// characters are whitespace but different types (e.g., tab vs space).
     /// </summary>
-    public static bool CheckForSpaceDifference<TString, TStringHelper>(
+    private static bool CheckForSpaceDifference<TString, TStringHelper>(
         TString currentLineWhitespace,
         TString indentationLineWhitespace,
         [NotNullWhen(true)] out string? currentLineMessage,
@@ -119,7 +118,7 @@ internal static class RawStringIndentationHelper
     /// <summary>
     /// Converts a whitespace character to its string representation for error messages.
     /// </summary>
-    public static string CharToString(char ch)
+    private static string CharToString(char ch)
     {
         return ch switch
         {
