@@ -173,6 +173,11 @@
         <target state="translated">Symbole de méthode attendu</target>
         <note />
       </trans-unit>
+      <trans-unit id="MissingTokenListItem">
+        <source>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</source>
+        <target state="new">The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">Le module a des attributs non valides.</target>
@@ -783,7 +788,7 @@
         <note />
       </trans-unit>
       <trans-unit id="MissingListItem">
-        <source>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</source>
+        <source>The item specified is not the element of a list.</source>
         <target state="needs-review-translation">L’élément spécifié n’est pas l’élément d’une liste.</target>
         <note />
       </trans-unit>
