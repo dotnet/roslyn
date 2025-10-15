@@ -887,6 +887,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                     return TryConvertCollectionExpressionImplementsIEnumerableType(constructor);
 
+                if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
+    hasSpreadElements)
+                {
+                    // Verify the existence of the List<T> members that may be used in lowering, even
+                    // though not all will be used for any particular collection expression. Checking all
+                    // gives a consistent behavior, regardless of collection expression elements.
+                    _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, _diagnostics, syntax: syntax);
+                    _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, _diagnostics, syntax: syntax);
+                    _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, _diagnostics, syntax: syntax);
+                    _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, _diagnostics, syntax: syntax);
+                }
+
+                // From this point out, all the remaining collection types end up converting all their elements
+                // to their actual element type and passing those along.  
+
+                var elements = BindElements(elementType);
+
+                return collectionTypeKind switch
+                {
+                    CollectionExpressionTypeKind.Array or CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan
+                        => TryConvertCollectionExpressionArrayOrSpanType(collectionTypeKind, elements),
+
+                    CollectionExpressionTypeKind.ArrayInterface
+                        => TryConvertCollectionExpressionArrayInterfaceType(elements),
+
+                    CollectionExpressionTypeKind.CollectionBuilder
+                        => TryConvertCollectionExpressionBuilderType(elements),
+
+                    _ => throw ExceptionUtilities.UnexpectedValue(collectionTypeKind),
+                };
+
                 // Stores the `new T(...)` call if this is a normal constructor backed collection (including mutable array
                 // interfaces).  Otherwise stores the `T.Create(...)` call for collection builders.  It will be null for
                 // spans, arrays, and read-only interfaces.
@@ -896,14 +927,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (collectionTypeKind)
                 {
-                    case CollectionExpressionTypeKind.Span:
-                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, _diagnostics, syntax: syntax);
-                        break;
-
-                    case CollectionExpressionTypeKind.ReadOnlySpan:
-                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: syntax);
-                        break;
-
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         {
                             var namedType = (NamedTypeSymbol)_targetType;
@@ -941,20 +964,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    MethodSymbol? list_T__ctor = null;
-                    MethodSymbol? list_T__ctorInt32 = null;
-                    if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
-                        _node.HasSpreadElements(out _, out _))
-                    {
-                        // Verify the existence of the List<T> members that may be used in lowering, even
-                        // though not all will be used for any particular collection expression. Checking all
-                        // gives a consistent behavior, regardless of collection expression elements.
-                        list_T__ctor = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, _diagnostics, syntax: syntax);
-                        list_T__ctorInt32 = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, _diagnostics, syntax: syntax);
-                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, _diagnostics, syntax: syntax);
-                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, _diagnostics, syntax: syntax);
-                    }
-
                     if (_node.WithElement != null)
                     {
                         if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface)
@@ -963,40 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             collectionCreation = BindCollectionArrayInterfaceConstruction(
                                 _targetType, list_T__ctor, list_T__ctorInt32, _node.WithElement);
                         }
-                        else if (collectionTypeKind is not CollectionExpressionTypeKind.CollectionBuilder)
-                        {
-                            // Array, Span, ReadOnlySpan
-                            _diagnostics.Add(
-                                ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
-                                _node.WithElement.Syntax.GetFirstToken().GetLocation(),
-                                _targetType);
-                        }
                     }
-
-                    var elementConversions = _conversion.UnderlyingConversions;
-
-                    Debug.Assert(elements.Length == elementConversions.Length);
-                    Debug.Assert(elementConversions.All(c => c.Exists));
-
-                    for (int i = 0; i < elements.Length; i++)
-                    {
-                        var element = elements[i];
-                        var elementConversion = elementConversions[i];
-                        builder.Add(element is BoundCollectionExpressionSpreadElement spreadElement
-                            ? BindSpreadElement(
-                                spreadElement,
-                                elementType,
-                                elementConversion)
-                            : _binder.CreateConversion(
-                                element.Syntax,
-                                (BoundExpression)element,
-                                elementConversion,
-                                isCast: false,
-                                conversionGroupOpt: null,
-                                destination: elementType,
-                                _diagnostics));
-                    }
-                    _conversion.MarkUnderlyingConversionsChecked();
                 }
 
                 return new BoundCollectionExpression(
@@ -1010,6 +986,80 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasWithElement: _node.WithElement != null,
                     _node,
                     builder.ToImmutableAndFree(),
+                    _targetType);
+            }
+
+            private readonly ImmutableArray<BoundNode> BindElements(TypeSymbol elementType)
+            {
+                var elements = _node.Elements;
+                var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
+
+                var elementConversions = _conversion.UnderlyingConversions;
+
+                Debug.Assert(elements.Length == elementConversions.Length);
+                Debug.Assert(elementConversions.All(c => c.Exists));
+
+                for (int i = 0; i < elements.Length; i++)
+                {
+                    var element = elements[i];
+                    var elementConversion = elementConversions[i];
+                    builder.Add(element is BoundCollectionExpressionSpreadElement spreadElement
+                        ? BindSpreadElement(
+                            spreadElement,
+                            elementType,
+                            elementConversion)
+                        : _binder.CreateConversion(
+                            element.Syntax,
+                            (BoundExpression)element,
+                            elementConversion,
+                            isCast: false,
+                            conversionGroupOpt: null,
+                            destination: elementType,
+                            _diagnostics));
+                }
+
+                _conversion.MarkUnderlyingConversionsChecked();
+
+                return builder.ToImmutableAndFree();
+            }
+
+            private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayOrSpanType(
+                CollectionExpressionTypeKind collectionTypeKind,
+                ImmutableArray<BoundNode> elements)
+            {
+                var syntax = _node.Syntax;
+                switch (collectionTypeKind)
+                {
+                    case CollectionExpressionTypeKind.Span:
+                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, _diagnostics, syntax: syntax);
+                        break;
+
+                    case CollectionExpressionTypeKind.ReadOnlySpan:
+                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: syntax);
+                        break;
+                }
+
+                if (_node.WithElement != null)
+                {
+                    // Strictly disallowed in the language specification for: Array, Span, ReadOnlySpan
+                    _diagnostics.Add(
+                        ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
+                        _node.WithElement.Syntax.GetFirstToken().GetLocation(),
+                        _targetType);
+                }
+
+                return new BoundCollectionExpression(
+                    syntax,
+                    collectionTypeKind,
+                    placeholder: null,
+                    collectionCreation: null,
+                    collectionBuilderMethod: null,
+                    collectionBuilderElementsPlaceholder: null,
+                    wasTargetTyped: true,
+                    // Since a with-element is not legal here, we can just treat these as if they don't have one at all.
+                    hasWithElement: false,
+                    _node,
+                    elements,
                     _targetType);
             }
 
