@@ -104,28 +104,60 @@ internal static class WorkspacePathUtilities
         if (extension is null)
             return null;
 
-        // Build the new expected file name based on the containership chain
-        var parts = new List<string>();
-        var current = oldSymbol;
-        while (current is not null)
+        var oldFileNameWithoutExtension = GetTypeNameFromDocumentName(document);
+        if (oldFileNameWithoutExtension is null)
+            return null;
+
+        // Parse the old file name to see if it follows the nested type pattern
+        var oldFileParts = oldFileNameWithoutExtension.Split('.');
+        
+        // If the old file name has only one part, use simple renaming
+        if (oldFileParts.Length == 1)
         {
-            if (current is INamedTypeSymbol namedType)
+            // Simple rename: "Inner.cs" -> "Foo.cs"
+            return newSymbolName + extension;
+        }
+        
+        // Build the full qualified name for the symbol (e.g., "Outer" or "Outer.Inner")
+        var symbolQualifiedName = GetExpectedFileNameForSymbol(oldSymbol);
+        if (symbolQualifiedName is null)
+            return null;
+        
+        var symbolParts = symbolQualifiedName.Split('.');
+        
+        // Match file parts against symbol parts to find where the renamed symbol appears
+        var newParts = new List<string>(oldFileParts);
+        
+        // Find the position in the file name where the symbol's outermost type appears
+        // For example, if the symbol is "Outer.Inner" and file is "Outer.Inner.cs", we match from position 0
+        // If the symbol is "Outer" and file is "Outer.Inner.cs", we match from position 0 but only update "Outer"
+        for (int fileIdx = 0; fileIdx < oldFileParts.Length; fileIdx++)
+        {
+            // Check if the symbol chain matches starting from this position
+            bool matches = true;
+            for (int symIdx = 0; symIdx < symbolParts.Length && (fileIdx + symIdx) < oldFileParts.Length; symIdx++)
             {
-                // Replace the old symbol name with the new one
-                if (SymbolEqualityComparer.Default.Equals(current, oldSymbol))
+                if (!oldFileParts[fileIdx + symIdx].Equals(symbolParts[symIdx], StringComparison.OrdinalIgnoreCase))
                 {
-                    parts.Add(newSymbolName);
-                }
-                else
-                {
-                    parts.Add(namedType.Name);
+                    matches = false;
+                    break;
                 }
             }
-            current = current.ContainingType;
+            
+            if (matches)
+            {
+                // Found the position where the symbol appears
+                // The last part of the symbol name is what we're renaming
+                var renameIdx = fileIdx + symbolParts.Length - 1;
+                if (renameIdx < newParts.Count)
+                {
+                    newParts[renameIdx] = newSymbolName;
+                }
+                break;
+            }
         }
 
-        parts.Reverse();
-        var newFileName = string.Join(".", parts);
+        var newFileName = string.Join(".", newParts);
         return newFileName + extension;
     }
 }
