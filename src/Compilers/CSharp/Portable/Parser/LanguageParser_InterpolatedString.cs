@@ -151,11 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             InterpolatedStringContentSyntax? makeContent<TString, TStringHelper>(
-                TString indentationWhitespace,
-                StringBuilder content,
-                bool isFirst,
-                bool isLast,
-                TString text) where TStringHelper : struct, IStringHelper<TString>
+                TString indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, TString text)
+                where TStringHelper : struct, IStringHelper<TString>
             {
                 var helper = default(TStringHelper);
 
