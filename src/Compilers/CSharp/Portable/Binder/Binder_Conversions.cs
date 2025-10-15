@@ -2142,20 +2142,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var withArguments = node.WithElement?.Arguments ?? [];
-
-            var builder = ArrayBuilder<BoundNode>.GetInstance(withArguments.Length + node.Elements.Length);
-
+            var withArgumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(withArguments.Length);
             foreach (var argument in withArguments)
-            {
-                builder.Add(BindToNaturalType(argument, diagnostics, reportNoTargetType: !targetType.IsErrorType()));
-            }
+                withArgumentsBuilder.Add(BindToNaturalType(argument, diagnostics, reportNoTargetType: !targetType.IsErrorType()));
+
+            var naturalWithArguments = withArgumentsBuilder.ToImmutableAndFree();
+            var badWithArguments = naturalWithArguments.Length > 0
+                ? new BoundBadExpression(node.WithElement!.Syntax, LookupResultKind.Empty, symbols: [], naturalWithArguments, CreateErrorType())
+                : null;
+
+            var elementsBuilder = ArrayBuilder<BoundNode>.GetInstance((badWithArguments is null ? 1 : 0) + node.Elements.Length);
+            elementsBuilder.AddIfNotNull(badWithArguments);
 
             foreach (var element in node.Elements)
             {
                 var result = element is BoundExpression expression ?
                     BindToNaturalType(expression, diagnostics, reportNoTargetType: !targetType.IsErrorType()) :
                     element;
-                builder.Add(result);
+                elementsBuilder.Add(result);
             }
 
             return new BoundCollectionExpression(
@@ -2171,7 +2175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // element.
                 hasWithElement: false,
                 node,
-                elements: builder.ToImmutableAndFree(),
+                elements: elementsBuilder.ToImmutableAndFree(),
                 targetType,
                 hasErrors: true)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
