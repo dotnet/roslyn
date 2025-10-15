@@ -496,11 +496,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return false;
                 }
 
+                // For very large arrays, don't synthesize the initializers to avoid excessive memory usage during compilation
+                // The existing block initializer code has similar limits
+                const int MaxSynthesizedArraySize = 1000;
+                if (size > MaxSynthesizedArraySize)
+                {
+                    return false;
+                }
+
                 elementCount = size;
 
                 // Create an array of default-valued bound literals
+                // We need to verify that we can create default constants for this element type
+                var underlyingType = elementType.EnumUnderlyingTypeOrSelf();
+                var defaultConstant = ConstantValue.Default(underlyingType.SpecialType);
+                
+                // If ConstantValue.Default returns null, this type cannot be optimized this way
+                if (defaultConstant == null)
+                {
+                    return false;
+                }
+
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(size);
-                var defaultConstant = ConstantValue.Default(elementType.EnumUnderlyingTypeOrSelf().SpecialType);
                 for (int i = 0; i < size; i++)
                 {
                     builder.Add(new BoundLiteral(wrappedExpression.Syntax, defaultConstant, elementType));

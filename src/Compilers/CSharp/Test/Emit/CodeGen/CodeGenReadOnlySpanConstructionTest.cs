@@ -3628,5 +3628,29 @@ public class Test
             Assert.Contains("ldc.i4.s   10", il);
             Assert.Contains("System.ReadOnlySpan<byte>..ctor(void*, int)", il);
         }
+
+        [Fact]
+        public void ArrayCreatedWithSizeOnly_LargeSize_NotOptimized()
+        {
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<byte> Data => new byte[2000]; // Too large to synthesize
+
+    public static void Main()
+    {
+        Console.Write(Data.Length);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "2000", verify: Verification.Skipped);
+            
+            // Should not optimize for very large arrays
+            var il = verifier.VisualizeIL("Test.Data.get");
+            Assert.Contains("newarr", il);
+            Assert.Contains("System.ReadOnlySpan<byte>.op_Implicit(byte[])", il);
+        }
     }
 }
