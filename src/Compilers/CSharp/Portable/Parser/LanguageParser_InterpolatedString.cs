@@ -278,15 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        //private static bool CheckForSpaceDifference(
-        //    ReadOnlySpan<char> currentLineWhitespace,
-        //    ReadOnlySpan<char> indentationLineWhitespace,
-        //    [NotNullWhen(true)] out string? currentLineMessage,
-        //    [NotNullWhen(true)] out string? indentationLineMessage)
-        //    => CheckForSpaceDifference(
-        //        currentLineWhitespace, indentationLineWhitespace,
-        //        out currentLineMessage, out indentationLineMessage);
-
         private static SyntaxToken TokenOrMissingToken(GreenNode? leading, SyntaxKind kind, string text, GreenNode? trailing)
             => text == ""
                 ? SyntaxFactory.MissingToken(leading, kind, trailing)
