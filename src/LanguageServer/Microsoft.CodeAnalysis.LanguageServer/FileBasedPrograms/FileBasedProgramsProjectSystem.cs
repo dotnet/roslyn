@@ -70,6 +70,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 _canonicalMiscFilesProject = new CanonicalMiscFilesProject(_workspaceFactory, _logger);
 
                 // Perform the initial design-time build
+                // Note: We pass null for binaryLogPathProvider since it's private in the base class.
+                // Binary logging is optional and primarily used for diagnostics.
                 await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPathProvider: null, loggerFactory: LoggerFactory);
                 var loadedProject = await _canonicalMiscFilesProject.EnsureInitializedAsync(buildHostProcessManager, _fileChangeWatcher, AdditionalProperties, cancellationToken);
 
