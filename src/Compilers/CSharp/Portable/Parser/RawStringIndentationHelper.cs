@@ -39,25 +39,65 @@ internal static class RawStringIndentationHelper
     {
         int GetLength(TString str);
         char GetCharAt(TString str, int index);
+
+        string ToString(TString str);
+        void AppendTo(TString str, StringBuilder sb);
+
+        TString Slice(TString str, Range range);
+
+        bool StartsWith(TString str, TString other);
     }
 
-    public struct StringAndSpanCharHelper : IStringHelper<(string str, TextSpan span)>
+    public readonly struct StringAndSpanCharHelper : IStringHelper<(string str, TextSpan span)>
     {
-        public int GetLength((string str, TextSpan span) tuple) => tuple.span.Length;
-        public char GetCharAt((string str, TextSpan span) tuple, int index) => tuple.str[tuple.span.Start + index];
+        public int GetLength((string str, TextSpan span) tuple)
+            => tuple.span.Length;
+
+        public char GetCharAt((string str, TextSpan span) tuple, int index)
+            => tuple.str[tuple.span.Start + index];
+
+        public string ToString((string str, TextSpan span) tuple)
+            => tuple.str.Substring(tuple.span.Start, tuple.span.Length);
+
+        public void AppendTo((string str, TextSpan span) tuple, StringBuilder sb)
+            => sb.Append(tuple.str, tuple.span.Start, tuple.span.Length);
+
+        public (string str, TextSpan span) Slice((string str, TextSpan span) tuple, Range range)
+        {
+            var (offset, length) = range.GetOffsetAndLength(tuple.span.Length);
+            return (tuple.str, new TextSpan(tuple.span.Start + offset, length));
+        }
+
+        public bool StartsWith((string str, TextSpan span) tuple, (string str, TextSpan span) other)
+        {
+            var strSpan = tuple.str.AsSpan(tuple.span.Start, tuple.span.Length);
+            var otherSpan = other.str.AsSpan(other.span.Start, other.span.Length);
+
+            return strSpan.StartsWith(otherSpan);
+        }
     }
 
-    public struct StringBuilderCharHelper : IStringHelper<StringBuilder>
+    public readonly struct StringBuilderCharHelper : IStringHelper<StringBuilder>
     {
         public int GetLength(StringBuilder str) => str.Length;
         public char GetCharAt(StringBuilder str, int index) => str[index];
+
+        public string ToString(StringBuilder str) => str.ToString();
+
+        public void AppendTo(StringBuilder str, StringBuilder sb) => sb.Append(str);
+
+        StringBuilder IStringHelper<StringBuilder>.Slice(StringBuilder str, Range range)
+            => throw new NotImplementedException();
+
+        public bool StartsWith(StringBuilder str, StringBuilder other)
+            => throw new NotImplementedException();
     }
 
     /// <summary>
     /// Checks if two whitespace sequences differ at a specific character position where both
     /// characters are whitespace but different types (e.g., tab vs space).
     /// </summary>
-    private static bool CheckForSpaceDifference<TString, TStringHelper>(
+    public static bool CheckForSpaceDifference<TString, TStringHelper>(
         TString currentLineWhitespace,
         TString indentationLineWhitespace,
         [NotNullWhen(true)] out string? currentLineMessage,
