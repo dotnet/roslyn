@@ -21,9 +21,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         internal TempRoot TempRoot { get; } = new TempRoot();
         internal XunitCompilerServerLogger Logger { get; }
+        internal ITestOutputHelper TestOutputHelper { get; }
 
         public BuildServerConnectionTests(ITestOutputHelper testOutputHelper)
         {
+            TestOutputHelper = testOutputHelper;
             Logger = new XunitCompilerServerLogger(testOutputHelper);
         }
 
@@ -206,12 +208,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public void TryCreateServer_LogsErrorWhenDotNetHostPathNotFound()
         {
-            // This test verifies that TryCreateServer logs an error when DOTNET_HOST_PATH is not found
+            // This test verifies that TryCreateServer logs a warning when DOTNET_HOST_PATH is not found
             // We can't fully test TryCreateServer without a valid server executable, but we can test
             // the logging behavior by creating a mock scenario
 
-            var logs = new List<string>();
-            var testLogger = new TestCompilerServerLogger(logs);
+            var testLogger = new XunitCompilerServerLogger(TestOutputHelper, captureLogs: true);
 
             // Create a temporary directory with a fake server executable
             var clientDirectory = TempRoot.CreateDirectory().Path;
@@ -235,30 +236,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var result = BuildServerConnection.TryCreateServer(clientDirectory, pipeName, testLogger, out var processId);
 
                 // Verify that a warning was logged about DOTNET_HOST_PATH not being provided
-                Assert.Contains(logs, log => log.Contains("Warning") && log.Contains("DOTNET_HOST_PATH"));
+                Assert.NotNull(testLogger.CapturedLogs);
+                Assert.Contains(testLogger.CapturedLogs, log => log.Contains("Warning") && log.Contains("DOTNET_HOST_PATH"));
             }
             finally
             {
                 // Restore original environment variables
                 Environment.SetEnvironmentVariable("DOTNET_HOST_PATH", originalDotNetHostPath);
                 Environment.SetEnvironmentVariable("DOTNET_EXPERIMENTAL_HOST_PATH", originalDotNetExperimentalHostPath);
-            }
-        }
-
-        private sealed class TestCompilerServerLogger : ICompilerServerLogger
-        {
-            private readonly List<string> _logs;
-
-            public TestCompilerServerLogger(List<string> logs)
-            {
-                _logs = logs;
-            }
-
-            public bool IsLogging => true;
-
-            public void Log(string message)
-            {
-                _logs.Add(message);
             }
         }
     }
