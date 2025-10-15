@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var result = SyntaxFactory.InterpolatedStringExpression(
                 getOpenQuote(),
-                getContent<(string, TextSpan), StringAndSpanCharHelper>((originalText, originalTextSpan)),
+                getContent((originalText, originalTextSpan), default(StringAndSpanCharHelper)),
                 getCloseQuote());
 
             interpolations.Free();
@@ -88,14 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent<TString, TStringHelper>(
-                TString originalTextSpan) where TStringHelper : struct, IStringHelper<TString>
+                TString originalTextSpan, TStringHelper helper) where TStringHelper : struct, IStringHelper<TString>
             {
-                var helper = default(TStringHelper);
-
                 var content = PooledStringBuilder.GetInstance();
                 var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
 
-                var indentationWhitespace = needsDedentation ? getIndentationWhitespace<TString, TStringHelper>(originalTextSpan) : default!;
+                var indentationWhitespace = needsDedentation ? getIndentationWhitespace(originalTextSpan, helper) : default!;
 
                 var currentContentStart = openQuoteRange.End;
                 for (var i = 0; i < interpolations.Count; i++)
@@ -103,15 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var interpolation = interpolations[i];
 
                     // Add a token for text preceding the interpolation
-                    builder.Add(makeContent<TString, TStringHelper>(
+                    builder.Add(makeContent(
                         indentationWhitespace, content, isFirst: i == 0, isLast: false,
-                        helper.Slice(originalTextSpan, currentContentStart..interpolation.OpenBraceRange.Start)));
+                        helper.Slice(originalTextSpan, currentContentStart..interpolation.OpenBraceRange.Start),
+                        helper));
 
                     // Now parse the interpolation itself.
                     var interpolationNode = ParseInterpolation(this.Options, originalText, interpolation, kind, IsInFieldKeywordContext);
 
                     // Make sure the interpolation starts at the right location.
-                    var indentationError = getInterpolationIndentationError<TString, TStringHelper>(indentationWhitespace, interpolation);
+                    var indentationError = getInterpolationIndentationError(indentationWhitespace, interpolation, helper);
                     if (indentationError != null)
                         interpolationNode = interpolationNode.WithDiagnosticsGreen([indentationError]);
 
@@ -120,9 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // Add a token for text following the last interpolation
-                builder.Add(makeContent<TString, TStringHelper>(
+                builder.Add(makeContent(
                     indentationWhitespace, content, isFirst: interpolations.Count == 0, isLast: true,
-                    helper.Slice(originalTextSpan, currentContentStart..closeQuoteRange.Start)));
+                    helper.Slice(originalTextSpan, currentContentStart..closeQuoteRange.Start),
+                    helper));
 
                 CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> result = builder;
                 _pool.Free(builder);
@@ -131,12 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // Gets the indentation whitespace from the last line of a multi-line raw literal.
-            TString getIndentationWhitespace<TString, TStringHelper>(TString originalTextSpan)
+            TString getIndentationWhitespace<TString, TStringHelper>(TString originalTextSpan, TStringHelper helper)
                 where TStringHelper : struct, IStringHelper<TString>
             {
                 // The content we want to create text token out of.  Effectively, what is in the text sections
                 // minus leading whitespace.
-                var helper = default(TStringHelper);
                 var closeQuoteText = helper.Slice(originalTextSpan, closeQuoteRange);
 
                 // A multi-line raw interpolation without errors always ends with a new-line, some number of spaces, and
@@ -144,18 +143,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // newline-ends.
                 var afterNewLine = SlidingTextWindow.GetNewLineWidth(
                     helper.GetCharAt(closeQuoteText, 0), helper.GetCharAt(closeQuoteText, 1));
-                var afterWhitespace = SkipWhitespace<TString, TStringHelper>(closeQuoteText, afterNewLine);
+                var afterWhitespace = SkipWhitespace(closeQuoteText, afterNewLine, helper);
 
                 Debug.Assert(helper.GetCharAt(closeQuoteText, afterWhitespace) == '"');
                 return helper.Slice(closeQuoteText, afterNewLine..afterWhitespace);
             }
 
             InterpolatedStringContentSyntax? makeContent<TString, TStringHelper>(
-                TString indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, TString text)
+                TString indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, TString text, TStringHelper helper)
                 where TStringHelper : struct, IStringHelper<TString>
             {
-                var helper = default(TStringHelper);
-
                 if (helper.GetLength(text) == 0)
                     return null;
 
@@ -171,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // an interpolation.  In that case, we need to consume up through the next newline of that chunk as
                 // content that is not subject to dedentation.
                 if (!isFirst)
-                    currentIndex = ConsumeRemainingContentThroughNewLine<TString, TStringHelper>(content, text, currentIndex);
+                    currentIndex = ConsumeRemainingContentThroughNewLine(content, text, currentIndex, helper);
 
                 // We're either the first item, or we consumed up through a newline from the previous line. We're
                 // definitely at the start of a new line (or at the end).  Regardless, we want to consume each
@@ -187,13 +184,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Only bother reporting a single indentation error on a text chunk.
                     if (indentationError == null)
                     {
-                        currentIndex = SkipWhitespace<TString, TStringHelper>(text, currentIndex);
+                        currentIndex = SkipWhitespace(text, currentIndex, helper);
                         var currentLineWhitespace = helper.Slice(text, lineStartPosition..currentIndex);
 
                         var isBlankLine = (currentIndex == textLength && isLast) || (currentIndex < textLength && SyntaxFacts.IsNewLine(helper.GetCharAt(text, currentIndex)));
-                        var (errorCode, errorArguments) = CheckForIndentationError<TString, TStringHelper>(
-                            currentLineWhitespace, indentationWhitespace, isBlankLine);
-
+                        var (errorCode, errorArguments) = CheckForIndentationError(currentLineWhitespace, indentationWhitespace, isBlankLine, helper);
                         if (errorCode != 0)
                         {
                             indentationError = MakeError(
@@ -207,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     // Skip the leading whitespace that matches the terminator line and add any text after that to our content.
                     currentIndex = Math.Min(currentIndex, lineStartPosition + helper.GetLength(indentationWhitespace));
-                    currentIndex = ConsumeRemainingContentThroughNewLine<TString, TStringHelper>(content, text, currentIndex);
+                    currentIndex = ConsumeRemainingContentThroughNewLine(content, text, currentIndex, helper);
                 }
 
                 // if we ran into any errors, don't give this item any special value.  It just has the value of our actual text.
@@ -262,10 +257,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // the interpolation is at the start of a line.
 
             SyntaxDiagnosticInfo? getInterpolationIndentationError<TString, TStringHelper>(
-                TString indentationWhitespace,
-                Lexer.Interpolation interpolation) where TStringHelper : struct, IStringHelper<TString>
+                TString indentationWhitespace, Lexer.Interpolation interpolation, TStringHelper helper)
+                where TStringHelper : struct, IStringHelper<TString>
             {
-                var helper = default(TStringHelper);
                 if (needsDedentation && helper.GetLength(indentationWhitespace) > 0)
                 {
                     var openBracePosition = interpolation.OpenBraceRange.Start.Value;
@@ -283,10 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ? SyntaxFactory.MissingToken(leading, kind, trailing)
                 : SyntaxFactory.Token(leading, kind, text, trailing);
 
-        private static int SkipWhitespace<TString, TStringHelper>(TString text, int currentIndex)
+        private static int SkipWhitespace<TString, TStringHelper>(TString text, int currentIndex, TStringHelper helper)
             where TStringHelper : struct, IStringHelper<TString>
         {
-            var helper = default(TStringHelper);
             var textLength = helper.GetLength(text);
             while (currentIndex < textLength && SyntaxFacts.IsWhitespace(helper.GetCharAt(text, currentIndex)))
                 currentIndex++;
@@ -294,11 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private static int ConsumeRemainingContentThroughNewLine<TString, TStringHelper>(
-            StringBuilder content,
-            TString text,
-            int currentIndex) where TStringHelper : struct, IStringHelper<TString>
+            StringBuilder content, TString text, int currentIndex, TStringHelper helper)
+            where TStringHelper : struct, IStringHelper<TString>
         {
-            var helper = default(TStringHelper);
             var start = currentIndex;
             var textLength = helper.GetLength(text);
             while (currentIndex < textLength)

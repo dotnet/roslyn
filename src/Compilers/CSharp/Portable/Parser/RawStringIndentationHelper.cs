@@ -97,11 +97,11 @@ internal static class RawStringIndentationHelper
     private static bool CheckForSpaceDifference<TString, TStringHelper>(
         TString currentLineWhitespace,
         TString indentationLineWhitespace,
+        TStringHelper helper,
         [NotNullWhen(true)] out string? currentLineMessage,
         [NotNullWhen(true)] out string? indentationLineMessage)
         where TStringHelper : struct, IStringHelper<TString>
     {
-        var helper = default(TStringHelper);
         for (int i = 0, n = Math.Min(helper.GetLength(currentLineWhitespace), helper.GetLength(indentationLineWhitespace)); i < n; i++)
         {
             var currentLineChar = helper.GetCharAt(currentLineWhitespace, i);
@@ -137,11 +137,9 @@ internal static class RawStringIndentationHelper
     }
 
     public static (ErrorCode code, object[] arguments) CheckForIndentationError<TString, TStringHelper>(
-        TString currentLineWhitespace,
-        TString indentationWhitespace,
-        bool isBlankLine) where TStringHelper : struct, IStringHelper<TString>
+        TString currentLineWhitespace, TString indentationWhitespace, bool isBlankLine, TStringHelper helper)
+        where TStringHelper : struct, IStringHelper<TString>
     {
-        var helper = default(TStringHelper);
         if (!helper.StartsWith(currentLineWhitespace, indentationWhitespace))
         {
             // We have a line where the indentation of that line isn't a prefix of indentation
@@ -154,8 +152,8 @@ internal static class RawStringIndentationHelper
             if (!isLegalBlankLine)
             {
                 // Specialized error message if this is a spacing difference.
-                if (CheckForSpaceDifference<TString, TStringHelper>(
-                        currentLineWhitespace, indentationWhitespace,
+                if (CheckForSpaceDifference(
+                        currentLineWhitespace, indentationWhitespace, helper,
                         out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
                 {
                     return (ErrorCode.ERR_LineContainsDifferentWhitespace, [currentLineWhitespaceChar, indentationWhitespaceChar]);
