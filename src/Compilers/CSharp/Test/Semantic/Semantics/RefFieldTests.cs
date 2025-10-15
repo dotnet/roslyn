@@ -30394,6 +30394,66 @@ Block[B2] - Exit
         }
 
         [Fact]
+        public void OutParam_01()
+        {
+            // Note that `out` parameters are expected to behave similarly to the `this` parameter of a constructor.
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i;
+
+                    void M1(out R r, in int i)
+                        => r = new R(in i); // ok
+
+                    void M2(out R r)
+                    {
+                        int i = 1;
+                        r = new R(in i); // 1, 2
+                    }
+
+                    void M3(out R r)
+                        => r = new R(1); // 3, 4
+
+                    void M4(out R r)
+                    {
+                        int i = 1;
+                        M1(out r, in i); // 5, 6
+                    }
+
+                    void M5(out R r)
+                        => M1(out r, 1); // 7, 8
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         r = new R(in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(in i)").WithArguments("R.R(in int)", "i").WithLocation(12, 13),
+                // (12,22): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         r = new R(in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(12, 22),
+                // (16,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         => r = new R(1); // 3, 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(16, 16),
+                // (16,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => r = new R(1); // 3, 4
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(16, 22),
+                // (21,9): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         M1(out r, in i); // 5, 6
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out r, in i)").WithArguments("R.M1(out R, in int)", "i").WithLocation(21, 9),
+                // (21,22): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         M1(out r, in i); // 5, 6
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(21, 22),
+                // (25,12): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         => M1(out r, 1); // 7, 8
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out r, 1)").WithArguments("R.M1(out R, in int)", "i").WithLocation(25, 12),
+                // (25,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => M1(out r, 1); // 7, 8
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(25, 22));
+        }
+
+        [Fact]
         public void ConstructorInitializer_02()
         {
             var source = """

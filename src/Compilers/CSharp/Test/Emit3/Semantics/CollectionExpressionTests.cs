@@ -26530,7 +26530,10 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (3,34): warning CS9113: Parameter 'items' is unread.
                 // class C(scoped ReadOnlySpan<int> items)
-                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "items").WithArguments("items").WithLocation(3, 34));
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "items").WithArguments("items").WithLocation(3, 34),
+                // (5,32): error CS9203: A collection expression of type 'ReadOnlySpan<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     private int x = M0(items = [M1()]);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[M1()]").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 32));
         }
 
         [Fact]
