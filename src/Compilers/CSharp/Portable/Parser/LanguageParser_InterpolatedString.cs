@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // an interpolation.  In that case, we need to consume up through the next newline of that chunk as
                 // content that is not subject to dedentation.
                 if (!isFirst)
-                    currentIndex = ConsumeRemainingContentThroughNewLine(content, text, currentIndex, helper);
+                    currentIndex = consumeRemainingContentThroughNewLine(content, text, currentIndex);
 
                 // We're either the first item, or we consumed up through a newline from the previous line. We're
                 // definitely at the start of a new line (or at the end).  Regardless, we want to consume each
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     // Skip the leading whitespace that matches the terminator line and add any text after that to our content.
                     currentIndex = Math.Min(currentIndex, lineStartPosition + helper.GetLength(indentationWhitespace));
-                    currentIndex = ConsumeRemainingContentThroughNewLine(content, text, currentIndex, helper);
+                    currentIndex = consumeRemainingContentThroughNewLine(content, text, currentIndex);
                 }
 
                 // if we ran into any errors, don't give this item any special value.  It just has the value of our actual text.
@@ -271,6 +271,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 return null;
             }
+
+            int consumeRemainingContentThroughNewLine(StringBuilder content, TString text, int currentIndex)
+            {
+                var start = currentIndex;
+                var textLength = helper.GetLength(text);
+                while (currentIndex < textLength)
+                {
+                    var ch = helper.GetCharAt(text, currentIndex);
+                    if (!SyntaxFacts.IsNewLine(ch))
+                    {
+                        currentIndex++;
+                        continue;
+                    }
+
+                    currentIndex += SlidingTextWindow.GetNewLineWidth(
+                        ch, currentIndex + 1 < textLength ? helper.GetCharAt(text, currentIndex + 1) : '\0');
+                    break;
+                }
+
+                var slice = helper.Slice(text, start..currentIndex);
+                helper.AppendTo(slice, content);
+                return currentIndex;
+            }
         }
 
         private static SyntaxToken TokenOrMissingToken(GreenNode? leading, SyntaxKind kind, string text, GreenNode? trailing)
@@ -284,31 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var textLength = helper.GetLength(text);
             while (currentIndex < textLength && SyntaxFacts.IsWhitespace(helper.GetCharAt(text, currentIndex)))
                 currentIndex++;
-            return currentIndex;
-        }
-
-        private static int ConsumeRemainingContentThroughNewLine<TString, TStringHelper>(
-            StringBuilder content, TString text, int currentIndex, TStringHelper helper)
-            where TStringHelper : struct, IStringHelper<TString>
-        {
-            var start = currentIndex;
-            var textLength = helper.GetLength(text);
-            while (currentIndex < textLength)
-            {
-                var ch = helper.GetCharAt(text, currentIndex);
-                if (!SyntaxFacts.IsNewLine(ch))
-                {
-                    currentIndex++;
-                    continue;
-                }
-
-                currentIndex += SlidingTextWindow.GetNewLineWidth(
-                    ch, currentIndex + 1 < textLength ? helper.GetCharAt(text, currentIndex + 1) : '\0');
-                break;
-            }
-
-            var slice = helper.Slice(text, start..currentIndex);
-            helper.AppendTo(slice, content);
             return currentIndex;
         }
 
