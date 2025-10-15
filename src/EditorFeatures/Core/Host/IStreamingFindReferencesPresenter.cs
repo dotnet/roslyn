@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Host;
 
@@ -120,6 +121,11 @@ internal static class IStreamingFindUsagesPresenterExtensions
         if (presenter == null)
             return null;
 
+        // Find the first location from a non-generated document to navigate to automatically.
+        // This way the user gets taken to their user code while still being able to see all the results
+        // (including generated code) in the tool window.
+        var preferredLocation = await GetPreferredNonGeneratedLocationAsync(builder, cancellationToken).ConfigureAwait(false);
+
         var navigableItems = builder.SelectAsArray(t => t.item);
         return new NavigableLocation(async (options, cancellationToken) =>
         {
@@ -142,7 +148,32 @@ internal static class IStreamingFindUsagesPresenterExtensions
                 await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
 
+            // If we found a preferred non-generated location, navigate to it after showing the results window.
+            if (preferredLocation != null)
+                await preferredLocation.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
+
             return true;
         });
+    }
+
+    /// <summary>
+    /// Finds the first navigable location from a non-generated document in the list of definition items.
+    /// This allows Go To Definition to automatically navigate to user code when there are multiple locations
+    /// including generated code.
+    /// </summary>
+    private static async Task<INavigableLocation?> GetPreferredNonGeneratedLocationAsync(
+        ArrayBuilder<(DefinitionItem item, INavigableLocation location)> builder,
+        CancellationToken cancellationToken)
+    {
+        foreach (var (item, location) in builder)
+        {
+            foreach (var sourceSpan in item.SourceSpans)
+            {
+                if (!await sourceSpan.Document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
+                    return location;
+            }
+        }
+
+        return null;
     }
 }

@@ -29,8 +29,7 @@ internal abstract class LanguageServerProjectLoader
 {
     private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToReload;
 
-    private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
-    private readonly ProjectSystemHostInfo _projectSystemHostInfo;
+    protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly IFileChangeWatcher _fileChangeWatcher;
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
@@ -86,8 +85,7 @@ internal abstract class LanguageServerProjectLoader
     }
 
     protected LanguageServerProjectLoader(
-        ProjectTargetFrameworkManager targetFrameworkManager,
-        ProjectSystemHostInfo projectSystemHostInfo,
+        LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
@@ -96,8 +94,7 @@ internal abstract class LanguageServerProjectLoader
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider)
     {
-        _targetFrameworkManager = targetFrameworkManager;
-        _projectSystemHostInfo = projectSystemHostInfo;
+        _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
@@ -193,7 +190,15 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected sealed record RemoteProjectLoadResult(RemoteProjectFile ProjectFile, ProjectSystemProjectFactory ProjectFactory, bool IsMiscellaneousFile, BuildHostProcessKind Preferred, BuildHostProcessKind Actual);
+    internal sealed record RemoteProjectLoadResult
+    {
+        public required RemoteProjectFile ProjectFile { get; init; }
+        public required ProjectSystemProjectFactory ProjectFactory { get; init; }
+        public required bool IsFileBasedProgram { get; init; }
+        public required bool IsMiscellaneousFile { get; init; }
+        public required BuildHostProcessKind PreferredBuildHostKind { get; init; }
+        public required BuildHostProcessKind ActualBuildHostKind { get; init; }
+    }
 
     /// <summary>Loads a project in the MSBuild host.</summary>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
@@ -236,8 +241,11 @@ internal abstract class LanguageServerProjectLoader
                 return false;
             }
 
-            (RemoteProjectFile remoteProjectFile, ProjectSystemProjectFactory projectFactory, bool isMiscellaneousFile, BuildHostProcessKind preferredBuildHostKind, BuildHostProcessKind actualBuildHostKind) = remoteProjectLoadResult;
-            if (preferredBuildHostKind != actualBuildHostKind)
+            var remoteProjectFile = remoteProjectLoadResult.ProjectFile;
+            var projectFactory = remoteProjectLoadResult.ProjectFactory;
+            var isMiscellaneousFile = remoteProjectLoadResult.IsMiscellaneousFile;
+            var preferredBuildHostKind = remoteProjectLoadResult.PreferredBuildHostKind;
+            if (preferredBuildHostKind != remoteProjectLoadResult.ActualBuildHostKind)
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
             var diagnosticLogItems = await remoteProjectFile.GetDiagnosticLogItemsAsync(cancellationToken);
@@ -276,11 +284,19 @@ internal abstract class LanguageServerProjectLoader
                     var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(previousProjectTargets, projectFactory, loadedProjectInfo);
                     newProjectTargetsBuilder.Add(target);
 
-                    var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, _logger);
+                    var (outputKind, metadataReferences, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, _logger);
                     needsRestore |= targetNeedsRestore;
                     if (!targetAlreadyExists)
                     {
-                        telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };
+                        telemetryInfos[loadedProjectInfo] = new ProjectLoadTelemetryReporter.TelemetryInfo
+                        {
+                            OutputKind = outputKind,
+                            MetadataReferences = metadataReferences,
+                            IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore,
+                            HasSolutionFile = _workspaceFactory.HostProjectFactory.SolutionPath is not null,
+                            IsMiscellaneousFile = isMiscellaneousFile,
+                            IsFileBasedProgram = remoteProjectLoadResult.IsFileBasedProgram,
+                        };
                     }
                 }
 
@@ -359,9 +375,9 @@ internal abstract class LanguageServerProjectLoader
                 projectSystemName,
                 loadedProjectInfo.Language,
                 projectCreationInfo,
-                _projectSystemHostInfo);
+                _workspaceFactory.ProjectSystemHostInfo);
 
-            var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _targetFrameworkManager);
+            var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
             loadedProject.NeedsReload += (_, _) =>
                 _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false });
             return (loadedProject, alreadyExists: false);
@@ -445,7 +461,7 @@ internal abstract class LanguageServerProjectLoader
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
-    protected async ValueTask UnloadProjectAsync(string projectPath)
+    protected async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -453,7 +469,7 @@ internal abstract class LanguageServerProjectLoader
             {
                 // It is common to be called with a path to a project which is already not loaded.
                 // In this case, we should do nothing.
-                return;
+                return false;
             }
 
             if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId))
@@ -475,5 +491,6 @@ internal abstract class LanguageServerProjectLoader
         }
 
         await OnProjectUnloadedAsync(projectPath);
+        return true;
     }
 }

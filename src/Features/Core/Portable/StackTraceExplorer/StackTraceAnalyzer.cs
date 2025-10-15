@@ -50,7 +50,7 @@ internal static class StackTraceAnalyzer
             // Specifically if we ever want to add a copy feature to copy back contents from a frame
             var trimmedLine = Trim(line);
 
-            if (trimmedLine.IsEmpty)
+            if (trimmedLine.IsEmpty())
             {
                 continue;
             }
@@ -74,9 +74,9 @@ internal static class StackTraceAnalyzer
 
         for (var i = 0; i < callstack.Length; i++)
         {
-            if (callstack[i].Value == '\n')
+            if (callstack[i] == '\n')
             {
-                yield return callstack.GetSubSequence(TextSpan.FromBounds(position, i));
+                yield return callstack[position..i];
 
                 // +1 to skip over the \n character
                 position = i + 1;
@@ -85,7 +85,7 @@ internal static class StackTraceAnalyzer
 
         if (position < callstack.Length)
         {
-            yield return callstack.GetSubSequence(TextSpan.FromBounds(position, callstack.Length));
+            yield return callstack[position..];
         }
     }
 
@@ -99,16 +99,16 @@ internal static class StackTraceAnalyzer
         var start = 0;
         var end = virtualChars.Length - 1;
 
-        while (virtualChars[start].IsWhiteSpace && start < end)
+        while (char.IsWhiteSpace(virtualChars[start]) && start < end)
         {
             start++;
         }
 
-        while (virtualChars[end].IsWhiteSpace && end > start)
+        while (char.IsWhiteSpace(virtualChars[end]) && end > start)
         {
             end--;
         }
 
-        return virtualChars.GetSubSequence(TextSpan.FromBounds(start, end + 1));
+        return virtualChars[start..(end + 1)];
     }
 }

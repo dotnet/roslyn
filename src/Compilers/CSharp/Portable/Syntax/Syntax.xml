@@ -4342,7 +4342,7 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
   </AbstractNode>
-  <Node Name="ParameterSyntax" Base="BaseParameterSyntax" SkipConvenienceFactories="true">
+  <Node Name="ParameterSyntax" Base="BaseParameterSyntax" SkipConvenienceFactories="true" HasValidate="true"> 
     <TypeComment>
       <summary>Parameter syntax.</summary>
     </TypeComment>
@@ -4357,9 +4357,8 @@
         <summary>Gets the modifier list.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Type" Type="TypeSyntax" Optional="true" Override="true"/>
+    <Field Name="Type" Type="TypeSyntax" Optional="true" RequiredForTest="true" Override="true"/>
     <Field Name="Identifier" Type="SyntaxToken" Optional="true">
-      <!-- Tracked by https://github.com/dotnet/roslyn/issues/78961 : enforce that a ParameterSyntax cannot be created with both Type and Identifier missing -->
       <PropertyComment>
         <summary>Gets the identifier.</summary>
       </PropertyComment>

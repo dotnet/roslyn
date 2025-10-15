@@ -1988,7 +1988,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ILabelSymbol exitLabel = boundForEachStatement.BreakLabel.GetPublicSymbol();
             SyntaxNode syntax = boundForEachStatement.Syntax;
             bool isImplicit = boundForEachStatement.WasCompilerGenerated;
-            bool isAsynchronous = boundForEachStatement.AwaitOpt != null;
+            bool isAsynchronous = boundForEachStatement.EnumeratorInfoOpt is { MoveNextAwaitableInfo: not null };
             return new ForEachLoopOperation(loopControlVariable, collection, nextVariables, info, isAsynchronous, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 

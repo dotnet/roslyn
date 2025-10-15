@@ -26659,19 +26659,39 @@ public static class E
         4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
         72 69 74 65 64 00
     )
+    // Fields
+    .field private initonly string '<Name>k__BackingField'
     // Methods
+    .method public hidebysig specialname 
+        instance string get_Name () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_0006: ret
+    } // end of method ExtensionMarkerAttribute::get_Name
     .method public hidebysig specialname rtspecialname 
         instance void .ctor (
             string name
         ) cil managed 
     {
-        // Method begins at RVA 0x2050
-        // Code size 7 (0x7)
+        // Method begins at RVA 0x206f
+        // Code size 14 (0xe)
         .maxstack 8
         IL_0000: ldarg.0
         IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
-        IL_0006: ret
+        IL_0006: ldarg.0
+        IL_0007: ldarg.1
+        IL_0008: stfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_000d: ret
     } // end of method ExtensionMarkerAttribute::.ctor
+    // Properties
+    .property instance string Name()
+    {
+        .get instance string System.Runtime.CompilerServices.ExtensionMarkerAttribute::get_Name()
+    }
 } // end of class System.Runtime.CompilerServices.ExtensionMarkerAttribute
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -26920,6 +26940,84 @@ class C3<[ExtensionMarker("type parameter")] T> { }
             // (44,11): error CS0592: Attribute 'ExtensionMarker' is not valid on this declaration type. It is only valid on 'class, struct, enum, method, property, indexer, field, event, interface, delegate' declarations.
             // class C3<[ExtensionMarker("type parameter")] T> { }namespace System.Runtime.CompilerServices
             Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtensionMarker").WithArguments("ExtensionMarker", "class, struct, enum, method, property, indexer, field, event, interface, delegate").WithLocation(44, 11));
+    }
+
+    [Fact]
+    public void ExtensionMarkerAttribute_08()
+    {
+        // implementation of Name property
+        var src = """
+var type = System.Type.GetType("E+<G>$C43E2675C7BBF9284AF22FB8A9BF0280"); 
+var method = type.GetMethod("M", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+var attrType = System.Type.GetType("System.Runtime.CompilerServices.ExtensionMarkerAttribute");
+var nameProp = attrType.GetProperty("Name", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+var attr = System.Attribute.GetCustomAttribute(method, attrType);
+var value = nameProp.GetValue(attr);
+System.Console.Write(value);
+
+public static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "<M>$119AA281C143547563250CAF89B48A76").VerifyDiagnostics();
+
+        verifier.VerifyTypeIL("ExtensionMarkerAttribute", """
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 dc 17 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+    // Fields
+    .field private initonly string '<Name>k__BackingField'
+    // Methods
+    .method public hidebysig specialname 
+        instance string get_Name () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_0006: ret
+    } // end of method ExtensionMarkerAttribute::get_Name
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string name
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 14 (0xe)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ldarg.0
+        IL_0007: ldarg.1
+        IL_0008: stfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_000d: ret
+    } // end of method ExtensionMarkerAttribute::.ctor
+    // Properties
+    .property instance string Name()
+    {
+        .get instance string System.Runtime.CompilerServices.ExtensionMarkerAttribute::get_Name()
+    }
+} // end of class System.Runtime.CompilerServices.ExtensionMarkerAttribute
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -30587,7 +30685,7 @@ class C<T> { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2133
+                // Method begins at RVA 0x214b
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -30605,7 +30703,7 @@ class C<T> { }
                 32 38 31 43 39 31 35 37 44 46 46 45 37 35 45 39
                 42 46 39 33 44 46 33 00 00
             )
-            // Method begins at RVA 0x212c
+            // Method begins at RVA 0x2144
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -30619,7 +30717,7 @@ class C<T> { }
                 32 38 31 43 39 31 35 37 44 46 46 45 37 35 45 39
                 42 46 39 33 44 46 33 00 00
             )
-            // Method begins at RVA 0x212c
+            // Method begins at RVA 0x2144
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -30637,7 +30735,7 @@ class C<T> { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20cb
+        // Method begins at RVA 0x20e3
         // Code size 16 (0x10)
         .maxstack 8
         IL_0000: ldstr "SelectMany"
@@ -30653,7 +30751,7 @@ class C<T> { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20dc
+        // Method begins at RVA 0x20f4
         // Code size 16 (0x10)
         .maxstack 8
         IL_0000: ldstr "Cast "
@@ -31977,7 +32075,7 @@ namespace N1
 {
     static class E1
     {
-        public static void M1(this object o) { }
+        public static void M1(this object o) { System.Console.Write("ran"); }
     }
 }
 
@@ -31987,14 +32085,398 @@ namespace N2
     {
         extension(object o)
         {
-            public void M2() { }
+            public void M2() => throw null;
         }
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining used imports logic
-        comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_13()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_14()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension<T>(T t)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_15()
+    {
+        // tracking unnecessary imports, invocable
+        var src = """
+using N1;
+using N2;
+
+new object().P1();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public System.Action P1 { get { System.Console.Write("ran"); return () => { }; } }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_16()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_17()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+            public int M<T>() => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(object).M<T>()' and 'N2.E2.extension(object).M<T>()'
+            // _ = new object().M<int>();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("N1.E1.extension(object).M<T>()", "N2.E2.extension(object).M<T>()").WithLocation(4, 18));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var opNode = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<int>");
+        var symbolInfo = model.GetSymbolInfo(opNode);
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        AssertEx.SetEqual([
+            "System.Int32 N1.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()",
+            "System.Int32 N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()"
+            ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Using_18()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_19()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M<T>(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_20()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M<U>(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_21()
+    {
+        // tracking unnecessary imports, value receiver
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object)
+        {
+            public static int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_22()
+    {
+        // tracking unnecessary imports, type receiver
+        var src = """
+using N1;
+using N2;
+
+_ = object.M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object)
+        {
+            public static int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -32051,7 +32533,7 @@ public class AAttribute : System.Attribute { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -32066,7 +32548,7 @@ public class AAttribute : System.Attribute { }
                 35 35 41 30 41 30 42 32 33 39 30 35 31 35 33 44
                 42 35 31 31 46 34 45 00 00
             )
-            // Method begins at RVA 0x2069
+            // Method begins at RVA 0x2080
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -32086,7 +32568,7 @@ public class AAttribute : System.Attribute { }
             .custom instance void AAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -32555,7 +33037,7 @@ public static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -32570,7 +33052,7 @@ public static class E
                 46 42 34 41 42 31 38 37 32 43 43 42 38 45 37 44
                 35 34 37 32 43 43 38 00 00
             )
-            // Method begins at RVA 0x2069
+            // Method begins at RVA 0x2080
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -32590,7 +33072,7 @@ public static class E
             .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -32814,7 +33296,7 @@ public class AAttribute : System.Attribute { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2071
+                // Method begins at RVA 0x2088
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -32833,7 +33315,7 @@ public class AAttribute : System.Attribute { }
                 .custom instance void AAttribute::.ctor() = (
                     01 00 00 00
                 )
-            // Method begins at RVA 0x206a
+            // Method begins at RVA 0x2081
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -32860,7 +33342,7 @@ public class AAttribute : System.Attribute { }
             .custom instance void AAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 2 (0x2)
         .maxstack 8
         IL_0000: ldc.i4.0
@@ -32931,11 +33413,11 @@ public static class E
     {
         public void M()
         {
-            local(0);
+            local<int>(0);
 
             [return: A]
             [B]
-            void local([C] int i2) { }
+            void local<[D] T>([C] int i2) { }
         }
     }
 }
@@ -32945,6 +33427,127 @@ public class AAttribute : System.Attribute { }
 
 {{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
 public class BAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class CAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class DAttribute : System.Attribute { }
+""";
+
+        var verifier = CompileAndVerify([src, CompilerLoweringPreserveAttributeDefinition]).VerifyDiagnostics();
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$531E7AC45D443AE2243E7FFAB9455D60'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i1
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2086
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$531E7AC45D443AE2243E7FFAB9455D60'::'<Extension>$'
+        } // end of class <M>$531E7AC45D443AE2243E7FFAB9455D60
+        // Methods
+        .method public hidebysig 
+            instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 35 33 31 45 37 41 43 34 35
+                44 34 34 33 41 45 32 32 34 33 45 37 46 46 41 42
+                39 34 35 35 44 36 30 00 00
+            )
+            // Method begins at RVA 0x2088
+            // Code size 6 (0x6)
+            .maxstack 8
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static 
+        void M (
+            int32 i1
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x207e
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldc.i4.0
+        IL_0001: call void E::'<M>g__local|1_0'<int32>(int32)
+        IL_0006: ret
+    } // end of method E::M
+    .method assembly hidebysig static 
+        void '<M>g__local|1_0'<T> (
+            int32 i2
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void BAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param type T
+            .custom instance void DAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .param [0]
+            .custom instance void AAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .param [1]
+            .custom instance void CAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x2086
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::'<M>g__local|1_0'
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
+    public void PropagateAttributes_21(bool withPreserve)
+    {
+        // attributes on lambdas in extension
+        var src = $$"""
+public static class E
+{
+    extension(int i1)
+    {
+        public void M()
+        {
+            var d = static void ([C] int i2) => { };
+        }
+    }
+}
 
 {{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
 public class CAttribute : System.Attribute { }
@@ -32978,7 +33581,7 @@ public class CAttribute : System.Attribute { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206f
+                // Method begins at RVA 0x20b7
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -32993,13 +33596,58 @@ public class CAttribute : System.Attribute { }
                 44 34 34 33 41 45 32 32 34 33 45 37 46 46 41 42
                 39 34 35 35 44 36 30 00 00
             )
-            // Method begins at RVA 0x2071
+            // Method begins at RVA 0x209c
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
             IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
     } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public static initonly class E/'<>c' '<>9'
+        .field public static class [mscorlib]System.Action`1<int32> '<>9__1_0'
+        // Methods
+        .method private hidebysig specialname rtspecialname static 
+            void .cctor () cil managed 
+        {
+            // Method begins at RVA 0x20a3
+            // Code size 11 (0xb)
+            .maxstack 8
+            IL_0000: newobj instance void E/'<>c'::.ctor()
+            IL_0005: stsfld class E/'<>c' E/'<>c'::'<>9'
+            IL_000a: ret
+        } // end of method '<>c'::.cctor
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x20af
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c'::.ctor
+        .method assembly hidebysig 
+            instance void '<M>b__1_0' (
+                int32 i2
+            ) cil managed 
+        {
+            .param [1]
+                .custom instance void CAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Method begins at RVA 0x20b7
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>c'::'<M>b__1_0'
+    } // end of class <>c
     // Methods
     .method public hidebysig static 
         void M (
@@ -33009,37 +33657,17 @@ public class CAttribute : System.Attribute { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
-        // Code size 7 (0x7)
+        // Method begins at RVA 0x207e
+        // Code size 29 (0x1d)
         .maxstack 8
-        IL_0000: ldc.i4.0
-        IL_0001: call void E::'<M>g__local|1_0'(int32)
-        IL_0006: ret
+        IL_0000: ldsfld class [mscorlib]System.Action`1<int32> E/'<>c'::'<>9__1_0'
+        IL_0005: brtrue.s IL_001c
+        IL_0007: ldsfld class E/'<>c' E/'<>c'::'<>9'
+        IL_000c: ldftn instance void E/'<>c'::'<M>b__1_0'(int32)
+        IL_0012: newobj instance void class [mscorlib]System.Action`1<int32>::.ctor(object, native int)
+        IL_0017: stsfld class [mscorlib]System.Action`1<int32> E/'<>c'::'<>9__1_0'
+        IL_001c: ret
     } // end of method E::M
-    .method assembly hidebysig static 
-        void '<M>g__local|1_0' (
-            int32 i2
-        ) cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            01 00 00 00
-        )
-        .custom instance void BAttribute::.ctor() = (
-            01 00 00 00
-        )
-        .param [0]
-            .custom instance void AAttribute::.ctor() = (
-                01 00 00 00
-            )
-        .param [1]
-            .custom instance void CAttribute::.ctor() = (
-                01 00 00 00
-            )
-        // Method begins at RVA 0x206f
-        // Code size 1 (0x1)
-        .maxstack 8
-        IL_0000: ret
-    } // end of method E::'<M>g__local|1_0'
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
@@ -33270,6 +33898,11 @@ public static class E
         var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
         AssertEx.Equal("void E.M<T, System.Int64, System.String>(this T t, System.Int64 u, System.String v)",
             method.AssociatedExtensionImplementation.ToTestDisplayString());
+
+        // The T in associated implementation is from the extension definition
+        var t = method.AssociatedExtensionImplementation.TypeArguments[0];
+        Assert.Equal("T", t.ToTestDisplayString());
+        Assert.True(t.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
     }
 
     [Fact]
@@ -33333,6 +33966,45 @@ public static class E<T0>
         var constructedMethod = constructedE.GetTypeMembers("").Single().GetMethod("M").GetPublicSymbol();
         AssertEx.Equal("void E<System.Int32>.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", constructedMethod.ToTestDisplayString());
         AssertEx.Equal("void E<System.Int32>.M(this System.Int32 i)", constructedMethod.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_11()
+    {
+        // not a definition, generic extension and method, partially constructed with type parameters
+        var src = """
+public static class E
+{
+    extension<T1, T2>(T1 t1)
+    {
+        public void M<U1, U2>(T2 t2, U1 u1, U2 u2)
+        {
+            t1.M(42, u1, "");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t1.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.M<T1, System.Int32, U1, System.String>(this T1 t1, System.Int32 t2, U1 u1, System.String u2)",
+            method.AssociatedExtensionImplementation.ToTestDisplayString());
+
+        // The T1 in associated implementation is from the extension definition 
+        var t1 = method.AssociatedExtensionImplementation.TypeArguments[0];
+        Assert.Equal("T1", t1.ToTestDisplayString());
+        Assert.True(t1.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
+
+        // The U1 in associated implementation is from the extension member definition 
+        var u1 = method.AssociatedExtensionImplementation.TypeArguments[2];
+        Assert.Equal("U1", u1.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$B7F0343159FB3A22D67EC9801612841A<T1, T2>.M<U1, U2>(T2 t2, U1 u1, U2 u2)",
+            u1.ContainingSymbol.ToTestDisplayString());
+        Assert.True(u1.ContainingSymbol.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
@@ -34339,6 +35011,171 @@ public static class E
                 // string.Extension(str); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "str").WithArguments("values", "void extension(string).Extension(params string[] values)").WithLocation(7, 18)
                 );
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_01()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        public static void Main() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+        validate(comp);
+
+        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics();
+        validate(comp2);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var groupingName = "<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69";
+            var markerName = "<M>$F4B4FFE41AB49E80A4ECF390CF6EB372";
+
+            var extension = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            AssertEx.Equal(groupingName, extension.ExtensionGroupingName);
+            AssertEx.Equal(markerName, extension.ExtensionMarkerName);
+            Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}"));
+            Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}+{markerName}"));
+            Assert.Null(comp.GetTypeByMetadataName($"E+{markerName}"));
+        }
+    }
+
+    [Fact]
+    public void ParameterSyntax_01()
+    {
+        string src = """
+static class E
+{
+    extension(int i)
+    {
+    }
+}
+""";
+        var tree = CSharpSyntaxTree.ParseText(src);
+        var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        Assert.Equal("int i", parameter.ToFullString());
+
+        var withoutType = parameter.WithType(null);
+        Assert.Equal("i", withoutType.ToFullString());
+
+        var withoutIdentifer = parameter.WithIdentifier(default);
+        Assert.Equal("int ", withoutIdentifer.ToFullString());
+
+        // Type and identifier cannot both be missing
+        Assert.Throws<ArgumentException>(() => SyntaxFactory.Parameter(identifier: default));
+        Assert.Throws<ArgumentException>(() => withoutType.WithIdentifier(default));
+    }
+
+    [Fact]
+    public void SyntaxFacts_01()
+    {
+        Assert.Equal(SyntaxKind.ExtensionBlockDeclaration, SyntaxFacts.GetTypeDeclarationKind(SyntaxKind.ExtensionKeyword));
+        Assert.Equal(SyntaxKind.ExtensionBlockDeclaration, SyntaxFacts.GetBaseTypeDeclarationKind(SyntaxKind.ExtensionKeyword));
+        Assert.True(SyntaxFacts.IsTypeDeclaration(SyntaxKind.ExtensionBlockDeclaration));
+        Assert.Equal(SyntaxKind.ExtensionKeyword, SyntaxFacts.GetContextualKeywordKind("extension"));
+        Assert.Equal(SyntaxKind.None, SyntaxFacts.GetKeywordKind("extension"));
+        Assert.True(SyntaxFacts.IsContextualKeyword(SyntaxKind.ExtensionKeyword));
+
+        Assert.Equal("extension", SyntaxFacts.GetText(SyntaxKind.ExtensionKeyword));
+    }
+
+    [Theory, WorkItem("https://developercommunity.visualstudio.com/t/NRE-in-Roslyn-v500-225451107/10979295")]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersion.Latest)]
+    public void InvalidReceiverWithOldExtensionInFileClass(LanguageVersion languageVersion)
+    {
+        var code = """
+            #nullable enable
+            using System.Threading.Tasks;
+            using N2;
+            namespace N1
+            {
+                class C
+                {
+                    async Task M(object o)
+                    {
+                        await using var test = await nonExistent.ExtensionMethod(o);
+                    }
+                }
+            }
+            """;
+
+        var code2 = """
+            namespace N2;
+
+            file static class E
+            {
+                public static void ExtensionMethod(this object o) { }
+            }
+            """;
+
+        var comp = CreateCompilation([(code, "file1.cs"), (code2, "file2.cs")], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        if (languageVersion == LanguageVersion.CSharp10)
+        {
+            comp.VerifyEmitDiagnostics(
+                // file2.cs(3,19): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // file static class E
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "E").WithArguments("file types", "11.0").WithLocation(3, 19),
+                // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+                //             await using var test = await nonExistent.ExtensionMethod(o);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+            );
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics(
+                    // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+                    //             await using var test = await nonExistent.ExtensionMethod(o);
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+                );
+        }
+    }
+
+    [Fact, WorkItem("https://developercommunity.visualstudio.com/t/NRE-in-Roslyn-v500-225451107/10979295")]
+    public void InvalidReceiverWithNewExtensionInFileClass()
+    {
+        var code = """
+            #nullable enable
+            using System.Threading.Tasks;
+            using N2;
+            namespace N1
+            {
+                class C
+                {
+                    async Task M(object o)
+                    {
+                        await using var test = await nonExistent.ExtensionMethod(o);
+                    }
+                }
+            }
+            """;
+
+        var code2 = """
+            namespace N2;
+
+            file static class E
+            {
+                extension(object o)
+                {
+                    public void ExtensionMethod(object o2) { }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([(code, "file1.cs"), (code2, "file2.cs")]);
+        comp.VerifyEmitDiagnostics(
+            // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+            //             await using var test = await nonExistent.ExtensionMethod(o);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+        );
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80512")]

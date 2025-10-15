@@ -71,6 +71,11 @@
       <NoWarn Condition="'$(BuildingInsideVisualStudio)' == 'true' AND '$(VisualStudioVersion)' != '' AND '$(VisualStudioVersion)' &gt; '10.0'">$(NoWarn);2008</NoWarn>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <!-- CS8002 is not relevant when targeting .NET Core because it ignores strong naming -->
+      <NoWarn>$(NoWarn);8002</NoWarn>
+    </PropertyGroup>
+
     <PropertyGroup>
       <!-- If the user has specified AppConfigForCompiler, we'll use it. If they have not, but they set UseAppConfigForCompiler,
                  then we'll use AppConfig -->

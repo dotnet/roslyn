@@ -685,7 +685,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         builder = ArrayBuilder<Tests>.GetInstance(2);
                         builder.Add(result);
-                        output = @this.MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
+                        var evaluation = new BoundDagTypeEvaluation(bin.Syntax, bin.NarrowedType, input);
+                        output = new BoundDagTemp(bin.Syntax, bin.NarrowedType, evaluation);
+                        builder.Add(new Tests.One(evaluation));
                         return Tests.AndSequence.Create(builder);
                     }
                 }
@@ -1467,12 +1469,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
                         (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
                         (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
-                        Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
-                        Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
                         // Ignore input source as it will be matched in the subsequent iterations.
-                        if (s1Input.Index == s2Input.Index &&
-                            // We don't want to pair two indices within the same pattern.
-                            s1LengthTemp.Syntax != s2LengthTemp.Syntax)
+                        if (s1Input.Index == s2Input.Index)
                         {
                             Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
                             if (s1Index == s2Index)

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 /// provider does not provide any completions.
 /// </summary>
 [ExportCompletionProvider(nameof(LastBuiltInCompletionProvider), LanguageNames.CSharp)]
-[ExtensionOrder(After = nameof(ReferenceDirectiveCompletionProvider))]
+[ExtensionOrder(After = nameof(ProjectAppDirectiveCompletionProvider))]
 [Shared]
 internal sealed class LastBuiltInCompletionProvider : CompletionProvider
 {
