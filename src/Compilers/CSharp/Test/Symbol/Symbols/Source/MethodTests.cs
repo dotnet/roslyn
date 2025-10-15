@@ -2580,36 +2580,32 @@ public partial class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13456")]
         public void PartialMethodsLocationsAndSyntaxReferences()
         {
-            // This test documents the behavior described in https://github.com/dotnet/roslyn/issues/13456
-            // For partial methods, Locations and DeclaringSyntaxReferences return only one location,
-            // not both the definition and implementation parts. To get all locations, you must use
-            // PartialDefinitionPart and PartialImplementationPart properties.
+            var source = """
+                namespace N1
+                {
+                    partial class C1
+                    {
+                        partial void PartialM();
+                    }
+                }
+                """;
 
-            var source = @"
-namespace N1
-{
-    partial class C1
-    {
-        partial void PartialM();
-    }
-}";
+            var source2 = """
+                namespace N1
+                {
+                    partial class C1
+                    {
+                        partial void PartialM() { }
+                    }
+                }
+                """;
 
-            var source2 = @"
-namespace N1
-{
-    partial class C1
-    {
-        partial void PartialM() { }
-    }
-}";
-
-            var comp = CreateCompilation(new[] { source, source2 });
+            var comp = CreateCompilation([source, source2]);
             comp.VerifyDiagnostics();
 
             var methodSymbols = comp.GetSymbolsWithName("PartialM");
-            Assert.Equal(1, methodSymbols.Count());
 
-            var method = methodSymbols.First() as IMethodSymbol;
+            var method = (IMethodSymbol)methodSymbols.Single();
             Assert.NotNull(method);
 
             // For partial methods, Locations and DeclaringSyntaxReferences contain only one location
