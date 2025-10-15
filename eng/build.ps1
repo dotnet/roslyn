@@ -734,8 +734,8 @@ try {
 
   Push-Location $RepoRoot
 
-  # Workaround for MSBuild bug where DOTNET_HOST_PATH is sometimes unset before Csc task
-  # https://github.com/dotnet/roslyn/issues/80742
+  # Workaround for DOTNET_HOST_PATH not being set by older MSBuild
+  # Removal is tracked by https://github.com/dotnet/roslyn/issues/80742
   if (-not $env:DOTNET_HOST_PATH) {
     $env:DOTNET_HOST_PATH = Join-Path (Join-Path $RepoRoot '.dotnet') 'dotnet'
     if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
