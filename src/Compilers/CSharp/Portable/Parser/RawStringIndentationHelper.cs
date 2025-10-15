@@ -14,27 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 /// </summary>
 internal static class RawStringIndentationHelper
 {
-    public static bool CheckForSpaceDifference(
-        StringBuilder currentLineWhitespace,
-        StringBuilder indentationLineWhitespace,
-        [NotNullWhen(true)] out string? currentLineMessage,
-        [NotNullWhen(true)] out string? indentationLineMessage)
-    {
-        return CheckForSpaceDifference<StringBuilder, StringBuilderCharHelper>(currentLineWhitespace, indentationLineWhitespace, out currentLineMessage, out indentationLineMessage);
-    }
-
-    public static bool CheckForSpaceDifference(
-        string currentLineWhitespace, TextSpan currentLineWhitespaceSpan,
-        string indentationLineWhitespace, TextSpan indentationLineWhitespaceSpan,
-        [NotNullWhen(true)] out string? currentLineMessage,
-        [NotNullWhen(true)] out string? indentationLineMessage)
-    {
-        return CheckForSpaceDifference<(string, TextSpan), StringAndSpanCharHelper>(
-            (currentLineWhitespace, currentLineWhitespaceSpan),
-            (indentationLineWhitespace, indentationLineWhitespaceSpan),
-            out currentLineMessage, out indentationLineMessage);
-    }
-
     public interface IStringHelper<TString>
     {
         int GetLength(TString str);
@@ -89,8 +68,19 @@ internal static class RawStringIndentationHelper
         StringBuilder IStringHelper<StringBuilder>.Slice(StringBuilder str, Range range)
             => throw new NotImplementedException();
 
-        public bool StartsWith(StringBuilder str, StringBuilder other)
-            => throw new NotImplementedException();
+        public bool StartsWith(StringBuilder sb, StringBuilder value)
+        {
+            if (sb.Length < value.Length)
+                return false;
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (sb[i] != value[i])
+                    return false;
+            }
+
+            return true;
+        }
     }
 
     /// <summary>
@@ -137,22 +127,5 @@ internal static class RawStringIndentationHelper
             '\f' => @"\f",
             _ => @$"\u{(int)ch:x4}",
         };
-    }
-
-    /// <summary>
-    /// Returns true if <paramref name="sb"/> starts with <paramref name="value"/>.
-    /// </summary>
-    public static bool StartsWith(StringBuilder sb, StringBuilder value)
-    {
-        if (sb.Length < value.Length)
-            return false;
-
-        for (int i = 0; i < value.Length; i++)
-        {
-            if (sb[i] != value[i])
-                return false;
-        }
-
-        return true;
     }
 }

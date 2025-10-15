@@ -330,7 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             currentLineWhitespace.Clear();
             ConsumeWhitespace(currentLineWhitespace);
 
-            if (!RawStringIndentationHelper.StartsWith(currentLineWhitespace, indentationWhitespace))
+            var helper = default(RawStringIndentationHelper.StringBuilderCharHelper);
+            if (!helper.StartsWith(currentLineWhitespace, indentationWhitespace))
             {
                 // We have a line where the indentation of that line isn't a prefix of indentation
                 // whitespace.
@@ -339,11 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
                 // we do have is a prefix of the indentation whitespace.
                 var isBlankLine = SyntaxFacts.IsNewLine(TextWindow.PeekChar());
-                var isLegalBlankLine = isBlankLine && RawStringIndentationHelper.StartsWith(indentationWhitespace, currentLineWhitespace);
+                var isLegalBlankLine = isBlankLine && helper.StartsWith(indentationWhitespace, currentLineWhitespace);
                 if (!isLegalBlankLine)
                 {
                     // Specialized error message if this is a spacing difference.
-                    if (RawStringIndentationHelper.CheckForSpaceDifference(
+                    if (RawStringIndentationHelper.CheckForSpaceDifference<StringBuilder, RawStringIndentationHelper.StringBuilderCharHelper>(
                             currentLineWhitespace, indentationWhitespace,
                             out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
                     {
