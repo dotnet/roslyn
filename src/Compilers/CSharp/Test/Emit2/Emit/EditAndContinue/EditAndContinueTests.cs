@@ -22100,66 +22100,60 @@ file class C
             // 3. The NullableContextAttribute is correctly synthesized
             // 4. No assertion failures occur during type completion
 
-            var source0 = """
-                class UnmodifiedType
-                {
-                    public static void UnmodifiedMethod() { }
-                }
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        class UnmodifiedType
+                        {
+                            public static void UnmodifiedMethod() { }
+                        }
 
-                class ModifiedType
-                {
-                    public static void Method1()
+                        class ModifiedType
+                        {
+                            public static void Method1()
+                            {
+                            }
+                        }
+                        """,
+                    validator: g =>
                     {
-                    }
-                }
-                """;
+                        g.VerifyTypeDefNames("<Module>", "UnmodifiedType", "ModifiedType");
+                        g.VerifyMethodDefNames("UnmodifiedMethod", ".ctor", "Method1", ".ctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        #nullable enable
 
-            var source1 = """
-                #nullable enable
+                        class UnmodifiedType
+                        {
+                            public static void UnmodifiedMethod() { }
+                        }
 
-                class UnmodifiedType
-                {
-                    public static void UnmodifiedMethod() { }
-                }
+                        class ModifiedType
+                        {
+                            public static void Method1()
+                            {
+                                UnmodifiedType.UnmodifiedMethod();
+                            }
 
-                class ModifiedType
-                {
-                    public static void Method1()
+                            public static void Method2(string? s) { }
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("ModifiedType.Method1")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("ModifiedType.Method2")),
+                    ],
+                    validator: g =>
                     {
-                        UnmodifiedType.UnmodifiedMethod();
-                    }
-
-                    public static void Method2(string? s) { }
-                }
-                """;
-
-            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-
-            var method1_v0 = compilation0.GetMember<MethodSymbol>("ModifiedType.Method1");
-            var method1_v1 = compilation1.GetMember<MethodSymbol>("ModifiedType.Method1");
-            var method2_v1 = compilation1.GetMember<MethodSymbol>("ModifiedType.Method2");
-
-            using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
-            var generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider);
-
-            // Emit delta where:
-            // 1. Method1 is updated to call UnmodifiedMethod (triggering completion of UnmodifiedType)
-            // 2. Method2 is added with nullable annotations (requiring NullableContextAttribute)
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, method1_v0, method1_v1),
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, method2_v1)));
-
-            // Verify the emit succeeded (no assertion failure)
-            diff1.EmitResult.Diagnostics.Verify();
-
-            // Verify that nullable attributes were generated for Method2
-            diff1.VerifySynthesizedMembers(
-                "System.Runtime.CompilerServices.NullableAttribute",
-                "System.Runtime.CompilerServices.NullableContextAttribute",
-                "Microsoft.CodeAnalysis.EmbeddedAttribute");
+                        // Verify the emit succeeded (no assertion failure)
+                        // Verify that nullable attributes were generated for Method2
+                        g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.NullableAttribute",
+                            "System.Runtime.CompilerServices.NullableContextAttribute",
+                            "Microsoft.CodeAnalysis.EmbeddedAttribute");
+                    })
+                .Verify();
         }
     }
 }
