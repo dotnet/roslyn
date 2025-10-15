@@ -219,11 +219,11 @@ fallbackStrings:
                 // left read, so if we ever do introduce optimizations here that result in more than one argument being added to destinationArguments, we'll need to adjust
                 // that logic.
 #if DEBUG
-                var precedingArgument = destinationArguments.Count > 0 ? destinationArguments[^1] : null;
-                var (singleConcatArgument, nestedConcatArguments) = SimplifyConcatArgument(visitedCompoundAssignmentLeftRead, ref precedingArgument, ref concatMethods);
+                var followingArgument = destinationArguments.Count > 0 ? destinationArguments[^1] : null;
+                var (singleConcatArgument, nestedConcatArguments) = SimplifyConcatArgument(visitedCompoundAssignmentLeftRead, ref followingArgument, ref concatMethods);
                 // Simplify should have done no work and just returned the original argument
                 Debug.Assert(ReferenceEquals(singleConcatArgument, visitedCompoundAssignmentLeftRead));
-                Debug.Assert(precedingArgument is null || ReferenceEquals(precedingArgument, destinationArguments[^1]));
+                Debug.Assert((destinationArguments.Count == 0 && followingArgument is null) || (destinationArguments.Count != 0 && ReferenceEquals(followingArgument, destinationArguments[^1])));
                 Debug.Assert(nestedConcatArguments.IsDefault);
 #endif
                 destinationArguments.Add(visitedCompoundAssignmentLeftRead);
@@ -282,9 +282,9 @@ fallbackStrings:
         /// </list>
         /// If the argument is simplified into a single argument, it is returned as <code>singleConcatArgument</code>. If it is deconstructed into multiple arguments (as in the case of
         /// nested string.Concat calls), those arguments are returned as <code>nestedConcatArguments</code>. If the argument is optimized away entirely (as in the case of null or empty string constants),
-        /// then both return values will be null/default. If the argument is merged into the preceding argument, then <paramref name="precedingArgument"/> will be updated to reflect that, and both return values will be null/default.
+        /// then both return values will be null/default. If the argument is merged into the following argument, then <paramref name="followingArgument"/> will be updated to reflect that, and both return values will be null/default.
         /// </summary>
-        private (BoundExpression? singleConcatArgument, ImmutableArray<BoundExpression> nestedConcatArguments) SimplifyConcatArgument(BoundExpression argument, [NotNullIfNotNull(nameof(precedingArgument))] ref BoundExpression? precedingArgument, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
+        private (BoundExpression? singleConcatArgument, ImmutableArray<BoundExpression> nestedConcatArguments) SimplifyConcatArgument(BoundExpression argument, [NotNullIfNotNull(nameof(followingArgument))] ref BoundExpression? followingArgument, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
         {
             if (argument is BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand: { Type.SpecialType: SpecialType.System_Char } operand })
             {
@@ -314,14 +314,13 @@ fallbackStrings:
                     return (null, default);
 
                 case { IsString: true } or { IsChar: true }:
-                    // See if we can merge this argument with the previous one
-                    if (precedingArgument is { ConstantValueOpt: { IsString: true } or { IsChar: true } })
+                    // See if we can merge this argument with the next one
+                    if (followingArgument is { ConstantValueOpt: { IsString: true } or { IsChar: true } })
                     {
-                        var constantValue = precedingArgument.ConstantValueOpt!;
-                        var previous = getRope(constantValue);
+                        var constantValue = followingArgument.ConstantValueOpt!;
+                        var next = getRope(constantValue);
                         var current = getRope(argument.ConstantValueOpt!);
-                        // We're visiting arguments in reverse order, so we need to prepend this constant value, not append
-                        precedingArgument = _factory.StringLiteral(ConstantValue.CreateFromRope(Rope.Concat(current, previous)));
+                        followingArgument = _factory.StringLiteral(ConstantValue.CreateFromRope(Rope.Concat(current, next)));
                         return (null, default);
                     }
 
@@ -361,24 +360,24 @@ fallbackStrings:
                 argument = VisitExpression(argument);
             }
 
-            var precedingArgument = finalArguments.Count > 0 ? finalArguments[^1] : null;
-            var (singleConcatArgument, nestedConcatArguments) = SimplifyConcatArgument(argument, ref precedingArgument, ref wellKnownConcatOptimizationMethods);
+            var followingArgument = finalArguments.Count > 0 ? finalArguments[^1] : null;
+            var (singleConcatArgument, nestedConcatArguments) = SimplifyConcatArgument(argument, ref followingArgument, ref wellKnownConcatOptimizationMethods);
 
             // We should only get one result from simplification; either a single argument to add, or multiple nested arguments to add, or the current argument was optimized away
-            // This last option can either mean that the argument was truly empty, and was dropped entirely, or that it was merged into the preceding argument, in which case we updated that argument in place and don't need to add anything new
+            // This last option can either mean that the argument was truly empty and was dropped entirely, or that it was merged into the following argument, in which case we need to update the builder
             if (singleConcatArgument is null && nestedConcatArguments.IsDefault)
             {
-                if (precedingArgument is not null)
+                if (followingArgument is not null)
                 {
-                    // We may have merged the current argument into the preceding argument, so we need to update that in the final arguments list
+                    // We may have merged the current argument into the following argument, so we need to update that in the final arguments list
                     // If we didn't do any merging, then this is a no-op
-                    finalArguments[^1] = precedingArgument;
+                    finalArguments[^1] = followingArgument;
                 }
 
                 return;
             }
 
-            Debug.Assert(precedingArgument is null || ReferenceEquals(precedingArgument, finalArguments[^1]));
+            Debug.Assert((finalArguments.Count == 0 && followingArgument is null) || (finalArguments.Count != 0 && ReferenceEquals(followingArgument, finalArguments[^1])));
             Debug.Assert(singleConcatArgument is null ^ nestedConcatArguments.IsDefault);
 
             if (singleConcatArgument is not null)
