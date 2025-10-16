@@ -84,8 +84,7 @@ class C
                 );
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnDefaultArray()
         {
             var source = """
@@ -103,8 +102,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnDefaultString()
         {
             var source = """
@@ -122,8 +120,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnDefaultIEnumerable()
         {
             var source = """
@@ -142,8 +139,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnNullCastToIEnumerable()
         {
             var source = """
@@ -162,8 +158,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnNullCastToArray()
         {
             var source = """
@@ -181,8 +176,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnNullCastToString()
         {
             var source = """
@@ -200,8 +194,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnPlainNull()
         {
             var source = """
@@ -222,8 +215,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(5, 27));
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnDefaultArrayWithNullableEnabled()
         {
             var source = """
@@ -245,8 +237,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(int[])").WithLocation(6, 27));
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnDefaultStringWithNullableEnabled()
         {
             var source = """
@@ -268,8 +259,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(string)").WithLocation(6, 28));
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnDefaultIEnumerableWithNullableEnabled()
         {
             var source = """
@@ -292,8 +282,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(IEnumerable<int>)").WithLocation(7, 27));
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnNullCastToIEnumerableWithNullableEnabled()
         {
             var source = """
@@ -319,8 +308,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable<int>)null").WithLocation(7, 27));
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnNullCastToArrayWithNullableEnabled()
         {
             var source = """
@@ -345,8 +333,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(int[])null").WithLocation(6, 27));
         }
 
-        [WorkItem(45616, "https://github.com/dotnet/roslyn/issues/45616")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
         public void ForeachOnNullCastToStringWithNullableEnabled()
         {
             var source = """
