@@ -18,18 +18,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames;
 
-internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind, TSimplifierOptions>
+internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind, TSimplifierOptions>(
+    SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> analyzer)
     : SyntaxEditorBasedCodeFixProvider
     where TSyntaxKind : struct
     where TSimplifierOptions : SimplifierOptions
 {
-    private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> _analyzer;
-
-    protected AbstractSimplifyTypeNamesCodeFixProvider(
-        SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> analyzer)
-    {
-        _analyzer = analyzer;
-    }
+    private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> _analyzer = analyzer;
 
     protected abstract string GetTitle(string diagnosticId, string nodeText);
     protected abstract SyntaxNode AddSimplificationAnnotationTo(SyntaxNode node);
