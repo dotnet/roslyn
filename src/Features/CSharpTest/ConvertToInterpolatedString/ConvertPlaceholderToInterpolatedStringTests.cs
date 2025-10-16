@@ -767,8 +767,8 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
-    public Task TestExplicitArrayArgument_WithNamedParameter()
+    [Fact]
+    public Task TestCollectionExpressionArgument_WithNamedParameter()
         => TestMissingInRegularAndScriptAsync(
             """
             class C
@@ -792,8 +792,8 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
-    public Task TestExplicitArrayArgument_WithNamedParameter2()
+    [Fact]
+    public Task TestCollectionExpressionArgument_WithNamedParameter2()
         => TestMissingInRegularAndScriptAsync(
             """
             class C
@@ -812,6 +812,23 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
                 }
 
                 void M(string format, string category, string sender)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestImplicitArrayCreationArgument()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Test()
+                {
+                    [|M("{0}", new[] { "a" })|];
+                }
+
+                void M(string format, params object[] args)
                 {
                 }
             }
