@@ -358,6 +358,92 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(string)null").WithLocation(6, 28));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToDynamic()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in (dynamic)null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToMultidimensionalArray()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (int x in (int[,])null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToDynamicWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in (dynamic)null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var x in (dynamic)null)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(dynamic)null").WithLocation(6, 27),
+                // (6,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var x in (dynamic)null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(dynamic)null").WithLocation(6, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToMultidimensionalArrayWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (int x in (int[,])null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (int x in (int[,])null)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(int[,])null").WithLocation(6, 27),
+                // (6,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (int x in (int[,])null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(int[,])null").WithLocation(6, 27));
+        }
+
         [Fact]
         public void TestErrorLambdaCollection()
         {
