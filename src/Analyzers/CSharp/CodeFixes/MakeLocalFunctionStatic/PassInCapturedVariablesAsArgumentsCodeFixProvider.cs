@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,14 +30,39 @@ internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider() : Synt
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments, nameof(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments));
-        return Task.CompletedTask;
+        var diagnostic = context.Diagnostics.First();
+
+        return WrapFixAsync(
+            context.Document,
+            [diagnostic],
+            (document, localFunction, captures) =>
+            {
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments,
+                        cancellationToken => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, cancellationToken),
+                        nameof(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)),
+                    diagnostic);
+
+                return Task.CompletedTask;
+            },
+            context.CancellationToken);
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        => WrapFixAsync(
+            document,
+            diagnostics,
+            (document, localFunction, captures) => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
+                document, localFunction, captures, editor, cancellationToken),
+            cancellationToken);
+
+    // The purpose of this wrapper is to share some common logic between FixOne and FixAll. The main reason we chose
+    // this approach over the typical "FixOne calls FixAll" approach is to avoid duplicate code.
+    private static async Task WrapFixAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor,
+        Func<Document, LocalFunctionStatementSyntax, ImmutableArray<ISymbol>, Task> fixer,
         CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -61,7 +87,7 @@ internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider() : Synt
         foreach (var localFunction in localFunctions)
         {
             if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticByRefactoringCaptures(localFunction, semanticModel, out var captures))
-                await MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, editor, cancellationToken).ConfigureAwait(false);
+                await fixer(document, localFunction, captures).ConfigureAwait(false);
         }
     }
 }
