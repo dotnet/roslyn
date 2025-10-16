@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return TryConvertCollectionExpressionImplementsIEnumerableType(constructor);
 
                 if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
-    hasSpreadElements)
+                    hasSpreadElements)
                 {
                     // Verify the existence of the List<T> members that may be used in lowering, even
                     // though not all will be used for any particular collection expression. Checking all
