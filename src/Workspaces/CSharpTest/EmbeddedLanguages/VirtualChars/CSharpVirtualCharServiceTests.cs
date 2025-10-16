@@ -91,12 +91,12 @@ public sealed class CSharpVirtualCharServiceTests
 
     private static string ConvertRuneToString(VirtualChar c)
         => PrintAsUnicodeEscape(c)
-            ? c <= char.MaxValue ? $"'\\u{c.Value:X4}'" : $"'\\U{c.Value:X8}'"
-            : $"'{(char)c.Value}'";
+            ? c <= char.MaxValue ? $"'\\u{(int)c.Value:X4}'" : $"'\\U{(int)c.Value:X8}'"
+            : $"'{c.Value}'";
 
     private static bool PrintAsUnicodeEscape(VirtualChar c)
     {
-        if (c < (char)127 && char.IsLetterOrDigit((char)c.Value))
+        if (c < (char)127 && char.IsLetterOrDigit(c))
             return false;
 
         if (c.Value is '{' or '}' or ' ')
@@ -327,31 +327,31 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestValidLongEscape1_NotInCharRange()
         => Test("""
             "\U00010000"
-            """, @"['\U00010000',[1,11]]");
+            """, @"['\uD800',[1,7]]['\uDC00',[7,11]]");
 
     [Fact]
     public void TestValidLongEscape2_NotInCharRange()
         => Test("""
             "\U0002A6A5𪚥"
-            """, @"['\U0002A6A5',[1,11]]['\U0002A6A5',[11,13]]");
+            """, @"['\uD869',[1,7]]['\uDEA5',[7,11]]['\uD869',[11,12]]['\uDEA5',[12,13]]");
 
     [Fact]
     public void TestSurrogate1()
         => Test("""
             "😊"
-            """, @"['\U0001F60A',[1,3]]");
+            """, @"['\uD83D',[1,2]]['\uDE0A',[2,3]]");
 
     [Fact]
     public void TestSurrogate2()
         => Test("""
             "\U0001F60A"
-            """, @"['\U0001F60A',[1,11]]");
+            """, @"['\uD83D',[1,7]]['\uDE0A',[7,11]]");
 
     [Fact]
     public void TestSurrogate3()
         => Test("""
             "\ud83d\ude0a"
-            """, @"['\U0001F60A',[1,13]]");
+            """, @"['\uD83D',[1,7]]['\uDE0A',[7,13]]");
 
     [Fact]
     public void TestHighSurrogate()
@@ -367,11 +367,11 @@ public sealed class CSharpVirtualCharServiceTests
 
     [Fact]
     public void TestMixedSurrogate1()
-        => Test("\"\ud83d\\ude0a\"", @"['\U0001F60A',[1,8]]");
+        => Test("\"\ud83d\\ude0a\"", @"['\uD83D',[1,2]]['\uDE0A',[2,8]]");
 
     [Fact]
     public void TestMixedSurrogate2()
-        => Test("\"\\ud83d\ude0a\"", @"['\U0001F60A',[1,8]]");
+        => Test("\"\\ud83d\ude0a\"", @"['\uD83D',[1,7]]['\uDE0A',[7,8]]");
 
     [Fact]
     public void TestEscapedQuoteInVerbatimString()

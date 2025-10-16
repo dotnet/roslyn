@@ -61,6 +61,7 @@
     "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.Extensions": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.FSharp": "vs-impl",
+    "Microsoft.CodeAnalysis.ExternalAccess.HotReload": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
@@ -95,7 +96,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": true,
-    "insertionTitlePrefix": "[d18.1 P1]"
+    "insertionCreateDraftPR": false,
+    "insertionTitlePrefix": "[InsidersVNext]"
   }
 }

@@ -570,6 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
+                case ErrorCode.WRN_RedundantPattern:
                     return 1;
                 default:
                     return 0;
@@ -2538,6 +2539,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadSpreadInCatchFilter
                 or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
                 or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
+                or ErrorCode.HDN_RedundantPattern
+                or ErrorCode.WRN_RedundantPattern
+                or ErrorCode.HDN_RedundantPatternStackGuard
+                or ErrorCode.ERR_BadVisBaseType
                 or ErrorCode.ERR_CollectionArgumentsMustBeFirst
                 or ErrorCode.ERR_CollectionArgumentsNotSupportedForType
                 or ErrorCode.ERR_CollectionArgumentsDynamicBinding

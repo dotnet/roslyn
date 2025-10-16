@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable 
 
         public bool UnaryOperatorExtensionOverloadResolutionInSingleScope(
-            ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
+            ArrayBuilder<Symbol> extensionCandidatesInSingleScope,
             UnaryOperatorKind kind,
             bool isChecked,
             string name1,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
 
-            getDeclaredUserDefinedUnaryOperatorsInScope(extensionDeclarationsInSingleScope, kind, name1, name2Opt, operators);
+            getDeclaredUserDefinedUnaryOperatorsInScope(extensionCandidatesInSingleScope, kind, name1, name2Opt, operators);
 
             if (operand.Type.IsNullableType()) // Wouldn't be applicable to the receiver type otherwise
             {
@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return hadApplicableCandidates;
 
-            static void getDeclaredUserDefinedUnaryOperatorsInScope(ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope, UnaryOperatorKind kind, string name1, string? name2Opt, ArrayBuilder<UnaryOperatorSignature> operators)
+            static void getDeclaredUserDefinedUnaryOperatorsInScope(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, UnaryOperatorKind kind, string name1, string? name2Opt, ArrayBuilder<UnaryOperatorSignature> operators)
             {
-                getDeclaredUserDefinedUnaryOperators(extensionDeclarationsInSingleScope, kind, name1, operators);
+                getDeclaredUserDefinedUnaryOperators(extensionCandidatesInSingleScope, kind, name1, operators);
 
                 if (name2Opt is not null)
                 {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         existing.AddRange(operators.Select(static (op) => op.Method));
 
                         var operators2 = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-                        getDeclaredUserDefinedUnaryOperators(extensionDeclarationsInSingleScope, kind, name2Opt, operators2);
+                        getDeclaredUserDefinedUnaryOperators(extensionCandidatesInSingleScope, kind, name2Opt, operators2);
 
                         foreach (var op in operators2)
                         {
@@ -136,24 +136,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        getDeclaredUserDefinedUnaryOperators(extensionDeclarationsInSingleScope, kind, name2Opt, operators);
+                        getDeclaredUserDefinedUnaryOperators(extensionCandidatesInSingleScope, kind, name2Opt, operators);
                     }
                 }
             }
 
-            static void getDeclaredUserDefinedUnaryOperators(ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
+            static void getDeclaredUserDefinedUnaryOperators(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
             {
-                foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarationsInSingleScope)
-                {
-                    Debug.Assert(extensionDeclaration.IsExtension);
-
-                    if (extensionDeclaration.ExtensionParameter is null)
-                    {
-                        continue;
-                    }
-
-                    GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt: null, extensionDeclaration, kind, name, operators);
-                }
+                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.ContainingType.ExtensionParameter is not null));
+                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+                NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
+                GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
+                typeOperators.Free();
             }
 
             void inferTypeArgumentsAndRemoveInapplicableToReceiverType(UnaryOperatorKind kind, BoundExpression operand, ArrayBuilder<UnaryOperatorSignature> operators, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -801,11 +795,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
             type.AddOperators(name, typeOperators);
+            GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt, typeOperators, kind, name, operators);
+            typeOperators.Free();
+        }
 
+        private static void GetDeclaredUserDefinedUnaryOperators(TypeSymbol? constrainedToTypeOpt, IEnumerable<MethodSymbol> typeOperators, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
+        {
             foreach (MethodSymbol op in typeOperators)
             {
+                if (op.Name != name)
+                {
+                    continue;
+                }
+
                 // If we're in error recovery, we might have bad operators. Just ignore it.
-                if (op.ParameterCount != 1 || op.ReturnsVoid)
+                if (!op.IsStatic || op.ParameterCount != 1 || op.ReturnsVoid)
                 {
                     continue;
                 }
@@ -815,8 +819,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op, constrainedToTypeOpt));
             }
-
-            typeOperators.Free();
         }
 
         private void AddLiftedUserDefinedUnaryOperators(TypeSymbol? constrainedToTypeOpt, UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)

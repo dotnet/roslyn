@@ -25,7 +25,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
-    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
@@ -39,8 +38,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider)
             : base(
-                workspaceFactory.TargetFrameworkManager,
-                workspaceFactory.ProjectSystemHostInfo,
+                workspaceFactory,
                 fileChangeWatcher,
                 globalOptionService,
                 loggerFactory,
@@ -52,7 +50,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _projectXmlProvider = projectXmlProvider;
-        _workspaceFactory = workspaceFactory;
     }
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
@@ -107,10 +104,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
+    public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
     {
         var documentPath = GetDocumentFilePath(uri);
-        await UnloadProjectAsync(documentPath);
+        return await TryUnloadProjectAsync(documentPath);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
@@ -142,14 +139,17 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
 
-        return new RemoteProjectLoadResult(
-            loadedFile,
+        return new RemoteProjectLoadResult
+        {
+            ProjectFile = loadedFile,
             // If it's a proper file based program, we'll put it in the main host workspace factory since we want cross-project references to work.
             // Otherwise, we'll keep it in miscellaneous files.
-            ProjectFactory: isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
-            IsMiscellaneousFile: !isFileBasedProgram,
-            Preferred: buildHostKind,
-            Actual: buildHostKind);
+            ProjectFactory = isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
+            IsFileBasedProgram = isFileBasedProgram,
+            IsMiscellaneousFile = !isFileBasedProgram,
+            PreferredBuildHostKind = buildHostKind,
+            ActualBuildHostKind = buildHostKind,
+        };
     }
 
     protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
