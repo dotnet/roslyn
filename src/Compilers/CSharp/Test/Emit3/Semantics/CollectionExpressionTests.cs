@@ -44201,7 +44201,7 @@ class Program
                 """;
 
             // https://github.com/dotnet/roslyn/issues/80750
-            // The spec implies the safe-context of 'spans' should be 'caller-context'. (That seems reasonable in this case.)
+            // The spec implies the safe-context of 'spans' should be 'caller-context'.
             // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
             var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
