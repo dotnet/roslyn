@@ -55,12 +55,20 @@ public abstract class AbstractSemanticQuickInfoSourceTests
     protected static void AssertTaggedText(
         string expectedText,
         ImmutableArray<TaggedText> taggedText,
-#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/45893
         FormattedClassification[] expectedClassifications = null)
-#pragma warning restore IDE0060 // Remove unused parameter
     {
-        var actualText = string.Concat(taggedText.Select(tt => tt.Text));
-        Assert.Equal(expectedText, actualText);
+        if (expectedClassifications != null)
+        {
+            ClassificationTestHelper.VerifyTextAndClassifications(
+                expectedText,
+                expectedClassifications,
+                taggedText.ToArray());
+        }
+        else
+        {
+            var actualText = string.Concat(taggedText.Select(tt => tt.Text));
+            Assert.Equal(expectedText, actualText);
+        }
     }
 
     protected static Action<QuickInfoItem> MainDescription(
