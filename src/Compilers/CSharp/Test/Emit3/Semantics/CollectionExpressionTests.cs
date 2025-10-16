@@ -43854,43 +43854,11 @@ class Program
             CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.Skipped).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
-        public void RefStructElementType_01()
-        {
-            var source = """
+        private static readonly string s_collectionOfRefStructsSource = """
                 #nullable enable
-
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
-
-                Test1();
-                Test2();
-
-                partial class Program
-                {
-                    public static void Test1()
-                    {
-                        SpanCollection<Span<int>> spans1 = [[1], [2]];
-                        foreach (Span<int> span in spans1)
-                        {
-                            foreach (int item in span)
-                                Console.Write(item);
-                        }
-                    }
-
-                    public static void Test2()
-                    {
-                        ReadOnlySpan<int> span3 = [3];
-                        ReadOnlySpan<int> span4 = [4];
-                        SpanCollection<ReadOnlySpan<int>> spans2 = [span3, span4];
-                        foreach (ReadOnlySpan<int> span in spans2)
-                        {
-                            foreach (int item in span)
-                                Console.Write(item);
-                        }
-                    }
-                }
 
                 ref struct SpanCollection<T>() : IEnumerable<T> where T : allows ref struct
                 {
@@ -43939,7 +43907,44 @@ class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("1234"), verify: Verification.Fails);
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_01()
+        {
+            var source = """
+                #nullable enable
+
+                using System;
+
+                Test1();
+                Test2();
+
+                partial class Program
+                {
+                    public static void Test1()
+                    {
+                        SpanCollection<Span<int>> spans1 = [[1], [2]];
+                        foreach (Span<int> span in spans1)
+                        {
+                            foreach (int item in span)
+                                Console.Write(item);
+                        }
+                    }
+
+                    public static void Test2()
+                    {
+                        ReadOnlySpan<int> span3 = [3];
+                        ReadOnlySpan<int> span4 = [4];
+                        SpanCollection<ReadOnlySpan<int>> spans2 = [span3, span4];
+                        foreach (ReadOnlySpan<int> span in spans2)
+                        {
+                            foreach (int item in span)
+                                Console.Write(item);
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("1234"), verify: Verification.Fails);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", """
                 {
@@ -44053,6 +44058,202 @@ class Program
                   IL_0071:  ret
                 }
                 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_01()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test()
+                    {
+                        SpanCollection<Span<int>> spans = [[1], [2]];
+                        return spans;
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/80750
+            // The spec implies the safe-context of 'spans' should be 'caller-context'. (That would be bad.)
+            // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
+            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_02()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(scoped Span<int> span1, scoped Span<int> span2)
+                    {
+                        scoped var spans = new SpanCollection<Span<int>>();
+                        spans.Add(span1);
+                        spans.Add(span2);
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(11, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_03()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(scoped Span<int> span1, scoped Span<int> span2)
+                    {
+                        scoped var spans = new SpanCollection<Span<int>>() { span1, span2 };
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_04()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>();
+                        spans.Add(span1);
+                        spans.Add(span2);
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_05()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>() { span1, span2 };
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_06()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        SpanCollection<Span<int>> spans = [span1, span2];
+                        return spans;
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/80750
+            // The spec implies the safe-context of 'spans' should be 'caller-context'. (That seems reasonable in this case.)
+            // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
+            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_07()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>();
+                        spans.Add(span1);
+                        spans.Add(span2);
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_08()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>() { span1, span2 };
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
         }
     }
 }
