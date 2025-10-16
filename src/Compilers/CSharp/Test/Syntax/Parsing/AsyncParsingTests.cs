@@ -2831,7 +2831,8 @@ namespace",
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/xxxxx")]
+        [Fact]
+        // Tests that await keyword is recognized in interpolated strings with parentheses
         public void AwaitInInterpolatedString_WithParentheses()
         {
             UsingTree(@"
@@ -2996,7 +2997,8 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/xxxxx")]
+        [Fact]
+        // Tests that await keyword is recognized in interpolated strings without parentheses
         public void AwaitInInterpolatedString_WithoutParentheses()
         {
             UsingTree(@"
