@@ -39,7 +39,7 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
     {
         foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
         {
-            if (diagnostic.Location.FindNode(cancellationToken) is PostfixUnaryExpressionSyntax unaryExpression)
+            if (diagnostic.AdditionalLocations[0].FindNode(cancellationToken) is PostfixUnaryExpressionSyntax unaryExpression)
             {
                 editor.ReplaceNode(
                     unaryExpression,
