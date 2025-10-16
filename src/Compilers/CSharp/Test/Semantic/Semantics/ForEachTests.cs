@@ -444,6 +444,51 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(int[,])null").WithLocation(6, 27));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToConstrainedTypeParameter()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void M<T>() where T : class, IEnumerable<int>
+                    {
+                        foreach (var x in (T)null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToConstrainedTypeParameterWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class C
+                {
+                    static void M<T>() where T : class, IEnumerable<int>
+                    {
+                        foreach (var x in (T)null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var x in (T)null)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)null").WithLocation(7, 27),
+                // (7,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var x in (T)null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(T)null").WithLocation(7, 27));
+        }
+
         [Fact]
         public void TestErrorLambdaCollection()
         {
