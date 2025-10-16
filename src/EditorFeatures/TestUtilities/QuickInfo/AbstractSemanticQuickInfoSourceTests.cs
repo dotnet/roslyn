@@ -62,7 +62,7 @@ public abstract class AbstractSemanticQuickInfoSourceTests
             ClassificationTestHelper.VerifyTextAndClassifications(
                 expectedText,
                 expectedClassifications,
-                taggedText.ToArray());
+                taggedText);
         }
         else
         {
