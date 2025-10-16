@@ -51,7 +51,6 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
         if (switchStatement.ContainsDirectives)
             return;
 
-
         var (nodeToGenerate, declaratorToRemoveOpt) = Analyzer.Analyze(
             (SwitchStatementSyntax)switchStatement,
             context.SemanticModel,
