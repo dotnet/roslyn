@@ -100,12 +100,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                             Assert.False(presenterCalled)
                         ElseIf mockDocumentNavigationService._triedNavigationToPosition Then
                             Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
+                            Assert.Single(definitionDocument.SelectedSpans)
+                            Dim expected = definitionDocument.SelectedSpans.Single()
+                            Assert.Equal(expected.Start, mockDocumentNavigationService._position)
 
-                            Assert.True(definitionDocument.SelectedSpans.Any(Function(d) d.Start = mockDocumentNavigationService._position))
-
-                            ' The INavigableItemsPresenter should only have been called if there were two or more
-                            ' locations to show.
-                            Assert.True(Not presenterCalled Or (presenterCalled = (expectedLocations.Count >= 2)))
+                            ' The INavigableItemsPresenter should not have been called
+                            Assert.False(presenterCalled)
                         Else
                             Assert.True(presenterCalled)
 

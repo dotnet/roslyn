@@ -2575,11 +2575,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Для переименования зафиксированной переменной из "{0}" в "{1}" требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Переименование членов анонимного типа еще не поддерживается.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Замените '{0}' на '{1}'</target>
