@@ -80,8 +80,7 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         set
         {
             // Remove all whitespace characters (including all Unicode whitespace) to prevent invalid identifiers.
-            // Handles null by converting to empty string.
-            var trimmedValue = value == null ? string.Empty : string.Concat(value.Where(c => !char.IsWhiteSpace(c)));
+            var trimmedValue = value?.Replace(" ", "") ?? "";
 
             if (trimmedValue != Session.ReplacementText)
             {
