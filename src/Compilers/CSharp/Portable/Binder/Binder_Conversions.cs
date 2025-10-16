@@ -1143,8 +1143,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionBuilderMethod: null,
                     collectionBuilderElementsPlaceholder: null,
                     wasTargetTyped: true,
-                    // Since a with-element is not legal here, we can just treat these as if they don't have one at all.
-                    hasWithElement: false,
+                    // Note: a with-element is not legal here (see error above).  We still set this to accurately
+                    // reflect the original code.  The value though won't actually be used later on as we will not get
+                    // to lowering if there was an error, and even if we did, lowering for arrays/spans will not use
+                    // this information.
+                    hasWithElement: _node.WithElement != null,
                     _node,
                     elements,
                     _targetType);
@@ -1156,12 +1159,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _node.Syntax,
                     CollectionExpressionTypeKind.ArrayInterface,
                     placeholder: null,
-                    bindCollectionArrayInterfaceConstruction(this),
+                    collectionCreation: bindCollectionArrayInterfaceConstruction(this),
                     collectionBuilderMethod: null,
                     collectionBuilderElementsPlaceholder: null,
                     wasTargetTyped: true,
-                    // Since a with-element is not legal here, we can just treat these as if they don't have one at all.
-                    hasWithElement: false,
+                    // Note: we set this here to accurately reflect if a with-element was present.  However, the value
+                    // won't actually be used later on, as the information reflected in the with-element is pulled into
+                    // collectionCreation and the lowering pass will use that information instead.
+                    hasWithElement: _node.WithElement != null,
                     _node,
                     elements,
                     _targetType);
