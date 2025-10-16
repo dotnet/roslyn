@@ -26,22 +26,6 @@ public sealed class FileKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
-    public Task TestAfterGlobalStatement()
-        => VerifyKeywordAsync(
-            """
-            System.Console.WriteLine();
-            $$
-            """);
-
-    [Fact]
-    public Task TestAfterGlobalVariableDeclaration()
-        => VerifyKeywordAsync(
-            """
-            int i = 0;
-            $$
-            """);
-
-    [Fact]
     public Task TestNotInUsingAlias()
         => VerifyAbsenceAsync(
 @"using Goo = $$");
@@ -123,16 +107,16 @@ public sealed class FileKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
-    public Task TestNotAfterUsing_InsideNamespace()
-        => VerifyAbsenceAsync("""
+    public Task TestAfterUsing_InsideNamespace()
+        => VerifyKeywordAsync("""
             namespace N {
                 using Goo;
                 $$
             """);
 
     [Fact]
-    public Task TestNotAfterMember_InsideNamespace()
-        => VerifyAbsenceAsync("""
+    public Task TestAfterMember_InsideNamespace()
+        => VerifyKeywordAsync("""
             namespace N {
                 class C {}
                 $$
@@ -171,13 +155,13 @@ public sealed class FileKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
-    public Task TestAfterPublic()
-        => VerifyKeywordAsync(
+    public Task TestNotAfterPublic()
+        => VerifyAbsenceAsync(
 @"public $$");
 
     [Fact]
-    public Task TestAfterInternal()
-        => VerifyKeywordAsync(
+    public Task TestNotAfterInternal()
+        => VerifyAbsenceAsync(
 @"internal $$");
 
     [Fact]
