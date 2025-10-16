@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 static (diagnostic, tuple) =>
                 {
                     var (self, analyzer, symbolDeclaredEvent, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken) = tuple;
-                    tuple.self.AddSymbolDiagnostic(symbolDeclaredEvent.Symbol, diagnostic, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken);
+                    tuple.self.AddSymbolDiagnostic(symbolDeclaredEvent, diagnostic, analyzer, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken);
                 },
                 (self: this, analyzer, symbolDeclaredEvent, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken),
                 out Action<Diagnostic> addDiagnostic);
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 static (diagnostic, tuple) =>
                 {
                     var (self, analyzer, symbolDeclaredEvent, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken) = tuple;
-                    tuple.self.AddSymbolDiagnostic(symbolDeclaredEvent.Symbol, diagnostic, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken);
+                    tuple.self.AddSymbolDiagnostic(symbolDeclaredEvent, diagnostic, analyzer, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken);
                 },
                 (self: this, analyzer, symbolDeclaredEvent, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken),
                 out Action<Diagnostic> addDiagnostic);
@@ -1523,9 +1523,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private void AddSymbolDiagnostic(
-            ISymbol contextSymbol,
+            SymbolDeclaredCompilationEvent symbolDeclaredEvent,
             Diagnostic diagnostic,
-            ImmutableArray<SyntaxReference> cachedDeclaringReferences,
             DiagnosticAnalyzer analyzer,
             AnalyzerOptions options,
             Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
@@ -1548,11 +1547,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (diagnostic.Location.IsInSource)
             {
-                foreach (var syntaxRef in cachedDeclaringReferences)
+                var symbol = symbolDeclaredEvent.Symbol;
+                foreach (var syntaxRef in symbolDeclaredEvent.DeclaringSyntaxReferences)
                 {
                     if (syntaxRef.SyntaxTree == diagnostic.Location.SourceTree)
                     {
-                        var syntax = getTopMostNodeForAnalysis(contextSymbol, syntaxRef, this.Compilation, cancellationToken);
+                        var syntax = getTopMostNodeForAnalysis(symbol, syntaxRef, this.Compilation, cancellationToken);
                         if (diagnostic.Location.SourceSpan.IntersectsWith(syntax.FullSpan))
                         {
                             _addCategorizedLocalDiagnostic(diagnostic, analyzer, options, false, cancellationToken);
