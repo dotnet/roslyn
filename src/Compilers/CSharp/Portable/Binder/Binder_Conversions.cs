@@ -1128,14 +1128,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectionExpressionTypeKind collectionTypeKind,
                 ImmutableArray<BoundNode> elements)
             {
+                var syntax = _node.Syntax;
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.Span:
-                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, _diagnostics, syntax: _node.Syntax);
+                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, _diagnostics, syntax: syntax);
                         break;
 
                     case CollectionExpressionTypeKind.ReadOnlySpan:
-                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: _node.Syntax);
+                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: syntax);
                         break;
                 }
 
