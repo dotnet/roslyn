@@ -428,18 +428,6 @@ internal abstract class LanguageServerProjectLoader
     }
 
     /// <summary>
-    /// Executes an action with access to the loaded project state under the _gate.
-    /// This allows subclasses to safely query or modify project state.
-    /// </summary>
-    protected async ValueTask<T> ExecuteUnderGateAsync<T>(Func<Dictionary<string, ProjectLoadState>, T> action, CancellationToken cancellationToken)
-    {
-        using (await _gate.DisposableWaitAsync(cancellationToken))
-        {
-            return action(_loadedProjects);
-        }
-    }
-
-    /// <summary>
     /// Executes an async action with access to the loaded project state under the _gate.
     /// This allows subclasses to safely query or modify project state.
     /// </summary>

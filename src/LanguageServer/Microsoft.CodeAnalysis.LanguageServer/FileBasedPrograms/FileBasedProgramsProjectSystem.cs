@@ -99,14 +99,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         // Check if this is a C# file that should use the canonical misc files loader
-        if (languageInformation.LanguageName == LanguageNames.CSharp)
+        if (languageInformation.LanguageName == LanguageNames.CSharp 
+            && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
         {
-            var isVirtual = uri.ParsedUri is null || !uri.ParsedUri.IsFile;
-            
             // For virtual (non-file) URIs or non-file-based programs, use the canonical loader
-            if (isVirtual)
+            if (uri.ParsedUri is null || !uri.ParsedUri.IsFile)
             {
-                return await _canonicalMiscFilesLoader.Value.AddMiscellaneousDocumentAsync(uri, documentText, CancellationToken.None);
+                return await _canonicalMiscFilesLoader.Value.AddMiscellaneousDocumentAsync(documentFilePath, documentText, CancellationToken.None);
             }
 
             // For files on disk, check if it's a file-based program
@@ -116,7 +115,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             if (!VirtualProjectXmlProvider.IsFileBasedProgram(documentFilePath, textAndVersion.Text))
             {
                 // Not a file-based program, use the canonical loader
-                return await _canonicalMiscFilesLoader.Value.AddMiscellaneousDocumentAsync(uri, documentText, CancellationToken.None);
+                return await _canonicalMiscFilesLoader.Value.AddMiscellaneousDocumentAsync(documentFilePath, documentText, CancellationToken.None);
             }
         }
 
@@ -160,12 +159,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // First try to remove from the canonical misc files loader if it was created
         if (_canonicalMiscFilesLoader.IsValueCreated)
         {
-            var removedFromCanonical = await _canonicalMiscFilesLoader.Value.TryRemoveMiscellaneousDocumentAsync(uri, CancellationToken.None);
+            var removedFromCanonical = await _canonicalMiscFilesLoader.Value.TryRemoveMiscellaneousDocumentAsync(documentPath, CancellationToken.None);
             if (removedFromCanonical)
                 return true;
         }
 
-        // Fall back to the original file-based programs logic
+        // Fall back to the file-based programs logic
         return await TryUnloadProjectAsync(documentPath);
     }
 
@@ -223,8 +222,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         ImmutableArray<LoadedProject> loadedTargets,
         CancellationToken cancellationToken)
     {
-        // For file-based programs, simply remove the primordial project
-        // This is the original behavior before the refactoring
         await primordialProjectFactory.ApplyChangeToWorkspaceAsync(
             workspace => workspace.OnProjectRemoved(primordialProjectId),
             cancellationToken);
