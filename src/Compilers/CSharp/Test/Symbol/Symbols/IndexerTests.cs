@@ -2969,8 +2969,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new A()[1]").WithArguments("a").WithLocation(8, 27));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/43145")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43145")]
         public void CompilerShouldNotCrashOnSyntaxErrorInIndexerDeclaration()
         {
             var source =
