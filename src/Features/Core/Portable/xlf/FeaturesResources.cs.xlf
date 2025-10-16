@@ -2575,11 +2575,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Změna názvu zachycené proměnné z {0} na {1} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Přejmenování členů anonymního typu se zatím nepodporuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Místo {0} použijte {1}</target>

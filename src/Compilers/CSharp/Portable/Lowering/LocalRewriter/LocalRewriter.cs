@@ -1205,6 +1205,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
+            {
+                Fail(node);
+                return null;
+            }
+
             public override BoundNode? VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
             {
                 Fail(node);
