@@ -56,7 +56,7 @@ internal abstract class LanguageServerProjectLoader
     /// <see cref="Primordial"/> -> <see cref="LoadedTargets"/>
     /// Any state -> unloaded (which is denoted by removing the <see cref="_loadedProjects"/> entry for the project)
     /// </summary>
-    private abstract record ProjectLoadState
+    protected abstract record ProjectLoadState
     {
         private ProjectLoadState() { }
 
@@ -213,6 +213,22 @@ internal abstract class LanguageServerProjectLoader
     /// </remarks>
     protected abstract ValueTask OnProjectUnloadedAsync(string projectFilePath);
 
+    /// <summary>
+    /// Called when transitioning from a primordial project to loaded targets.
+    /// Subclasses can override this to transfer documents or perform other operations before the primordial project is removed.
+    /// </summary>
+    /// <param name="projectPath">The path to the project being loaded.</param>
+    /// <param name="primordialProjectFactory">The factory that created the primordial project.</param>
+    /// <param name="primordialProjectId">The ID of the primordial project.</param>
+    /// <param name="loadedTargets">The newly loaded project targets.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    protected abstract ValueTask TransitionPrimordialProjectToLoadedAsync(
+        string projectPath,
+        ProjectSystemProjectFactory primordialProjectFactory,
+        ProjectId primordialProjectId,
+        ImmutableArray<LoadedProject> loadedTargets,
+        CancellationToken cancellationToken);
+
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
@@ -317,11 +333,8 @@ internal abstract class LanguageServerProjectLoader
 
                 if (currentLoadState is ProjectLoadState.Primordial(var primordialProjectFactory, var projectId))
                 {
-                    // Remove the primordial project now that the design-time build pass is finished. This ensures that
-                    // we have the new project in place before we remove the primordial project; otherwise for
-                    // Miscellaneous Files we could have a case where we'd get another request to create a project
-                    // for the project we're currently processing.
-                    await primordialProjectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId), cancellationToken);
+                    // Transition from primordial to loaded state
+                    await TransitionPrimordialProjectToLoadedAsync(projectPath, primordialProjectFactory, projectId, newProjectTargets, cancellationToken);
                 }
 
                 // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.
@@ -411,6 +424,30 @@ internal abstract class LanguageServerProjectLoader
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
             return _loadedProjects.ContainsKey(projectPath);
+        }
+    }
+
+    /// <summary>
+    /// Executes an action with access to the loaded project state under the _gate.
+    /// This allows subclasses to safely query or modify project state.
+    /// </summary>
+    protected async ValueTask<T> ExecuteUnderGateAsync<T>(Func<Dictionary<string, ProjectLoadState>, T> action, CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            return action(_loadedProjects);
+        }
+    }
+
+    /// <summary>
+    /// Executes an async action with access to the loaded project state under the _gate.
+    /// This allows subclasses to safely query or modify project state.
+    /// </summary>
+    protected async ValueTask<T> ExecuteUnderGateAsync<T>(Func<Dictionary<string, ProjectLoadState>, ValueTask<T>> action, CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            return await action(_loadedProjects);
         }
     }
 

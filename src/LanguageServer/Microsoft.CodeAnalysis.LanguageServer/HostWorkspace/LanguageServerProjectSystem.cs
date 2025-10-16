@@ -105,4 +105,18 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         // Nothing else to unload for ordinary projects.
         return ValueTask.CompletedTask;
     }
+
+    protected override async ValueTask TransitionPrimordialProjectToLoadedAsync(
+        string projectPath,
+        ProjectSystemProjectFactory primordialProjectFactory,
+        ProjectId primordialProjectId,
+        ImmutableArray<LoadedProject> loadedTargets,
+        CancellationToken cancellationToken)
+    {
+        // For regular projects, simply remove the primordial project
+        // This is the original behavior before the refactoring
+        await primordialProjectFactory.ApplyChangeToWorkspaceAsync(
+            workspace => workspace.OnProjectRemoved(primordialProjectId),
+            cancellationToken);
+    }
 }
