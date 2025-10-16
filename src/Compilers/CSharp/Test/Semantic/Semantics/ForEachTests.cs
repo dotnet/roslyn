@@ -105,6 +105,48 @@ class C
         }
 
         [Fact]
+        public void TestErrorNullIEnumerable()
+        {
+            var text = @"
+using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        foreach (var x in (IEnumerable<int>)null)
+        {
+        }
+    }
+}";
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,27): error CS0186: Use of null is not valid in this context
+                //         foreach (var x in (IEnumerable<int>)null)
+                Diagnostic(ErrorCode.ERR_NullNotValid, "(IEnumerable<int>)null").WithLocation(7, 27));
+        }
+
+        [Fact]
+        public void TestErrorNullNonGenericIEnumerable()
+        {
+            var text = @"
+using System.Collections;
+class C
+{
+    static void Main()
+    {
+        foreach (var x in (IEnumerable)null)
+        {
+        }
+    }
+}";
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,27): error CS0186: Use of null is not valid in this context
+                //         foreach (var x in (IEnumerable)null)
+                Diagnostic(ErrorCode.ERR_NullNotValid, "(IEnumerable)null").WithLocation(7, 27));
+        }
+
+        [Fact]
         public void TestErrorLambdaCollection()
         {
             var text = @"

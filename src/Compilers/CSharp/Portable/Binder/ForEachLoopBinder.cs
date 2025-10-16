@@ -989,6 +989,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!isAsync && IsIEnumerable(unwrappedCollectionExprType))
                 {
                     collectionExpr = unwrappedCollectionExpr;
+                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
+                    {
+                        return EnumeratorResult.FailedAndReported;
+                    }
                     // This indicates a problem with the special IEnumerable type - it should have satisfied the GetEnumerator pattern.
                     diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, collectionSyntax.Location, unwrappedCollectionExprType, WellKnownMemberNames.GetEnumeratorMethodName);
                     return EnumeratorResult.FailedAndReported;
@@ -996,6 +1000,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (isAsync && IsIAsyncEnumerable(unwrappedCollectionExprType))
                 {
                     collectionExpr = unwrappedCollectionExpr;
+                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
+                    {
+                        return EnumeratorResult.FailedAndReported;
+                    }
                     // This indicates a problem with the well-known IAsyncEnumerable type - it should have satisfied the GetAsyncEnumerator pattern.
                     diagnostics.Add(ErrorCode.ERR_AwaitForEachMissingMember, collectionSyntax.Location, unwrappedCollectionExprType, WellKnownMemberNames.GetAsyncEnumeratorMethodName);
                     return EnumeratorResult.FailedAndReported;
