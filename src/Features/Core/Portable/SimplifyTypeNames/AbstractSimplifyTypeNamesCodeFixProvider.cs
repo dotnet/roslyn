@@ -85,12 +85,7 @@ internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntax
         var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
         var title = GetTitle(diagnosticId, syntaxFacts.ConvertToSingleLine(node).ToString());
 
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                title,
-                GetDocumentUpdater(context),
-                diagnosticId),
-            context.Diagnostics);
+        RegisterCodeFix(context, title, diagnosticId);
     }
 
     protected override async Task FixAllAsync(
