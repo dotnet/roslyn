@@ -7464,17 +7464,16 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
         public void TypeParameter_BaseType_ReturnsNull()
         {
-            // This test verifies that ITypeSymbol.BaseType returns null for type parameters,
-            // not the effective base class.
-            var source = @"
-abstract class Base
-{
-    public abstract void Method();
-}
+            var source = """
+                abstract class Base
+                {
+                    public abstract void Method();
+                }
 
-class Derived<T> where T : Base
-{
-}";
+                class Derived<T> where T : Base
+                {
+                }
+                """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
@@ -7484,8 +7483,6 @@ class Derived<T> where T : Base
             var typeParameter = derivedType.TypeParameters[0];
             Assert.NotNull(typeParameter);
 
-            // Test the public API: ITypeSymbol.BaseType should return null for type parameters,
-            // even though there is an effective base class (Base in this case).
             var publicTypeParameter = (ITypeParameterSymbol)typeParameter.GetPublicSymbol();
             Assert.Null(publicTypeParameter.BaseType);
         }
