@@ -767,7 +767,7 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80788")]
     public Task TestCollectionExpressionArgument_WithNamedParameter()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -792,7 +792,7 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80788")]
     public Task TestCollectionExpressionArgument_WithNamedParameter2()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -817,7 +817,7 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80788")]
     public Task TestImplicitArrayCreationArgument()
         => TestMissingInRegularAndScriptAsync(
             """
