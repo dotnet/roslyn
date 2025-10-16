@@ -3361,6 +3361,8 @@ parse_member_name:;
             return true;
         }
 
+#nullable enable
+
         private ConstructorDeclarationSyntax ParseConstructorDeclaration(
             SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
@@ -3370,29 +3372,7 @@ parse_member_name:;
             try
             {
                 var paramList = this.ParseParenthesizedParameterList(forExtension: false);
-                ConstructorInitializerSyntax initializer;
-                if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                {
-                    initializer = this.ParseConstructorInitializer();
-                }
-                else if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken &&
-                         this.PeekToken(1).Kind is SyntaxKind.BaseKeyword or SyntaxKind.ThisKeyword &&
-                         this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
-                {
-                    // If we see '=>' followed by 'base(' or 'this(', the user likely meant to write a constructor initializer
-                    // using ':' instead. Consume the '=>' as if it were ':', produce a good error message, and recover well.
-                    var colon = this.EatTokenAsKind(SyntaxKind.ColonToken);
-                    var token = this.EatToken();
-                    var kind = token.Kind == SyntaxKind.BaseKeyword
-                        ? SyntaxKind.BaseConstructorInitializer
-                        : SyntaxKind.ThisConstructorInitializer;
-                    var argumentList = this.ParseParenthesizedArgumentList();
-                    initializer = _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
-                }
-                else
-                {
-                    initializer = null;
-                }
+                var initializer = this.TryParseConstructorInitializer();
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out var body, out var expressionBody, out var semicolon);
 
@@ -3404,37 +3384,43 @@ parse_member_name:;
             }
         }
 
+        private ConstructorInitializerSyntax? TryParseConstructorInitializer()
+        {
+            var currentTokenKind = this.CurrentToken.Kind;
+            var shouldParse = currentTokenKind is SyntaxKind.ColonToken ||
+                (currentTokenKind is SyntaxKind.EqualsGreaterThanToken &&
+                 this.PeekToken(1).Kind is SyntaxKind.ThisKeyword or SyntaxKind.BaseKeyword &&
+                 this.PeekToken(2).Kind is SyntaxKind.OpenParenToken);
+
+            if (!shouldParse)
+                return null;
+
+            return ParseConstructorInitializer();
+        }
+
         private ConstructorInitializerSyntax ParseConstructorInitializer()
         {
-            var colon = this.EatToken(SyntaxKind.ColonToken);
+            var colon = this.EatTokenAsKind(SyntaxKind.ColonToken);
 
-            var reportError = true;
-            var kind = this.CurrentToken.Kind == SyntaxKind.BaseKeyword
-                ? SyntaxKind.BaseConstructorInitializer
-                : SyntaxKind.ThisConstructorInitializer;
-
-            SyntaxToken token;
-            if (this.CurrentToken.Kind is SyntaxKind.BaseKeyword or SyntaxKind.ThisKeyword)
-            {
-                token = this.EatToken();
-            }
-            else
-            {
-                token = this.EatToken(SyntaxKind.ThisKeyword, ErrorCode.ERR_ThisOrBaseExpected);
-
-                // No need to report further errors at this point:
-                reportError = false;
-            }
+            var token = this.CurrentToken.Kind is SyntaxKind.BaseKeyword or SyntaxKind.ThisKeyword
+                ? this.EatToken()
+                : this.EatToken(SyntaxKind.ThisKeyword, ErrorCode.ERR_ThisOrBaseExpected);
 
             var argumentList = this.CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? this.ParseParenthesizedArgumentList()
                 : _syntaxFactory.ArgumentList(
-                    this.EatToken(SyntaxKind.OpenParenToken, reportError),
+                    this.EatToken(SyntaxKind.OpenParenToken, reportError: !token.ContainsDiagnostics),
                     arguments: default,
-                    this.EatToken(SyntaxKind.CloseParenToken, reportError));
+                    this.EatToken(SyntaxKind.CloseParenToken, reportError: !token.ContainsDiagnostics));
 
-            return _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
+            return _syntaxFactory.ConstructorInitializer(
+                token.Kind == SyntaxKind.BaseKeyword
+                    ? SyntaxKind.BaseConstructorInitializer
+                    : SyntaxKind.ThisConstructorInitializer,
+                colon, token, argumentList);
         }
+
+#nullable disable
 
         private DestructorDeclarationSyntax ParseDestructorDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
