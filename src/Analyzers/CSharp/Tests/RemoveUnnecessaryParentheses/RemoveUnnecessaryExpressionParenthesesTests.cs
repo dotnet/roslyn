@@ -1164,7 +1164,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76261")]
+    [Fact]
     public Task TestBitwiseExpression_TestAvailableWithSimpleLiteralOperand()
         => TestAsync(
             """
@@ -1180,7 +1180,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76261")]
+    [Fact]
     public Task TestBitwiseExpression_TestAvailableWithSimpleLiteralOperandAnd()
         => TestAsync(
             """
@@ -1196,7 +1196,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76261")]
+    [Fact]
     public Task TestBitwiseExpression_TestAvailableWithSimpleIdentifierOperand()
         => TestAsync(
             """
