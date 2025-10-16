@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
 
-                var collectionCreation = bindCollectionConstructorConstruction(this, syntax, constructor);
+                var collectionCreation = bindCollectionConstructorConstruction(in this, syntax, constructor);
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var elements = _node.Elements;
 
-                if (!elements.IsDefaultOrEmpty && hasCollectionInitializerTypeInProgress(this, syntax, _targetType))
+                if (!elements.IsDefaultOrEmpty && hasCollectionInitializerTypeInProgress(in this, syntax, _targetType))
                 {
                     _diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, _targetType);
                     return null;
@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _targetType);
 
                 BoundExpression bindCollectionConstructorConstruction(
-                    CollectionExpressionConverter @this, SyntaxNode syntax, MethodSymbol? constructor)
+                    ref readonly CollectionExpressionConverter @this, SyntaxNode syntax, MethodSymbol? constructor)
                 {
                     //
                     // !!! ATTENTION !!!
@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 bool hasCollectionInitializerTypeInProgress(
-                    CollectionExpressionConverter @this, SyntaxNode syntax, TypeSymbol targetType)
+                    ref readonly CollectionExpressionConverter @this, SyntaxNode syntax, TypeSymbol targetType)
                 {
                     for (var current = @this._binder;
                          current?.Flags.Includes(BinderFlags.CollectionInitializerAddMethod) == true;
@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var elementConversion = elementConversions[i];
                     builder.Add(element is BoundCollectionExpressionSpreadElement spreadElement
                         ? bindSpreadElement(
-                            this,
+                            in this,
                             spreadElement,
                             elementType,
                             elementConversion)
@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return builder.ToImmutableAndFree();
 
                 BoundCollectionExpressionSpreadElement bindSpreadElement(
-                    CollectionExpressionConverter @this, BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion)
+                    ref readonly CollectionExpressionConverter @this, BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion)
                 {
                     var enumeratorInfo = element.EnumeratorInfoOpt;
                     Debug.Assert(enumeratorInfo is { });
@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _node.Syntax,
                     CollectionExpressionTypeKind.ArrayInterface,
                     placeholder: null,
-                    collectionCreation: bindCollectionArrayInterfaceConstruction(this),
+                    collectionCreation: bindCollectionArrayInterfaceConstruction(in this),
                     collectionBuilderMethod: null,
                     collectionBuilderElementsPlaceholder: null,
                     wasTargetTyped: true,
@@ -1171,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elements,
                     _targetType);
 
-                BoundExpression? bindCollectionArrayInterfaceConstruction(CollectionExpressionConverter @this)
+                BoundExpression? bindCollectionArrayInterfaceConstruction(ref readonly CollectionExpressionConverter @this)
                 {
                     var withElement = @this._node.WithElement;
                     if (withElement is null)
@@ -1254,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var syntax = _node.Syntax;
 
-                var (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(this);
+                var (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(in this);
                 if (collectionCreation is null || collectionBuilderMethod is null || collectionBuilderElementsPlaceholder is null)
                     return null;
 
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elements,
                     _targetType);
 
-                (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(CollectionExpressionConverter @this)
+                (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(ref readonly CollectionExpressionConverter @this)
                 {
                     var namedType = (NamedTypeSymbol)@this._targetType;
 
