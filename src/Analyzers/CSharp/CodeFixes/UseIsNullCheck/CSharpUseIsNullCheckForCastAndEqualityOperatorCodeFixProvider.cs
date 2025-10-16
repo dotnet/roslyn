@@ -39,10 +39,14 @@ internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvi
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
-        var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
-        var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
+        if (IsSupportedDiagnostic(diagnostic))
+        {
+            var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
+            var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
 
-        RegisterCodeFix(context, title, title);
+            RegisterCodeFix(context, title, title);
+        }
+
         return Task.CompletedTask;
     }
 

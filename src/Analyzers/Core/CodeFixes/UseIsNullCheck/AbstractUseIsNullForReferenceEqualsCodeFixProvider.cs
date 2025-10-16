@@ -31,6 +31,9 @@ internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<
     private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
         => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.ReferenceEqualsKey;
 
+    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+        => IsSupportedDiagnostic(diagnostic);
+
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
@@ -38,9 +41,7 @@ internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<
         {
             var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
             var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
-            context.RegisterCodeFix(
-                CodeAction.Create(title, GetDocumentUpdater(context), title),
-                context.Diagnostics);
+            RegisterCodeFix(context, title, title);
         }
 
         return Task.CompletedTask;
