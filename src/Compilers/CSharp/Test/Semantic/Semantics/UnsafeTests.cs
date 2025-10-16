@@ -14298,5 +14298,24 @@ class PointerImpl : IPointerTest
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 55)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36877")]
+        public void PointerToNonExistentType_NoSuperfluousError()
+        {
+            var source = @"
+class Program
+{
+    static unsafe void Method(Type *type)
+    {
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,31): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     static unsafe void Method(Type *type)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(4, 31)
+                // Should not also report CS8500 or CS0208 for managed address of non-existent type
+                );
+        }
     }
 }
