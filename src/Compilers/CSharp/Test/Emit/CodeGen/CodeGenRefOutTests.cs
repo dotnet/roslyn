@@ -832,5 +832,87 @@ unsafe
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
             }
         }
+
+        [ClrOnlyFact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestExtensionMethodRefReadonlyModifierWithEnumType()
+        {
+            var source = """
+                int i = 0;
+                i.M1();
+                
+                E e = (E)0;
+                e.M2();
+                
+                enum E;
+                
+                static class Extensions
+                {
+                    public static void M1(this ref readonly int e)
+                    {
+                        System.Console.WriteLine("int");
+                    }
+                
+                    public static void M2(this ref readonly E e)
+                    {
+                        System.Console.WriteLine("enum");
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: """
+                int
+                enum
+                """);
+
+            var expectedIL = """
+                .class private auto ansi abstract sealed beforefieldinit Extensions
+                    extends [netstandard]System.Object
+                {
+                    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig static 
+                        void M1 (
+                            [in] int32& e
+                        ) cil managed 
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        .param [1]
+                            .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x208f
+                        // Code size 11 (0xb)
+                        .maxstack 8
+                        IL_0000: ldstr "int"
+                        IL_0005: call void [netstandard]System.Console::WriteLine(string)
+                        IL_000a: ret
+                    } // end of method Extensions::M1
+                    .method public hidebysig static 
+                        void M2 (
+                            [in] valuetype E& e
+                        ) cil managed 
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        .param [1]
+                            .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x209b
+                        // Code size 11 (0xb)
+                        .maxstack 8
+                        IL_0000: ldstr "enum"
+                        IL_0005: call void [netstandard]System.Console::WriteLine(string)
+                        IL_000a: ret
+                    } // end of method Extensions::M2
+                } // end of class Extensions
+                """.Replace("[netstandard]", RuntimeUtilities.IsCoreClrRuntime ? "[netstandard]" : "[mscorlib]");
+            comp.VerifyTypeIL("Extensions", expectedIL);
+        }
     }
 }
