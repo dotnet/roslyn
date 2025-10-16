@@ -13,4 +13,16 @@ public partial class AutomationObject
         get { return GetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration); }
         set { SetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, value); }
     }
+
+    public int GenerateSummaryTagOnSingleLine
+    {
+        get { return GetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine); }
+        set { SetBooleanOption(DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, value); }
+    }
+
+    public int GenerateOnlySummaryTag
+    {
+        get { return GetBooleanOption(DocumentationCommentOptionsStorage.GenerateOnlySummaryTag); }
+        set { SetBooleanOption(DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, value); }
+    }
 }

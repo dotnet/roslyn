@@ -123,8 +123,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_classify_reassigned_variables", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyReassignedVariables")},
         {"dotnet_classify_obsolete_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyObsoleteSymbols")},
         {"dotnet_prefer_system_hash_code", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode")},
-        {"visual_studio_color_scheme_name", new RoamingProfileStorage("TextEditor.Roslyn.ColorSchemeName")},
-        {"visual_studio_color_scheme_use_legacy_enhanced_colors", new RoamingProfileStorage("WindowManagement.Options.UseEnhancedColorsForManagedLanguages")},
         {"block_for_completion_items", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems")},
         {"dotnet_enable_argument_completion_snippets", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets")},
         {"dotnet_return_key_completion_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior")},
@@ -239,6 +237,8 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_auto_xml_doc_comment_generation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
+        {"dotnet_generate_summary_tag_on_single_line", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateSummaryTagOnSingleLine")},
+        {"dotnet_generate_only_summary_tag", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateOnlySummaryTag")},
         {"dotnet_code_quality_unused_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference")},
 
         {"dotnet_separate_import_directive_groups", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},

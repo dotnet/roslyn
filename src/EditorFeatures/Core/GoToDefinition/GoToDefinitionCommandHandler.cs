@@ -130,7 +130,7 @@ internal sealed class GoToDefinitionCommandHandler(
             // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
             // causing ourselves to self-cancel.
             var disposable = await backgroundIndicator.SuppressAutoCancelAsync().ConfigureAwait(false);
-            await using var _ = disposable.ConfigureAwait(false);
+            await using var _2 = disposable.ConfigureAwait(false);
 
             succeeded = definitionLocation != null && await definitionLocation.Location.TryNavigateToAsync(
                 _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true),

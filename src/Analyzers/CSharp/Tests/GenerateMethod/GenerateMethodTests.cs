@@ -10613,4 +10613,33 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14)));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80628")]
+    public Task TestGenerateAbstractMethodReturningTask()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading.Tasks;
+
+            abstract class C
+            {
+                async Task M()
+                {
+                    await [|M2|]();
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            abstract class C
+            {
+                async Task M()
+                {
+                    await M2();
+                }
+
+                protected abstract Task M2();
+            }
+            """,
+            index: 1);
 }

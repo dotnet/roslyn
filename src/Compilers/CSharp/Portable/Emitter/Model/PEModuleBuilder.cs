@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private EmbeddableAttributes GetNeedsGeneratedAttributesInternal()
         {
-            return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes();
+            return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes(freezeState: this is not PEDeltaAssemblyBuilder);
         }
 
         private void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)

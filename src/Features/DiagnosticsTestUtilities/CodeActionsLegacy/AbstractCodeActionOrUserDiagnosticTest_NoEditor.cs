@@ -888,20 +888,18 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         await TestActionCountAsync(input, outputs.Length, parameters);
     }
 
-    protected static void GetDocumentAndSelectSpanOrAnnotatedSpan(
-        TTestWorkspace workspace,
-        out Document document,
-        out TextSpan span,
-        out string annotation)
+    protected static async Task<(Document document, TextSpan span, string annotation)> GetDocumentAndSelectSpanOrAnnotatedSpan(
+        TTestWorkspace workspace)
     {
-        annotation = null;
-        if (!TryGetDocumentAndSelectSpan(workspace, out document, out span))
-        {
-            document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
-        }
+        var tuple = await TryGetDocumentAndSelectSpan(workspace);
+        if (tuple.HasValue)
+            return (tuple.Value.document, tuple.Value.span, annotation: null);
+
+        var document = GetDocumentAndAnnotatedSpan(workspace, out var annotation, out var span);
+        return (document, span, annotation);
     }
 
-    private static bool TryGetDocumentAndSelectSpan(TTestWorkspace workspace, out Document document, out TextSpan span)
+    private static async Task<(Document document, TextSpan span)?> TryGetDocumentAndSelectSpan(TTestWorkspace workspace)
     {
         var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
         if (hostDocument == null)
@@ -910,20 +908,18 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             // there if so.
             hostDocument = workspace.Documents.FirstOrDefault(d => d.CursorPosition != null);
             if (hostDocument == null)
-            {
-                document = null;
-                span = default;
-                return false;
-            }
+                return null;
 
-            span = new TextSpan(hostDocument.CursorPosition.Value, 0);
-            document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            return true;
+            var span = new TextSpan(hostDocument.CursorPosition.Value, 0);
+            var document = await workspace.CurrentSolution.GetDocumentAsync(hostDocument.Id, includeSourceGenerated: true);
+            return (document, span);
         }
-
-        span = hostDocument.SelectedSpans.Single();
-        document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-        return true;
+        else
+        {
+            var span = hostDocument.SelectedSpans.Single();
+            var document = await workspace.CurrentSolution.GetDocumentAsync(hostDocument.Id, includeSourceGenerated: true);
+            return (document, span);
+        }
     }
 
     private static Document GetDocumentAndAnnotatedSpan(TTestWorkspace workspace, out string annotation, out TextSpan span)

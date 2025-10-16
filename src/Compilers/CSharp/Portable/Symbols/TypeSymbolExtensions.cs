@@ -691,6 +691,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            return type.FindTypeLessVisibleThan(sym, ref useSiteInfo) is null;
+        }
+
+        public static TypeSymbol? FindTypeLessVisibleThan(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             var visitTypeData = s_visitTypeDataPool.Allocate();
 
             try
@@ -703,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             canDigThroughNullable: true); // System.Nullable is public
 
                 useSiteInfo = visitTypeData.UseSiteInfo;
-                return result is null;
+                return result;
             }
             finally
             {

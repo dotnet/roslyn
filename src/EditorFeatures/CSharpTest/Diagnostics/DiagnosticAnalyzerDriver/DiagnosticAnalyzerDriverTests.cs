@@ -42,6 +42,7 @@ public sealed class DiagnosticAnalyzerDriverTests
             SymbolKind.NamedType
         };
 
+<<<<<<< HEAD
         var missingSyntaxNodes = new HashSet<SyntaxKind>
         {
             // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
@@ -53,6 +54,19 @@ public sealed class DiagnosticAnalyzerDriverTests
             SyntaxKind.WithElement,
         };
 
+||||||| a22f1ade124
+        var missingSyntaxNodes = new HashSet<SyntaxKind>
+        {
+            // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
+            SyntaxKind.WithExpression,
+            SyntaxKind.RecordDeclaration,
+            SyntaxKind.CollectionExpression,
+            SyntaxKind.ExpressionElement,
+            SyntaxKind.SpreadElement,
+        };
+
+=======
+>>>>>>> upstream/main
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();
         using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
@@ -66,7 +80,7 @@ public sealed class DiagnosticAnalyzerDriverTests
         await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, new TextSpan(0, document.GetTextAsync().Result.Length));
         analyzer.VerifyAllAnalyzerMembersWereCalled();
         analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-        analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxNodes);
+        analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds([]);
         analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
     }
 
