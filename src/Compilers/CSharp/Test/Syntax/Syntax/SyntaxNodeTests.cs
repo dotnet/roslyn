@@ -114,17 +114,18 @@ class C {
             Assert.Equal(SyntaxKind.AddExpression, nodes[7].Kind());
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46964")]
         public void TestAncestorsOfDocumentationCommentTrivia()
         {
-            var text = @"
-public class TestMe
-{
-    /// <summary>
-    /// Test comment
-    /// </summary>
-    private int i;
-}";
+            var text = """
+                public class TestMe
+                {
+                    /// <summary>
+                    /// Test comment
+                    /// </summary>
+                    private int i;
+                }
+                """;
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var root = tree.GetCompilationUnitRoot();
 
@@ -152,14 +153,15 @@ public class TestMe
             Assert.Equal(0, ancestorsWithoutAscending.Count);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46964")]
         public void TestAncestorsOfDirectiveTrivia()
         {
-            var text = @"
-#define DEBUG
-public class TestMe
-{
-}";
+            var text = """
+                #define DEBUG
+                public class TestMe
+                {
+                }
+                """;
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var root = tree.GetCompilationUnitRoot();
 
