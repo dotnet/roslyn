@@ -357,6 +357,11 @@
         <target state="translated">' {0} ' недопустим для 'использования статики'. Можно использовать только класс, структуру, интерфейс, перечисление, делегат или пространство имен.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
         <target state="translated">Невозможно использовать "yield return" в блоке "unsafe".</target>

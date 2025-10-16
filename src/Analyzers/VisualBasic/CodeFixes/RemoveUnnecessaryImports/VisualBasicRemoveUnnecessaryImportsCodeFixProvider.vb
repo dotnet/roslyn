@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddMissingReference)>
+    <ExtensionOrder(Before:=PredefinedCodeFixProviderNames.FileHeader)>
     Friend Class VisualBasicRemoveUnnecessaryImportsCodeFixProvider
         Inherits AbstractRemoveUnnecessaryImportsCodeFixProvider
 

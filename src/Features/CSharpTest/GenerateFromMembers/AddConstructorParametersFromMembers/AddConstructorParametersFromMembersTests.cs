@@ -2526,4 +2526,102 @@ public sealed class AddConstructorParametersFromMembersTests
             }
             """,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80564")]
+    public Task TestAddParameterToPrimaryConstructor_Property()
+        => new VerifyCS.Test
+        {
+            TestCode =
+            """
+            public class MyClass(int myProperty)
+            {
+                public int MyProperty { get; set; } = myProperty;
+
+                [|public int MyProperty1 { get; set; }|]
+            }
+            """,
+            FixedCode =
+            """
+            public class MyClass(int myProperty, int myProperty1)
+            {
+                public int MyProperty { get; set; } = myProperty;
+
+                public int MyProperty1 { get; set; } = myProperty1;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80564")]
+    public Task TestAddParameterToPrimaryConstructor_Field()
+        => new VerifyCS.Test
+        {
+            TestCode =
+            """
+            public class MyClass(int myField)
+            {
+                public int myField = myField;
+
+                [|public int myField1;|]
+            }
+            """,
+            FixedCode =
+            """
+            public class MyClass(int myField, int myField1)
+            {
+                public int myField = myField;
+
+                public int myField1 = myField1;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80564")]
+    public Task TestAddParameterToPrimaryConstructor_MultipleProperties()
+        => new VerifyCS.Test
+        {
+            TestCode =
+            """
+            public class MyClass(int a)
+            {
+                public int A { get; set; } = a;
+
+                [|public int B { get; set; }
+                public int C { get; set; }|]
+            }
+            """,
+            FixedCode =
+            """
+            public class MyClass(int a, int b, int c)
+            {
+                public int A { get; set; } = a;
+
+                public int B { get; set; } = b;
+                public int C { get; set; } = c;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80564")]
+    public Task TestAddParameterToPrimaryConstructor_EmptyParameterList()
+        => new VerifyCS.Test
+        {
+            TestCode =
+            """
+            public class MyClass()
+            {
+                [|public int MyProperty { get; set; }|]
+            }
+            """,
+            FixedCode =
+            """
+            public class MyClass(int myProperty)
+            {
+                public int MyProperty { get; set; } = myProperty;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12
+        }.RunAsync();
 }

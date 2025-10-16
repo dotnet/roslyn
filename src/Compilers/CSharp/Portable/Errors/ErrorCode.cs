@@ -2434,6 +2434,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_RedundantPattern = 9336,
         HDN_RedundantPatternStackGuard = 9337,
 
+        ERR_BadVisBaseType = 9338,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
