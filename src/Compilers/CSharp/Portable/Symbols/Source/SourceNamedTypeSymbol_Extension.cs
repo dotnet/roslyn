@@ -1172,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Given a receiver type, check if we can infer type arguments for the extension block and check for compatibility.
         /// If that is successful, return the substituted extension member and whether the extension block was fully inferred.
         /// </summary>
-        internal static Symbol? GetCompatibleSubstitutedMember(CSharpCompilation? compilation, Symbol extensionMember, TypeSymbol receiverType, out bool wasExtensionFullyInferred)
+        internal static Symbol? ReduceExtensionMember(CSharpCompilation? compilation, Symbol extensionMember, TypeSymbol receiverType, out bool wasExtensionFullyInferred)
         {
             Debug.Assert(extensionMember.GetIsNewExtensionMember());
 

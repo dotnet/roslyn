@@ -8773,7 +8773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             inapplicable = true;
                         }
                         else if (method.GetIsNewExtensionMember()
-                            && SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(binder.Compilation, method, receiverType, wasExtensionFullyInferred: out _) is null)
+                            && SourceNamedTypeSymbol.ReduceExtensionMember(binder.Compilation, method, receiverType, wasExtensionFullyInferred: out _) is null)
                         {
                             inapplicable = true;
                         }

@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             if (_underlying.GetIsNewExtensionMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying))
             {
                 var csharpReceiver = receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType));
-                return (IMethodSymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation: null, _underlying, csharpReceiver, wasExtensionFullyInferred: out _).GetPublicSymbol();
+                return (IMethodSymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation: null, _underlying, csharpReceiver, wasExtensionFullyInferred: out _).GetPublicSymbol();
             }
 
             return null;
