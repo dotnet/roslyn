@@ -374,8 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Now create a parser to actually handle the expression portion of the interpolation
             using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
-            using var _ = new FieldKeywordContext(tempParser, isInFieldKeywordContext);
-            using var __ = new AsyncContext(tempParser, isInAsync);
+            using var _1 = new FieldKeywordContext(tempParser, isInFieldKeywordContext);
+            using var _2 = new AsyncContext(tempParser, isInAsync);
 
             var result = tempParser.ParseInterpolation(
                 text, interpolation, kind,
