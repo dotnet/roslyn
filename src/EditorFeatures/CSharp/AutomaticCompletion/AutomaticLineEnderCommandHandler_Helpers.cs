@@ -429,14 +429,13 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         if (baseObjectCreationExpressionNode.ArgumentList != null && !baseObjectCreationExpressionNode.ArgumentList.IsMissing)
             return false;
 
-        // For ObjectCreationExpression with missing type (just 'new'), add argument list
-        // This handles the case where parser sees 'new' without a type and will convert to ImplicitObjectCreationExpression
-        if (baseObjectCreationExpressionNode is ObjectCreationExpressionSyntax objCreationExpr
-            && objCreationExpr.Type.IsMissing)
+        // For ObjectCreationExpression with missing type (just 'new'), add argument list. This handles the case where
+        // parser sees 'new' without a type and will convert to ImplicitObjectCreationExpression
+        if (baseObjectCreationExpressionNode is ObjectCreationExpressionSyntax { Type.IsMissing: true })
             return true;
 
         // For ObjectCreationExpression with explicit type and no argument list, DON'T add argument list
-        // This preserves the user's intent: 'new Bar' stays as 'new Bar { }', not 'new Bar() { }'
+        // This preserves the user's intent: 'new Bar' stays as 'new Bar { }', not 'new Bar() { }'.
         return false;
     }
 
