@@ -1325,8 +1325,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax, syntax, methodName, methodGroup,
                         analyzedArguments, @this._diagnostics, acceptOnlyMethods: true);
 
-                    if (projectionInvocationExpression is not BoundCall projectionCall ||
-                        projectionCall.Method is not SynthesizedCollectionBuilderProjectedMethodSymbol { UnderlyingMethod: var underlyingMethod })
+                    if (projectionInvocationExpression is not BoundCall
+                        {
+                            Method: SynthesizedCollectionBuilderProjectedMethodSymbol { UnderlyingMethod: var underlyingMethod }
+                        } projectionCall)
                     {
                         overloadResolutionResult.Free();
                         analyzedArguments.Free();
