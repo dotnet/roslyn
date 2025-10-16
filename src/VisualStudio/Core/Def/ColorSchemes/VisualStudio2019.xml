@@ -817,8 +817,8 @@
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="inline parameter name hints">
-                <Foreground Type="CT_SYSCOLOR" Source="00000005" />
                 <Background Type="CT_SYSCOLOR" Source="00000008" />
+                <Foreground Type="CT_SYSCOLOR" Source="00000005" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />

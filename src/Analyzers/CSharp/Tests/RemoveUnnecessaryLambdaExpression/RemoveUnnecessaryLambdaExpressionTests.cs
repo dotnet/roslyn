@@ -2045,4 +2045,180 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 public void M() { }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78108")]
+    public Task TestNotWithNullabilityDifferenceInTaskReturnType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System;
+            using System.Threading.Tasks;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    AcceptAsyncDelegate(async () => await GetNonNullStringAsync());
+                }
+
+                private static void AcceptAsyncDelegate(Func<Task<string?>> _)
+                {
+                }
+
+                private static Task<string> GetNonNullStringAsync()
+                {
+                    return Task.FromResult("Fallback Value");
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78108")]
+    public Task TestWithNullabilityMatchInTaskReturnType()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System;
+            using System.Threading.Tasks;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    AcceptAsyncDelegate([|async () => await |]GetNullableStringAsync());
+                }
+
+                private static void AcceptAsyncDelegate(Func<Task<string?>> _)
+                {
+                }
+
+                private static Task<string?> GetNullableStringAsync()
+                {
+                    return Task.FromResult<string?>("Fallback Value");
+                }
+            }
+            """,
+            """
+            #nullable enable
+            using System;
+            using System.Threading.Tasks;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    AcceptAsyncDelegate(GetNullableStringAsync);
+                }
+
+                private static void AcceptAsyncDelegate(Func<Task<string?>> _)
+                {
+                }
+
+                private static Task<string?> GetNullableStringAsync()
+                {
+                    return Task.FromResult<string?>("Fallback Value");
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78108")]
+    public Task TestCovarianceWithNullabilityEnabled()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System;
+
+            class C
+            {
+                void Goo()
+                {
+                    Bar([|s => |]Quux(s));
+                }
+
+                void Bar(Func<string, object> f) { }
+                string Quux(object o) => "";
+            }
+            """,
+            """
+            #nullable enable
+            using System;
+
+            class C
+            {
+                void Goo()
+                {
+                    Bar(Quux);
+                }
+
+                void Bar(Func<string, object> f) { }
+                string Quux(object o) => "";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78108")]
+    public Task TestContravarianceWithNullabilityEnabled()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System;
+
+            class C
+            {
+                void Goo()
+                {
+                    Bar([|s => |]Quux(s));
+                }
+
+                void Bar(Func<object, string> f) { }
+                string Quux(object o) => "";
+            }
+            """,
+            """
+            #nullable enable
+            using System;
+
+            class C
+            {
+                void Goo()
+                {
+                    Bar(Quux);
+                }
+
+                void Bar(Func<object, string> f) { }
+                string Quux(object o) => "";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78108")]
+    public Task TestCovarianceWithNullableReferenceTypes()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System;
+
+            class C
+            {
+                void Goo()
+                {
+                    Bar([|s => |]Quux(s));
+                }
+
+                void Bar(Func<string, object?> f) { }
+                string? Quux(object o) => null;
+            }
+            """,
+            """
+            #nullable enable
+            using System;
+
+            class C
+            {
+                void Goo()
+                {
+                    Bar(Quux);
+                }
+
+                void Bar(Func<string, object?> f) { }
+                string? Quux(object o) => null;
+            }
+            """);
 }

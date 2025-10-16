@@ -22,6 +22,9 @@ internal sealed record ProjectLoadTelemetryEvent(
     [property: JsonPropertyName("References")] IEnumerable<string> References,
     [property: JsonPropertyName("FileExtensions")] IEnumerable<string> FileExtensions,
     [property: JsonPropertyName("FileCounts")] IEnumerable<int> FileCounts,
-    [property: JsonPropertyName("SdkStyleProject")] bool SdkStyleProject)
+    [property: JsonPropertyName("SdkStyleProject")] bool SdkStyleProject,
+    [property: JsonPropertyName("HasSolutionFile")] bool HasSolutionFile,
+    [property: JsonPropertyName("IsFileBasedProgram")] bool IsFileBasedProgram,
+    [property: JsonPropertyName("IsMiscellaneousFile")] bool IsMiscellaneousFile)
 {
 }

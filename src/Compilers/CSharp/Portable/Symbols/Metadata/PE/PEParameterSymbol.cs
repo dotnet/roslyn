@@ -758,22 +758,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     && !HasCallerMemberNameAttribute
                     && ContainingAssembly.TypeConversions.HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
-                if (isCallerArgumentExpression)
+                int index = -1;
+                if (isCallerArgumentExpression
+                    && _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName)
+                    && parameterName is not null)
                 {
-                    _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
-                    var parameters = ContainingSymbol.GetParameters();
-                    for (int i = 0; i < parameters.Length; i++)
-                    {
-                        if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
-                        {
-                            _lazyCallerArgumentExpressionParameterIndex = i;
-                            return i;
-                        }
-                    }
+                    index = SourceComplexParameterSymbolBase.GetCallerArgumentExpressionParameterIndex(this, parameterName);
                 }
 
-                _lazyCallerArgumentExpressionParameterIndex = -1;
-                return -1;
+                _lazyCallerArgumentExpressionParameterIndex = index;
+                return index;
             }
         }
 

@@ -48,10 +48,8 @@ internal struct StackFrameLexer
     {
         foreach (var c in text)
         {
-            if (c.Value == '\r' || c.Value == '\n')
-            {
+            if (c == '\r' || c == '\n')
                 return null;
-            }
         }
 
         return new(text);
@@ -63,7 +61,7 @@ internal struct StackFrameLexer
         => GetSubSequence(start, Position);
 
     public readonly VirtualCharSequence GetSubSequence(int start, int end)
-        => Text.GetSubSequence(TextSpan.FromBounds(start, end));
+        => Text[start..end];
 
     public StackFrameTrivia? TryScanRemainingTrivia()
     {
@@ -89,7 +87,7 @@ internal struct StackFrameLexer
 
         var startPosition = Position;
         var ch = CurrentChar;
-        if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter((char)ch.Value))
+        if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter(ch))
         {
             var ctor = TryScanConstructor();
             if (ctor.HasValue)
@@ -104,7 +102,7 @@ internal struct StackFrameLexer
             return null;
         }
 
-        while (UnicodeCharacterUtilities.IsIdentifierPartCharacter((char)ch.Value))
+        while (UnicodeCharacterUtilities.IsIdentifierPartCharacter(ch))
         {
             Position++;
             ch = CurrentChar;
@@ -128,7 +126,7 @@ internal struct StackFrameLexer
         }
 
         var ch = Text[Position];
-        return CreateToken(GetKind(ch), Text.GetSubSequence(new TextSpan(Position, 1)));
+        return CreateToken(GetKind(ch), Text[Position..(Position + 1)]);
     }
 
     /// <summary>

@@ -303,6 +303,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
     {
         Debug.Assert(_factory.CurrentFunction is not null);
         var thisParameter = this._factory.CurrentFunction.ThisParameter;
+        Debug.Assert(thisParameter is not null);
         if (TryReplaceWithProxy(thisParameter, node.Syntax, out BoundNode? replacement))
         {
             return replacement;

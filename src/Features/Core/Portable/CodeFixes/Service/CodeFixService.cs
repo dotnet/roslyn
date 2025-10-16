@@ -280,19 +280,25 @@ internal sealed partial class CodeFixService : ICodeFixService
     }
 
     public async Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
-        TextDocument document, TextSpan range, string diagnosticId, DiagnosticSeverity minimumSeverity, CancellationToken cancellationToken)
+        Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity minimumSeverity, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
         ImmutableArray<DiagnosticData> diagnostics;
 
+        if (textSpan is null)
+        {
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            textSpan = new TextSpan(0, text.Length);
+        }
+
         using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
             FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             diagnostics = await service.GetDiagnosticsForSpanAsync(
-                document, range, diagnosticId, priority: null,
+                document, textSpan, diagnosticId, priority: null,
                 DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
             // NOTE(cyrusn): We do not include suppressed diagnostics here as they are effectively hidden from the
@@ -305,15 +311,13 @@ internal sealed partial class CodeFixService : ICodeFixService
         if (!diagnostics.Any())
             return null;
 
-        using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
         var spanToDiagnostics = new SortedDictionary<TextSpan, List<DiagnosticData>>
         {
-            { range, diagnostics.ToList() },
+            { textSpan.Value, diagnostics.ToList() },
         };
 
         await foreach (var collection in StreamFixesAsync(
-            document, spanToDiagnostics, fixAllForInSpan: true, priority: null,
-            cancellationToken).ConfigureAwait(false))
+            document, spanToDiagnostics, fixAllForInSpan: true, priority: null, cancellationToken).ConfigureAwait(false))
         {
             if (collection.FixAllState is not null && collection.SupportedScopes.Contains(FixAllScope.Document))
             {
@@ -326,25 +330,20 @@ internal sealed partial class CodeFixService : ICodeFixService
         return null;
     }
 
-    public async Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(
-        TDocument document,
+    public async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
+        Document document,
+        TextSpan? textSpan,
         string diagnosticId,
         DiagnosticSeverity severity,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
-        where TDocument : TextDocument
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var textSpan = new TextSpan(0, text.Length);
 
         var fixCollection = await GetDocumentFixAllForIdInSpanAsync(
             document, textSpan, diagnosticId, severity, cancellationToken).ConfigureAwait(false);
         if (fixCollection == null)
-        {
             return document;
-        }
 
         var fixAllService = document.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
@@ -352,7 +351,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             new FixAllContext(fixCollection.FixAllState!, progressTracker, cancellationToken)).ConfigureAwait(false);
         Contract.ThrowIfNull(solution);
 
-        return (TDocument)(solution.GetTextDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported));
+        return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
     }
 
     private bool TryGetWorkspaceFixersMap(TextDocument document, [NotNullWhen(true)] out ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>? fixerMap)

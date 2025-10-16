@@ -1535,5 +1535,81 @@ class Program
                     locals.Free();
                 });
         }
+
+        [Fact]
+        public void FieldKeyword_01()
+        {
+            var source =
+@"
+class C
+{
+    public int P1
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public int P2
+    {
+        get
+        {
+#line 100
+            return field;
+#line 200
+        }
+        set
+        {
+            field = value;
+        }
+    }
+
+    public int P3
+    {
+        get
+        {
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "C.get_P2", atLineNumber: 100);
+                    var assembly = context.CompileExpressions(
+                        ImmutableArray.Create("field"),
+                        out var methodTokens,
+                        out var errorMessages);
+                    Assert.NotNull(assembly);
+                    Assert.True(errorMessages.IsEmpty);
+                    Assert.Equal(1, methodTokens.Length);
+                    assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
+@"
+Locals: int32
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      0x0A000006
+  IL_0006:  ret
+}
+");
+                });
+        }
     }
 }

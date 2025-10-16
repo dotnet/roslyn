@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // These occur when special types are missing or malformed, or the patterns are incompletely implemented.
             hasErrors |= builder.IsIncomplete;
 
-            BoundAwaitableInfo awaitInfo = null;
+            BoundAwaitableInfo moveNextAwaitableInfo = null;
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorInfo?.Method;
             if (getEnumeratorMethod != null)
             {
@@ -261,9 +261,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expr = _syntax.Expression;
                 ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
                 var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
-                awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
+                moveNextAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
-                if (!hasErrors && (awaitInfo.GetResult ?? awaitInfo.RuntimeAsyncAwaitCall?.Method)?.ReturnType.SpecialType != SpecialType.System_Boolean)
+                if (!hasErrors && (moveNextAwaitableInfo.GetResult ?? moveNextAwaitableInfo.RuntimeAsyncAwaitCall?.Method)?.ReturnType.SpecialType != SpecialType.System_Boolean)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, expr.Location, getEnumeratorMethod.ReturnTypeWithAnnotations, getEnumeratorMethod);
                     hasErrors = true;
@@ -453,7 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iterationErrorExpression,
                     collectionExpr,
                     deconstructStep,
-                    awaitInfo,
                     body,
                     this.BreakLabel,
                     this.ContinueLabel,
@@ -571,9 +570,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, builder.ElementType, diagnostics);
             }
 
-            if (builder.NeedsDisposal && IsAsync)
+            if (IsAsync)
             {
-                hasErrors |= GetAwaitDisposeAsyncInfo(ref builder, diagnostics);
+                builder.MoveNextAwaitableInfo = moveNextAwaitableInfo;
+
+                if (builder.NeedsDisposal)
+                {
+                    hasErrors |= GetAwaitDisposeAsyncInfo(ref builder, diagnostics);
+                }
             }
 
             Debug.Assert(
@@ -598,7 +602,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iterationErrorExpression,
                 convertedCollectionExpression,
                 deconstructStep,
-                awaitInfo,
                 body,
                 this.BreakLabel,
                 this.ContinueLabel,
@@ -1227,7 +1230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol patternDisposeMethod = TryFindDisposePatternMethod(receiver, syntax, isAsync, patternDiagnostics, out bool expanded);
                 if (patternDisposeMethod is object)
                 {
-                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod && !patternDisposeMethod.GetIsNewExtensionMember());
+                    Debug.Assert(!patternDisposeMethod.IsExtensionMethod && !patternDisposeMethod.GetIsNewExtensionMember(),
+                        "No extension disposal. See TryFindDisposePatternMethod");
                     Debug.Assert(patternDisposeMethod.ParameterRefKinds.IsDefaultOrEmpty ||
                         patternDisposeMethod.ParameterRefKinds.All(static refKind => refKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
 
@@ -1238,6 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BindDefaultArguments(
                         syntax,
                         patternDisposeMethod.Parameters,
+                        extensionReceiver: null,
                         argsBuilder,
                         argumentRefKindsBuilder: null,
                         namesBuilder: null,
@@ -1471,6 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (overloadResolutionResult.Succeeded)
             {
                 result = overloadResolutionResult.ValidResult.Member;
+                Debug.Assert(!result.IsExtensionMethod && !result.GetIsNewExtensionMember());
 
                 if (result.IsStatic || result.DeclaredAccessibility != Accessibility.Public)
                 {
@@ -1495,6 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BindDefaultArguments(
                         syntax,
                         result.Parameters,
+                        extensionReceiver: null,
                         analyzedArguments.Arguments,
                         analyzedArguments.RefKinds,
                         analyzedArguments.Names,
@@ -1591,9 +1598,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    BoundExpression extensionReceiver = result.GetIsNewExtensionMember() ? collectionExpr : null;
+                    Debug.Assert(!result.IsStatic);
+
                     info = BindDefaultArguments(
                         result,
-                        extensionReceiverOpt: null,
+                        extensionReceiverOpt: extensionReceiver,
                         expanded: expanded,
                         collectionExpr.Syntax,
                         diagnostics);
@@ -1955,10 +1965,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : null;
         }
 
-        /// <param name="extensionReceiverOpt">If method is an extension method, this must be non-null.</param>
+        /// <param name="extensionReceiverOpt">If method is an extension method (classic or new), this must be non-null.</param>
         private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool expanded, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert((extensionReceiverOpt != null) == method.IsExtensionMethod);
+            Debug.Assert((extensionReceiverOpt != null) == (method.IsExtensionMethod || method.GetIsNewExtensionMember()));
+            Debug.Assert(!method.GetIsNewExtensionMember() || !method.IsStatic);
 
             if (method.ParameterCount == 0)
             {
@@ -1976,6 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindDefaultArguments(
                 syntax,
                 method.Parameters,
+                extensionReceiver: method.GetIsNewExtensionMember() ? extensionReceiverOpt : null,
                 argsBuilder,
                 argumentRefKindsBuilder: null,
                 namesBuilder: null,
