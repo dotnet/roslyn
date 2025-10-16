@@ -834,6 +834,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Conversion _conversion = conversion;
             private readonly BindingDiagnosticBag _diagnostics = diagnostics;
 
+            private BoundCollectionExpression CreateCollectionExpression(
+                CollectionExpressionTypeKind collectionTypeKind, ImmutableArray<BoundNode> elements, BoundObjectOrCollectionValuePlaceholder? placeholder = null, BoundExpression? collectionCreation = null, MethodSymbol? collectionBuilderMethod = null, BoundValuePlaceholder? collectionBuilderElementsPlaceholder = null)
+            {
+                return new BoundCollectionExpression(
+                    _node.Syntax,
+                    collectionTypeKind,
+                    placeholder,
+                    collectionCreation,
+                    collectionBuilderMethod,
+                    collectionBuilderElementsPlaceholder,
+                    wasTargetTyped: true,
+                    hasWithElement: _node.WithElement != null,
+                    _node,
+                    elements,
+                    _targetType)
+                {
+                    WasCompilerGenerated = _node.IsParamsArrayOrCollection,
+                    IsParamsArrayOrCollection = _node.IsParamsArrayOrCollection,
+                };
+            }
+
             public BoundCollectionExpression Convert()
             {
                 var collectionTypeKind = _conversion.GetCollectionExpressionTypeKind(out var elementType, out MethodSymbol? constructor, out bool isExpanded);
@@ -859,8 +880,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result is null)
                     return _binder.BindCollectionExpressionForErrorRecovery(_node, _targetType, inConversion: true, _diagnostics);
 
-                result.WasCompilerGenerated = _node.IsParamsArrayOrCollection;
-                result.IsParamsArrayOrCollection = _node.IsParamsArrayOrCollection;
+                Debug.Assert(result.WasCompilerGenerated == _node.IsParamsArrayOrCollection);
+                Debug.Assert(result.IsParamsArrayOrCollection == _node.IsParamsArrayOrCollection);
 
                 return result;
             }
@@ -980,18 +1001,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             implicitReceiver));
                 }
 
-                return new BoundCollectionExpression(
-                    syntax,
+                return CreateCollectionExpression(
                     CollectionExpressionTypeKind.ImplementsIEnumerable,
-                    implicitReceiver,
-                    collectionCreation,
-                    collectionBuilderMethod: null,
-                    collectionBuilderElementsPlaceholder: null,
-                    wasTargetTyped: true,
-                    hasWithElement: _node.WithElement != null,
-                    _node,
                     builder.ToImmutableAndFree(),
-                    _targetType);
+                    implicitReceiver,
+                    collectionCreation);
 
                 static BoundExpression bindCollectionConstructorConstruction(
                     ref readonly CollectionExpressionConverter @this, SyntaxNode syntax, MethodSymbol? constructor)
@@ -1114,15 +1128,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectionExpressionTypeKind collectionTypeKind,
                 ImmutableArray<BoundNode> elements)
             {
-                var syntax = _node.Syntax;
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.Span:
-                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, _diagnostics, syntax: syntax);
+                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, _diagnostics, syntax: _node.Syntax);
                         break;
 
                     case CollectionExpressionTypeKind.ReadOnlySpan:
-                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: syntax);
+                        _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: _node.Syntax);
                         break;
                 }
 
@@ -1135,41 +1148,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _targetType);
                 }
 
-                return new BoundCollectionExpression(
-                    syntax,
-                    collectionTypeKind,
-                    placeholder: null,
-                    collectionCreation: null,
-                    collectionBuilderMethod: null,
-                    collectionBuilderElementsPlaceholder: null,
-                    wasTargetTyped: true,
-                    // Note: a with-element is not legal here (see error above).  We still set this to accurately
-                    // reflect the original code.  The value though won't actually be used later on as we will not get
-                    // to lowering if there was an error, and even if we did, lowering for arrays/spans will not use
-                    // this information.
-                    hasWithElement: _node.WithElement != null,
-                    _node,
-                    elements,
-                    _targetType);
+                return CreateCollectionExpression(collectionTypeKind, elements);
             }
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayInterfaceType(ImmutableArray<BoundNode> elements)
             {
-                return new BoundCollectionExpression(
-                    _node.Syntax,
+                return CreateCollectionExpression(
                     CollectionExpressionTypeKind.ArrayInterface,
-                    placeholder: null,
-                    collectionCreation: bindCollectionArrayInterfaceConstruction(in this),
-                    collectionBuilderMethod: null,
-                    collectionBuilderElementsPlaceholder: null,
-                    wasTargetTyped: true,
-                    // Note: we set this here to accurately reflect if a with-element was present.  However, the value
-                    // won't actually be used later on, as the information reflected in the with-element is pulled into
-                    // collectionCreation and the lowering pass will use that information instead.
-                    hasWithElement: _node.WithElement != null,
-                    _node,
                     elements,
-                    _targetType);
+                    collectionCreation: bindCollectionArrayInterfaceConstruction(in this));
 
                 static BoundExpression? bindCollectionArrayInterfaceConstruction(ref readonly CollectionExpressionConverter @this)
                 {
@@ -1252,24 +1239,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionBuilderType(ImmutableArray<BoundNode> elements)
             {
-                var syntax = _node.Syntax;
-
                 var (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(in this);
                 if (collectionCreation is null || collectionBuilderMethod is null || collectionBuilderElementsPlaceholder is null)
                     return null;
 
-                return new BoundCollectionExpression(
-                    syntax,
+                return CreateCollectionExpression(
                     CollectionExpressionTypeKind.CollectionBuilder,
-                    placeholder: null,
-                    collectionCreation,
-                    collectionBuilderMethod,
-                    collectionBuilderElementsPlaceholder,
-                    wasTargetTyped: true,
-                    hasWithElement: _node.WithElement != null,
-                    _node,
                     elements,
-                    _targetType);
+                    collectionCreation: collectionCreation,
+                    collectionBuilderMethod: collectionBuilderMethod,
+                    collectionBuilderElementsPlaceholder: collectionBuilderElementsPlaceholder);
 
                 static (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(
                     ref readonly CollectionExpressionConverter @this)

@@ -48,8 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new bool IsParamsArrayOrCollection
         {
-            get => base.IsParamsArrayOrCollection;
-            set => base.IsParamsArrayOrCollection = value;
+            get
+            {
+                return base.IsParamsArrayOrCollection;
+            }
+            init
+            {
+                base.IsParamsArrayOrCollection = value;
+            }
         }
     }
 }
