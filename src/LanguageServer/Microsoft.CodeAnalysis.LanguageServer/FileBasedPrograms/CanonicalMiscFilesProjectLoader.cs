@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -61,10 +61,10 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// </summary>
     public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, CancellationToken cancellationToken)
     {
-        var documentPath = uri.ParsedUri is not null 
-            ? ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri) 
+        var documentPath = uri.ParsedUri is not null
+            ? ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri)
             : uri.UriString;
-        
+
         // Execute under the gate to ensure thread-safety
         return await ExecuteUnderGateAsync(async loadedProjects =>
         {
@@ -105,8 +105,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// </summary>
     public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, CancellationToken cancellationToken)
     {
-        var documentPath = uri.ParsedUri is not null 
-            ? ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri) 
+        var documentPath = uri.ParsedUri is not null
+            ? ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri)
             : uri.UriString;
 
         return await ExecuteUnderGateAsync(async loadedProjects =>
@@ -264,7 +264,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         // Create primordial project with the canonical document
         var canonicalText = SourceText.From(string.Empty);
         var canonicalLoader = new SourceTextLoader(canonicalText, _canonicalDocumentPath);
-        
+
         var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
             _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace,
             _canonicalProjectPath,
