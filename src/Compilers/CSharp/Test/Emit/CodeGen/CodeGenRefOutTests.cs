@@ -833,7 +833,7 @@ unsafe
             }
         }
 
-        [ClrOnlyFact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
         public void TestExtensionMethodRefReadonlyModifierWithEnumType()
         {
             var source = """

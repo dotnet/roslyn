@@ -4910,7 +4910,7 @@ System.Console.Write(c.M());
             CompileAndVerify(comp, expectedOutput: "Report1 11");
         }
 
-        [ClrOnlyFact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
         public void TestExtensionMethodInModifierWithEnumType()
         {
             var source = """
