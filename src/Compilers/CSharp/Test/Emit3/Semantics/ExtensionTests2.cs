@@ -35195,40 +35195,41 @@ public static class E
         var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
         comp.VerifyEmitDiagnostics();
 
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
 
         INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
 
-        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.M()", method.ToTestDisplayString());
+        AssertEx.Equal("void E.extension<T>(T).M()", method.ToDisplayString(displayOptions));
         Assert.Null(method.ReduceExtensionMember(receiverType: null));
 
         var substitutedMethod = method.ReduceExtensionMember(systemObject);
-        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.M()",
-            substitutedMethod.ToTestDisplayString());
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).M()",
+            substitutedMethod.ToDisplayString(displayOptions));
 
-        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.M()",
-            substitutedMethod.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).M()",
+            substitutedMethod.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
         var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
-        AssertEx.Equal("System.Int32 E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.Property { get; set; }", property.ToTestDisplayString());
-        AssertEx.Equal("System.Int32 E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.Property { get; set; }",
-            property.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension<T>(T).Property { get; set; }", property.ToDisplayString(displayOptions));
+        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
         var getter = property.GetMethod;
-        AssertEx.Equal("System.Int32 E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.Property.get", getter.ToTestDisplayString());
-        AssertEx.Equal("System.Int32 E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.Property.get",
-            getter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension<T>(T).Property.get", getter.ToDisplayString(displayOptions));
+        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property.get",
+            getter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
         var setter = property.SetMethod;
-        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.Property.set", setter.ToTestDisplayString());
-        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.Property.set",
-            setter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension<T>(T).Property.set", setter.ToDisplayString(displayOptions));
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).Property.set",
+            setter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
         var op_AdditionAssignment = extension.GetMember<MethodSymbol>("op_AdditionAssignment").GetPublicSymbol();
-        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.op_AdditionAssignment(T t2)", op_AdditionAssignment.ToTestDisplayString());
-        AssertEx.Equal("void E.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.op_AdditionAssignment(System.Object t2)",
-            op_AdditionAssignment.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension<T>(T).operator +=(T t2)", op_AdditionAssignment.ToDisplayString(displayOptions));
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).operator +=(System.Object t2)",
+            op_AdditionAssignment.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
         // broken constraint
         INamedTypeSymbol systemInt32 = comp.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
@@ -35256,21 +35257,22 @@ public static class E
         var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
         comp.VerifyEmitDiagnostics();
 
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
         INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
         var extensionMethod = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("M").GetPublicSymbol();
-        AssertEx.Equal("void System.Object.M<System.Object, U>(U u)", extensionMethod.ReduceExtensionMethod(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void System.Object.M<System.Object, U>(U u)", extensionMethod.ReduceExtensionMethod(systemObject).ToDisplayString(displayOptions));
 
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
         var substitutedMethod = method.ReduceExtensionMember(systemObject);
-        AssertEx.Equal("void E.<G>$EFE563D6389F084705E4ACFD3AFA030A<System.Object, U>.M(U u)", substitutedMethod.ToTestDisplayString());
+        AssertEx.Equal("void E.extension<System.Object, U>(System.Object).M(U u)", substitutedMethod.ToDisplayString(displayOptions));
 
-        AssertEx.Equal("void E.<G>$EFE563D6389F084705E4ACFD3AFA030A<System.Object, U>.M(U u)",
-            substitutedMethod.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension<System.Object, U>(System.Object).M(U u)",
+            substitutedMethod.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
         var op_AdditionAssignment = extension.GetMember<MethodSymbol>("op_AdditionAssignment").GetPublicSymbol();
-        AssertEx.Equal("void E.<G>$EFE563D6389F084705E4ACFD3AFA030A<System.Object, U>.op_AdditionAssignment(U u)",
-            op_AdditionAssignment.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension<System.Object, U>(System.Object).operator +=(U u)",
+            op_AdditionAssignment.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
@@ -35292,20 +35294,21 @@ public static class E
             //         public int Property { get => 0; set { } }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "Property").WithArguments("U").WithLocation(5, 20));
 
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
         INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
 
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
-        AssertEx.Equal("System.Int32 E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.Property { get; set; }",
-            property.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension<System.Object, U>(System.Object).Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
         var getter = property.GetMethod;
-        AssertEx.Equal("System.Int32 E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.Property.get",
-            getter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension<System.Object, U>(System.Object).Property.get",
+            getter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
         var setter = property.SetMethod;
-        AssertEx.Equal("void E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.Property.set",
-            setter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension<System.Object, U>(System.Object).Property.set",
+            setter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
@@ -35323,10 +35326,12 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
+
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
-        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<U>(U u)",
-            method.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()).ToTestDisplayString());
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).M<U>(U u)",
+            method.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()).ToDisplayString(displayOptions));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
@@ -35447,6 +35452,7 @@ public class Derived : Base { }
         var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
         comp.VerifyEmitDiagnostics();
 
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
         var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
@@ -35466,38 +35472,38 @@ public class Derived : Base { }
         // Base
         INamedTypeSymbol baseType = comp.GlobalNamespace.GetTypeMember("Base").GetPublicSymbol();
 
-        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.M()",
-            method.ReduceExtensionMember(baseType).ToTestDisplayString());
+        AssertEx.Equal("void E.extension(Base).M()",
+            method.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Int32 E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property { get; set; }",
-            property.ReduceExtensionMember(baseType).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension(Base).Property { get; set; }",
+            property.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Int32 E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property.get",
-            getter.ReduceExtensionMember(baseType).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension(Base).Property.get",
+            getter.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property.set",
-            setter.ReduceExtensionMember(baseType).ToTestDisplayString());
+        AssertEx.Equal("void E.extension(Base).Property.set",
+            setter.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.op_AdditionAssignment(System.Int32 i)",
-            op_AdditionAssignment.ReduceExtensionMember(baseType).ToTestDisplayString());
+        AssertEx.Equal("void E.extension(Base).operator +=(System.Int32 i)",
+            op_AdditionAssignment.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
 
         // Derived
         INamedTypeSymbol derivedType = comp.GlobalNamespace.GetTypeMember("Derived").GetPublicSymbol();
 
-        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.M()",
-            method.ReduceExtensionMember(derivedType).ToTestDisplayString());
+        AssertEx.Equal("void E.extension(Base).M()",
+            method.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Int32 E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property { get; set; }",
-            property.ReduceExtensionMember(derivedType).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension(Base).Property { get; set; }",
+            property.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Int32 E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property.get",
-            getter.ReduceExtensionMember(derivedType).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension(Base).Property.get",
+            getter.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.Property.set",
-            setter.ReduceExtensionMember(derivedType).ToTestDisplayString());
+        AssertEx.Equal("void E.extension(Base).Property.set",
+            setter.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("void E.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.op_AdditionAssignment(System.Int32 i)",
-            op_AdditionAssignment.ReduceExtensionMember(derivedType).ToTestDisplayString());
+        AssertEx.Equal("void E.extension(Base).operator +=(System.Int32 i)",
+            op_AdditionAssignment.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
@@ -35518,6 +35524,7 @@ public static class E
         var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
         comp.VerifyEmitDiagnostics();
 
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
         var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
@@ -35528,20 +35535,20 @@ public static class E
         // object
         INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
 
-        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()",
-            method.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension(System.Object).M()",
+            method.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
-            property.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension(System.Object).Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
-            getter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension(System.Object).Property.get",
+            getter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.set",
-            setter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension(System.Object).Property.set",
+            setter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Object E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.op_Addition(System.Object o1, System.Object o2)",
-            op_Addition.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Object E.extension(System.Object).operator +(System.Object o1, System.Object o2)",
+            op_Addition.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
@@ -35562,6 +35569,7 @@ public static class E
         var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
         comp.VerifyEmitDiagnostics();
 
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
         var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
@@ -35572,20 +35580,20 @@ public static class E
         // object
         INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
 
-        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()",
-            method.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).M()",
+            method.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property { get; set; }",
-            property.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property.get",
-            getter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property.get",
+            getter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property.set",
-            setter.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).Property.set",
+            setter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
 
-        AssertEx.Equal("System.Object E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.op_Addition(System.Object t1, System.Object t2)",
-            op_Addition.ReduceExtensionMember(systemObject).ToTestDisplayString());
+        AssertEx.Equal("System.Object E.extension<System.Object>(System.Object).operator +(System.Object t1, System.Object t2)",
+            op_Addition.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
     }
 
     [Fact]
