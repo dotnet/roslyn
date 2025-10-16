@@ -364,11 +364,18 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         bool addOrRemoveInitializer,
         SyntaxFormattingOptions formattingOptions)
     {
-        // 1. Add '()' after the type or new keyword.
-        // e.g.
-        // case 1: 'var c = new Bar' becomes 'var c = new Bar()'
-        // case 2: 'Bar b = new' becomes 'Bar b = new()'
-        var objectCreationNodeWithArgumentList = WithArgumentListIfNeeded(baseObjectCreationExpressionNode);
+        // 1. Handle argument list based on context:
+        // - When adding an initializer and the type is present without parentheses, preserve user's intent:
+        //   'new Bar' becomes 'new Bar { }' (no parentheses added)
+        //   'new Bar()' becomes 'new Bar() { }' (parentheses preserved)
+        // - When adding an initializer with just 'new' keyword, add parentheses:
+        //   'new' becomes 'new() { }' (implicit object creation)
+        // - When NOT adding an initializer, always add parentheses if missing:
+        //   'new Bar' becomes 'new Bar()'
+        var shouldAddArgumentList = !addOrRemoveInitializer || ShouldAddArgumentListForInitializer(baseObjectCreationExpressionNode);
+        var objectCreationNodeWithArgumentList = shouldAddArgumentList
+            ? WithArgumentListIfNeeded(baseObjectCreationExpressionNode)
+            : baseObjectCreationExpressionNode;
 
         // 2. Add or remove initializer
         // e.g. var c = new Bar() => var c = new Bar() { }
@@ -406,6 +413,40 @@ internal sealed partial class AutomaticLineEnderCommandHandler
             // No need to change the semicolon, just return the objectCreationExpression with correct initializer
             return (objectCreationNodeWithCorrectInitializer, baseObjectCreationExpressionNode);
         }
+    }
+
+    /// <summary>
+    /// Determines if we should add an argument list when adding an initializer.
+    /// Returns true only for:
+    /// - ImplicitObjectCreationExpression (e.g., 'new' becomes 'new() { }')
+    /// - ObjectCreationExpression with missing type (e.g., 'new' becomes 'new() { }')
+    /// Returns false for:
+    /// - ObjectCreationExpression with type and no argument list (e.g., 'new Bar' becomes 'new Bar { }')
+    /// </summary>
+    private static bool ShouldAddArgumentListForInitializer(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
+    {
+        // If argument list already exists (not missing), we don't need to add it
+        if (baseObjectCreationExpressionNode.ArgumentList is { IsMissing: false })
+        {
+            return false;
+        }
+
+        // For ImplicitObjectCreationExpression, always add argument list
+        if (baseObjectCreationExpressionNode is ImplicitObjectCreationExpressionSyntax)
+        {
+            return true;
+        }
+
+        // For ObjectCreationExpression with missing type (just 'new'), add argument list
+        if (baseObjectCreationExpressionNode is ObjectCreationExpressionSyntax objectCreationExpressionNode
+            && objectCreationExpressionNode.Type.IsMissing)
+        {
+            return true;
+        }
+
+        // For ObjectCreationExpression with explicit type and no argument list, DON'T add argument list
+        // This preserves the user's intent: 'new Bar' stays as 'new Bar { }', not 'new Bar() { }'
+        return false;
     }
 
     /// <summary>

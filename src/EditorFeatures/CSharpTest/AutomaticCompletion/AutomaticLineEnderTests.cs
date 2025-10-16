@@ -1828,7 +1828,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    var f = new Foo()
+                    var f = new Foo
                     {
                         $$
                     };
@@ -1879,7 +1879,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    var f = new Foo()
+                    var f = new Foo
                     {
                         $$
                     };
@@ -1930,7 +1930,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    N(new Foo()
+                    N(new Foo
                     {
                         $$
                     });
