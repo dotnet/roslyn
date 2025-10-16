@@ -29,10 +29,24 @@ internal abstract class AbstractAddAnonymousTypeMemberNameCodeFixProvider<
     protected abstract TAnonymousObjectMemberDeclaratorSyntax WithName(TAnonymousObjectMemberDeclaratorSyntax declarator, SyntaxToken name);
     protected abstract IEnumerable<string> GetAnonymousObjectMemberNames(TAnonymousObjectInitializer initializer);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, CodeFixesResources.Add_member_name, nameof(CodeFixesResources.Add_member_name));
-        return Task.CompletedTask;
+        var document = context.Document;
+        var cancellationToken = context.CancellationToken;
+
+        var diagnostic = context.Diagnostics[0];
+        var declarator = await GetMemberDeclaratorAsync(document, diagnostic, cancellationToken).ConfigureAwait(false);
+        if (declarator == null)
+        {
+            return;
+        }
+
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                CodeFixesResources.Add_member_name,
+                GetDocumentUpdater(context),
+                nameof(CodeFixesResources.Add_member_name)),
+            context.Diagnostics);
     }
 
     private async Task<TAnonymousObjectMemberDeclaratorSyntax?> GetMemberDeclaratorAsync(
