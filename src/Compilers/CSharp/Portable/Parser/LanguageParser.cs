@@ -3370,9 +3370,29 @@ parse_member_name:;
             try
             {
                 var paramList = this.ParseParenthesizedParameterList(forExtension: false);
-                var initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
-                    ? this.ParseConstructorInitializer()
-                    : null;
+                ConstructorInitializerSyntax initializer;
+                if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
+                {
+                    initializer = this.ParseConstructorInitializer();
+                }
+                else if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken &&
+                         this.PeekToken(1).Kind is SyntaxKind.BaseKeyword or SyntaxKind.ThisKeyword &&
+                         this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+                {
+                    // If we see '=>' followed by 'base(' or 'this(', the user likely meant to write a constructor initializer
+                    // using ':' instead. Consume the '=>' as if it were ':', produce a good error message, and recover well.
+                    var colon = this.EatTokenAsKind(SyntaxKind.ColonToken);
+                    var token = this.EatToken();
+                    var kind = token.Kind == SyntaxKind.BaseKeyword
+                        ? SyntaxKind.BaseConstructorInitializer
+                        : SyntaxKind.ThisConstructorInitializer;
+                    var argumentList = this.ParseParenthesizedArgumentList();
+                    initializer = _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
+                }
+                else
+                {
+                    initializer = null;
+                }
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out var body, out var expressionBody, out var semicolon);
 
