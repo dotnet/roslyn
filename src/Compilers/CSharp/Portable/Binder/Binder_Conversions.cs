@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.ToImmutableAndFree(),
                     _targetType);
 
-                BoundExpression bindCollectionConstructorConstruction(
+                static BoundExpression bindCollectionConstructorConstruction(
                     ref readonly CollectionExpressionConverter @this, SyntaxNode syntax, MethodSymbol? constructor)
                 {
                     //
@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return collectionCreation;
                 }
 
-                bool hasCollectionInitializerTypeInProgress(
+                static bool hasCollectionInitializerTypeInProgress(
                     ref readonly CollectionExpressionConverter @this, SyntaxNode syntax, TypeSymbol targetType)
                 {
                     for (var current = @this._binder;
@@ -1081,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return builder.ToImmutableAndFree();
 
-                BoundCollectionExpressionSpreadElement bindSpreadElement(
+                static BoundCollectionExpressionSpreadElement bindSpreadElement(
                     ref readonly CollectionExpressionConverter @this, BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion)
                 {
                     var enumeratorInfo = element.EnumeratorInfoOpt;
@@ -1171,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elements,
                     _targetType);
 
-                BoundExpression? bindCollectionArrayInterfaceConstruction(ref readonly CollectionExpressionConverter @this)
+                static BoundExpression? bindCollectionArrayInterfaceConstruction(ref readonly CollectionExpressionConverter @this)
                 {
                     var withElement = @this._node.WithElement;
                     if (withElement is null)
@@ -1271,7 +1271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elements,
                     _targetType);
 
-                (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(ref readonly CollectionExpressionConverter @this)
+                static (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(
+                    ref readonly CollectionExpressionConverter @this)
                 {
                     var namedType = (NamedTypeSymbol)@this._targetType;
 
