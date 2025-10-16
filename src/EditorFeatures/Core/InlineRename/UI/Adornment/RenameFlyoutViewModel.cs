@@ -79,7 +79,8 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         get => Session.ReplacementText;
         set
         {
-            // Trim leading and trailing whitespace to prevent invalid identifiers
+            // Trim leading and trailing whitespace (including all Unicode whitespace characters)
+            // to prevent invalid identifiers. Handles null by converting to empty string.
             var trimmedValue = value?.Trim() ?? string.Empty;
 
             if (trimmedValue != Session.ReplacementText)
