@@ -37,9 +37,17 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
     private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
     {
         var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferConditionalDelegateCall;
-        if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
+        if (!styleOption.Value)
         {
             // Bail if the user has disabled this feature.
+            return;
+        }
+
+        // Don't skip analysis based on minimum reported severity if the feature is enabled.
+        // This ensures code cleanup works even when the severity is set to 'silent'.
+        // We still honor explicit suppression.
+        if (styleOption.Notification.Severity == ReportDiagnostic.Suppress)
+        {
             return;
         }
 
