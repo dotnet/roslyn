@@ -29,7 +29,7 @@ internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<TMemberA
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, GetTitle(), IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId));
+        RegisterCodeFix(context, GetTitle(), IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId);
         return Task.CompletedTask;
     }
 
