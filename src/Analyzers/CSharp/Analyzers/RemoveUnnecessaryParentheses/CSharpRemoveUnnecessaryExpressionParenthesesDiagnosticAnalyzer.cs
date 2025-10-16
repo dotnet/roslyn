@@ -27,23 +27,23 @@ internal sealed class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnal
     protected override bool CanRemoveParentheses(
         ParenthesizedExpressionSyntax parenthesizedExpression,
         SemanticModel semanticModel, CancellationToken cancellationToken,
-        out PrecedenceKind precedence, out bool clarifiesPrecedence, out bool childIsSimple)
+        out PrecedenceKind precedence, out bool clarifiesPrecedence, out bool innerExpressionHasPrimaryPrecedence)
     {
         return CanRemoveParenthesesHelper(
             parenthesizedExpression, semanticModel, cancellationToken,
-            out precedence, out clarifiesPrecedence, out childIsSimple);
+            out precedence, out clarifiesPrecedence, out innerExpressionHasPrimaryPrecedence);
     }
 
     public static bool CanRemoveParenthesesHelper(
         ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel, CancellationToken cancellationToken,
-        out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence, out bool childIsSimple)
+        out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence, out bool innerExpressionHasPrimaryPrecedence)
     {
         var result = parenthesizedExpression.CanRemoveParentheses(semanticModel, cancellationToken);
         if (!result)
         {
             parentPrecedenceKind = default;
             clarifiesPrecedence = false;
-            childIsSimple = false;
+            innerExpressionHasPrimaryPrecedence = false;
             return false;
         }
 
@@ -51,7 +51,7 @@ internal sealed class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnal
         var innerPrecedence = inner.GetOperatorPrecedence();
         var innerIsSimple = innerPrecedence is OperatorPrecedence.Primary or
                             OperatorPrecedence.None;
-        childIsSimple = innerIsSimple;
+        innerExpressionHasPrimaryPrecedence = innerIsSimple;
 
         ExpressionSyntax parentExpression;
         switch (parenthesizedExpression.Parent)
