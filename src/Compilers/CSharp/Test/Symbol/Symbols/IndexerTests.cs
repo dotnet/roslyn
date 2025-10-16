@@ -2981,7 +2981,6 @@ class C
                 """;
             var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.GetDiagnostics();
-            
             compilation.VerifyDiagnostics(
                 // (3,17): warning CS0649: Field 'S.This' is never assigned to, and will always have its default value false
                 //     public bool This[int t] { get { return false; } }
