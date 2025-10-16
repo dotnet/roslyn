@@ -15,7 +15,7 @@ public sealed class FileKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestAtRoot()
         => VerifyKeywordAsync(
-@"$$");
+            @"$$");
 
     [Fact]
     public Task TestAfterClass()
@@ -28,17 +28,17 @@ public sealed class FileKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestNotInUsingAlias()
         => VerifyAbsenceAsync(
-@"using Goo = $$");
+            @"using Goo = $$");
 
     [Fact]
     public Task TestNotInGlobalUsingAlias()
         => VerifyAbsenceAsync(
-@"global using Goo = $$");
+            @"global using Goo = $$");
 
     [Fact]
     public Task TestNotInEmptyStatement()
         => VerifyAbsenceAsync(AddInsideMethod(
-@"$$"));
+            @"$$"));
 
     [Fact]
     public Task TestAfterExternAlias()
@@ -88,7 +88,8 @@ public sealed class FileKeywordRecommenderTests : KeywordRecommenderTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81028")]
     public Task TestNotAfterExternKeyword()
-        => VerifyAbsenceAsync(@"extern $$");
+        => VerifyAbsenceAsync(
+            @"extern $$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81028")]
     public Task TestNotAfterExternKeyword_InsideNamespace()
@@ -157,30 +158,30 @@ public sealed class FileKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public Task TestNotAfterPublic()
         => VerifyAbsenceAsync(
-@"public $$");
+            @"public $$");
 
     [Fact]
     public Task TestNotAfterInternal()
         => VerifyAbsenceAsync(
-@"internal $$");
+            @"internal $$");
 
     [Fact]
     public Task TestAfterStatic()
         => VerifyKeywordAsync(
-@"static $$");
+            @"static $$");
 
     [Fact]
     public Task TestAfterPartial()
         => VerifyKeywordAsync(
-@"partial $$");
+            @"partial $$");
 
     [Fact]
     public Task TestAfterAbstract()
         => VerifyKeywordAsync(
-@"abstract $$");
+            @"abstract $$");
 
     [Fact]
     public Task TestAfterSealed()
         => VerifyKeywordAsync(
-@"sealed $$");
+            @"sealed $$");
 }
