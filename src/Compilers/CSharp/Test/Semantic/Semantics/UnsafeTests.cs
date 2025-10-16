@@ -14302,84 +14302,76 @@ class PointerImpl : IPointerTest
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36877")]
         public void PointerToNonExistentType_NoSuperfluousError()
         {
-            var source = @"
-class Program
-{
-    static unsafe void Method(Type *type)
-    {
-    }
-}
-";
+            var source = """
+                class Program
+                {
+                    static unsafe void Method(Type *type)
+                    {
+                    }
+                }
+                """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,31): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,31): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
                 //     static unsafe void Method(Type *type)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(4, 31)
-                // Should not also report CS8500 or CS0208 for managed address of non-existent type
-                );
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(3, 31));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36877")]
         public void PointerToNonExistentType_MultiplePointers()
         {
-            var source = @"
-class Program
-{
-    static unsafe void Method(Type1 *p1, Type2 **p2)
-    {
-    }
-}
-";
+            var source = """
+                class Program
+                {
+                    static unsafe void Method(Type1 *p1, Type2 **p2)
+                    {
+                    }
+                }
+                """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,31): error CS0246: The type or namespace name 'Type1' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,31): error CS0246: The type or namespace name 'Type1' could not be found (are you missing a using directive or an assembly reference?)
                 //     static unsafe void Method(Type1 *p1, Type2 **p2)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type1").WithArguments("Type1").WithLocation(4, 31),
-                // (4,42): error CS0246: The type or namespace name 'Type2' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type1").WithArguments("Type1").WithLocation(3, 31),
+                // (3,42): error CS0246: The type or namespace name 'Type2' could not be found (are you missing a using directive or an assembly reference?)
                 //     static unsafe void Method(Type1 *p1, Type2 **p2)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type2").WithArguments("Type2").WithLocation(4, 42)
-                // Should not report CS8500 for pointers to error types
-                );
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type2").WithArguments("Type2").WithLocation(3, 42));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36877")]
         public void PointerToNonExistentType_LocalVariable()
         {
-            var source = @"
-unsafe class Program
-{
-    static void Method()
-    {
-        Type *local;
-    }
-}
-";
+            var source = """
+                unsafe class Program
+                {
+                    static void Method()
+                    {
+                        Type *local;
+                    }
+                }
+                """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,9): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                // (5,9): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
                 //         Type *local;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(6, 9),
-                // (6,15): warning CS0168: The variable 'local' is declared but never used
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(5, 9),
+                // (5,15): warning CS0168: The variable 'local' is declared but never used
                 //         Type *local;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(6, 15)
-                // Should not report CS8500
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(5, 15));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36877")]
         public void PointerToExistingManagedType_StillReportsError()
         {
-            var source = @"
-unsafe class Program
-{
-    static void Method(string *str)
-    {
-    }
-}
-";
+            var source = """
+                unsafe class Program
+                {
+                    static void Method(string *str)
+                    {
+                    }
+                }
+                """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,32): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+                // (3,32): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
                 //     static void Method(string *str)
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "str").WithArguments("string").WithLocation(4, 32)
-                // Should still report CS8500 for actual managed types
-                );
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "str").WithArguments("string").WithLocation(3, 32));
         }
     }
 }

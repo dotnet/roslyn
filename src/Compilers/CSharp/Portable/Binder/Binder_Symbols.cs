@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
                 ReportUnsafeIfNotAllowed(node, diagnostics);
 
-                if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks) && !elementType.Type.IsErrorType())
+                if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
                     CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
                 }

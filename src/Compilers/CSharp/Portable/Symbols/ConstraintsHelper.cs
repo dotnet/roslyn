@@ -595,11 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
                 if (args.CurrentCompilation is not null)
                 {
-                    var pointedAtType = ((PointerTypeSymbol)type).PointedAtType;
-                    if (!pointedAtType.IsErrorType())
-                    {
-                        Binder.CheckManagedAddr(args.CurrentCompilation, pointedAtType, args.Location, args.Diagnostics);
-                    }
+                    Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, args.Location, args.Diagnostics);
                 }
 #nullable disable
             }
