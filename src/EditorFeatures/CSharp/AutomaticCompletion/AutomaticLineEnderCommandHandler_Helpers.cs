@@ -438,8 +438,8 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         }
 
         // For ObjectCreationExpression with missing type (just 'new'), add argument list
-        if (baseObjectCreationExpressionNode is ObjectCreationExpressionSyntax objectCreationExpressionNode
-            && objectCreationExpressionNode.Type.IsMissing)
+        if (baseObjectCreationExpressionNode is ObjectCreationExpressionSyntax objCreationExpr
+            && objCreationExpr.Type.IsMissing)
         {
             return true;
         }
