@@ -427,22 +427,16 @@ internal sealed partial class AutomaticLineEnderCommandHandler
     {
         // If argument list already exists (not missing), we don't need to add it
         if (baseObjectCreationExpressionNode.ArgumentList is { IsMissing: false })
-        {
             return false;
-        }
 
         // For ImplicitObjectCreationExpression, always add argument list
         if (baseObjectCreationExpressionNode is ImplicitObjectCreationExpressionSyntax)
-        {
             return true;
-        }
 
         // For ObjectCreationExpression with missing type (just 'new'), add argument list
         if (baseObjectCreationExpressionNode is ObjectCreationExpressionSyntax objCreationExpr
             && objCreationExpr.Type.IsMissing)
-        {
             return true;
-        }
 
         // For ObjectCreationExpression with explicit type and no argument list, DON'T add argument list
         // This preserves the user's intent: 'new Bar' stays as 'new Bar { }', not 'new Bar() { }'
