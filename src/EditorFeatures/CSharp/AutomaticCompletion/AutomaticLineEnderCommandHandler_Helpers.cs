@@ -418,22 +418,19 @@ internal sealed partial class AutomaticLineEnderCommandHandler
     /// <summary>
     /// Determines if we should add an argument list when adding an initializer.
     /// Returns true only for:
-    /// - ImplicitObjectCreationExpression (e.g., 'new' becomes 'new() { }')
     /// - ObjectCreationExpression with missing type (e.g., 'new' becomes 'new() { }')
     /// Returns false for:
     /// - ObjectCreationExpression with type and no argument list (e.g., 'new Bar' becomes 'new Bar { }')
+    /// - Cases where argument list already exists (preserves typed parentheses)
     /// </summary>
     private static bool ShouldAddArgumentListForInitializer(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
     {
-        // If argument list already exists (not missing), we don't need to add it
-        if (baseObjectCreationExpressionNode.ArgumentList is { IsMissing: false })
+        // If argument list already exists, we don't need to add it
+        if (baseObjectCreationExpressionNode.ArgumentList != null && !baseObjectCreationExpressionNode.ArgumentList.IsMissing)
             return false;
 
-        // For ImplicitObjectCreationExpression, always add argument list
-        if (baseObjectCreationExpressionNode is ImplicitObjectCreationExpressionSyntax)
-            return true;
-
         // For ObjectCreationExpression with missing type (just 'new'), add argument list
+        // This handles the case where parser sees 'new' without a type and will convert to ImplicitObjectCreationExpression
         if (baseObjectCreationExpressionNode is ObjectCreationExpressionSyntax objCreationExpr
             && objCreationExpr.Type.IsMissing)
             return true;
