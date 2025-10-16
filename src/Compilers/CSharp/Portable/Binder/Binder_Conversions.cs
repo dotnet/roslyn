@@ -1216,8 +1216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .Construct([typeArgument]);
 
                     // Don't need to report diagnostics here.  Our caller will have already done this.
-                    var list_T__ctor = (MethodSymbol?)@this._binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, BindingDiagnosticBag.Discarded, syntax: @this._node.Syntax);
-                    var list_T__ctorInt32 = (MethodSymbol?)@this._binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, BindingDiagnosticBag.Discarded, syntax: @this._node.Syntax);
+                    var list_T__ctor = (MethodSymbol?)@this._binder.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor);
+                    var list_T__ctorInt32 = (MethodSymbol?)@this._binder.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32);
 
                     var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
                     candidateConstructorsBuilder.AddIfNotNull(list_T__ctor?.AsMember(constructedListType));
