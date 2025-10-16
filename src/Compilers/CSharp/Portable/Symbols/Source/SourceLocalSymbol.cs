@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [ThreadStatic] private static PooledHashSet<LocalTypeInferenceInProgressKey>? s_LocalTypeInferenceInProgress;
         private HashSet<SyntaxNode>? _forbiddenReferences;
 
-
         private readonly struct LocalTypeInferenceInProgressKey : IEquatable<LocalTypeInferenceInProgressKey>
         {
             public readonly SourceLocalSymbol Local;
