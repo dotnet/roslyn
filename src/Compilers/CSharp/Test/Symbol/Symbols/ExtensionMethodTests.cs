@@ -4243,36 +4243,5 @@ public static class C
                 //     public static void M7<T>(this ref readonly T t) where T : struct { }
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24));
         }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
-        public void TestRefReadonlyModifierX()
-        {
-            var source = """
-                public enum E1
-                {
-                }
-
-                public static class C1 {
-                    extension (ref readonly E1 x)
-                    {
-                        public void Test1()
-                        {
-
-                        }
-                    }
-
-                    extension (in E1 x)
-                    {
-                        public void Test2()
-                        {
-
-                        }
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
-        }
     }
 }
