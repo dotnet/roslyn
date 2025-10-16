@@ -14305,14 +14305,14 @@ class PointerImpl : IPointerTest
             var source = """
                 class Program
                 {
-                    static unsafe void Method(Type *type)
+                    static unsafe void Method(Type* type)
                     {
                     }
                 }
                 """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,31): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
-                //     static unsafe void Method(Type *type)
+                //     static unsafe void Method(Type* type)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(3, 31));
         }
 
@@ -14322,17 +14322,17 @@ class PointerImpl : IPointerTest
             var source = """
                 class Program
                 {
-                    static unsafe void Method(Type1 *p1, Type2 **p2)
+                    static unsafe void Method(Type1* p1, Type2** p2)
                     {
                     }
                 }
                 """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,31): error CS0246: The type or namespace name 'Type1' could not be found (are you missing a using directive or an assembly reference?)
-                //     static unsafe void Method(Type1 *p1, Type2 **p2)
+                //     static unsafe void Method(Type1* p1, Type2** p2)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type1").WithArguments("Type1").WithLocation(3, 31),
                 // (3,42): error CS0246: The type or namespace name 'Type2' could not be found (are you missing a using directive or an assembly reference?)
-                //     static unsafe void Method(Type1 *p1, Type2 **p2)
+                //     static unsafe void Method(Type1* p1, Type2** p2)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type2").WithArguments("Type2").WithLocation(3, 42));
         }
 
@@ -14344,16 +14344,16 @@ class PointerImpl : IPointerTest
                 {
                     static void Method()
                     {
-                        Type *local;
+                        Type* local;
                     }
                 }
                 """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (5,9): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
-                //         Type *local;
+                //         Type* local;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(5, 9),
                 // (5,15): warning CS0168: The variable 'local' is declared but never used
-                //         Type *local;
+                //         Type* local;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(5, 15));
         }
 
@@ -14363,14 +14363,14 @@ class PointerImpl : IPointerTest
             var source = """
                 unsafe class Program
                 {
-                    static void Method(string *str)
+                    static void Method(string* str)
                     {
                     }
                 }
                 """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,32): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
-                //     static void Method(string *str)
+                //     static void Method(string* str)
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "str").WithArguments("string").WithLocation(3, 32));
         }
     }
