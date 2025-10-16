@@ -576,10 +576,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.MissingListItem, nameof(separatorToken));
             }
 
-            if (newSeparator.RawKind != nodesWithSeps[index].RawKind ||
-                newSeparator.Language != nodesWithSeps[index].Language)
+            if (newSeparator.RawKind != nodesWithSeps[index].RawKind)
             {
-                throw new ArgumentException("New separator must have the same RawKind and Language as the separator being replaced.", nameof(newSeparator));
+                throw new ArgumentException(CodeAnalysisResources.SeparatorTokenMustHaveSameRawKind, nameof(newSeparator));
+            }
+
+            if (newSeparator.Language != nodesWithSeps[index].Language)
+            {
+                throw new ArgumentException(CodeAnalysisResources.SeparatorTokenMustHaveSameLanguage, nameof(newSeparator));
             }
 
             return new SeparatedSyntaxList<TNode>(nodesWithSeps.Replace(separatorToken, newSeparator));
