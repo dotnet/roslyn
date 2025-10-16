@@ -13,10 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Generic;
-
-#if DEBUG
 using System.Runtime.CompilerServices;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
