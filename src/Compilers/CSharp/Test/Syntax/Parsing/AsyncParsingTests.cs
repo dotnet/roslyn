@@ -2830,5 +2830,330 @@ namespace",
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/xxxxx")]
+        public void AwaitInInterpolatedString_WithParentheses()
+        {
+            UsingTree(@"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        var z = $""{await (System.Threading.Tasks.Task.FromResult(string.Empty))}"";
+    }
+}");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "System");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Threading");
+                                    }
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Tasks");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Task");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "z");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.Interpolation);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.AwaitExpression);
+                                                    {
+                                                        N(SyntaxKind.AwaitKeyword);
+                                                        N(SyntaxKind.ParenthesizedExpression);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.InvocationExpression);
+                                                            {
+                                                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                                                {
+                                                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                                                    {
+                                                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                                                        {
+                                                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                                                            {
+                                                                                N(SyntaxKind.IdentifierName);
+                                                                                {
+                                                                                    N(SyntaxKind.IdentifierToken, "System");
+                                                                                }
+                                                                                N(SyntaxKind.DotToken);
+                                                                                N(SyntaxKind.IdentifierName);
+                                                                                {
+                                                                                    N(SyntaxKind.IdentifierToken, "Threading");
+                                                                                }
+                                                                            }
+                                                                            N(SyntaxKind.DotToken);
+                                                                            N(SyntaxKind.IdentifierName);
+                                                                            {
+                                                                                N(SyntaxKind.IdentifierToken, "Tasks");
+                                                                            }
+                                                                        }
+                                                                        N(SyntaxKind.DotToken);
+                                                                        N(SyntaxKind.IdentifierName);
+                                                                        {
+                                                                            N(SyntaxKind.IdentifierToken, "Task");
+                                                                        }
+                                                                    }
+                                                                    N(SyntaxKind.DotToken);
+                                                                    N(SyntaxKind.IdentifierName);
+                                                                    {
+                                                                        N(SyntaxKind.IdentifierToken, "FromResult");
+                                                                    }
+                                                                }
+                                                                N(SyntaxKind.ArgumentList);
+                                                                {
+                                                                    N(SyntaxKind.OpenParenToken);
+                                                                    N(SyntaxKind.Argument);
+                                                                    {
+                                                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                                                        {
+                                                                            N(SyntaxKind.PredefinedType);
+                                                                            {
+                                                                                N(SyntaxKind.StringKeyword);
+                                                                            }
+                                                                            N(SyntaxKind.DotToken);
+                                                                            N(SyntaxKind.IdentifierName);
+                                                                            {
+                                                                                N(SyntaxKind.IdentifierToken, "Empty");
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    N(SyntaxKind.CloseParenToken);
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/xxxxx")]
+        public void AwaitInInterpolatedString_WithoutParentheses()
+        {
+            UsingTree(@"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        var c = $""{await System.Threading.Tasks.Task.FromResult(string.Empty)}"";
+    }
+}");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "System");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Threading");
+                                    }
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Tasks");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Task");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.Interpolation);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.AwaitExpression);
+                                                    {
+                                                        N(SyntaxKind.AwaitKeyword);
+                                                        N(SyntaxKind.InvocationExpression);
+                                                        {
+                                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                                            {
+                                                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                                                {
+                                                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                                                    {
+                                                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                                                        {
+                                                                            N(SyntaxKind.IdentifierName);
+                                                                            {
+                                                                                N(SyntaxKind.IdentifierToken, "System");
+                                                                            }
+                                                                            N(SyntaxKind.DotToken);
+                                                                            N(SyntaxKind.IdentifierName);
+                                                                            {
+                                                                                N(SyntaxKind.IdentifierToken, "Threading");
+                                                                            }
+                                                                        }
+                                                                        N(SyntaxKind.DotToken);
+                                                                        N(SyntaxKind.IdentifierName);
+                                                                        {
+                                                                            N(SyntaxKind.IdentifierToken, "Tasks");
+                                                                        }
+                                                                    }
+                                                                    N(SyntaxKind.DotToken);
+                                                                    N(SyntaxKind.IdentifierName);
+                                                                    {
+                                                                        N(SyntaxKind.IdentifierToken, "Task");
+                                                                    }
+                                                                }
+                                                                N(SyntaxKind.DotToken);
+                                                                N(SyntaxKind.IdentifierName);
+                                                                {
+                                                                    N(SyntaxKind.IdentifierToken, "FromResult");
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.ArgumentList);
+                                                            {
+                                                                N(SyntaxKind.OpenParenToken);
+                                                                N(SyntaxKind.Argument);
+                                                                {
+                                                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                                                    {
+                                                                        N(SyntaxKind.PredefinedType);
+                                                                        {
+                                                                            N(SyntaxKind.StringKeyword);
+                                                                        }
+                                                                        N(SyntaxKind.DotToken);
+                                                                        N(SyntaxKind.IdentifierName);
+                                                                        {
+                                                                            N(SyntaxKind.IdentifierToken, "Empty");
+                                                                        }
+                                                                    }
+                                                                }
+                                                                N(SyntaxKind.CloseParenToken);
+                                                            }
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
