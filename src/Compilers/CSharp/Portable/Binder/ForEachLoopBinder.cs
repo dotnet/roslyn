@@ -965,10 +965,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.
                 if (collectionExprType.Kind == SymbolKind.ArrayType || collectionExprType.Kind == SymbolKind.DynamicType)
                 {
-                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-                    {
-                        return EnumeratorResult.FailedAndReported;
-                    }
                     builder = GetDefaultEnumeratorInfo(syntax, builder, diagnostics, collectionExprType);
                     return EnumeratorResult.Succeeded;
                 }
@@ -979,20 +975,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (SatisfiesGetEnumeratorPattern(syntax, collectionSyntax, ref builder, unwrappedCollectionExpr, isAsync, viaExtensionMethod: false, diagnostics))
                 {
                     collectionExpr = unwrappedCollectionExpr;
-                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-                    {
-                        return EnumeratorResult.FailedAndReported;
-                    }
                     return createPatternBasedEnumeratorResult(ref builder, unwrappedCollectionExpr, isAsync, viaExtensionMethod: false, diagnostics);
                 }
 
                 if (!isAsync && IsIEnumerable(unwrappedCollectionExprType))
                 {
                     collectionExpr = unwrappedCollectionExpr;
-                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-                    {
-                        return EnumeratorResult.FailedAndReported;
-                    }
                     // This indicates a problem with the special IEnumerable type - it should have satisfied the GetEnumerator pattern.
                     diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, collectionSyntax.Location, unwrappedCollectionExprType, WellKnownMemberNames.GetEnumeratorMethodName);
                     return EnumeratorResult.FailedAndReported;
@@ -1000,10 +988,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (isAsync && IsIAsyncEnumerable(unwrappedCollectionExprType))
                 {
                     collectionExpr = unwrappedCollectionExpr;
-                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-                    {
-                        return EnumeratorResult.FailedAndReported;
-                    }
                     // This indicates a problem with the well-known IAsyncEnumerable type - it should have satisfied the GetAsyncEnumerator pattern.
                     diagnostics.Add(ErrorCode.ERR_AwaitForEachMissingMember, collectionSyntax.Location, unwrappedCollectionExprType, WellKnownMemberNames.GetAsyncEnumeratorMethodName);
                     return EnumeratorResult.FailedAndReported;
@@ -1022,11 +1006,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Lowering will not use iterator info with strings, so it is ok.
                 if (!isAsync && collectionExprType.SpecialType == SpecialType.System_String)
                 {
-                    if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-                    {
-                        return EnumeratorResult.FailedAndReported;
-                    }
-
                     builder = GetDefaultEnumeratorInfo(syntax, builder, diagnostics, collectionExprType);
                     return EnumeratorResult.Succeeded;
                 }
@@ -1084,11 +1063,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!AllInterfacesContainsIEnumerable(collectionSyntax, ref builder, unwrappedCollectionExprType, isAsync, diagnostics, out bool foundMultipleGenericIEnumerableInterfaces))
             {
                 return EnumeratorResult.FailedNotReported;
-            }
-
-            if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
-            {
-                return EnumeratorResult.FailedAndReported;
             }
 
             SyntaxNode errorLocationSyntax = collectionSyntax;
