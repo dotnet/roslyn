@@ -16,11 +16,11 @@
 | **INPUT FILES**
 | `/recurse:`*wildcard* | Include all files in the current directory and subdirectories according to the wildcard  specifications
 | `/reference:`*alias*=*file* | Reference metadata from the specified assembly file using the given alias (Short form: `/r`)
-| `/reference:`*file list* | Reference metadata from the specified assembly files (Short form: `/r`)
-| `/addmodule:`*file list* | Link the specified modules into this assembly
-| `/link:`*file list* | Embed metadata from the specified interop assembly files (Short form: `/l`)
-| `/analyzer:`*file list* | Run the analyzers from this assembly (Short form: `/a`)
-| `/additionalfile:`*file list* | Additional files that don't directly affect code generation but may be used by analyzers for producing errors or warnings.
+| `/reference:`*file list* | Reference metadata from the specified assembly files. Separate multiple files with commas or semicolons. (Short form: `/r`)
+| `/addmodule:`*file list* | Link the specified modules into this assembly. Separate multiple files with commas or semicolons.
+| `/link:`*file list* | Embed metadata from the specified interop assembly files. Separate multiple files with commas or semicolons. (Short form: `/l`)
+| `/analyzer:`*file list* | Run the analyzers from this assembly. Separate multiple files with commas or semicolons. (Short form: `/a`)
+| `/additionalfile:`*file list* | Additional files that don't directly affect code generation but may be used by analyzers for producing errors or warnings. Separate multiple files with commas or semicolons.
 | **RESOURCES**
 | `/win32res:`*file* | Specify a Win32 resource file (.res)
 | `/win32icon:`*file* | Use this icon for the output
