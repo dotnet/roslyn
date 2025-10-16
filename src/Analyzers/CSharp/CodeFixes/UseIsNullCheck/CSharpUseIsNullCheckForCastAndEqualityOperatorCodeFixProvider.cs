@@ -33,9 +33,6 @@ internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvi
     private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
         => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.CastAndEqualityKey;
 
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        => IsSupportedDiagnostic(diagnostic);
-
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
