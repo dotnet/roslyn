@@ -89,7 +89,7 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
         {
             var lastArgument = syntaxFacts.GetArgumentsOfInvocationExpression(invocation).Last();
             var lastArgumentExpression = syntaxFacts.GetExpressionOfArgument(lastArgument);
-            
+
             // Check if it's syntactically an array or collection expression
             if (syntaxFacts.IsArrayCreationExpression(lastArgumentExpression) ||
                 lastArgumentExpression.RawKind == syntaxFacts.SyntaxKinds.ImplicitArrayCreationExpression)
