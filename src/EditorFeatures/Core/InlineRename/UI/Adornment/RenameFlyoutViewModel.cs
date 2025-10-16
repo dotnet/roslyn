@@ -79,9 +79,12 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         get => Session.ReplacementText;
         set
         {
-            if (value != Session.ReplacementText)
+            // Trim leading and trailing whitespace to prevent invalid identifiers
+            var trimmedValue = value?.Trim() ?? string.Empty;
+
+            if (trimmedValue != Session.ReplacementText)
             {
-                Session.ApplyReplacementText(value, propagateEditImmediately: true, updateSelection: false);
+                Session.ApplyReplacementText(trimmedValue, propagateEditImmediately: true, updateSelection: false);
                 NotifyPropertyChanged(nameof(IdentifierText));
             }
         }
