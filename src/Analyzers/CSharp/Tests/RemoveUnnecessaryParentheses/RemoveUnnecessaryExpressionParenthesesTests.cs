@@ -1164,6 +1164,62 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76261")]
+    public Task TestBitwiseExpression_TestAvailableWithSimpleLiteralOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                public const int A = 1 | $$(2);
+            }
+            """,
+            """
+            class C
+            {
+                public const int A = 1 | 2;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76261")]
+    public Task TestBitwiseExpression_TestAvailableWithSimpleLiteralOperandAnd()
+        => TestAsync(
+            """
+            class C
+            {
+                public const int A = 1 & $$(2);
+            }
+            """,
+            """
+            class C
+            {
+                public const int A = 1 & 2;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76261")]
+    public Task TestBitwiseExpression_TestAvailableWithSimpleIdentifierOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var a = 1;
+                    var q = 1 | $$(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var a = 1;
+                    var q = 1 | a;
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25554")]
     public Task TestSwitchCase_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         => TestAsync(

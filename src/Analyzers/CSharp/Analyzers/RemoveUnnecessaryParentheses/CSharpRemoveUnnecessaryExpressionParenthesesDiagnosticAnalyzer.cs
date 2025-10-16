@@ -27,22 +27,23 @@ internal sealed class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnal
     protected override bool CanRemoveParentheses(
         ParenthesizedExpressionSyntax parenthesizedExpression,
         SemanticModel semanticModel, CancellationToken cancellationToken,
-        out PrecedenceKind precedence, out bool clarifiesPrecedence)
+        out PrecedenceKind precedence, out bool clarifiesPrecedence, out bool childIsSimple)
     {
         return CanRemoveParenthesesHelper(
             parenthesizedExpression, semanticModel, cancellationToken,
-            out precedence, out clarifiesPrecedence);
+            out precedence, out clarifiesPrecedence, out childIsSimple);
     }
 
     public static bool CanRemoveParenthesesHelper(
         ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel, CancellationToken cancellationToken,
-        out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence)
+        out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence, out bool childIsSimple)
     {
         var result = parenthesizedExpression.CanRemoveParentheses(semanticModel, cancellationToken);
         if (!result)
         {
             parentPrecedenceKind = default;
             clarifiesPrecedence = false;
+            childIsSimple = false;
             return false;
         }
 
@@ -50,6 +51,7 @@ internal sealed class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnal
         var innerPrecedence = inner.GetOperatorPrecedence();
         var innerIsSimple = innerPrecedence is OperatorPrecedence.Primary or
                             OperatorPrecedence.None;
+        childIsSimple = innerIsSimple;
 
         ExpressionSyntax parentExpression;
         switch (parenthesizedExpression.Parent)
