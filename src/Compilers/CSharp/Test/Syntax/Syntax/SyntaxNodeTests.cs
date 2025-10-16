@@ -167,7 +167,8 @@ public class TestMe
                 .OfType<DefineDirectiveTriviaSyntax>()
                 .First();
 
-            // Verify that Ancestors() now returns all ancestors when ascendOutOfTrivia is true
+            // The #define directive is attached as trivia to the class declaration's first token (public keyword)
+            // so the ClassDeclaration is its first ancestor, followed by CompilationUnit
             var ancestors = defineDirective.Ancestors(ascendOutOfTrivia: true).ToList();
             Assert.Equal(2, ancestors.Count);
             Assert.Equal(SyntaxKind.ClassDeclaration, ancestors[0].Kind());
