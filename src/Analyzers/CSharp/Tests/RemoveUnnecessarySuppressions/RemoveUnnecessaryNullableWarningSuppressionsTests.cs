@@ -107,7 +107,6 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                     }
                 }
                 """,
-            NumberOfFixAllIterations = 2,
         }.RunAsync();
 
     [Fact]
