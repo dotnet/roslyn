@@ -130,7 +130,7 @@ extends:
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
       name: NetCore1ESPool-Svc-Internal
-      image: windows.vs2022preview.scout.amd64
+      image: windows.vs2026preview.scout.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -369,7 +369,7 @@ extends:
           - OfficialBuild
           pool:
             name: NetCore1ESPool-Svc-Internal
-            demands: ImageOverride -equals windows.vs2022.amd64
+            demands: ImageOverride -equals windows.vs2026.amd64
 
       - ${{ if eq(variables.enableSourceIndex, 'true') }}:
         - template: /eng/common/templates-official/job/source-index-stage1.yml@self
