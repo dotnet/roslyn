@@ -1075,13 +1075,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var element = elements[i];
                     var elementConversion = elementConversions[i];
-                    builder.Add(element is BoundCollectionExpressionSpreadElement spreadElement
-                        ? bindSpreadElement(
+                    builder.Add(element is BoundCollectionExpressionSpreadElement spreadElement ?
+                        bindSpreadElement(
                             in this,
                             spreadElement,
                             elementType,
-                            elementConversion)
-                        : _binder.CreateConversion(
+                            elementConversion) :
+                        _binder.CreateConversion(
                             element.Syntax,
                             (BoundExpression)element,
                             elementConversion,
