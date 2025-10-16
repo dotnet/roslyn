@@ -160,6 +160,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Lazily caches SyntaxTrees by their xxHash128 checksum. Used to look up the syntax tree referenced by an interceptor.</summary>
         private ImmutableSegmentedDictionary<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>> _contentHashToSyntaxTree;
 
+        internal ExtendedErrorTypeSymbol ImplicitlyTypedVariableUsedInForbiddenZoneType
+        {
+            get
+            {
+                return field ??= new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+            }
+        }
+
+        internal ExtendedErrorTypeSymbol ImplicitlyTypedVariableInferenceFailedType
+        {
+            get
+            {
+                return field ??= new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, unreported: false);
+            }
+        }
+
         public override string Language
         {
             get

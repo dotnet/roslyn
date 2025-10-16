@@ -2099,26 +2099,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
                             isNullableUnknown = true;
                         }
-                        else if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.IsForbiddenReference(node, out ErrorCode forbiddenDiagnostic))
-                        {
-                            // A var (type-inferred) local variable has been used in its own initialization (the "forbidden zone").
-                            // There are many cases where this occurs, including:
-                            //
-                            // 1. var x = M(out x);
-                            // 2. M(out var x, out x);
-                            // 3. var (x, y) = (y, x);
-                            //
-                            // localSymbol.ForbiddenDiagnostic provides a suitable diagnostic for whichever case applies.
-                            //
-                            diagnostics.Add(forbiddenDiagnostic, node.Location, node);
-                            type = new ExtendedErrorTypeSymbol(
-                                this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
-                            isNullableUnknown = true;
-                        }
                         else
                         {
-                            type = localSymbol.Type;
-                            isNullableUnknown = false;
+                            type = localSymbol.GetTypeWithAnnotations(node, diagnostics).Type;
+                            isNullableUnknown = (type == (object)Compilation.ImplicitlyTypedVariableUsedInForbiddenZoneType);
                             if (IsBadLocalOrParameterCapture(localSymbol, type, localSymbol.RefKind))
                             {
                                 isError = true;

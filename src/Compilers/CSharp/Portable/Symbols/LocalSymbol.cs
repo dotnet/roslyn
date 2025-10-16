@@ -68,6 +68,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// This API should be used during binding references to the local instead of the <see cref="TypeWithAnnotations"/> property.
+        /// When the reference is not allowed, <see cref="CSharpCompilation.ImplicitlyTypedVariableUsedInForbiddenZoneType"></see> 
+        /// is returned as the type and an appropriate diagnostic is reported.
+        /// </summary>
+        public virtual TypeWithAnnotations GetTypeWithAnnotations(SyntaxNode reference, BindingDiagnosticBag diagnostics)
+        {
+            return TypeWithAnnotations;
+        }
+
+        /// <summary>
         /// Gets the type of this local.
         /// </summary>
         public TypeSymbol Type => TypeWithAnnotations.Type;
@@ -367,23 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract RefKind RefKind
         {
             get;
-        }
-
-        /// <summary>
-        /// When a local variable's type is inferred, it may not be used in the
-        /// expression that computes its value (and type). This function returns
-        /// true if the reference to an inferred variable is forbidden.
-        /// </summary>
-        /// <param name="reference">The reference</param>
-        /// <param name="forbiddenDiagnostic">
-        /// The diagnostic code to be reported when an inferred variable is used
-        /// in its forbidden zone.
-        /// </param>
-        /// <returns></returns>
-        internal virtual bool IsForbiddenReference(SyntaxNode reference, out ErrorCode forbiddenDiagnostic)
-        {
-            forbiddenDiagnostic = ErrorCode.Unknown;
-            return false;
         }
 
         protected sealed override ISymbol CreateISymbol()

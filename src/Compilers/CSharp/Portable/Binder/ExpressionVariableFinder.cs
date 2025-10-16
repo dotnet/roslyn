@@ -409,18 +409,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
         {
-            var argumentSyntax = node.Parent as ArgumentSyntax;
-            SyntaxNode forbiddenZone = (argumentSyntax?.Parent as BaseArgumentListSyntax) ?? (SyntaxNode)node.Designation;
-
-            VisitDeclarationExpressionDesignation(node, node.Designation, forbiddenZone);
+            VisitDeclarationExpressionDesignation(node, node.Designation);
         }
 
-        private void VisitDeclarationExpressionDesignation(DeclarationExpressionSyntax node, VariableDesignationSyntax designation, SyntaxNode forbiddenZone)
+        private void VisitDeclarationExpressionDesignation(DeclarationExpressionSyntax node, VariableDesignationSyntax designation)
         {
             switch (designation.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
-                    TFieldOrLocalSymbol? variable = MakeDeclarationExpressionVariable(node, (SingleVariableDesignationSyntax)designation, forbiddenZone, _nodeToBind);
+                    TFieldOrLocalSymbol? variable = MakeDeclarationExpressionVariable(node, (SingleVariableDesignationSyntax)designation, _nodeToBind);
                     if ((object?)variable != null)
                     {
                         _variablesBuilder.Add(variable);
@@ -433,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     foreach (VariableDesignationSyntax nested in ((ParenthesizedVariableDesignationSyntax)designation).Variables)
                     {
-                        VisitDeclarationExpressionDesignation(node, nested, forbiddenZone);
+                        VisitDeclarationExpressionDesignation(node, nested);
                     }
                     break;
 
@@ -535,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// other legal place for a declaration expression today is an out variable declaration; this method
         /// handles that and the error cases as well.
         /// </summary>
-        protected abstract TFieldOrLocalSymbol? MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, SyntaxNode forbiddenZone, SyntaxNode nodeToBind);
+        protected abstract TFieldOrLocalSymbol? MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind);
 
 #nullable disable
 
@@ -622,11 +619,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             typeSyntax: type,
                             identifierToken: designation.Identifier,
                             kind: LocalDeclarationKind.PatternVariable,
-                            nodeToBind: nodeToBind,
-                            forbiddenZone: designation);
+                            nodeToBind: nodeToBind);
         }
 
-        protected override LocalSymbol? MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, SyntaxNode forbiddenZone, SyntaxNode nodeToBind)
+        protected override LocalSymbol? MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind)
         {
             NamedTypeSymbol? container = _scopeBinder.ContainingType;
 
@@ -645,8 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             typeSyntax: node.Type,
                             identifierToken: designation.Identifier,
                             kind: node.IsOutVarDeclaration() ? LocalDeclarationKind.OutVariable : LocalDeclarationKind.DeclarationExpressionVariable,
-                            nodeToBind: nodeToBind,
-                            forbiddenZone: forbiddenZone);
+                            nodeToBind: nodeToBind);
         }
 
 #nullable disable
@@ -726,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, SyntaxNode forbiddenZone, SyntaxNode nodeToBind)
+        protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind)
         {
             return GlobalExpressionVariable.Create(
                 _containingType, _modifiers, node.Type,
