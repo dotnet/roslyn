@@ -1567,7 +1567,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
-    public void CollectionBuilder_NoBuilderMethodsRefStringElementType()
+    public void CollectionBuilder_NoBuilderMethodsRefSpanElementType()
     {
         string sourceA = """
                 using System;
