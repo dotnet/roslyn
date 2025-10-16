@@ -7461,8 +7461,7 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
             Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
         public void TypeParameter_BaseType_ReturnsNull()
         {
             // This test verifies that ITypeSymbol.BaseType returns null for type parameters,
