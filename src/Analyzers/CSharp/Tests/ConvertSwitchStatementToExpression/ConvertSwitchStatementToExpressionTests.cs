@@ -1134,7 +1134,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                             return 80;
                     }
 
-                    [|switch|] (input)
+                    switch (input)
                     {
                         case 1:
                             return 42;
