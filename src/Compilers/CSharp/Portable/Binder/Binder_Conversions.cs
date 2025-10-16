@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var converter = new CollectionExpressionConverter(this, node, targetType, conversion, diagnostics);
-            return converter.Do();
+            return converter.Convert();
         }
 
         private readonly struct CollectionExpressionConverter(
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Conversion _conversion = conversion;
             private readonly BindingDiagnosticBag _diagnostics = diagnostics;
 
-            public BoundCollectionExpression Do()
+            public BoundCollectionExpression Convert()
             {
                 var collectionTypeKind = _conversion.GetCollectionExpressionTypeKind(out var elementType, out MethodSymbol? constructor, out bool isExpanded);
 
