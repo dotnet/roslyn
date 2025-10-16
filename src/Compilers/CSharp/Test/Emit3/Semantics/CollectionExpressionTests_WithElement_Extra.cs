@@ -4,6 +4,7 @@
 
 // #DEFINE DICTIONARY_EXPRESSIONS
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1563,6 +1564,45 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (15,53): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
                 //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
                 Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(t)").WithArguments("Create", "1").WithLocation(15, 53));
+    }
+
+    [Fact]
+    public void CollectionBuilder_NoBuilderMethodsRefStringElementType()
+    {
+        string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection : IEnumerable<ReadOnlySpan<int>>
+                {
+                    public IEnumerator<ReadOnlySpan<int>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class MyBuilder
+                {
+                }
+                """;
+        string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection c = [];
+                    }
+                }
+                """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (5,26): error CS9404: Element type of this collection may not be a ref struct or a type parameter allowing ref structs
+                //         MyCollection c = [];
+                Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[]").WithLocation(5, 26),
+                // (5,26): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<System.ReadOnlySpan<int>>' and return type 'MyCollection'.
+                //         MyCollection c = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "System.ReadOnlySpan<int>", "MyCollection").WithLocation(5, 26));
     }
 
     [Fact]
