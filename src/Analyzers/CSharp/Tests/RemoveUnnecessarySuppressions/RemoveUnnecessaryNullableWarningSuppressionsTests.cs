@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -124,6 +123,38 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                     {
                         return default!;
                     }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInAttribute()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class XAttribute : System.Attribute
+                {
+                    public XAttribute(string? s) { }
+                }
+
+                [X(null[|!|])]
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+            
+                class XAttribute : System.Attribute
+                {
+                    public XAttribute(string? s) { }
+                }
+            
+                [X(null)]
+                class C
+                {
                 }
                 """,
         }.RunAsync();

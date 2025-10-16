@@ -28,6 +28,8 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         if (spanToCheck is null)
             return false;
 
+        // If there are any syntax or semantic diagnostics already in this node, then ignore it.  We can't make a good
+        // judgement on how necessary the suppression is if there are other problems.
         if (ContainsErrorOrWarning(postfixUnary.GetDiagnostics()))
             return false;
 
@@ -88,23 +90,28 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             .WithOptions(semanticModel.Compilation.Options.WithSpecificDiagnosticOptions([]));
         var updatedSemanticModel = updatedCompilation.GetSemanticModel(updatedTree);
 
-        foreach (var (node, annotation) in nodeToAnnotation)
+        // Group nodes by the span we need to check for errors/warnings. That way we only need to get the diagnostics
+        // once per span instead of once per node.
+        foreach (var group in nodeToAnnotation.GroupBy(tuple => GetSpanToCheck(updateRoot.GetAnnotatedNodes(tuple.Value).Single())))
         {
-            var updatedNode = updateRoot.GetAnnotatedNodes(annotation).Single();
-            var span = GetSpanToCheck(updatedNode);
-            if (span is null)
+            var groupSpan = group.Key;
+            if (groupSpan is null)
                 continue;
 
-            var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(span, cancellationToken);
+            var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(groupSpan, cancellationToken);
             if (ContainsErrorOrWarning(updatedDiagnostics))
                 continue;
 
-            result.Add(node);
+            // If there were no errors in that span after removing all the suppressions, then we can offer all of these
+            // nodes up for fixing.
+            foreach (var (suppressionNode, _) in group)
+                result.Add(suppressionNode);
         }
     }
 
     private static TextSpan? GetSpanToCheck(SyntaxNode updatedNode)
     {
+        // If we're in a global statement, check all global statements from the start of this one to the end of the last one.
         var globalStatement = updatedNode.Ancestors().OfType<GlobalStatementSyntax>().FirstOrDefault();
         if (globalStatement is not null)
         {
@@ -112,8 +119,22 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             return TextSpan.FromBounds(globalStatement.SpanStart, compilationUnit.Members.OfType<GlobalStatementSyntax>().Last().Span.End);
         }
 
-        var ancestor = updatedNode.Ancestors().LastOrDefault(
-            n => n is BaseFieldDeclarationSyntax or BaseMethodDeclarationSyntax or BasePropertyDeclarationSyntax);
+        // Otherwise, find our containing code-containing member (attributes, accessors, fields, methods, properties,
+        // anonymous methods), and check that entire member.  This means we only offer to remove the suppression if all
+        // the suppressions in the member are unnecessary.  We need this granularity as doing things on a
+        // per-suppression is just far too slow.
+        //
+        // We also check at this level because suppressions can have effects far outside of the containing statement (or
+        // even things like the containing block.  For example: a suppression inside a block like `a = b!` can affect
+        // the nullability of a variable which may be referenced far outside of the block.  So we really need to check
+        // the entire code region that the suppression is in to make an accurate determination.
+        var ancestor = updatedNode.Ancestors().FirstOrDefault(
+            n => n is AttributeSyntax
+                   or AccessorDeclarationSyntax
+                   or AnonymousMethodExpressionSyntax
+                   or BaseFieldDeclarationSyntax
+                   or BaseMethodDeclarationSyntax
+                   or BasePropertyDeclarationSyntax);
 
         return ancestor?.Span;
     }
