@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpRemoveUnnecessaryNullableWarningSuppressionsDiagnosticAnalyzer()
-    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression,
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression,
         EnforceOnBuildValues.RemoveUnnecessaryNullableWarningSuppression,
         option: null,
         fadingOption: null,
