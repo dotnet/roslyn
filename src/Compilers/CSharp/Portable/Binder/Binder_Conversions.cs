@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (LocalRewriter.IsAllocatingRefStructCollectionExpression(_node, collectionTypeKind, elementType, _binder.Compilation))
                 {
-                    _diagnostics.Add(_node.HasSpreadElements(out _, out _)
+                    _diagnostics.Add(hasSpreadElements
                         ? ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate
                         : ErrorCode.WRN_CollectionExpressionRefStructMayAllocate,
                         syntax, _targetType);
