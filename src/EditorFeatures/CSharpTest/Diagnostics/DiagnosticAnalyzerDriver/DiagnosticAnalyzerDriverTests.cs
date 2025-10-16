@@ -42,31 +42,6 @@ public sealed class DiagnosticAnalyzerDriverTests
             SymbolKind.NamedType
         };
 
-<<<<<<< HEAD
-        var missingSyntaxNodes = new HashSet<SyntaxKind>
-        {
-            // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
-            SyntaxKind.WithExpression,
-            SyntaxKind.RecordDeclaration,
-            SyntaxKind.CollectionExpression,
-            SyntaxKind.ExpressionElement,
-            SyntaxKind.SpreadElement,
-            SyntaxKind.WithElement,
-        };
-
-||||||| a22f1ade124
-        var missingSyntaxNodes = new HashSet<SyntaxKind>
-        {
-            // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
-            SyntaxKind.WithExpression,
-            SyntaxKind.RecordDeclaration,
-            SyntaxKind.CollectionExpression,
-            SyntaxKind.ExpressionElement,
-            SyntaxKind.SpreadElement,
-        };
-
-=======
->>>>>>> upstream/main
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();
         using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 

@@ -81,19 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(elementType is { });
                         return VisitArrayOrSpanCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.CollectionBuilder:
-<<<<<<< HEAD
                         // A few special cases when a collection type is an ImmutableArray<T>. Only do this if there is
                         // no with-element provided (if so, we want to defer to the user-specified collection builder
                         // method).
                         if (!node.HasWithElement &&
-                            ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
-||||||| a22f1ade124
-                        // A few special cases when a collection type is an ImmutableArray<T>
-                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
-=======
-                        // A few special cases when a collection type is an ImmutableArray<T>
-                        if ((object)node.Type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T))
->>>>>>> upstream/main
+                            (object)node.Type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T))
                         {
                             return VisitArrayOrSpanCollectionExpression(node, node.Type);
                         }
@@ -364,39 +356,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression createSpan(BoundCollectionExpression node, NamedTypeSymbol spanType, bool isReadOnlySpan)
             {
-<<<<<<< HEAD
-                array = optimizedArray;
-            }
-            else if (ShouldUseKnownLength(node, out _))
-            {
-                array = CreateAndPopulateArray(node, arrayType);
-            }
-            else
-            {
-                // The array initializer has an unknown length, so we'll create an intermediate List<T> instance.
-                // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
-                var list = CreateAndPopulateList(
-                    node, elementType, elements,
-                    // Array/Span collections cannot have with-elements.  So we can create a List<T> in an optimal
-                    // fashion depending on our analysis of the elements.
-                    rewrittenReceiver: null);
-||||||| a22f1ade124
-                array = optimizedArray;
-            }
-            else if (ShouldUseKnownLength(node, out _))
-            {
-                array = CreateAndPopulateArray(node, arrayType);
-            }
-            else
-            {
-                // The array initializer has an unknown length, so we'll create an intermediate List<T> instance.
-                // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
-                var list = CreateAndPopulateList(node, elementType, elements);
-=======
                 Debug.Assert(isReadOnlySpan
                     ? spanType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T)
                     : spanType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_Span_T));
->>>>>>> upstream/main
 
                 if (tryCreateNonArrayBackedSpan(node, spanType, isReadOnlySpan) is { } spanValue)
                     return spanValue;
@@ -437,7 +399,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // The array initializer has an unknown length, so we'll create an intermediate List<T> instance.
                     // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
-                    var list = CreateAndPopulateList(node, arrayType.ElementTypeWithAnnotations, node.Elements);
+                    var list = CreateAndPopulateList(node, arrayType.ElementTypeWithAnnotations, node.Elements,
+                        // Array/Span collections cannot have with-elements.  So we can create a List<T> in an optimal
+                        // fashion depending on our analysis of the elements.
+                        rewrittenReceiver: null);
 
                     Debug.Assert(list.Type is { });
                     Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
