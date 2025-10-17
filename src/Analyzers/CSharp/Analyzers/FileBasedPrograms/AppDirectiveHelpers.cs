@@ -467,7 +467,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
                 {
                     var fullFilePath = GetProjectFileFromDirectory(resolvedProjectPath).FullName;
                     // TODO2: no Path.GetRelativePath on netstandard
-                    directiveText = PathUtilities.GetRelativePath(sourceDirectory, fullFilePath);
+                    directiveText = Path.GetRelativePath(sourceDirectory, fullFilePath);
                 }
                 else if (!File.Exists(resolvedProjectPath))
                 {
@@ -545,11 +545,9 @@ internal sealed class NamedDirectiveComparer : IEqualityComparer<CSharpDirective
 
     public int GetHashCode(CSharpDirective.Named obj)
     {
-        // TODO2: HashCode netstandard compat
         return Hash.Combine(
             obj.GetType().GetHashCode(),
-            // TODO2: netstandard no case insensitive hashing
-            obj.Name.GetHashCode());
+            StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Name));
     }
 }
 
