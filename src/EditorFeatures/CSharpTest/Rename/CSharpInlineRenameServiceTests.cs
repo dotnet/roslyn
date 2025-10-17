@@ -122,4 +122,119 @@ public sealed class CSharpInlineRenameServiceTests
         // Verify that rename is allowed (not error)
         Assert.True(inlineRenameInfo.CanRename, "Anonymous type member should be renameable");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60960")]
+    public async Task VerifyNestedTypeFileRenameAllowed_SimpleName()
+    {
+        var markup = """
+            partial class Outer
+            {
+                class In$$ner { }
+            }
+            """;
+
+        using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+
+        var documentId = workspace.Documents.Single().Id;
+        var document = workspace.CurrentSolution.GetRequiredDocument(documentId).WithName("Inner.cs");
+        var inlineRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+        MarkupTestFile.GetPosition(markup, out _, out int cursorPosition);
+        var inlineRenameInfo = await inlineRenameService.GetRenameInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(false);
+
+        // Verify that file rename is allowed for simple name matching
+        Assert.Equal(InlineRenameFileRenameInfo.Allowed, inlineRenameInfo.GetFileRenameInfo());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60960")]
+    public async Task VerifyNestedTypeFileRenameAllowed_DottedName()
+    {
+        var markup = """
+            partial class Outer
+            {
+                class In$$ner { }
+            }
+            """;
+
+        using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+
+        var documentId = workspace.Documents.Single().Id;
+        var document = workspace.CurrentSolution.GetRequiredDocument(documentId).WithName("Outer.Inner.cs");
+        var inlineRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+        MarkupTestFile.GetPosition(markup, out _, out int cursorPosition);
+        var inlineRenameInfo = await inlineRenameService.GetRenameInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(false);
+
+        // Verify that file rename is allowed for nested type naming convention
+        Assert.Equal(InlineRenameFileRenameInfo.Allowed, inlineRenameInfo.GetFileRenameInfo());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60960")]
+    public async Task VerifyNestedTypeFileRenameAllowed_RenameOuterType()
+    {
+        var markup = """
+            partial class Out$$er
+            {
+                class Inner { }
+            }
+            """;
+
+        using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+
+        var documentId = workspace.Documents.Single().Id;
+        var document = workspace.CurrentSolution.GetRequiredDocument(documentId).WithName("Outer.Inner.cs");
+        var inlineRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+        MarkupTestFile.GetPosition(markup, out _, out int cursorPosition);
+        var inlineRenameInfo = await inlineRenameService.GetRenameInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(false);
+
+        // Verify that file rename is allowed when renaming outer type
+        Assert.Equal(InlineRenameFileRenameInfo.Allowed, inlineRenameInfo.GetFileRenameInfo());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60960")]
+    public async Task VerifyNestedTypeFileRenameNotAllowed_WrongFileName()
+    {
+        var markup = """
+            partial class Outer
+            {
+                class In$$ner { }
+            }
+            """;
+
+        using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+
+        var documentId = workspace.Documents.Single().Id;
+        var document = workspace.CurrentSolution.GetRequiredDocument(documentId).WithName("SomeOtherName.cs");
+        var inlineRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+        MarkupTestFile.GetPosition(markup, out _, out int cursorPosition);
+        var inlineRenameInfo = await inlineRenameService.GetRenameInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(false);
+
+        // Verify that file rename is NOT allowed when file name doesn't match
+        Assert.Equal(InlineRenameFileRenameInfo.TypeDoesNotMatchFileName, inlineRenameInfo.GetFileRenameInfo());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60960")]
+    public async Task VerifyDeeplyNestedTypeFileRenameAllowed()
+    {
+        var markup = """
+            partial class A
+            {
+                class B
+                {
+                    class C$$
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+
+        var documentId = workspace.Documents.Single().Id;
+        var document = workspace.CurrentSolution.GetRequiredDocument(documentId).WithName("A.B.C.cs");
+        var inlineRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+        MarkupTestFile.GetPosition(markup, out _, out int cursorPosition);
+        var inlineRenameInfo = await inlineRenameService.GetRenameInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(false);
+
+        // Verify that file rename is allowed for deeply nested types
+        Assert.Equal(InlineRenameFileRenameInfo.Allowed, inlineRenameInfo.GetFileRenameInfo());
+    }
 }
