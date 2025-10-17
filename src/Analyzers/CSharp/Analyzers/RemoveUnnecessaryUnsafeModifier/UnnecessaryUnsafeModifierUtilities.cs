@@ -2,19 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryUnsafeModifier;
 
 internal static class UnnecessaryUnsafeModifierUtilities
 {
+    private enum NodeGroup
+    {
+        LocalFunctions,
+        MemberDeclarations,
+        TypeDeclarations,
+    }
+
     private static bool ContainsError(IEnumerable<Diagnostic> diagnostics)
         => diagnostics.Any(d => d.Severity is DiagnosticSeverity.Error);
 
@@ -35,30 +39,46 @@ internal static class UnnecessaryUnsafeModifierUtilities
         ArrayBuilder<SyntaxNode> result,
         CancellationToken cancellationToken)
     {
-        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToCheck);
-
         var originalTree = semanticModel.SyntaxTree;
         var originalRoot = originalTree.GetRoot(cancellationToken);
 
+        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToCheck);
+
         foreach (var existingNode in originalRoot.DescendantNodes())
         {
-            if (existingNode is MemberDeclarationSyntax declaration &&
-                declaration.Modifiers.Any(SyntaxKind.UnsafeKeyword) &&
-                ShouldAnalyzeNode(semanticModel, declaration, cancellationToken))
+            if (existingNode is not MemberDeclarationSyntax and not LocalFunctionStatementSyntax)
+                continue;
+
+            if (GetUnsafeModifier(existingNode) != default &&
+                ShouldAnalyzeNode(semanticModel, existingNode, cancellationToken))
             {
-                nodesToCheck.Add(declaration);
-            }
-            else if (existingNode is LocalFunctionStatementSyntax localFunction &&
-                     localFunction.Modifiers.Any(SyntaxKind.UnsafeKeyword) &&
-                     ShouldAnalyzeNode(semanticModel, localFunction, cancellationToken))
-            {
-                nodesToCheck.Add(localFunction);
+                nodesToCheck.Add(existingNode);
             }
         }
 
-        if (nodesToCheck.IsEmpty)
-            return;
+        // We actually process things in three passes.  That way We can tell if containing unsafe modifiers are
+        // unnecessary, even if inner ones are necessary.  For example, consider an unsafe type with an unsafe method
+        // inside of it.  We don't want to remove both 'unsafe' modifiers and have them both be considered necessary
+        // just because the method one was actually the important one.
 
+        foreach (var group in nodesToCheck.GroupBy(node =>
+            node switch
+            {
+                LocalFunctionStatementSyntax => NodeGroup.LocalFunctions,
+                TypeDeclarationSyntax => NodeGroup.TypeDeclarations,
+                _ => NodeGroup.MemberDeclarations,
+            }))
+        {
+            AddUnnecessaryNodes(semanticModel, group, result, cancellationToken);
+        }
+    }
+
+    public static void AddUnnecessaryNodes(
+        SemanticModel semanticModel,
+        IEnumerable<SyntaxNode> nodesToCheck,
+        ArrayBuilder<SyntaxNode> result,
+        CancellationToken cancellationToken)
+    {
         using var _2 = PooledDictionary<SyntaxNode, SyntaxAnnotation>.GetInstance(out var nodeToAnnotation);
         foreach (var node in nodesToCheck)
             nodeToAnnotation[node] = new SyntaxAnnotation();
@@ -68,7 +88,7 @@ internal static class UnnecessaryUnsafeModifierUtilities
 
     private static void ForkSemanticModelAndCheckNodes(
         SemanticModel semanticModel,
-        ArrayBuilder<SyntaxNode> nodesToCheck,
+        IEnumerable<SyntaxNode> nodesToCheck,
         PooledDictionary<SyntaxNode, SyntaxAnnotation> nodeToAnnotation,
         ArrayBuilder<SyntaxNode> result,
         CancellationToken cancellationToken)
@@ -119,5 +139,13 @@ internal static class UnnecessaryUnsafeModifierUtilities
         };
 
     public static SyntaxToken GetUnsafeModifier(SyntaxNode node)
-        => GetModifiers(node).First(m => m.IsKind(SyntaxKind.UnsafeKeyword));
+    {
+        foreach (var modifier in GetModifiers(node))
+        {
+            if (modifier.Kind() == SyntaxKind.UnsafeKeyword)
+                return modifier;
+        }
+
+        return default;
+    }
 }

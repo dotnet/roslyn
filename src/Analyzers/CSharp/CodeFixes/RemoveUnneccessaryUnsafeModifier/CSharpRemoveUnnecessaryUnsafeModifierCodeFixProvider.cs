@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -52,8 +53,18 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
     {
         var root = editor.OriginalRoot;
 
+        // Process from inside out.  Don't remove unsafe modifiers on containing nodes if we removed it from an inner
+        // node. The inner removal may make the outer one necessary.
+
+        var intervalTree = new TextSpanMutableIntervalTree();
+
         foreach (var span in spans.OrderByDescending(d => d.Start))
         {
+            if (intervalTree.HasIntervalThatIntersectsWith(span))
+                continue;
+
+            intervalTree.AddIntervalInPlace(span);
+
             var node = root.FindNode(span, getInnermostNodeForTie: true);
             editor.ReplaceNode(
                 node,
