@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // From this point out, all the remaining collection types end up converting all their elements
-                // to their actual element type and passing those along.  
+                // to their actual element type and passing those along.
 
                 var elements = BindElements(elementType);
 
