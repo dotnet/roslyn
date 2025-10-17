@@ -19,12 +19,15 @@ using Microsoft.CodeAnalysis.Editing;
 <<<<<<< HEAD
 <<<<<<< HEAD
 using Microsoft.CodeAnalysis.Host;
+<<<<<<< HEAD
 =======
 =======
 using Microsoft.CodeAnalysis.Host;
 >>>>>>> 0257cc47751 (Finish)
 using Microsoft.CodeAnalysis.Host.Mef;
 >>>>>>> 1085d29ddf2 (Specialize 'fix all' for 'remove unnecessary null suppressions')
+=======
+>>>>>>> e70252b6a1c (Add fix all test)
 using Microsoft.CodeAnalysis.PooledObjects;
 =======
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -37,6 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryNullableWarningSuppressions), Shared]
 [method: ImportingConstructor]
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e70252b6a1c (Add fix all test)
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider() : CodeFixProvider
 =======
