@@ -43,11 +43,8 @@ try {
   }
 
   if ($enableDumps) {
-    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
-    New-Item -Path $key -ErrorAction SilentlyContinue
-    New-ItemProperty -Path $key -Name 'DumpType' -PropertyType 'DWord' -Value 2 -Force
-    New-ItemProperty -Path $key -Name 'DumpCount' -PropertyType 'DWord' -Value 10 -Force
-    New-ItemProperty -Path $key -Name 'DumpFolder' -PropertyType 'String' -Value $LogDir -Force
+    & eng/toggle-dumps.ps1 -enable -logDir $LogDir
+    Test-LastExitCode
   }
 
   if ($bootstrapDir -eq "") {
@@ -86,10 +83,7 @@ catch {
 }
 finally {
   if ($enableDumps) {
-    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
-    Remove-ItemProperty -Path $key -Name 'DumpType'
-    Remove-ItemProperty -Path $key -Name 'DumpCount'
-    Remove-ItemProperty -Path $key -Name 'DumpFolder'
+    & eng/toggle-dumps.ps1 -enable:$false -logDir $LogDir
   }
 
   Unsubst-TempDir
