@@ -28614,6 +28614,94 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
+        [Fact]
+        public void NullCoalescingAssignment_06()
+        {
+            var comp = CreateCompilation("""
+                static class C
+                {
+                    static T M1<T>(T c1, scoped T c2) where T : allows ref struct
+                    {
+                        return X(c1 ??= c2);
+                    }
+                    static T M2<T>(T c1, scoped T c2) where T : allows ref struct
+                    {
+                        return X(c1 ??= c1);
+                    }
+                    static T M3<T>(T c1, scoped T c2) where T : allows ref struct
+                    {
+                        return X(c2 ??= c2);
+                    }
+                    static T M4<T>(T c1, scoped T c2) where T : allows ref struct
+                    {
+                        return X(c2 ??= c1);
+                    }
+                    static T X<T>(T c) where T : allows ref struct => c;
+                }
+                """, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (5,18): error CS8352: Cannot use variable 'scoped T c2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return X(c1 ??= c2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1 ??= c2").WithArguments("scoped T c2").WithLocation(5, 18),
+                // (5,16): error CS8347: Cannot use a result of 'C.X<T>(T)' in this context because it may expose variables referenced by parameter 'c' outside of their declaration scope
+                //         return X(c1 ??= c2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c1 ??= c2)").WithArguments("C.X<T>(T)", "c").WithLocation(5, 16),
+                // (13,18): error CS8352: Cannot use variable 'scoped T c2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return X(c2 ??= c2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c2 ??= c2").WithArguments("scoped T c2").WithLocation(13, 18),
+                // (13,16): error CS8347: Cannot use a result of 'C.X<T>(T)' in this context because it may expose variables referenced by parameter 'c' outside of their declaration scope
+                //         return X(c2 ??= c2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c2 ??= c2)").WithArguments("C.X<T>(T)", "c").WithLocation(13, 16),
+                // (17,18): error CS8352: Cannot use variable 'scoped T c2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return X(c2 ??= c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c2 ??= c1").WithArguments("scoped T c2").WithLocation(17, 18),
+                // (17,16): error CS8347: Cannot use a result of 'C.X<T>(T)' in this context because it may expose variables referenced by parameter 'c' outside of their declaration scope
+                //         return X(c2 ??= c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c2 ??= c1)").WithArguments("C.X<T>(T)", "c").WithLocation(17, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79054")]
+        public void NullCoalescingAssignment_07()
+        {
+            var comp = CreateCompilation("""
+                static class C
+                {
+                    static T M1<T>(T c1, scoped T c2) where T : allows ref struct
+                    {
+                        var c3 = (c1 ??= c2);
+                        return c3; // 1
+                    }
+                    static T M2<T>(T c1, scoped T c2) where T : allows ref struct
+                    {
+                        var c3 = (c1 ??= c1);
+                        return c3; // 2
+                    }
+                    static T M3<T>(T c1, scoped T c2) where T : allows ref struct
+                    {
+                        var c3 = (c2 ??= c2);
+                        return c3; // 3
+                    }
+                    static T M4<T>(T c1, scoped T c2) where T : allows ref struct
+                    {
+                        var c3 = (c2 ??= c1);
+                        return c3; // 4
+                    }
+                }
+                """, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (6,16): error CS8352: Cannot use variable 'c3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c3; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c3").WithArguments("c3").WithLocation(6, 16),
+                // (16,16): error CS8352: Cannot use variable 'c3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c3; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c3").WithArguments("c3").WithLocation(16, 16),
+                // (21,16): error CS8352: Cannot use variable 'c3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c3; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c3").WithArguments("c3").WithLocation(21, 16));
+        }
+
         [Theory]
         [CombinatorialData]
         public void ObjectCreation_01(bool addStructConstraint)
