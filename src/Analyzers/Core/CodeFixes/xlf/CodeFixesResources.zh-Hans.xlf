@@ -242,6 +242,11 @@
         <target state="translated">将类型设置为部分</target>
         <note />
       </trans-unit>
+      <trans-unit id="May_be_neccessary_in_other_project_this_document_is_linked_in">
+        <source>May be necessary in other project this document is linked in</source>
+        <target state="new">May be necessary in other project this document is linked in</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="translated">不更新在元数据中发现的相关方法签名。</target>

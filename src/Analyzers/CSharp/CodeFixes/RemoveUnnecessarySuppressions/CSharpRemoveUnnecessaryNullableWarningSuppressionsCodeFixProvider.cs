@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryNullableWarningSuppressions), Shared]
 [method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression];
@@ -31,27 +32,58 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
     {
         context.RegisterCodeFix(CodeAction.Create(
             AnalyzersResources.Remove_unnecessary_suppression,
-            cancellationToken => FixAllAsync(context.Document, context.Diagnostics, cancellationToken),
+            cancellationToken => FixSingleDocumentAsync(context.Document, context.Diagnostics, cancellationToken),
             nameof(AnalyzersResources.Remove_unnecessary_suppression)),
             context.Diagnostics);
 
         return Task.CompletedTask;
     }
 
-    private static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+    private static async Task<Document> FixSingleDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+        // Keep track of the unnecessary spans in all linked documents.  If we're trying to fix something that would
+        // cause a problem in another linked document, then we'll still fix it (since the analyzer did report it), we'll
+        // just report a warning on it.
+        using var _1 = ArrayBuilder<HashSet<TextSpan>>.GetInstance(out var linkedSpansArray);
+        foreach (var linkedDocument in document.GetLinkedDocuments())
+        {
+            using var _2 = ArrayBuilder<PostfixUnaryExpressionSyntax>.GetInstance(out var unnecessaryNodes);
+
+            var linkedSemanticModel = await linkedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            UnnecessaryNullableWarningSuppressionsUtilities.AddUnnecessaryNodes(
+                linkedSemanticModel, unnecessaryNodes, cancellationToken);
+
+            linkedSpansArray.Add([.. unnecessaryNodes.Select(n => n.Span)]);
+        }
+
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
-        FixAll(editor, diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan));
+        FixAllInDocument(
+            editor,
+            diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan),
+            expr =>
+            {
+                // If we don't see this span in any of the linked documents, then that means analyzing that document
+                // didn't reveal this suppression as unnecessary.  Therefore, we need to add a warning annotation
+                // message to inform the user that removing this suppression may cause warnings in other projects.
+                foreach (var linkedSpans in linkedSpansArray)
+                {
+                    if (!linkedSpans.Contains(expr.Span))
+                        return WarningAnnotation.Create(CodeFixesResources.May_be_neccessary_in_other_project_this_document_is_linked_in);
+                }
+
+                return null;
+            });
 
         return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
-    private static void FixAll(
+    private static void FixAllInDocument(
         SyntaxEditor editor,
-        IEnumerable<TextSpan> spans)
+        IEnumerable<TextSpan> spans,
+        Func<PostfixUnaryExpressionSyntax, SyntaxAnnotation?>? getAnnotation)
     {
         var root = editor.OriginalRoot;
 
@@ -59,9 +91,16 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
         {
             if (root.FindNode(span, getInnermostNodeForTie: true) is PostfixUnaryExpressionSyntax unaryExpression)
             {
+                var annotation = getAnnotation?.Invoke(unaryExpression);
                 editor.ReplaceNode(
                     unaryExpression,
-                    (current, _) => ((PostfixUnaryExpressionSyntax)current).Operand.WithTriviaFrom(current));
+                    (current, _) =>
+                    {
+                        var result = ((PostfixUnaryExpressionSyntax)current).Operand.WithTriviaFrom(current);
+                        return annotation != null
+                            ? result.WithAdditionalAnnotations(annotation)
+                            : result;
+                    });
             }
         }
     }
@@ -87,6 +126,6 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
 #endif
 
         protected override void FixAll(SyntaxEditor editor, IEnumerable<TextSpan> commonSpans)
-            => CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider.FixAll(editor, commonSpans);
+            => CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider.FixAllInDocument(editor, commonSpans, getAnnotation: null);
     }
 }
