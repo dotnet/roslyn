@@ -78,6 +78,7 @@ if (argument == null)
 ```
 
 - **DO** use `Debug.Assert()` for checks not needed in release builds. Always include a “message” string in your assert to identify failure conditions. Add assertions to document assumptions on non-local program state or parameter values, e.g. “At this point in parsing the scanner should have been advanced to a ‘.’ token by the caller”.
+- **DO NOT** use blank lines (lines with only whitespace). Ensure all lines either have content or are completely empty.
 - **DO** avoid allocations in compiler hot paths:
   - Avoid LINQ.
   - Avoid using `foreach` over collections that do not have a `struct` enumerator.
