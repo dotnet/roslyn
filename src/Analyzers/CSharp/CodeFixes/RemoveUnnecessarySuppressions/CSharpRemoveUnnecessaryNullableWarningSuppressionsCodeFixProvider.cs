@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 using Microsoft.CodeAnalysis.Host;
 =======
 =======
@@ -25,9 +26,11 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 >>>>>>> 1085d29ddf2 (Specialize 'fix all' for 'remove unnecessary null suppressions')
 using Microsoft.CodeAnalysis.PooledObjects;
+=======
+using Microsoft.CodeAnalysis.Host.Mef;
+>>>>>>> e5c310485ee (Share code)
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 
@@ -64,18 +67,18 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var newRoot = FixAll(
-            document.Project.Solution.Services, root, diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan));
+        var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
-        return document.WithSyntaxRoot(newRoot);
+        FixAll(editor, diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan));
+
+        return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
-    private static SyntaxNode FixAll(
-        SolutionServices services,
-        SyntaxNode root,
+    private static void FixAll(
+        SyntaxEditor editor,
         IEnumerable<TextSpan> spans)
     {
-        var editor = new SyntaxEditor(root, services);
+        var root = editor.OriginalRoot;
 
         foreach (var span in spans.OrderByDescending(d => d.Start))
         {
@@ -86,6 +89,7 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
                     (current, _) => ((PostfixUnaryExpressionSyntax)current).Operand.WithTriviaFrom(current));
             }
         }
+<<<<<<< HEAD
 
         return editor.GetChangedRoot();
 <<<<<<< HEAD
@@ -198,112 +202,31 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
         }
 =======
 >>>>>>> 0257cc47751 (Finish)
+=======
+>>>>>>> e5c310485ee (Share code)
     }
 
     public override FixAllProvider? GetFixAllProvider()
         => new RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider();
 
-    private sealed class RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider : FixAllProvider
+    /// <summary>
+    /// Fix-all for removing unnecessary `!` operators works in a fairly specialized fashion.  The core problem is that
+    /// it's normal to have situations where a `!` operator is unnecessary in one linked document in one project, but
+    /// necessary in another.  Consider something as mundane as `string.IsNullOrEmpty(s)`.  In projects that reference a
+    /// modern, annotated, BCL, the nullable attributes on this method will allow the compiler to determine that `s` is
+    /// non-null after the call, allowing superfluous `!` operators to be removed.  However, in projects that reference
+    /// an unannotated BCL, no such determination can be made, and the `!` on a following statement may be necessary.
+    ///
+    /// To deal with this, we consider all linked documents together.  If a `!` operator is unnecessary in *all* linked
+    /// documents, then we can remove it.  Otherwise, we must keep it.
+    /// </summary>
+    private sealed class RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider : MultiProjectSafeFixAllProvider
     {
 #if !CODE_STYLE
         internal override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
 #endif
 
-        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-        {
-            var cancellationToken = fixAllContext.CancellationToken;
-
-            // Fix-all for removing unnecessary `!` operators works in a fairly specialized fashion.  The core problem
-            // is that it's normal to have situations where a `!` operator is unnecessary in one linked document in one
-            // project, but necessary in another.  Consider something as mundane as `string.IsNullOrEmpty(s)`.  In
-            // projects that reference a modern, annotated, BCL, the nullable attributes on this method will allow the
-            // compiler to determine that `s` is non-null after the call, allowing superfluous `!` operators to be
-            // removed.  However, in projects that reference an unannotated BCL, no such determination can be made, and
-            // the `!` on a following statement may be necessary.
-            //
-            // To deal with this, we consider all linked documents together.  If a `!` operator is unnecessary in *all*
-            // linked documents, then we can remove it.  Otherwise, we must keep it.
-
-            var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-
-            // Note: we can only do this if we're doing a fix-all in the solution level.  That's the only way we can see
-            // the diagnostics for other linked documents.  If someone is just asking to fix in a project we'll only
-            // know about that project and thus can't make the right decision.
-            var filterBasedOnScope = fixAllContext.Scope == FixAllScope.Solution;
-
-            // Map from a document to all linked documents it has (not including itself).
-            using var _ = PooledDictionary<DocumentId, ImmutableArray<DocumentId>>.GetInstance(out var documentToLinkedDocuments);
-
-            PopulateLinkedDocumentMap();
-            var updatedSolution = await ProcessLinkedDocumentMapAsync().ConfigureAwait(false);
-
-            return CodeAction.Create(
-                fixAllContext.GetDefaultFixAllTitle(),
-                (_, _) => Task.FromResult(updatedSolution),
-                equivalenceKey: null,
-                CodeActionPriority.Default
-#if !CODE_STYLE
-                , this.Cleanup
-#endif
-                );
-
-            void PopulateLinkedDocumentMap()
-            {
-                var solution = fixAllContext.Solution;
-                foreach (var (document, _) in documentToDiagnostics)
-                {
-                    // Note: GetLinkedDocuments does not return the document it was called on.
-                    var linkedDocuments = document.GetLinkedDocumentIds();
-
-                    // Ignore any linked documents we already saw by processing another document in that linked set.
-                    if (linkedDocuments.Any(id => documentToLinkedDocuments.ContainsKey(id)))
-                        continue;
-
-                    documentToLinkedDocuments[document.Id] = linkedDocuments;
-                }
-            }
-
-            async Task<Solution> ProcessLinkedDocumentMapAsync()
-            {
-                var currentSolution = fixAllContext.Solution;
-
-                foreach (var (documentId, linkedDocumentIds) in documentToLinkedDocuments)
-                {
-                    // Now, for each group of linked documents, only remove the suppression operators we see in all documents.
-                    var document = fixAllContext.Solution.GetRequiredDocument(documentId);
-                    using var _ = PooledHashSet<TextSpan>.GetInstance(out var commonSpans);
-
-                    var diagnostics = documentToDiagnostics[document];
-
-                    // Start initially with all the spans in this document.
-                    commonSpans.UnionWith(GetDiagnosticSpans(diagnostics));
-
-                    // Now, only keep those spans that are also in all other linked documents.
-                    if (filterBasedOnScope)
-                    {
-                        foreach (var linkedDocumentId in linkedDocumentIds)
-                        {
-                            var linkedDocument = fixAllContext.Solution.GetRequiredDocument(linkedDocumentId);
-                            var linkedDiagnostics = documentToDiagnostics.TryGetValue(linkedDocument, out var result) ? result : [];
-
-                            commonSpans.IntersectWith(GetDiagnosticSpans(linkedDiagnostics));
-                        }
-                    }
-
-                    // Now process the common spans on this initial document.  Note: we don't need to bother updating
-                    // the linked documents since, by definition, they will get the same changes.  And the workspace
-                    // will automatically edit all linked files when making a change to only one of them.
-                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var newRoot = FixAll(fixAllContext.Solution.Services, root, commonSpans);
-
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
-                }
-
-                return currentSolution;
-            }
-
-            static IEnumerable<TextSpan> GetDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics)
-                => diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan);
-        }
+        protected override void FixAll(SyntaxEditor editor, IEnumerable<TextSpan> commonSpans)
+            => CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider.FixAll(editor, commonSpans);
     }
 }
