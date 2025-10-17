@@ -1840,7 +1840,8 @@ struct C(int X) : Base(X)
             comp.VerifyEmitDiagnostics(
                 // (10,23): error CS8861: Unexpected argument list.
                 // struct C(int X) : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 23));
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 23)
+                );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -1882,7 +1883,8 @@ class C(int X) : Base(X)
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 22),
                 // (10,22): error CS1729: 'object' does not contain a constructor that takes 1 arguments
                 // class C(int X) : Base(X)
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(10, 22)
+                );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -2409,7 +2411,8 @@ struct C(int X) : Base(X)
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Base").WithArguments("Base").WithLocation(10, 19),
                 // (10,23): error CS8861: Unexpected argument list.
                 // struct C(int X) : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 23));
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 23)
+                );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
