@@ -21783,9 +21783,9 @@ partial record C(int X, int Y) : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (13,24): error CS8861: Unexpected argument list.
+                // (13,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'C'.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(13, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
