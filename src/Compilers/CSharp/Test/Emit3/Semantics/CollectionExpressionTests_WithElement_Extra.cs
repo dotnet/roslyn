@@ -1092,9 +1092,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (13,46): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+            // (13,47): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyCollection<T>.MyCollection(T)'
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
-            Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(13, 46));
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("arg", "MyCollection<T>.MyCollection(T)").WithLocation(13, 47));
     }
 
     [Fact]
@@ -1269,9 +1269,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
         comp.VerifyEmitDiagnostics(
-            // (7,13): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
+            // (7,14): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
             //         c = [with(default)];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[with(default)]").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(7, 13));
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(7, 14));
     }
 
     [Fact]
@@ -1304,12 +1304,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
         comp.VerifyEmitDiagnostics(
-            // (6,13): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
+            // (6,14): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
             //         c = [with()];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[with()]").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(6, 13),
-            // (7,13): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with()").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(6, 14),
+            // (7,14): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
             //         c = [with(default)];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[with(default)]").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(7, 13),
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(7, 14),
             // (9,22): warning CS0612: 'MyCollection<T>.MyCollection(T)' is obsolete
             //     static void F<T>(params MyCollection<T> c) { }
             Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyCollection<T>.MyCollection(T)").WithLocation(9, 22));
@@ -7513,12 +7513,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (2,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [];
             Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(2, 5),
-            // (3,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+            // (3,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [with()];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with()]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 5),
-            // (5,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with()").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 6),
+            // (5,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 5));
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 6));
     }
 
     [Fact]
@@ -7546,9 +7546,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
         comp.VerifyEmitDiagnostics(
-            // (5,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection()'.
+            // (5,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection()'.
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection()").WithLocation(5, 5));
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection()").WithLocation(5, 6));
     }
 
     [Fact]
@@ -7621,12 +7621,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (2,5): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
             // c = [];
             Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[]").WithLocation(2, 5),
-            // (3,5): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+            // (3,6): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int>.MyCollection(int, params MyCollection<int>)'
             // c = [with()];
-            Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(3, 5),
-            // (4,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(T, params MyCollection<T>)'.
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("x", "MyCollection<int>.MyCollection(int, params MyCollection<int>)").WithLocation(3, 6),
+            // (4,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(T, params MyCollection<T>)'.
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(T, params MyCollection<T>)").WithLocation(4, 5),
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(T, params MyCollection<T>)").WithLocation(4, 6),
             // (8,30): error CS9228: Non-array params collection type must have an applicable constructor that can be called with no arguments.
             //     public MyCollection(T x, params MyCollection<T> y)
             Diagnostic(ErrorCode.ERR_ParamsCollectionMissingConstructor, "params MyCollection<T> y").WithLocation(8, 30));
