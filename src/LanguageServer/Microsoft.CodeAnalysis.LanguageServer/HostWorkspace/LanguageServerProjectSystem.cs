@@ -110,7 +110,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         string projectPath,
         ProjectSystemProjectFactory primordialProjectFactory,
         ProjectId primordialProjectId,
-        ImmutableArray<LoadedProject> loadedTargets,
         CancellationToken cancellationToken)
     {
         await primordialProjectFactory.ApplyChangeToWorkspaceAsync(

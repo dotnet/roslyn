@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -15,9 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
-using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 
@@ -29,8 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 /// </summary>
 internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoader
 {
-    private readonly ILogger<CanonicalMiscFilesProjectLoader> _logger;
-    private readonly Lazy<(string ProjectPath, string DocumentPath)> _canonicalPaths;
+    private readonly Lazy<string> _canonicalDocumentPath;
 
     public CanonicalMiscFilesProjectLoader(
         LanguageServerWorkspaceFactory workspaceFactory,
@@ -51,20 +47,18 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
                 serverConfigurationFactory,
                 binLogPathProvider)
     {
-        _logger = loggerFactory.CreateLogger<CanonicalMiscFilesProjectLoader>();
-        _canonicalPaths = new Lazy<(string ProjectPath, string DocumentPath)>(() =>
+        _canonicalDocumentPath = new Lazy<string>(() =>
         {
             // Create a temp directory for the canonical project
             var tempDirectory = Path.Combine(Path.GetTempPath(), "roslyn-canonical-misc", Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDirectory);
 
             var documentPath = Path.Combine(tempDirectory, "Canonical.cs");
-            var projectPath = Path.ChangeExtension(documentPath, ".csproj");
 
             // Create the empty canonical document
             File.WriteAllText(documentPath, string.Empty);
 
-            return (projectPath, documentPath);
+            return documentPath;
         });
     }
 
@@ -72,36 +66,40 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// Adds a miscellaneous document to the canonical project.
     /// If the canonical project doesn't exist, creates a primordial project and starts loading the canonical project.
     /// </summary>
+    /// <remarks>
+    /// The LSP workspace manager and queue ensure that <see cref="AddMiscellaneousDocumentAsync"/> and <see cref="TryRemoveMiscellaneousDocumentAsync"/> are not called concurrently.
+    /// </remarks>
     public async ValueTask<TextDocument> AddMiscellaneousDocumentAsync(string documentPath, SourceText documentText, CancellationToken cancellationToken)
     {
-        // Execute under the gate to ensure thread-safety
+        // Project loading happens asynchronously, so we need to execute this under the load gate to ensure consistency.
         return await ExecuteUnderGateAsync(async loadedProjects =>
         {
-            var (canonicalProjectPath, canonicalDocumentPath) = _canonicalPaths.Value;
+            var canonicalDocumentPath = _canonicalDocumentPath.Value;
 
             // Check the current state of the canonical project
-            if (loadedProjects.TryGetValue(canonicalProjectPath, out var loadState))
+            if (loadedProjects.TryGetValue(canonicalDocumentPath, out var loadState))
             {
-                if (loadState is ProjectLoadState.LoadedTargets loadedTargets && loadedTargets.LoadedProjectTargets.Length > 0)
+                if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
                 {
                     // Case 1: Project is fully loaded with targets
-                    // Verify that there is a LoadedProject with the canonical path and use it
-                    var loadedProject = loadedTargets.LoadedProjectTargets.Single(p => 
-                        PathUtilities.Comparer.Equals(p.GetProjectSystemProject().FilePath, canonicalProjectPath));
+
+                    // We always expect that the canonical project is either Primordial, or loaded with exactly 1 target (1 TFM).
                     Contract.ThrowIfFalse(loadedTargets.LoadedProjectTargets.Length == 1, "Expected exactly one loaded target for canonical project");
-                    
-                    return await AddDocumentToLoadedProjectAsync(documentPath, documentText, loadedProject, cancellationToken);
+                    var loadedProjectId = loadedTargets.LoadedProjectTargets.Single().GetProjectSystemProject().Id;
+                    return await AddDocumentToLoadedProjectAsync(documentPath, documentText, loadedProjectId, cancellationToken);
                 }
                 else
                 {
-                    // Case 2: Project exists but is in primordial state
-                    return await AddDocumentToPrimordialProjectAsync(documentPath, documentText, cancellationToken);
+                    // Case 2: Primordial project was already created, but hasn't finished loading.
+                    var primordialTarget = loadState as ProjectLoadState.Primordial;
+                    Contract.ThrowIfNull(primordialTarget, "Expected primordial target");
+                    return await AddDocumentToPrimordialProjectAsync(documentPath, documentText, primordialTarget.PrimordialProjectId, cancellationToken);
                 }
             }
             else
             {
                 // Case 3: Project doesn't exist at all
-                return await CreatePrimordialProjectAndAddDocumentAsync(documentPath, documentText, cancellationToken);
+                return CreatePrimordialProjectAndAddDocument(documentPath, documentText);
             }
         }, cancellationToken);
     }
@@ -110,22 +108,26 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// Removes a miscellaneous document from the canonical project.
     /// The canonical project itself is never removed.
     /// </summary>
+    /// <remarks>
+    /// The LSP workspace manager and queue ensure that <see cref="AddMiscellaneousDocumentAsync"/> and <see cref="TryRemoveMiscellaneousDocumentAsync"/> are not called concurrently.
+    /// </remarks>
     public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(string documentPath, CancellationToken cancellationToken)
     {
+        // Project loading happens asynchronously, so we need to execute this under the load gate to ensure consistency.
         return await ExecuteUnderGateAsync(async loadedProjects =>
         {
             // Try to find and remove the document from the miscellaneous workspace only
             var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
 
-            var document = miscWorkspace.CurrentSolution.Projects
-                .SelectMany(p => p.Documents)
-                .FirstOrDefault(d => PathUtilities.Comparer.Equals(d.FilePath, documentPath));
-
-            if (document is not null)
+            var documents = miscWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(documentPath);
+            if (documents.Any())
             {
                 await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
                 {
-                    workspace.OnDocumentRemoved(document.Id);
+                    foreach (var documentId in documents)
+                    {
+                        workspace.OnDocumentRemoved(documentId);
+                    }
                 }, cancellationToken);
 
                 return true;
@@ -135,31 +137,10 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         }, cancellationToken);
     }
 
-    /// <summary>
-    /// Checks if the given document is part of the canonical miscellaneous files project.
-    /// </summary>
-    public async ValueTask<bool> IsMiscellaneousDocumentAsync(string documentPath, CancellationToken cancellationToken)
-    {
-        return await ExecuteUnderGateAsync(loadedProjects =>
-        {
-            var (canonicalProjectPath, _) = _canonicalPaths.Value;
-
-            // Check only the miscellaneous workspace
-            var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
-
-            var inMisc = miscWorkspace.CurrentSolution.Projects
-                .Where(p => PathUtilities.Comparer.Equals(p.FilePath, canonicalProjectPath))
-                .SelectMany(p => p.Documents)
-                .Any(d => PathUtilities.Comparer.Equals(d.FilePath, documentPath));
-
-            return ValueTask.FromResult(inMisc);
-        }, cancellationToken);
-    }
-
-    private async ValueTask<TextDocument> AddDocumentToLoadedProjectAsync(string documentPath, SourceText documentText, LoadedProject loadedProject, CancellationToken cancellationToken)
+    private async ValueTask<TextDocument> AddDocumentToLoadedProjectAsync(string documentPath, SourceText documentText, ProjectId loadedProjectId, CancellationToken cancellationToken)
     {
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
-        var project = miscWorkspace.CurrentSolution.GetProject(loadedProject.GetProjectSystemProject().Id);
+        var project = miscWorkspace.CurrentSolution.GetProject(loadedProjectId);
 
         Contract.ThrowIfNull(project, "Canonical project must exist in workspace");
 
@@ -173,42 +154,36 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
         {
             workspace.OnDocumentAdded(documentInfo);
-            addedDocument = workspace.CurrentSolution.GetDocument(documentInfo.Id);
+            addedDocument = workspace.CurrentSolution.GetRequiredDocument(documentInfo.Id);
         }, cancellationToken);
 
         Contract.ThrowIfNull(addedDocument);
         return addedDocument;
     }
 
-    private async ValueTask<TextDocument> AddDocumentToPrimordialProjectAsync(string documentPath, SourceText documentText, CancellationToken cancellationToken)
+    private async ValueTask<TextDocument> AddDocumentToPrimordialProjectAsync(string documentPath, SourceText documentText, ProjectId primordialProjectId, CancellationToken cancellationToken)
     {
-        var (canonicalProjectPath, _) = _canonicalPaths.Value;
-
-        // Add to the primordial project in the miscellaneous files workspace
+        var canonicalDocumentPath = _canonicalDocumentPath.Value;
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
-        var project = miscWorkspace.CurrentSolution.Projects
-            .Single(p => PathUtilities.Comparer.Equals(p.FilePath, canonicalProjectPath));
 
         var documentInfo = DocumentInfo.Create(
-            DocumentId.CreateNewId(project.Id),
+            DocumentId.CreateNewId(primordialProjectId),
             name: Path.GetFileName(documentPath),
             loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
             filePath: documentPath);
 
-        Document? addedDocument = null;
         await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
         {
             workspace.OnDocumentAdded(documentInfo);
-            addedDocument = workspace.CurrentSolution.GetDocument(documentInfo.Id);
         }, cancellationToken);
 
-        Contract.ThrowIfNull(addedDocument);
+        var addedDocument = miscWorkspace.CurrentSolution.GetRequiredDocument(documentInfo.Id);
         return addedDocument;
     }
 
-    private async ValueTask<TextDocument> CreatePrimordialProjectAndAddDocumentAsync(string documentPath, SourceText documentText, CancellationToken cancellationToken)
+    private TextDocument CreatePrimordialProjectAndAddDocument(string documentPath, SourceText documentText)
     {
-        var (canonicalProjectPath, canonicalDocumentPath) = _canonicalPaths.Value;
+        var canonicalDocumentPath = _canonicalDocumentPath.Value;
 
         // Create primordial project with the canonical document
         var canonicalText = SourceText.From(string.Empty);
@@ -216,7 +191,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
 
         var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
             _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace,
-            canonicalProjectPath,
+            canonicalDocumentPath,
             canonicalLoader,
             new LanguageInformation(LanguageNames.CSharp, scriptExtension: null),
             canonicalText.ChecksumAlgorithm,
@@ -233,7 +208,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         var documentInfo = DocumentInfo.Create(
             DocumentId.CreateNewId(projectInfo.Id),
             name: Path.GetFileName(documentPath),
-            loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
+            loader: new SourceTextLoader(documentText, documentPath),
             filePath: documentPath);
 
         _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspace(workspace =>
@@ -242,25 +217,21 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         });
 
         // Begin loading the canonical project with a design-time build
-        await BeginLoadingProjectWithPrimordialAsync(
-            canonicalProjectPath,
+        BeginLoadingProjectWithPrimordial_NoLock(
+            canonicalDocumentPath,
             _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
             projectInfo.Id,
             doDesignTimeBuild: true);
 
         // Return the requested document (not the canonical one)
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
-        var addedDocument = miscWorkspace.CurrentSolution.GetDocument(documentInfo.Id);
-        Contract.ThrowIfNull(addedDocument);
+        var addedDocument = miscWorkspace.CurrentSolution.GetRequiredDocument(documentInfo.Id);
         return addedDocument;
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
-        BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
+        BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
-        var (_, canonicalDocumentPath) = _canonicalPaths.Value;
-
-        // Generate a simple class library csproj XML
         var virtualProjectXml = $"""
             <Project Sdk="Microsoft.NET.Sdk">
               <PropertyGroup>
@@ -268,15 +239,16 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
                 <ImplicitUsings>enable</ImplicitUsings>
                 <Nullable>enable</Nullable>
               </PropertyGroup>
-              <ItemGroup>
-                <Compile Include="{SecurityElement.Escape(canonicalDocumentPath)}" />
-              </ItemGroup>
             </Project>
             """;
 
+        // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
+        // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
+        var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
+
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, projectPath, dotnetPath: null, cancellationToken);
-        var loadedFile = await buildHost.LoadProjectAsync(projectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
+        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
 
         return new RemoteProjectLoadResult
         {
@@ -299,32 +271,19 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         string projectPath,
         ProjectSystemProjectFactory primordialProjectFactory,
         ProjectId primordialProjectId,
-        ImmutableArray<LoadedProject> loadedTargets,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfTrue(loadedTargets.IsEmpty, "Expected at least one loaded target");
-        Contract.ThrowIfFalse(loadedTargets.Length == 1, "Expected exactly one loaded target for canonical project");
-
-        var (_, canonicalDocumentPath) = _canonicalPaths.Value;
-
-        // Get all documents from the primordial project that are NOT the canonical document
+        // Transfer any misc documents from the primordial project to the loaded canonical project
         var primordialWorkspace = primordialProjectFactory.Workspace;
-        var primordialProject = primordialWorkspace.CurrentSolution.GetProject(primordialProjectId);
-
-        if (primordialProject is null)
-        {
-            Contract.Fail($"Primordial project '{projectPath}' not found during transition.");
-            return;
-        }
+        var primordialProject = primordialWorkspace.CurrentSolution.GetRequiredProject(primordialProjectId);
 
         // Get all misc documents (excluding the canonical document)
         var miscDocuments = primordialProject.Documents
-            .Where(d => !PathUtilities.Comparer.Equals(d.FilePath, canonicalDocumentPath))
+            .Where(d => !PathUtilities.Comparer.Equals(d.FilePath, _canonicalDocumentPath.Value))
             .ToImmutableArray();
 
-        // Add all misc documents to the loaded project (first target)
-        var loadedProject = loadedTargets[0];
-        var loadedProjectId = loadedProject.GetProjectSystemProject().Id;
+        // Add all misc documents to the loaded project
+        var loadedProjectId = GetCanonicalProject().Id;
 
         foreach (var miscDoc in miscDocuments)
         {
@@ -345,5 +304,14 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         await primordialProjectFactory.ApplyChangeToWorkspaceAsync(
             workspace => workspace.OnProjectRemoved(primordialProjectId),
             cancellationToken);
+    }
+
+    private Project GetCanonicalProject()
+    {
+        var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
+        var project = miscWorkspace.CurrentSolution.Projects
+            .Single(p => PathUtilities.Comparer.Equals(p.FilePath, _canonicalDocumentPath.Value));
+
+        return project;
     }
 }
