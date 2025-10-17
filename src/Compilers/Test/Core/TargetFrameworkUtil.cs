@@ -427,7 +427,7 @@ namespace Roslyn.Test.Utilities
                     type = assembly.GetType(assemblyName + "+References", throwOnError: true);
                     prop = type.GetProperty("All", BindingFlags.Public | BindingFlags.Static);
                 }
-                var obj = prop.GetGetMethod().Invoke(obj: null, parameters: null);
+                var obj = prop.GetGetMethod()!.Invoke(obj: null, parameters: null);
                 references = ((IEnumerable<PortableExecutableReference>)obj).ToImmutableArray();
 
                 // This method can de called in parallel. Who wins this TryAdd isn't important, it's the same 

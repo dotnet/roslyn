@@ -307,7 +307,7 @@ retry:
             cancelableTaskCompletionSource.CancellationTokenRegistration = cancellationToken.Register(
                 static s =>
                 {
-                    var t = (CancelableTaskCompletionSource<T>)s;
+                    var t = (CancelableTaskCompletionSource<T>)s!;
                     t.TaskCompletionSource.TrySetCanceled(t.CancellationToken);
                 },
                 cancelableTaskCompletionSource,
@@ -317,7 +317,7 @@ retry:
             taskCompletionSource.Task.ContinueWith(
                 static (_, s) =>
                 {
-                    var t = (CancelableTaskCompletionSource<T>)s;
+                    var t = (CancelableTaskCompletionSource<T>)s!;
                     t.CancellationTokenRegistration.Dispose();
                 },
                 cancelableTaskCompletionSource,

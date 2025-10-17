@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (trivia.TryGetStructure(out var structure) && stepInto != null && stepInto(trivia))
                     {
-                        var token = GetFirstToken(structure, predicate, stepInto);
+                        var token = GetFirstToken(structure!, predicate, stepInto);
                         if (token.RawKind != None)
                         {
                             return token;
