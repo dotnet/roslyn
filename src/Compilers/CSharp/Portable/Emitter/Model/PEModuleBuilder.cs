@@ -2092,13 +2092,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                       diagnostics);
         }
 
-        internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, DiagnosticBag diagnostics)
+        internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(Compilation.Assembly.RuntimeSupportsInlineArrayTypes);
             Debug.Assert(arrayLength > 0);
+            Debug.Assert(diagnostics.DiagnosticBag is not null);
+
+            if (arrayLength is >= 2 and <= 16)
+            {
+                // In .NET 10 and up, the runtime provides InlineArrayN<T> types for N from 2 to 16.
+                var arrayWellKnownType = WellKnownType.System_Runtime_CompilerServices_InlineArray2 + (arrayLength - 2);
+                Debug.Assert(arrayWellKnownType is >= WellKnownType.System_Runtime_CompilerServices_InlineArray2 and <= WellKnownType.System_Runtime_CompilerServices_InlineArray16);
+                if (Binder.TryGetOptionalWellKnownType(Compilation, arrayWellKnownType, diagnostics, syntaxNode.Location, out var existingType))
+                {
+                    return existingType;
+                }
+            }
 
             string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, CurrentGenerationOrdinal);
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics.DiagnosticBag).PrivateImplementationDetails;
             var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
 
             if (typeAdapter is null)

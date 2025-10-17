@@ -650,6 +650,21 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray2:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray3:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray4:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray5:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray6:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray7:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray8:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray9:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray10:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray11:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray12:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray13:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray14:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray15:
+                    case WellKnownType.System_Runtime_CompilerServices_InlineArray16:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:

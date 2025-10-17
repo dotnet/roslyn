@@ -18,7 +18,7 @@
     <NetVSCode>net9.0</NetVSCode>
     <NetVSShared>net8.0</NetVSShared>
     <NetRoslynBuildHostNetCoreVersion>net8.0</NetRoslynBuildHostNetCoreVersion>
-    <NetRoslynNext>net9.0</NetRoslynNext>
+    <NetRoslynNext>net10.0</NetRoslynNext>
   </PropertyGroup>
 
   <!--
