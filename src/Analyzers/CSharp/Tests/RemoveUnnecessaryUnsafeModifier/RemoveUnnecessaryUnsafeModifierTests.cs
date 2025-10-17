@@ -94,6 +94,24 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
         }.RunAsync();
 
     [Fact]
+    public Task RemoveWhenNotNeeded_FixAll()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                [|unsafe|] class C
+                {
+                    [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M() { }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
     public Task KeepWhenNeeded_Method()
         => new VerifyCS.Test
         {
@@ -129,7 +147,7 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
         }.RunAsync();
 
     [Fact]
-    public Task KeepWhenNeeded_Type()
+    public Task KeepWhenNeeded_Type1()
         => new VerifyCS.Test
         {
             TestCode = """
