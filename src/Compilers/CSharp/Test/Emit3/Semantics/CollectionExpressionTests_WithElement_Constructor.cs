@@ -296,11 +296,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        // PROTOTYPE: This error is not correct.
         CreateCompilation(source).VerifyDiagnostics(
-            // (12,28): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+            // (12,29): error CS7036: There is no argument given that corresponds to the required parameter 'name' of 'MyList<int>.MyList(int, string)'
             //         MyList<int> list = [with(capacity: 10)];
-            Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with(capacity: 10)]").WithLocation(12, 28));
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with(capacity: 10)").WithArguments("name", "MyList<int>.MyList(int, string)").WithLocation(12, 29));
     }
 
     [Fact]
@@ -810,9 +809,9 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """;
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (20,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 4 arguments
+            // (20,29): error CS1729: 'MyList<int>' does not contain a constructor that takes 4 arguments
             //         MyList<int> list = [with(name: "test", values: 1, 2, 3), 4];
-            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"[with(name: ""test"", values: 1, 2, 3), 4]").WithArguments("MyList<int>", "4").WithLocation(20, 28));
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"with(name: ""test"", values: 1, 2, 3)").WithArguments("MyList<int>", "4").WithLocation(20, 29));
     }
 
     [Fact]

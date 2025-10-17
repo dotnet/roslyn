@@ -5058,9 +5058,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (9,17): error CS8352: Cannot use variable 'a' in this context because it may expose referenced variables outside of their declaration scope
                 //         c = new(a, out b);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "a").WithArguments("a").WithLocation(9, 17),
-                // (10,13): error CS8350: This combination of arguments to 'MyCollection<T>.MyCollection(R<T>, out R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                // (10,14): error CS8350: This combination of arguments to 'MyCollection<T>.MyCollection(R<T>, out R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         c = [with(a, out b), x, y];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "[with(a, out b), x, y]").WithArguments("MyCollection<T>.MyCollection(R<T>, out R<T>)", "a").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(a, out b)").WithArguments("MyCollection<T>.MyCollection(R<T>, out R<T>)", "a").WithLocation(10, 14),
                 // (10,19): error CS8352: Cannot use variable 'a' in this context because it may expose referenced variables outside of their declaration scope
                 //         c = [with(a, out b), x, y];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "a").WithArguments("a").WithLocation(10, 19));
@@ -5252,16 +5252,16 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
+            // (7,14): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
             //         x = [with(t), t];
-            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "[with(t), t]").WithArguments("U").WithLocation(7, 13),
-            // (8,17): error CS9335: Collection argument element must be the first element.
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "with(t)").WithArguments("U").WithLocation(7, 14),
+            // (8,17): error CS9400: 'with(...)' element must be the first element
             //         x = [t, with(t)];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17),
-            // (14,13): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
+            // (14,14): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
             //         y = [with(t), t];
-            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "[with(t), t]").WithArguments("U").WithLocation(14, 13),
-            // (15,17): error CS9335: Collection argument element must be the first element.
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "with(t)").WithArguments("U").WithLocation(14, 14),
+            // (15,17): error CS9400: 'with(...)' element must be the first element
             //         y = [t, with(t)];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(15, 17));
     }
@@ -5866,9 +5866,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (7,13): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[]").WithLocation(7, 13),
-            // (8,13): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+            // (8,14): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'MyCollection.MyCollection(__arglist)'
             //         c = [with()];
-            Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(8, 13));
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("__arglist", "MyCollection.MyCollection(__arglist)").WithLocation(8, 14));
     }
 
     [Fact]
@@ -7579,12 +7579,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (2,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [];
             Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(2, 5),
-            // (3,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+            // (3,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [with()];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with()]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 5),
-            // (5,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with()").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 6),
+            // (5,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 5),
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 6),
             // (9,25): error CS9224: Method 'MyCollection<T>.MyCollection()' cannot be less visible than the member with params collection 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             //     public MyCollection(params MyCollection<T> other) { _list = new(other); }
             Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection<T> other").WithArguments("MyCollection<T>.MyCollection()", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(9, 25));

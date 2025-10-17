@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
 
-                var collectionCreation = bindCollectionConstructorConstruction(in this, syntax, constructor);
+                var collectionCreation = bindCollectionConstructorConstruction(in this, _node.WithElement?.Syntax ?? _node.Syntax, constructor);
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression collectionCreation;
                     if (@this._targetType is NamedTypeSymbol namedType)
                     {
-                        var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, constructor);
+                        var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, withElement != null, constructor);
                         collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
                         collectionCreation.WasCompilerGenerated = true;
                     }
@@ -1621,7 +1621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // This is the 'a' case, and the error recovery path for the 'b' case as well.
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this);
+                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, bindingCollectionExpressionWithArguments: false);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                     namedType,
@@ -1750,7 +1750,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (namedType is not null)
             {
-                addMethodBinder = new ParamsCollectionTypeInProgressBinder(namedType, addMethodBinder);
+                // We're doing binding on the 'Add' method, not the collection with-arguments.  So pass in null for
+                // bindingCollectionExpressionWithArguments here.
+                addMethodBinder = new ParamsCollectionTypeInProgressBinder(
+                    namedType, addMethodBinder, bindingCollectionExpressionWithArguments: false);
             }
 
             return bindCollectionInitializerElementAddMethod(
