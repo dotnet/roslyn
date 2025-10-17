@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -30,14 +29,14 @@ internal sealed partial class CSharpRemoveUnnecessaryUnsafeModifierDiagnosticAna
         if (ShouldSkipAnalysis(context, notification: null))
             return;
 
-        using var _ = ArrayBuilder<(MemberDeclarationSyntax memberDeclaration, SyntaxToken modifier)>.GetInstance(out var unnecessaryNodes);
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var unnecessaryNodes);
         UnnecessaryUnsafeModifierUtilities.AddUnnecessaryNodes(context.SemanticModel, unnecessaryNodes, context.CancellationToken);
 
-        foreach (var (declaration, modifier) in unnecessaryNodes)
+        foreach (var declaration in unnecessaryNodes)
         {
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
-                modifier.GetLocation(),
+                UnnecessaryUnsafeModifierUtilities.GetUnsafeModifier(declaration).GetLocation(),
                 [declaration.GetLocation()]));
         }
     }
