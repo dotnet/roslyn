@@ -938,10 +938,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionExprType is null) // There's no way to enumerate something without a type.
                 {
-                    if (!ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
+                    if (collectionExpr.ConstantValueOpt is not { IsNull: true })
                     {
                         // Anything else with a null type is a method group or anonymous function
                         diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, collectionSyntax.Location, collectionExpr.Display);
+                    }
+                    else
+                    {
+                        // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
+                        diagnostics.Add(ErrorCode.ERR_NullNotValid, collectionExpr.Syntax.Location);
                     }
 
                     // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
@@ -1183,17 +1188,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
             builder.NeedsDisposal = true;
             return EnumeratorResult.Succeeded;
-        }
-
-        private bool ReportConstantNullCollectionExpr(BoundExpression collectionExpr, BindingDiagnosticBag diagnostics)
-        {
-            if (collectionExpr.ConstantValueOpt is { IsNull: true })
-            {
-                // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
-                diagnostics.Add(ErrorCode.ERR_NullNotValid, collectionExpr.Syntax.Location);
-                return true;
-            }
-            return false;
         }
 
         private void GetDisposalInfoForEnumerator(SyntaxNode syntax, ref ForEachEnumeratorInfo.Builder builder, BoundExpression expr, bool isAsync, BindingDiagnosticBag diagnostics)
