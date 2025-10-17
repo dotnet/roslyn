@@ -239,10 +239,11 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
         AssertEx.NotNull(actualResolvedAction.Edit);
-        var textDocumentEdit = (LSP.TextDocumentEdit[])actualResolvedAction.Edit.DocumentChanges!.Value;
-        Assert.Single(textDocumentEdit);
-        var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.DocumentUri);
-        var edits = textDocumentEdit[0].Edits.Select(e => (LSP.TextEdit)e.Value!).ToArray();
+        var allEdits = actualResolvedAction.Edit.DocumentChanges!.Value.Second;
+        Assert.Single(allEdits);
+        var textDocumentEdit = allEdits[0].First;
+        var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit.TextDocument.DocumentUri);
+        var edits = textDocumentEdit.Edits.Select(e => (LSP.TextEdit)e.Value!).ToArray();
         var updatedText = ApplyTextEdits(edits, originalText);
         Assert.Equal("""
             class C
@@ -532,7 +533,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         SumType<TextEdit, AnnotatedTextEdit>[] edits)
         => new()
         {
-            DocumentChanges = new TextDocumentEdit[]
+            DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
             {
                 new()
                 {
