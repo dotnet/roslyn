@@ -30253,6 +30253,62 @@ record R2 : I(0)
                 );
         }
 
+        [Fact]
+        public void RecordInheritanceWithoutParameterList()
+        {
+            var src = @"
+record R1(int P1);
+record R2 : R1(1);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (3,8): error CS1729: 'R1' does not contain a constructor that takes 0 arguments
+                // record R2 : R1(1);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "R2").WithArguments("R1", "0").WithLocation(3, 8),
+                // (3,15): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'R2'.
+                // record R2 : R1(1);
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(1)").WithArguments("R2").WithLocation(3, 15)
+                );
+        }
+
+        [Fact]
+        public void RecordClassInheritanceWithoutParameterList()
+        {
+            var src = @"
+record class R1(int P1);
+record class R2 : R1(42);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (3,14): error CS1729: 'R1' does not contain a constructor that takes 0 arguments
+                // record class R2 : R1(42);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "R2").WithArguments("R1", "0").WithLocation(3, 14),
+                // (3,21): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'R2'.
+                // record class R2 : R1(42);
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(42)").WithArguments("R2").WithLocation(3, 21)
+                );
+        }
+
+        [Fact]
+        public void RecordInheritanceWithEmptyParameterListIsValid()
+        {
+            var src = @"
+record R1(int P1);
+record R2() : R1(1);
+
+class Program
+{
+    static void Main()
+    {
+        var r = new R2();
+        System.Console.WriteLine(r.P1);
+    }
+}
+";
+            var comp = CompileAndVerify(src, expectedOutput: "1");
+            comp.VerifyDiagnostics();
+        }
+
         [Theory]
         [WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [CombinatorialData]
