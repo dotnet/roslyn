@@ -78,7 +78,7 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
         }.RunAsync();
 
     [Fact]
-    public Task RemoveWhenNotNeeded_Type()
+    public Task RemoveWhenNotNeeded_Type1()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -89,6 +89,30 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
             FixedCode = """
                 class C
                 {
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task RemoveWhenNotNeeded_Type2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                [|unsafe|] class C
+                {
+                    [|unsafe|] void M(int* i) { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    unsafe void M(int* i) { }
+                }
+                """,
+            BatchFixedCode = """
+                unsafe class C
+                {
+                    void M(int* i) { }
                 }
                 """,
         }.RunAsync();
@@ -109,6 +133,7 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
                     void M() { }
                 }
                 """,
+            NumberOfFixAllIterations = 2,
         }.RunAsync();
 
     [Fact]
