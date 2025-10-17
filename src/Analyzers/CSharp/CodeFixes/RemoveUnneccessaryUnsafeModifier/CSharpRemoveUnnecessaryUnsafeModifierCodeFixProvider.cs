@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryUnsafeModifier;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : CodeFixProvider
 {
-    public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression];
+    public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryUnsafeModifier];
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -48,9 +48,7 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
         return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
-    private static void FixAll(
-        SyntaxEditor editor,
-        IEnumerable<TextSpan> spans)
+    private static void FixAll(SyntaxEditor editor, IEnumerable<TextSpan> spans)
     {
         var root = editor.OriginalRoot;
 

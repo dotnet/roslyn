@@ -6,36 +6,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryUnsafeModifier;
 
 internal static class UnnecessaryUnsafeModifierUtilities
 {
-    private static bool ContainsErrorOrWarning(IEnumerable<Diagnostic> diagnostics)
-        => diagnostics.Any(d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning);
+    private static bool ContainsError(IEnumerable<Diagnostic> diagnostics)
+        => diagnostics.Any(d => d.Severity is DiagnosticSeverity.Error);
 
     private static bool ShouldAnalyzeNode(SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
     {
-        //if (node is not PostfixUnaryExpressionSyntax(SyntaxKind.SuppressNullableWarningExpression) postfixUnary)
-        //    return false;
-
-        //var spanToCheck = GetSpanToCheck(postfixUnary);
-        //if (spanToCheck is null)
-        //    return false;
-
-        // If there are any syntax or semantic diagnostics already in this node, then ignore it.  We can't make a good
-        // judgement on how necessary the suppression is if there are other problems.
-        if (ContainsErrorOrWarning(declaration.GetDiagnostics()))
+        if (ContainsError(declaration.GetDiagnostics()))
             return false;
 
         var semanticDiagnostics = semanticModel.GetDiagnostics(declaration.Span, cancellationToken);
-        if (ContainsErrorOrWarning(semanticDiagnostics))
+        if (ContainsError(semanticDiagnostics))
             return false;
 
         return true;
@@ -54,12 +43,14 @@ internal static class UnnecessaryUnsafeModifierUtilities
         foreach (var existingNode in originalRoot.DescendantNodes())
         {
             if (existingNode is MemberDeclarationSyntax declaration &&
-                declaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+                declaration.Modifiers.Any(SyntaxKind.UnsafeKeyword) &&
+                ShouldAnalyzeNode(semanticModel, declaration, cancellationToken))
             {
                 nodesToCheck.Add(declaration);
             }
             else if (existingNode is LocalFunctionStatementSyntax localFunction &&
-                     localFunction.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+                     localFunction.Modifiers.Any(SyntaxKind.UnsafeKeyword) &&
+                     ShouldAnalyzeNode(semanticModel, localFunction, cancellationToken))
             {
                 nodesToCheck.Add(localFunction);
             }
@@ -82,7 +73,6 @@ internal static class UnnecessaryUnsafeModifierUtilities
         ArrayBuilder<SyntaxNode> result,
         CancellationToken cancellationToken)
     {
-
         var originalTree = semanticModel.SyntaxTree;
         var originalRoot = originalTree.GetRoot(cancellationToken);
 
@@ -102,7 +92,7 @@ internal static class UnnecessaryUnsafeModifierUtilities
             var newNode = updateRoot.GetAnnotatedNodes(annotation).Single();
 
             var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(newNode.Span, cancellationToken);
-            if (ContainsErrorOrWarning(updatedDiagnostics))
+            if (ContainsError(updatedDiagnostics))
                 continue;
 
             result.Add(originalNode);
