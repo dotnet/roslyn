@@ -60,7 +60,7 @@ internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHan
         }
         else
         {
-            var projectPath = project.FilePath!;
+            var projectPath = project.FilePath;
             var projectFileName = Path.GetFileName(projectPath);
             return $"{projectFileName} ({flavor}) - {projectPath}";
         }

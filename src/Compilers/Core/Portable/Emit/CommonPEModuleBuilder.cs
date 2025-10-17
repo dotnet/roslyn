@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             if (PreviousGeneration != null)
             {
-                var symbolChanges = EncSymbolChanges!;
+                var symbolChanges = EncSymbolChanges;
                 if (symbolChanges.IsReplacedDef(typeDef))
                 {
                     // Type emitted with Replace semantics in this delta, it's name should have the current generation ordinal suffix.

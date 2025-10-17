@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             //
             // BaseDirectory was mistakenly marked as potentially null in 3.1
             // https://github.com/dotnet/runtime/pull/32486
-            AppDomain.CurrentDomain.BaseDirectory!;
+            AppDomain.CurrentDomain.BaseDirectory;
 
         /// <summary>
         /// Returns the directory that contains mscorlib, or null when running on CoreCLR.

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (IsToken)
             {
-                token = AsToken()!;
+                token = AsToken();
                 return true;
             }
 

@@ -199,7 +199,7 @@ internal partial class ItemManager
             (CompletionList<CompletionItemWithHighlight>, ImmutableArray<CompletionFilterWithState>) GetHighlightedListAndUpdatedFilters(
                 IAsyncCompletionSession session, IReadOnlyList<MatchResult> itemsToBeIncluded, ThreadLocal<PatternMatchHelper> patternMatcherHelper, CancellationToken cancellationToken)
             {
-                var highLightedList = GetHighlightedList(session, patternMatcherHelper.Value!, itemsToBeIncluded, cancellationToken);
+                var highLightedList = GetHighlightedList(session, patternMatcherHelper.Value, itemsToBeIncluded, cancellationToken);
                 var updatedFilters = GetUpdatedFilters(itemsToBeIncluded, cancellationToken);
                 return (highLightedList, updatedFilters);
             }
@@ -277,7 +277,7 @@ internal partial class ItemManager
                 // currentIndex is used to track the index of the VS CompletionItem in the initial sorted list to maintain a map from Roslyn item to VS item.
                 // It's also used to sort the items by pattern matching results while preserving the original alphabetical order for items with
                 // same pattern match score since `List<T>.Sort` isn't stable.
-                if (threadLocalPatternMatchHelper.Value!.TryCreateMatchResult(itemData.RoslynItem, roslynInitialTriggerKind, roslynFilterReason,
+                if (threadLocalPatternMatchHelper.Value.TryCreateMatchResult(itemData.RoslynItem, roslynInitialTriggerKind, roslynFilterReason,
                     _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem), _highlightMatchingPortions, index, out var matchResult))
                 {
                     lock (_gate)
