@@ -142,6 +142,9 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsFixAllTests(ITes
             {
                 static void Main()
                 {
+                    // In this test, we will not remove this guy because in our linked file we will see Goo.GetString
+                    // return a `string?` and will want to preserve that.  But we will remove the `!` in the method
+                    // below.
                     string s = Goo.GetString()!;
                     System.Console.WriteLine(s);
                 }
