@@ -5061,19 +5061,24 @@
 -refout:&lt;file&gt;                    Reference assembly output to generate
 
                                   - INPUT FILES -
--addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
+-addmodule:&lt;file_list&gt;            Reference metadata from the specified modules.
+                                  Separate multiple files with commas or semicolons.
 -link:&lt;file_list&gt;                 Embed metadata from the specified interop
-                                  assembly. (Short form: -l)
+                                  assembly. Separate multiple files with commas or
+                                  semicolons. (Short form: -l)
 -recurse:&lt;wildcard&gt;               Include all files in the current directory
                                   and subdirectories according to the
                                   wildcard specifications.
 -reference:&lt;file_list&gt;            Reference metadata from the specified
-                                  assembly. (Short form: -r)
--analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
+                                  assembly. Separate multiple files with commas or
+                                  semicolons. (Short form: -r)
+-analyzer:&lt;file_list&gt;             Run the analyzers from this assembly. Separate
+                                  multiple files with commas or semicolons.
                                   (Short form: -a)
 -additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
                                   generation but may be used by analyzers for producing
-                                  errors or warnings.
+                                  errors or warnings. Separate multiple files with
+                                  commas or semicolons.
 
                                   - RESOURCES -
 -linkresource:&lt;resinfo&gt;           Links the specified file as an external

@@ -3878,17 +3878,23 @@
 -reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
                               file using the given alias (Short form: -r)
 -reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                              files (Short form: -r)
--addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+                              files. Separate multiple files with commas or
+                              semicolons. (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly.
+                              Separate multiple files with commas or semicolons.
 -link:&lt;file list&gt;             Embed metadata from the specified interop
-                              assembly files (Short form: -l)
--analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              assembly files. Separate multiple files with commas
+                              or semicolons. (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly. Separate
+                              multiple files with commas or semicolons.
                               (Short form: -a)
 -additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
                               generation but may be used by analyzers for producing
-                              errors or warnings.
+                              errors or warnings. Separate multiple files with
+                              commas or semicolons.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB. Separate multiple
+                              files with commas or semicolons.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
