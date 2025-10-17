@@ -1310,14 +1310,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 16304 - 16304
         ' ParenthesizedArgumentList .Parser::ParseParenthesizedArguments( [ _Inout_ bool& ErrorInConstruct ] )
         Friend Function ParseParenthesizedArguments(Optional RedimOrNewParent As Boolean = False, Optional attributeListParent As Boolean = False) As ArgumentListSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "should be at tkLParen.")
-
             Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = Nothing
             Dim openParen As PunctuationSyntax = Nothing
             Dim closeParen As PunctuationSyntax = Nothing
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken)
-            TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
+            ' Try to get the opening parenthesis, create a missing one if not found
+            If Not TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen) Then
+                openParen = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.OpenParenToken)
+                openParen = ReportSyntaxError(openParen, ERRID.ERR_ExpectedLparen)
+            End If
 
             Dim unexpected As GreenNode = Nothing
             arguments = ParseArguments(unexpected, RedimOrNewParent, attributeListParent)

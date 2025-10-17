@@ -134,5 +134,21 @@ Integer
             Dim typeName = SyntaxFactory.ParseTypeName("", options:=parseOptions)
             Assert.Same(parseOptions, typeName.SyntaxTree.Options)
         End Sub
+
+        <Fact>
+        Public Shared Sub TestParseArgumentListWithoutParentheses()
+            ' This should not throw NullReferenceException or assertion failure
+            ' when input lacks parentheses
+            Dim result = SyntaxFactory.ParseArgumentList("42")
+            
+            ' Should still produce a valid ArgumentListSyntax with errors
+            Assert.NotNull(result)
+            Assert.True(result.ContainsDiagnostics)
+            
+            ' Test with parentheses - should work correctly
+            Dim resultWithParens = SyntaxFactory.ParseArgumentList("(42)")
+            Assert.NotNull(resultWithParens)
+            Assert.Equal("(42)", resultWithParens.ToString())
+        End Sub
     End Class
 End Namespace
