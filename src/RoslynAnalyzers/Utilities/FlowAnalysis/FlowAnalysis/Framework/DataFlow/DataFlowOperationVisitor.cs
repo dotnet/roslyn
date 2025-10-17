@@ -571,8 +571,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         assignedValue = argumentInfo;
                     }
 
-                    _addressSharedEntitiesProvider.UpdateAddressSharedEntitiesForParameter(parameter, analysisEntity!, assignedValue);
-                    SetValueForParameterOnEntry(parameter, analysisEntity!, assignedValue);
+                    _addressSharedEntitiesProvider.UpdateAddressSharedEntitiesForParameter(parameter, analysisEntity, assignedValue);
+                    SetValueForParameterOnEntry(parameter, analysisEntity, assignedValue);
                 }
 
                 _lazyParameterEntities = builder.ToImmutable();

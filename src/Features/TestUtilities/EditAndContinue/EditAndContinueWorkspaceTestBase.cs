@@ -392,7 +392,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         if (generatorProject != null)
         {
             var generators = generatorProject.AnalyzerReferences.SelectMany(r => r.GetGenerators(language: generatorProject.Language));
-            var driverOptions = new GeneratorDriverOptions(baseDirectory: generatorProject.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory()!);
+            var driverOptions = new GeneratorDriverOptions(baseDirectory: generatorProject.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
 
             var optionsProvider = (analyzerOptions != null) ? new EditAndContinueTestAnalyzerConfigOptionsProvider(analyzerOptions) : null;
             var additionalTexts = (additionalFileText != null) ? new[] { new InMemoryAdditionalText("additional_file", additionalFileText) } : null;
@@ -403,7 +403,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
                 generatorDriver = CSharpGeneratorDriver.Create(
                     generators,
                     additionalTexts,
-                    csParseOptions!,
+                    csParseOptions,
                     optionsProvider,
                     driverOptions);
             }
@@ -412,7 +412,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
                 generatorDriver = VisualBasic.VisualBasicGeneratorDriver.Create(
                     [.. generators],
                     additionalTexts.ToImmutableArrayOrEmpty<AdditionalText>(),
-                    vbParseOptions!,
+                    vbParseOptions,
                     optionsProvider,
                     driverOptions);
             }
