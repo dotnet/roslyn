@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces;
 
         /// <summary>
-        /// Gets the BaseType of this type. If the base type could not be determined, then 
+        /// Gets the BaseType of this type. If the base type could not be determined, then
         /// an instance of ErrorType is returned. If this kind of type does not have a base type
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
@@ -643,12 +643,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var typeDecl = (TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax();
 
                     // Check if this is a class inheriting from a class but missing a parameter list
-                    if (TypeKind == TypeKind.Class && 
-                        baseType.TypeKind != TypeKind.Interface && 
+                    if (TypeKind == TypeKind.Class &&
+                        baseType.TypeKind != TypeKind.Interface &&
                         typeDecl.ParameterList is null)
                     {
-                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, 
-                            primaryConstructorBaseType.ArgumentList.Location, 
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList,
+                            primaryConstructorBaseType.ArgumentList.Location,
                             this.Name);
                     }
                     // Other cases where argument lists are not allowed
