@@ -43854,7 +43854,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.Skipped).VerifyDiagnostics();
         }
 
-        private static readonly string s_collectionOfRefStructsSource = """
+        private static readonly string s_collectionWithRefStructElementType = """
                 #nullable enable
                 using System;
                 using System.Collections;
@@ -43944,7 +43944,7 @@ class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("1234"), verify: Verification.Fails);
+            var verifier = CompileAndVerify([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("1234"), verify: Verification.Fails);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", """
                 {
@@ -44080,7 +44080,7 @@ class Program
             // https://github.com/dotnet/roslyn/issues/80750
             // The spec implies the safe-context of 'spans' should be 'caller-context'. (That would be bad.)
             // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
-            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
                 //         return spans;
@@ -44106,7 +44106,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (11,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
                 //         return spans;
@@ -44130,7 +44130,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
                 //         return spans;
@@ -44156,7 +44156,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 );
         }
@@ -44178,7 +44178,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 );
         }
@@ -44203,7 +44203,7 @@ class Program
             // https://github.com/dotnet/roslyn/issues/80750
             // The spec implies the safe-context of 'spans' should be 'caller-context'.
             // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
-            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
                 //         return spans;
@@ -44229,7 +44229,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 );
         }
@@ -44251,7 +44251,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilation([source, s_collectionOfRefStructsSource], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 );
         }
