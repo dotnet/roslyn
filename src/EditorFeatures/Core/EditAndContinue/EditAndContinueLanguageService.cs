@@ -126,8 +126,6 @@ internal sealed class EditAndContinueLanguageService(
                 solution,
                 new ManagedHotReloadServiceBridge(debuggerService.Value),
                 sourceTextProvider,
-                captureMatchingDocuments: [],
-                captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
         }
