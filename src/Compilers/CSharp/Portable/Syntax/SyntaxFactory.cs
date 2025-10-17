@@ -294,6 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="text">The raw text of the identifier name, including any escapes or leading '@' character.</param>        
         public static SyntaxToken Identifier(string text)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(ElasticMarker.UnderlyingNode, text, ElasticMarker.UnderlyingNode));
         }
 
@@ -306,6 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, string text, SyntaxTriviaList trailing)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(leading.Node, text, trailing.Node));
         }
 
@@ -319,6 +329,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken VerbatimIdentifier(SyntaxTriviaList leading, string text, string valueText, SyntaxTriviaList trailing)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (valueText == null)
+            {
+                throw new ArgumentNullException(nameof(valueText));
+            }
+
             if (text.StartsWith("@", StringComparison.Ordinal))
             {
                 throw new ArgumentException("text should not start with an @ character.");
@@ -340,6 +360,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, SyntaxKind contextualKind, string text, string valueText, SyntaxTriviaList trailing)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (valueText == null)
+            {
+                throw new ArgumentNullException(nameof(valueText));
+            }
+
             return new SyntaxToken(InternalSyntax.SyntaxFactory.Identifier(contextualKind, leading.Node, text, valueText, trailing.Node));
         }
 
