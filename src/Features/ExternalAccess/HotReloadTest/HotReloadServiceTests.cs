@@ -50,7 +50,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
             AddTestProject("P", out var projectId).
             AddTestDocument(source: null, sourceFileA.Path, out var documentIdA).Project.Solution;
 
-        var moduleId = EmitLibrary(projectId, source1, sourceFileA.Path, assemblyName: "Proj");
+        EmitLibrary(solution.GetRequiredProject(projectId));
 
         var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
