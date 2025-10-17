@@ -366,21 +366,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var savedDisposalLabel = _currentDisposalLabel;
+            LabelSymbol finallyEntry = null;
+            bool hasCatchBlocks = !node.CatchBlocks.IsEmpty;
+            
             if (node.FinallyBlockOpt is object)
             {
-                var finallyEntry = F.GenerateLabel("finallyEntry");
+                finallyEntry = F.GenerateLabel("finallyEntry");
                 _currentDisposalLabel = finallyEntry;
 
-                // Add finallyEntry label:
-                //  try
-                //  {
-                //      ...
-                //      finallyEntry:
-                //  }
-
-                node = node.Update(
-                    tryBlock: F.Block(node.TryBlock, F.Label(finallyEntry)),
-                    node.CatchBlocks, node.FinallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
+                // When there are no catch blocks, we can place the finallyEntry label at the end
+                // of the try block (original behavior). But when there are catch blocks, we must
+                // place it after the entire try-catch-finally structure to avoid invalid IL
+                // (leaving from a catch block into a try block).
+                if (!hasCatchBlocks)
+                {
+                    node = node.Update(
+                        tryBlock: F.Block(node.TryBlock, F.Label(finallyEntry)),
+                        node.CatchBlocks, node.FinallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
+                }
             }
             else if (node.FinallyLabelOpt is object)
             {
@@ -390,6 +393,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = (BoundStatement)base.VisitTryStatement(node);
 
             _currentDisposalLabel = savedDisposalLabel;
+
+            if (finallyEntry != null && hasCatchBlocks)
+            {
+                // When there are catch blocks, place the finallyEntry label after the try-catch-finally:
+                //  try
+                //  {
+                //      ...
+                //      if (disposeMode) leave to finallyEntry;
+                //  }
+                //  catch
+                //  {
+                //      ...
+                //      if (disposeMode) leave to finallyEntry;
+                //  }
+                //  finally
+                //  {
+                //      ...
+                //  }
+                //  finallyEntry:
+                //  if (disposeMode) goto currentDisposalLabel;
+                result = F.Block(
+                    result,
+                    F.Label(finallyEntry));
+            }
 
             if (node.FinallyBlockOpt != null && _currentDisposalLabel is object)
             {
