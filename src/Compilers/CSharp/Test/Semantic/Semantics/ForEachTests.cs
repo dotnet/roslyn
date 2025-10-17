@@ -489,6 +489,69 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(T)null").WithLocation(7, 27));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnDefault()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in default)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,27): error CS8716: There is no target type for the default literal.
+                //         foreach (var x in default)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(5, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnImplicitObjectCreation()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in new())
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,27): error CS9176: There is no target type for 'new()'
+                //         foreach (var x in new())
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(5, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnCollectionExpression()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in [])
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,27): error CS9176: There is no target type for the collection expression.
+                //         foreach (var x in [])
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(5, 27));
+        }
+
         [Fact]
         public void TestErrorLambdaCollection()
         {
