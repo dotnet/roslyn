@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryUnsafeModifier;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryNullableWarningSuppressions), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpRemoveUnnecessaryUnsafeModifierSuppressionsCodeFixProvider() : CodeFixProvider
+internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression];
 
@@ -82,6 +82,6 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierSuppressionsCodeFixPr
 #endif
 
         protected override void FixAll(SyntaxEditor editor, IEnumerable<TextSpan> commonSpans)
-            => CSharpRemoveUnnecessaryUnsafeModifierSuppressionsCodeFixProvider.FixAll(editor, commonSpans);
+            => CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider.FixAll(editor, commonSpans);
     }
 }
