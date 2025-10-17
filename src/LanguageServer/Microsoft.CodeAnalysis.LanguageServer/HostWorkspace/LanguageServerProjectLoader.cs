@@ -220,13 +220,11 @@ internal abstract class LanguageServerProjectLoader
     /// <param name="projectPath">The path to the project being loaded.</param>
     /// <param name="primordialProjectFactory">The factory that created the primordial project.</param>
     /// <param name="primordialProjectId">The ID of the primordial project.</param>
-    /// <param name="loadedTargets">The newly loaded project targets.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     protected abstract ValueTask TransitionPrimordialProjectToLoadedAsync(
         string projectPath,
         ProjectSystemProjectFactory primordialProjectFactory,
         ProjectId primordialProjectId,
-        ImmutableArray<LoadedProject> loadedTargets,
         CancellationToken cancellationToken);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
@@ -334,7 +332,7 @@ internal abstract class LanguageServerProjectLoader
                 if (currentLoadState is ProjectLoadState.Primordial(var primordialProjectFactory, var projectId))
                 {
                     // Transition from primordial to loaded state
-                    await TransitionPrimordialProjectToLoadedAsync(projectPath, primordialProjectFactory, projectId, newProjectTargets, cancellationToken);
+                    await TransitionPrimordialProjectToLoadedAsync(projectPath, primordialProjectFactory, projectId, cancellationToken);
                 }
 
                 // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.
@@ -439,6 +437,15 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
+    /// <inheritdoc cref="BeginLoadingProjectWithPrimordial_NoLock"/>
+    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
+    {
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            BeginLoadingProjectWithPrimordial_NoLock(projectPath, primordialProjectFactory, primordialProjectId, doDesignTimeBuild);
+        }
+    }
+
     /// <summary>
     /// Begins loading a project with an associated primordial project. Must not be called for a project which has already begun loading.
     /// </summary>
@@ -446,23 +453,20 @@ internal abstract class LanguageServerProjectLoader
     /// If <see langword="true"/>, initiates a design-time build now, and starts file watchers to repeat the design-time build on relevant changes.
     /// If <see langword="false"/>, only tracks the primordial project.
     /// </param>
-    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
+    protected void BeginLoadingProjectWithPrimordial_NoLock(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
     {
-        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        // If this project has already begun loading, we need to throw.
+        // This is because we can't ensure that the workspace and project system will remain in a consistent state after this call.
+        // For example, there could be a need for the project system to track both a primordial project and list of loaded targets, which we don't support.
+        if (_loadedProjects.ContainsKey(projectPath))
         {
-            // If this project has already begun loading, we need to throw.
-            // This is because we can't ensure that the workspace and project system will remain in a consistent state after this call.
-            // For example, there could be a need for the project system to track both a primordial project and list of loaded targets, which we don't support.
-            if (_loadedProjects.ContainsKey(projectPath))
-            {
-                Contract.Fail($"Cannot begin loading project '{projectPath}' because it has already begun loading.");
-            }
+            Contract.Fail($"Cannot begin loading project '{projectPath}' because it has already begun loading.");
+        }
 
-            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId));
-            if (doDesignTimeBuild)
-            {
-                _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
-            }
+        _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId));
+        if (doDesignTimeBuild)
+        {
+            _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
         }
     }
 
