@@ -21533,9 +21533,9 @@ record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (13,16): error CS8861: Unexpected argument list.
+                // (13,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'C'.
                 // record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(13, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21579,9 +21579,9 @@ partial record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (17,24): error CS8861: Unexpected argument list.
+                // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'C'.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21632,12 +21632,12 @@ partial record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (13,24): error CS8861: Unexpected argument list.
+                // (13,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'C'.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 24),
-                // (17,24): error CS8861: Unexpected argument list.
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(13, 24),
+                // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'C'.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21694,9 +21694,9 @@ partial record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (17,24): error CS8861: Unexpected argument list.
+                // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'C'.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21982,9 +21982,9 @@ record C : Base(X)
                 // (11,8): error CS1729: 'Base' does not contain a constructor that takes 0 arguments
                 // record C : Base(X)
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("Base", "0").WithLocation(11, 8),
-                // (11,16): error CS8861: Unexpected argument list.
+                // (11,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'C'.
                 // record C : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(11, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X)").WithArguments("C").WithLocation(11, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -22499,9 +22499,9 @@ interface I {}
             var comp = CreateCompilation(src);
 
             comp.VerifyDiagnostics(
-                // (11,16): error CS8861: Unexpected argument list.
+                // (11,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'C'.
                 // record C : Base(GetInt(X, out var xx) + xx, Y), I
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(GetInt(X, out var xx) + xx, Y)").WithLocation(11, 16),
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(GetInt(X, out var xx) + xx, Y)").WithArguments("C").WithLocation(11, 16),
                 // (13,30): error CS1729: 'Base' does not contain a constructor that takes 4 arguments
                 //     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("Base", "4").WithLocation(13, 30)
