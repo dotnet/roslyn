@@ -30253,8 +30253,7 @@ record R2 : I(0)
                 );
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
         public void RecordInheritanceWithoutParameterList()
         {
             var src = """
@@ -30271,8 +30270,7 @@ record R2 : I(0)
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(1)").WithArguments("R2").WithLocation(2, 15));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
         public void RecordClassInheritanceWithoutParameterList()
         {
             var src = """
@@ -30289,8 +30287,7 @@ record R2 : I(0)
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(42)").WithArguments("R2").WithLocation(2, 21));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
         public void RecordInheritanceWithEmptyParameterListIsValid()
         {
             var src = """
@@ -30308,6 +30305,63 @@ record R2 : I(0)
                 """;
             var comp = CompileAndVerify(src, expectedOutput: "1");
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void StructWithArgumentListInBaseType()
+        {
+            var src = """
+                interface I
+                {
+                }
+
+                struct S : I(0)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8861: Unexpected argument list.
+                // struct S : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(5, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordStructWithArgumentListInBaseType()
+        {
+            var src = """
+                interface I
+                {
+                }
+
+                record struct S : I(0)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS8861: Unexpected argument list.
+                // record struct S : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(5, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordWithArgumentListToInterface()
+        {
+            var src = """
+                interface I
+                {
+                }
+
+                record R : I(0)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8861: Unexpected argument list.
+                // record R : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(5, 13));
         }
 
         [Theory]
