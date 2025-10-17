@@ -1750,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (namedType is not null)
             {
-                // We're doing binding on the 'Add' method, not the collection with-arguments.  So pass in null for
+                // We're doing binding on the 'Add' method, not the collection with-arguments.  So pass in false for
                 // bindingCollectionExpressionWithArguments here.
                 addMethodBinder = new ParamsCollectionTypeInProgressBinder(
                     namedType, addMethodBinder, bindingCollectionExpressionWithArguments: false);
