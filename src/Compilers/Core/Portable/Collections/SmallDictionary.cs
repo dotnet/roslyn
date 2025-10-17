@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis
         {
             if (_root != null)
             {
-                return TryGetValue(GetHashCode(key), key, out value);
+                return TryGetValue(GetHashCode(key), key, out value!);
             }
 
-            value = default;
+            value = default!;
             return false;
         }
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis
                 }
             } while (b != null);
 
-            value = default;
+            value = default!;
             return false;
 
 hasBucket:
@@ -229,7 +229,7 @@ hasBucket:
                 return true;
             }
 
-            return GetFromList(b.Next, key, out value);
+            return GetFromList(b.Next, key, out value!);
         }
 
         private bool GetFromList(Node? next, K key, [MaybeNullWhen(returnValue: false)] out V value)
@@ -245,7 +245,7 @@ hasBucket:
                 next = next.Next;
             }
 
-            value = default;
+            value = default!;
             return false;
         }
 

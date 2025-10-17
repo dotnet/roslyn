@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { WasCompilerGenerated = true };
 
                 // The diagnostics that would be produced here will already have been captured and returned.
-                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
+                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall!, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
 
                 Debug.Assert(
                     ReturnType.IsVoidType() ||

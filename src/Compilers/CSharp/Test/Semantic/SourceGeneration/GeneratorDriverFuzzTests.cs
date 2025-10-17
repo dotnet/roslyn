@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
                 context.RegisterSourceOutput(finalProvider, (context, text) =>
                 {
-                    context.AddSource(((InMemoryAdditionalText)text).Path, ((InMemoryAdditionalText)text).GetText().ToString());
+                    context.AddSource(((InMemoryAdditionalText)text).Path, ((InMemoryAdditionalText)text).GetText()!.ToString());
                 });
             }
 
