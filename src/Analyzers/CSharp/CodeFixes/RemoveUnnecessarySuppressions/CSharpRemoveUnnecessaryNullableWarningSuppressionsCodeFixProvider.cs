@@ -16,8 +16,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 <<<<<<< HEAD
+<<<<<<< HEAD
 using Microsoft.CodeAnalysis.Host;
 =======
+=======
+using Microsoft.CodeAnalysis.Host;
+>>>>>>> 0257cc47751 (Finish)
 using Microsoft.CodeAnalysis.Host.Mef;
 >>>>>>> 1085d29ddf2 (Specialize 'fix all' for 'remove unnecessary null suppressions')
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -34,10 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider() : CodeFixProvider
 =======
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+<<<<<<< HEAD
 internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider()
     : CodeFixProvider
     // : SyntaxEditorBasedCodeFixProvider
 >>>>>>> 1085d29ddf2 (Specialize 'fix all' for 'remove unnecessary null suppressions')
+=======
+internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider() : CodeFixProvider
+>>>>>>> 0257cc47751 (Finish)
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression];
 
@@ -80,6 +88,7 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
         }
 
         return editor.GetChangedRoot();
+<<<<<<< HEAD
     }
 
     public override FixAllProvider? GetFixAllProvider()
@@ -187,6 +196,8 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
             static IEnumerable<TextSpan> GetDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics)
                 => diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan);
         }
+=======
+>>>>>>> 0257cc47751 (Finish)
     }
 
     public override FixAllProvider? GetFixAllProvider()
@@ -215,61 +226,26 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
 
             var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
 
-            // Map from a document to all linked documents (not including itself).
+            // Note: we can only do this if we're doing a fix-all in the solution level.  That's the only way we can see
+            // the diagnostics for other linked documents.  If someone is just asking to fix in a project we'll only
+            // know about that project and thus can't make the right decision.
+            var filterBasedOnScope = fixAllContext.Scope == FixAllScope.Solution;
+
+            // Map from a document to all linked documents it has (not including itself).
             using var _ = PooledDictionary<DocumentId, ImmutableArray<DocumentId>>.GetInstance(out var documentToLinkedDocuments);
-            try
-            {
-                PopulateLinkedDocumentMap();
-                var updatedSolution = ProcessLinkedDocumentMap();
 
-                return CodeAction.Create(
-                    fixAllContext.GetDefaultFixAllTitle(),
-                    (_, _) => Task.FromResult(updatedSolution),
-                    equivalenceKey: null,
-                    CodeActionPriority.Default
+            PopulateLinkedDocumentMap();
+            var updatedSolution = await ProcessLinkedDocumentMapAsync().ConfigureAwait(false);
+
+            return CodeAction.Create(
+                fixAllContext.GetDefaultFixAllTitle(),
+                (_, _) => Task.FromResult(updatedSolution),
+                equivalenceKey: null,
+                CodeActionPriority.Default
 #if !CODE_STYLE
-                    , CodeActionCleanup.SyntaxOnly
+                , this.Cleanup
 #endif
-                    );
-            }
-            finally
-            {
-                foreach (var (_, set) in documentToLinkedDocuments)
-                    set.Free();
-            }
-
-            Solution ProcessLinkedDocumentMap()
-            {
-                var currentSolution = fixAllContext.Solution;
-
-                foreach (var (documentId, linkedDocumentIds) in documentToLinkedDocuments)
-                {
-                    // Now, for each group of linked documents, only remove the suppression operators we see in all documents.
-                    var document = fixAllContext.Solution.GetRequiredDocument(documentId);
-                    using var _ = PooledHashSet<TextSpan>.GetInstance(out var commonSpans);
-
-                    var diagnostics = documentToDiagnostics[document];
-
-                    // Start initially with all the spans in this document.
-                    commonSpans.UnionWith(GetDiagnosticSpans(diagnostics));
-
-                    // Now, only keep those spans that are also in all other linked documents.
-                    foreach (var linkedDocumentId in linkedDocumentIds)
-                    {
-                        var linkedDocument = fixAllContext.Solution.GetRequiredDocument(linkedDocumentId);
-                        var linkedDiagnostics = documentToDiagnostics.TryGetValue(linkedDocument, out var result) ? result : [];
-
-                        commonSpans.IntersectWith(GetDiagnosticSpans(linkedDiagnostics));
-                    }
-
-
-                }
-
-                return currentSolution;
-
-                static IEnumerable<TextSpan> GetDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics)
-                    => diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan);
-            }
+                );
 
             void PopulateLinkedDocumentMap()
             {
@@ -286,6 +262,48 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
                     documentToLinkedDocuments[document.Id] = linkedDocuments;
                 }
             }
+
+            async Task<Solution> ProcessLinkedDocumentMapAsync()
+            {
+                var currentSolution = fixAllContext.Solution;
+
+                foreach (var (documentId, linkedDocumentIds) in documentToLinkedDocuments)
+                {
+                    // Now, for each group of linked documents, only remove the suppression operators we see in all documents.
+                    var document = fixAllContext.Solution.GetRequiredDocument(documentId);
+                    using var _ = PooledHashSet<TextSpan>.GetInstance(out var commonSpans);
+
+                    var diagnostics = documentToDiagnostics[document];
+
+                    // Start initially with all the spans in this document.
+                    commonSpans.UnionWith(GetDiagnosticSpans(diagnostics));
+
+                    // Now, only keep those spans that are also in all other linked documents.
+                    if (filterBasedOnScope)
+                    {
+                        foreach (var linkedDocumentId in linkedDocumentIds)
+                        {
+                            var linkedDocument = fixAllContext.Solution.GetRequiredDocument(linkedDocumentId);
+                            var linkedDiagnostics = documentToDiagnostics.TryGetValue(linkedDocument, out var result) ? result : [];
+
+                            commonSpans.IntersectWith(GetDiagnosticSpans(linkedDiagnostics));
+                        }
+                    }
+
+                    // Now process the common spans on this initial document.  Note: we don't need to bother updating
+                    // the linked documents since, by definition, they will get the same changes.  And the workspace
+                    // will automatically edit all linked files when making a change to only one of them.
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var newRoot = FixAll(fixAllContext.Solution.Services, root, commonSpans);
+
+                    currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
+                }
+
+                return currentSolution;
+            }
+
+            static IEnumerable<TextSpan> GetDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics)
+                => diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan);
         }
     }
 }
