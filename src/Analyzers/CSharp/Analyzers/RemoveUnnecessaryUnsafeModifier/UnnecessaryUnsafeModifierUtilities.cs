@@ -43,7 +43,7 @@ internal static class UnnecessaryUnsafeModifierUtilities
 
     public static void AddUnnecessaryNodes(
         SemanticModel semanticModel,
-        ArrayBuilder<(SyntaxNode declaration, SyntaxToken modifier)> result,
+        ArrayBuilder<SyntaxNode> result,
         CancellationToken cancellationToken)
     {
         using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToCheck);
@@ -79,7 +79,7 @@ internal static class UnnecessaryUnsafeModifierUtilities
         SemanticModel semanticModel,
         ArrayBuilder<SyntaxNode> nodesToCheck,
         PooledDictionary<SyntaxNode, SyntaxAnnotation> nodeToAnnotation,
-        ArrayBuilder<(SyntaxNode, SyntaxToken modifier)> result,
+        ArrayBuilder<SyntaxNode> result,
         CancellationToken cancellationToken)
     {
 
@@ -105,7 +105,7 @@ internal static class UnnecessaryUnsafeModifierUtilities
             if (ContainsErrorOrWarning(updatedDiagnostics))
                 continue;
 
-            result.Add((originalNode, GetModifiers(originalNode).fi);
+            result.Add(originalNode);
         }
     }
 
@@ -118,7 +118,7 @@ internal static class UnnecessaryUnsafeModifierUtilities
         };
 
     private static SyntaxTokenList GetNewModifierList(SyntaxNode node)
-        => GetNewModifierList(GetModifiers(node));
+        => GetModifiers(node).Remove(GetUnsafeModifier(node));
 
     private static SyntaxTokenList GetModifiers(SyntaxNode node)
         => node switch
@@ -128,9 +128,6 @@ internal static class UnnecessaryUnsafeModifierUtilities
             _ => throw ExceptionUtilities.UnexpectedValue(node)
         };
 
-    private static SyntaxTokenList GetNewModifierList(SyntaxTokenList modifiers)
-        => modifiers.Remove(GetUnsafeModifier(modifiers));
-
-    private static SyntaxToken GetUnsafeModifier(SyntaxTokenList modifiers)
-        => modifiers.First(m => m.IsKind(SyntaxKind.UnsafeKeyword));
+    public static SyntaxToken GetUnsafeModifier(SyntaxNode node)
+        => GetModifiers(node).First(m => m.IsKind(SyntaxKind.UnsafeKeyword));
 }
