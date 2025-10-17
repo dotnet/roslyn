@@ -15,7 +15,11 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+<<<<<<< HEAD
 using Microsoft.CodeAnalysis.Host;
+=======
+using Microsoft.CodeAnalysis.Host.Mef;
+>>>>>>> 1085d29ddf2 (Specialize 'fix all' for 'remove unnecessary null suppressions')
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,8 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryNullableWarningSuppressions), Shared]
 [method: ImportingConstructor]
+<<<<<<< HEAD
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider() : CodeFixProvider
+=======
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider()
+    : CodeFixProvider
+    // : SyntaxEditorBasedCodeFixProvider
+>>>>>>> 1085d29ddf2 (Specialize 'fix all' for 'remove unnecessary null suppressions')
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression];
 
@@ -175,6 +186,106 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
 
             static IEnumerable<TextSpan> GetDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics)
                 => diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan);
+        }
+    }
+
+    public override FixAllProvider? GetFixAllProvider()
+        => new RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider();
+
+    private sealed class RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider : FixAllProvider
+    {
+#if !CODE_STYLE
+        internal override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+#endif
+
+        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        {
+            var cancellationToken = fixAllContext.CancellationToken;
+
+            // Fix-all for removing unnecessary `!` operators works in a fairly specialized fashion.  The core problem
+            // is that it's normal to have situations where a `!` operator is unnecessary in one linked document in one
+            // project, but necessary in another.  Consider something as mundane as `string.IsNullOrEmpty(s)`.  In
+            // projects that reference a modern, annotated, BCL, the nullable attributes on this method will allow the
+            // compiler to determine that `s` is non-null after the call, allowing superfluous `!` operators to be
+            // removed.  However, in projects that reference an unannotated BCL, no such determination can be made, and
+            // the `!` on a following statement may be necessary.
+            //
+            // To deal with this, we consider all linked documents together.  If a `!` operator is unnecessary in *all*
+            // linked documents, then we can remove it.  Otherwise, we must keep it.
+
+            var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+
+            // Map from a document to all linked documents (not including itself).
+            using var _ = PooledDictionary<DocumentId, ImmutableArray<DocumentId>>.GetInstance(out var documentToLinkedDocuments);
+            try
+            {
+                PopulateLinkedDocumentMap();
+                var updatedSolution = ProcessLinkedDocumentMap();
+
+                return CodeAction.Create(
+                    fixAllContext.GetDefaultFixAllTitle(),
+                    (_, _) => Task.FromResult(updatedSolution),
+                    equivalenceKey: null,
+                    CodeActionPriority.Default
+#if !CODE_STYLE
+                    , CodeActionCleanup.SyntaxOnly
+#endif
+                    );
+            }
+            finally
+            {
+                foreach (var (_, set) in documentToLinkedDocuments)
+                    set.Free();
+            }
+
+            Solution ProcessLinkedDocumentMap()
+            {
+                var currentSolution = fixAllContext.Solution;
+
+                foreach (var (documentId, linkedDocumentIds) in documentToLinkedDocuments)
+                {
+                    // Now, for each group of linked documents, only remove the suppression operators we see in all documents.
+                    var document = fixAllContext.Solution.GetRequiredDocument(documentId);
+                    using var _ = PooledHashSet<TextSpan>.GetInstance(out var commonSpans);
+
+                    var diagnostics = documentToDiagnostics[document];
+
+                    // Start initially with all the spans in this document.
+                    commonSpans.UnionWith(GetDiagnosticSpans(diagnostics));
+
+                    // Now, only keep those spans that are also in all other linked documents.
+                    foreach (var linkedDocumentId in linkedDocumentIds)
+                    {
+                        var linkedDocument = fixAllContext.Solution.GetRequiredDocument(linkedDocumentId);
+                        var linkedDiagnostics = documentToDiagnostics.TryGetValue(linkedDocument, out var result) ? result : [];
+
+                        commonSpans.IntersectWith(GetDiagnosticSpans(linkedDiagnostics));
+                    }
+
+
+                }
+
+                return currentSolution;
+
+                static IEnumerable<TextSpan> GetDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics)
+                    => diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan);
+            }
+
+            void PopulateLinkedDocumentMap()
+            {
+                var solution = fixAllContext.Solution;
+                foreach (var (document, _) in documentToDiagnostics)
+                {
+                    // Note: GetLinkedDocuments does not return the document it was called on.
+                    var linkedDocuments = document.GetLinkedDocumentIds();
+
+                    // Ignore any linked documents we already saw by processing another document in that linked set.
+                    if (linkedDocuments.Any(id => documentToLinkedDocuments.ContainsKey(id)))
+                        continue;
+
+                    documentToLinkedDocuments[document.Id] = linkedDocuments;
+                }
+            }
         }
     }
 }
