@@ -1207,8 +1207,7 @@ public class Test
             Assert.Equal("Author", authorResultType.Name);
         }
 
-        [WorkItem("https://developercommunity.visualstudio.com/t/InterlockedExchange:-compiler-choses-wr/1259784")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49525")]
         public void InterlockedExchangeWithNullableTypes()
         {
             string source = """
