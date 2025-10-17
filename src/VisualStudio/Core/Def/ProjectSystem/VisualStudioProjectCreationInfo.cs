@@ -10,6 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal sealed class VisualStudioProjectCreationInfo : ProjectSystemProjectCreationInfo
 {
-    public IVsHierarchy? Hierarchy { get; set; }
-    public Guid ProjectGuid { get; set; }
+    public IVsHierarchy? Hierarchy { get; init; }
+    public Guid ProjectGuid { get; init; }
 }

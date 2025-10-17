@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.Utilities
@@ -17,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function AddAndRemoveWorks() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project", LanguageNames.CSharp, CancellationToken.None)
+                    "project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Dim textBufferFactory = environment.ExportProvider.GetExportedValue(Of ITextBufferFactoryService)()
                 Dim sourceTextContainer = textBufferFactory.CreateTextBuffer().AsTextContainer()
