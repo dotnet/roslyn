@@ -7330,5 +7330,50 @@ select t";
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10446")]
+        public void LetClauseWithKeywordAsIdentifier()
+        {
+            UsingExpression("from m in methods let params = 1 select m",
+                // (1,23): error CS1041: Identifier expected; 'params' is a keyword
+                // from m in methods let params = m.GetParameters() select m
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "params").WithArguments("", "params").WithLocation(1, 23));
+
+            N(SyntaxKind.QueryExpression);
+            {
+                N(SyntaxKind.FromClause);
+                {
+                    N(SyntaxKind.FromKeyword);
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.InKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "methods");
+                    }
+                }
+                N(SyntaxKind.QueryBody);
+                {
+                    N(SyntaxKind.LetClause);
+                    {
+                        N(SyntaxKind.LetKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.SelectClause);
+                    {
+                        N(SyntaxKind.SelectKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "m");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
     }
 }

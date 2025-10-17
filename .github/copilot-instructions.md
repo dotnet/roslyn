@@ -24,8 +24,9 @@
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
-- When running `dotnet format whitespace` use the `--folder .` option followed by `--include <relative path to file>` to avoid a design-time build.
-- `dotnet format whitespace --folder . --include <relative path to file>` - Applies formatting preferences to a particular .cs or .vb file
+- When running `dotnet format whitespace` use the `--folder .` option followed by `--include <path to file>` to avoid a design-time build
+- Apply formatting preferences to any modified .cs or .vb file
+- **Important**: Blank lines must not contain any whitespace characters (spaces or tabs). This will cause linting errors that must be fixed.
 
 ## Code Patterns
 
