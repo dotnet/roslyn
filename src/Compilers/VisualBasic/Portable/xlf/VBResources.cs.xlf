@@ -557,11 +557,6 @@
         <target state="translated">Ve VB nejsou žádné nativní typy celých čísel.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Trees0">
-        <source>trees({0})</source>
-        <target state="translated">stromy({0})</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreesMustHaveRootNode">
         <source>trees({0}) must have root node with SyntaxKind.CompilationUnit.</source>
         <target state="translated">stromy({0}) musí mít kořenový uzel s prvkem SyntaxKind.CompilationUnit.</target>
@@ -812,16 +807,6 @@
         <target state="translated">Nejsou zadané žádné vstupní zdroje.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded">
-        <source>source file '{0}' specified multiple times</source>
-        <target state="translated">Zdrojový soubor {0} je zadaný několikrát.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded_Title">
-        <source>Source file specified multiple times</source>
-        <target state="translated">Zdrojový soubor je zadaný několikrát.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>can't open '{0}' for writing: {1}</source>
         <target state="translated">Soubor {0} nejde otevřít pro zápis: {1}.</target>
@@ -860,16 +845,6 @@
       <trans-unit id="WRN_NoConfigInResponseFile_Title">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">Přepínač /noconfig se ignoroval, protože byl uvedený v souboru odpovědí.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId">
-        <source>warning number '{0}' for the option '{1}' is either not configurable or not valid</source>
-        <target state="translated">Číslo upozornění {0} pro parametr {1} není konfigurovatelné nebo není platné.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId_Title">
-        <source>Warning number is either not configurable or not valid</source>
-        <target state="translated">Číslo upozornění není nakonfigurované nebo je neplatné.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSourcesOut">
@@ -2992,11 +2967,6 @@
       <trans-unit id="ERR_UnrecognizedEnd">
         <source>'End' statement not valid.</source>
         <target state="translated">'Příkaz End není platný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ArrayInitForNonArray2">
-        <source>Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</source>
-        <target state="translated">Inicializátory polí jsou platné jenom pro pole, ale {0} je typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionNoRegion">
@@ -6748,16 +6718,6 @@
         <target state="translated">Atribut Conditional je platný jenom v deklaracích Sub.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute">
-        <source>Use command-line option '{0}' or appropriate project settings instead of '{1}'.</source>
-        <target state="translated">Namísto {1} použijte možnost příkazového řádku {0} nebo odpovídající nastavení projektu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute_Title">
-        <source>Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</source>
-        <target state="translated">Místo AssemblyKeyFileAttribute, AssemblyKeyNameAttribute nebo AssemblyDelaySignAttribute použijte parametr příkazového řádku /keyfile, /keycontainer nebo /delaysign.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_RecursiveAddHandlerCall">
         <source>Statement recursively calls the containing '{0}' for event '{1}'.</source>
         <target state="translated">Příkaz rekurzivně volá nadřazený {0} pro událost {1}.</target>
@@ -7436,16 +7396,6 @@
       <trans-unit id="WRN_RelDelegatePassedToRemoveHandler_Title">
         <source>The 'AddressOf' expression has no effect in this context because the method argument to 'AddressOf' requires a relaxed conversion to the delegate type of the event</source>
         <target state="translated">Výraz AddressOf nemá v tomto kontextu žádný účinek, protože argument metody pro výraz AddressOf vyžaduje volný převod na typ delegáta události.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</source>
-        <target state="translated">Předpokládá se, že proměnná rozsahu je typu Objekt, protože její typ nejde odvodit. Zadejte jiný typ pomocí klauzule As.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl_Title">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred</source>
-        <target state="translated">Předpokládá se, že proměnná rozsahu je typu Object, protože se její typ nedá odvodit.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultilineLambdaMissingFunction">

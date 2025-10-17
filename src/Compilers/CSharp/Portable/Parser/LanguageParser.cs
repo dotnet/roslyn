@@ -13009,6 +13009,11 @@ done:
             return IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
         }
 
+        private bool IsNamedMemberInitializer()
+        {
+            return IsTrueIdentifier() && this.PeekToken(1).Kind is SyntaxKind.EqualsToken or SyntaxKind.ColonToken;
+        }
+
         private bool IsDictionaryInitializer()
         {
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
@@ -13174,7 +13179,7 @@ done:
                 // [...] = <expr>
                 return this.ParseDictionaryInitializer();
             }
-            else if (this.IsNamedAssignment())
+            else if (this.IsNamedMemberInitializer())
             {
                 // Name = { ... }
                 // Name = ref <expr>
@@ -13204,7 +13209,9 @@ done:
             return _syntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 this.ParseIdentifierName(),
-                this.EatToken(SyntaxKind.EqualsToken),
+                this.CurrentToken.Kind == SyntaxKind.ColonToken
+                    ? this.EatTokenAsKind(SyntaxKind.EqualsToken)
+                    : this.EatToken(SyntaxKind.EqualsToken),
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()
                     : this.ParsePossibleRefExpression());
@@ -14059,7 +14066,7 @@ done:
             set => _syntaxFactoryContext.IsInQuery = value;
         }
 
-        private bool IsInFieldKeywordContext
+        internal bool IsInFieldKeywordContext
         {
             get => _syntaxFactoryContext.IsInFieldKeywordContext;
             set => _syntaxFactoryContext.IsInFieldKeywordContext = value;

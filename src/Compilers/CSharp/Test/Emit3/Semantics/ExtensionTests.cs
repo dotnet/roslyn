@@ -27,32 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Extensions)]
 public partial class ExtensionTests : CompilingTestBase
 {
-    internal string ExtensionMarkerAttributeIL = """
-
-.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
-    extends [mscorlib]System.Attribute
-{
-    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
-        01 00 ff 7f 00 00 01 00 54 02 09 49 6e 68 65 72
-        69 74 65 64 00
-    )
-
-    .method public hidebysig specialname rtspecialname 
-        instance void .ctor (
-            string name
-        ) cil managed 
-    {
-        .maxstack 8
-
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
-        IL_0006: nop
-        IL_0007: nop
-        IL_0008: ret
-    }
-}
-""";
-
     private static string ExpectedOutput(string output)
     {
         return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
@@ -1923,17 +1897,17 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,14): error CS1109: Extension methods must be defined in a top level static class;  is a nested class
+            // (5,16): error CS0027: Keyword 'this' is not available in the current context
             //         void M(this int i) { }
-            Diagnostic(ErrorCode.ERR_ExtensionMethodsDecl, "M").WithArguments("").WithLocation(5, 14));
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(5, 16));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(method);
-        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(this System.Int32 i)", symbol.ToTestDisplayString());
-        Assert.True(symbol.IsExtensionMethod);
+        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)", symbol.ToTestDisplayString());
+        Assert.False(symbol.IsExtensionMethod);
     }
 
     [Fact]
@@ -2534,7 +2508,7 @@ public static class Extensions
 {
     extension(C)
     {
-        class Nested { }
+        public class Nested { }
     }
 }
 class C { }
@@ -2544,9 +2518,9 @@ class C { }
             // (1,3): error CS0426: The type name 'Nested' does not exist in the type 'C'
             // C.Nested x = null;
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C").WithLocation(1, 3),
-            // (7,15): error CS9282: This member is not allowed in an extension block
-            //         class Nested { }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 15));
+            // (7,22): error CS9282: This member is not allowed in an extension block
+            //         public class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -13348,7 +13322,7 @@ static class E
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<int>().M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -13409,9 +13383,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<,>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
-        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
-
-        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U, V>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(invocation));
+        Assert.Empty(model.GetMemberGroup(invocation.Expression));
     }
 
     [Fact]
@@ -14772,8 +14745,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object, object>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -18476,6 +18449,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
+            // (5,20): error CS1061: 'string' does not contain a definition for 'f' and no accessible extension method 'f' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // var x = b ? ref s1.f : ref s2.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("string", "f").WithLocation(5, 20),
+            // (5,31): error CS1061: 'string' does not contain a definition for 'f' and no accessible extension method 'f' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // var x = b ? ref s1.f : ref s2.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("string", "f").WithLocation(5, 31),
             // (10,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
             //     extension(ref string s)
             Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "string").WithLocation(10, 19),
@@ -18486,7 +18465,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s1.f");
-        AssertEx.Equal("ref System.String E.<G>$34505F560D9EACF86A87F3ED1F85E448.f { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
     [Fact]
@@ -25303,11 +25282,10 @@ interface I<T>
 interface I2 : I<int>, I<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider improving the symbols in this error message
         comp.VerifyEmitDiagnostics(
-            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M()' and 'I<T>.M()'
+            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<int>.M()' and 'I<string>.M()'
             // I2.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I<T>.M()", "I<T>.M()").WithLocation(1, 4));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I<int>.M()", "I<string>.M()").WithLocation(1, 4));
     }
 
     [Fact]
@@ -25325,9 +25303,9 @@ interface I2 : I<int>, I<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M<U>()' and 'I<T>.M<U>()'
+            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<int>.M<U>()' and 'I<string>.M<U>()'
             // I2.M<int>();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("I<T>.M<U>()", "I<T>.M<U>()").WithLocation(1, 4));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("I<int>.M<U>()", "I<string>.M<U>()").WithLocation(1, 4));
     }
 
     [Fact]
@@ -29058,8 +29036,8 @@ static class E1
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -35063,9 +35041,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M<T>(T)' and 'E2.extension<T>(T).M(int)'
+            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M<T>(T)' and 'E2.extension<int>(int).M(int)'
             // int.M(42);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(int).M<T>(T)", "E2.extension<T>(T).M(int)").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(int).M<T>(T)", "E2.extension<int>(int).M(int)").WithLocation(1, 5));
     }
 
     [Fact]
@@ -36000,6 +35978,9 @@ static class E
 ";
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
+            // (6,3): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(6, 3),
             // (7,3): error CS1061: 'C' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // c.M2();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C", "M2").WithLocation(7, 3),
@@ -37576,7 +37557,27 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
+
+        src = """
+string s = null;
+s.M<string>();
+
+static class E
+{
+    public static void M<T, U>(this T t) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,3): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // s.M<string>();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<string>").WithArguments("string", "M").WithLocation(2, 3));
+
+        tree = comp.SyntaxTrees.First();
+        model = comp.GetSemanticModel(tree);
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -37603,7 +37604,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<string, string>.M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$373395272A45479DE48E8BB1CCB2C42B<System.String, System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -38119,6 +38120,70 @@ public static class E
     }
 
     [Fact]
+    public void LookupSymbols_InField()
+    {
+        var src = """
+class C
+{
+    object field = null;
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        int position = GetSyntax<LiteralExpressionSyntax>(tree, "null").EndPosition - 1;
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        Assert.Empty(model.LookupSymbols(position, o, name: "M"));
+        Assert.Empty(model.LookupNamespacesAndTypes(position, o, name: "M"));
+    }
+
+    [Fact]
+    public void LookupSymbols_UsedImports()
+    {
+        var src = """
+// here
+
+using N;
+
+namespace N
+{
+    public static class E
+    {
+        extension(object)
+        {
+            public static void M() => throw null;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertEqualAndNoDuplicates(["void N.E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"],
+            model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        model.GetDiagnostics().Verify(
+            // (3,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(3, 1));
+    }
+
+    [Fact]
     public void GetMemberGroup_01()
     {
         var src = """
@@ -38399,9 +38464,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<T>(T).M()' and 'E2.extension<T>(T).M()'
+            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<string>(string).M()' and 'E2.extension<string>(string).M()'
             // string.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension<T>(T).M()", "E2.extension<T>(T).M()").WithLocation(1, 8));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension<string>(string).M()", "E2.extension<string>(string).M()").WithLocation(1, 8));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -40741,9 +40806,9 @@ public static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,17): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<T>(T).M()' and 'E2.extension<T>(T).M()'
+            // (5,17): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<Color>(Color).M()' and 'E2.extension<Color>(Color).M()'
             //         var x = Color.M;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Color.M").WithArguments("E1.extension<T>(T).M()", "E2.extension<T>(T).M()").WithLocation(5, 17));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Color.M").WithArguments("E1.extension<Color>(Color).M()", "E2.extension<Color>(Color).M()").WithLocation(5, 17));
     }
 
     [Fact]
@@ -44442,9 +44507,6 @@ static class E
             Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69").WithLocation(1, 1));
 
         AssertEx.Equal("<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionGroupingName);
-
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : we should find the unspeakable nested type
-        Assert.Null(comp.GetTypeByMetadataName("E+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"));
     }
 
     [Fact]

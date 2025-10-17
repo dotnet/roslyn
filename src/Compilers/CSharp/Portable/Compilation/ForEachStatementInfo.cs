@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IMethodSymbol? MoveNextMethod { get; }
 
         /// <summary>
+        /// Gets the awaitable info for the <see cref="MoveNextMethod"/> in an asynchronous foreach. <see langword="default"/> if this is a synchronous foreach.
+        /// </summary>
+        public AwaitExpressionInfo MoveNextAwaitableInfo { get; }
+
+        /// <summary>
         /// Gets the &quot;Current&quot; property.
         /// </summary>
         public IPropertySymbol? CurrentProperty { get; }
@@ -36,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the &quot;Dispose&quot; method (or &quot;DisposeAsync&quot; in an asynchronous foreach).
         /// </summary>
         public IMethodSymbol? DisposeMethod { get; }
+
+        /// <summary>
+        /// Gets the awaitable info for the <see cref="DisposeMethod"/> in an asynchronous foreach. <see langword="default"/> if this is a synchronous foreach.
+        /// </summary>
+        public AwaitExpressionInfo DisposeAwaitableInfo { get; }
 
         /// <summary>
         /// The intermediate type to which the output of the <see cref="CurrentProperty"/> is converted
@@ -65,8 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ForEachStatementInfo(bool isAsync,
                                       IMethodSymbol getEnumeratorMethod,
                                       IMethodSymbol moveNextMethod,
+                                      AwaitExpressionInfo moveNextAwaitableInfo,
                                       IPropertySymbol currentProperty,
                                       IMethodSymbol disposeMethod,
+                                      AwaitExpressionInfo disposeAwaitableInfo,
                                       ITypeSymbol elementType,
                                       Conversion elementConversion,
                                       Conversion currentConversion)
@@ -74,8 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IsAsynchronous = isAsync;
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.MoveNextMethod = moveNextMethod;
+            this.MoveNextAwaitableInfo = moveNextAwaitableInfo;
             this.CurrentProperty = currentProperty;
             this.DisposeMethod = disposeMethod;
+            this.DisposeAwaitableInfo = disposeAwaitableInfo;
             this.ElementType = elementType;
             this.ElementConversion = elementConversion;
             this.CurrentConversion = currentConversion;
@@ -91,8 +105,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.IsAsynchronous == other.IsAsynchronous
                 && object.Equals(this.GetEnumeratorMethod, other.GetEnumeratorMethod)
                 && object.Equals(this.MoveNextMethod, other.MoveNextMethod)
+                && this.MoveNextAwaitableInfo.Equals(other.MoveNextAwaitableInfo)
                 && object.Equals(this.CurrentProperty, other.CurrentProperty)
                 && object.Equals(this.DisposeMethod, other.DisposeMethod)
+                && this.DisposeAwaitableInfo.Equals(other.DisposeAwaitableInfo)
                 && object.Equals(this.ElementType, other.ElementType)
                 && this.ElementConversion == other.ElementConversion
                 && this.CurrentConversion == other.CurrentConversion;
@@ -103,11 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Hash.Combine(IsAsynchronous,
                    Hash.Combine(GetEnumeratorMethod,
                    Hash.Combine(MoveNextMethod,
+                   Hash.Combine(MoveNextAwaitableInfo.GetHashCode(),
                    Hash.Combine(CurrentProperty,
                    Hash.Combine(DisposeMethod,
+                   Hash.Combine(DisposeAwaitableInfo.GetHashCode(),
                    Hash.Combine(ElementType,
                    Hash.Combine(ElementConversion.GetHashCode(),
-                                CurrentConversion.GetHashCode())))))));
+                                CurrentConversion.GetHashCode())))))))));
         }
     }
 }

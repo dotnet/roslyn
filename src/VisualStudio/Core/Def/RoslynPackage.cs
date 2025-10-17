@@ -7,7 +7,6 @@ using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
@@ -101,9 +100,6 @@ internal sealed class RoslynPackage : AbstractPackage
         {
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             _ = ComponentModel.GetService<IGlobalOptionService>();
-
-            var colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
-            colorSchemeApplier.RegisterInitializationWork(afterPackageLoadedTasks);
 
             return Task.CompletedTask;
         }

@@ -21,6 +21,12 @@ steps:
     - template: checkout-windows-task.yml
 
   - task: PowerShell@2
+    displayName: Enable Long Paths
+    inputs:
+      targetType: 'inline'
+      script: reg import eng\enable-long-paths.reg
+
+  - task: PowerShell@2
     displayName: Build and Test
     inputs:
       filePath: eng/build.ps1

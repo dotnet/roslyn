@@ -6960,5 +6960,89 @@ class C
                 result.AssertLabeledSpansAre("Complex", "C.Goo{D}(X)", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
+        Public Sub RenameAnonymousTypePropertyInDeclaration(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = new
+        {
+            [|$$Prop|] = 3,
+            args,
+        };
+
+        Console.WriteLine(x.[|Prop|]);
+        Console.WriteLine(x.args);
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Property")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
+        Public Sub RenameAnonymousTypePropertyInAccess(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = new
+        {
+            [|Prop|] = 3,
+            args,
+        };
+
+        Console.WriteLine(x.[|$$Prop|]);
+        Console.WriteLine(x.args);
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Property")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
+        Public Sub RenameAnonymousTypePropertyMultipleOccurrences(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = new { [|$$Name|] = "Test" };
+        var y = new { [|Name|] = "Test2" };
+        
+        Console.WriteLine(x.[|Name|]);
+        Console.WriteLine(y.[|Name|]);
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="FullName")
+            End Using
+        End Sub
     End Class
 End Namespace
