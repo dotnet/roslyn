@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -30,6 +31,7 @@ public abstract partial class CompletionService
         private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
         private IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
         private readonly CompletionService _service;
+        private readonly IExtensionManager _extensionManager;
 
         private readonly AsyncBatchingWorkQueue<IReadOnlyList<AnalyzerReference>> _projectProvidersWorkQueue;
 
@@ -39,6 +41,7 @@ public abstract partial class CompletionService
             _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             _nameToProvider = new Lazy<ImmutableDictionary<string, CompletionProvider>>(LoadImportedProvidersAndCreateNameMap, LazyThreadSafetyMode.PublicationOnly);
 
+            _extensionManager = service._services.GetRequiredService<IExtensionManager>();
             _projectProvidersWorkQueue = new AsyncBatchingWorkQueue<IReadOnlyList<AnalyzerReference>>(
                     TimeSpan.FromSeconds(1),
                     ProcessBatchAsync,
@@ -88,7 +91,7 @@ public abstract partial class CompletionService
                 cancellationToken.ThrowIfCancellationRequested();
                 // Go through the potentially slow path to ensure project providers are loaded.
                 // We only do this in background here to avoid UI delays.
-                _ = ProjectCompletionProvider.GetExtensions(_service.Language, references);
+                _ = ProjectCompletionProvider.GetExtensions(_service.Language, references, _extensionManager);
             }
 
             return ValueTask.CompletedTask;
@@ -108,7 +111,7 @@ public abstract partial class CompletionService
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1620947
             if (options.ForceExpandedCompletionIndexCreation)
             {
-                return ProjectCompletionProvider.GetExtensions(_service.Language, project.AnalyzerReferences);
+                return ProjectCompletionProvider.GetExtensions(_service.Language, project.AnalyzerReferences, _extensionManager);
             }
 
             if (ProjectCompletionProvider.TryGetCachedExtensions(project.AnalyzerReferences, out var providers))
