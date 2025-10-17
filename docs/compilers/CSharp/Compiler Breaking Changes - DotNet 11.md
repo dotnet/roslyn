@@ -42,4 +42,20 @@ foreach (var x in new[] { 1, 2 })
 }
 ```
 
+Alternatively, move the collection-expression to a scope where the assignment is permitted:
+```cs
+scoped Span<int> items1 = default;
+scoped Span<int> items2 = default;
+Span<int> items = [0];
+foreach (var x in new[] { 1, 2 })
+{
+    items[0] = x;
+    if (x == 1)
+        items1 = items; // ok
+
+    if (x == 2)
+        items2 = items; // ok
+}
+```
+
 See also https://github.com/dotnet/csharplang/issues/9750.
