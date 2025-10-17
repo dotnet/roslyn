@@ -638,10 +638,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void checkPrimaryConstructorBaseType(BaseTypeSyntax baseTypeSyntax, TypeSymbol baseType)
             {
-                if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType &&
-                    (TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface || ((TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax()).ParameterList is null))
+                if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                    var typeDecl = (TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax();
+                    
+                    // Check if this is a class inheriting from a class but missing a parameter list
+                    if (TypeKind == TypeKind.Class && 
+                        baseType.TypeKind != TypeKind.Interface && 
+                        typeDecl.ParameterList is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, 
+                            primaryConstructorBaseType.ArgumentList.Location, 
+                            this.Name);
+                    }
+                    // Other cases where argument lists are not allowed
+                    else if (TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                    }
                 }
             }
         }
