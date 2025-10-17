@@ -12,7 +12,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Please don't use thread local storage widely. This should be one of only a few uses.
         [ThreadStatic] private static PooledHashSet<LocalTypeInferenceInProgressKey>? s_LocalTypeInferenceInProgress;
-        private HashSet<SyntaxNode>? _forbiddenReferences;
+        private ConcurrentSet<SyntaxNode>? _forbiddenReferences;
 
         private readonly struct LocalTypeInferenceInProgressKey : IEquatable<LocalTypeInferenceInProgressKey>
         {
@@ -414,8 +413,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         Debug.Assert(!free);
                         Debug.Assert(reference != CSharpSyntaxTree.Dummy.GetRoot());
-                        bool added = (_forbiddenReferences ??= new HashSet<SyntaxNode>()).Add(reference);
-                        Debug.Assert(added);
+
+                        if (_forbiddenReferences is null)
+                        {
+                            Interlocked.CompareExchange(ref _forbiddenReferences, new ConcurrentSet<SyntaxNode>(), null);
+                        }
+
+                        bool added = _forbiddenReferences.Add(reference);
+                        Debug.Assert(added); // This assert can fail if there is a race betweem multiple threads. We can remove it if it becomes a problem, confirming the case.
                         diagnostics.Add(ForbiddenDiagnostic, reference.Location, reference);
                         return TypeWithAnnotations.Create(this.DeclaringCompilation.ImplicitlyTypedVariableUsedInForbiddenZoneType);
                     }
