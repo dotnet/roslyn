@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (fillin.Alignment != null && !fillin.Alignment.HasErrors)
                         {
                             Debug.Assert(fillin.Alignment.ConstantValueOpt is { });
-                            stringBuilder.Append(',').Append(fillin.Alignment.ConstantValueOpt.Int64Value);
+                            stringBuilder.Append(',').Append(fillin.Alignment.ConstantValueOpt.Int64Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
                         }
                         if (fillin.Format != null && !fillin.Format.HasErrors)
                         {
