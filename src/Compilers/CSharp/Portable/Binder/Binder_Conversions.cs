@@ -1621,7 +1621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // This is the 'a' case, and the error recovery path for the 'b' case as well.
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, bindingCollectionExpressionWithArguments: false);
+                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, hasWithElement);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                     namedType,
