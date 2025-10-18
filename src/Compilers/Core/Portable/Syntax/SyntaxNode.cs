@@ -799,7 +799,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia = true)
         {
-            return this.Parent?
+            var parent = GetParent(this, ascendOutOfTrivia);
+            return parent?
                 .AncestorsAndSelf(ascendOutOfTrivia) ??
                 SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
