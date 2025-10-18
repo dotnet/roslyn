@@ -134,5 +134,30 @@ Integer
             Dim typeName = SyntaxFactory.ParseTypeName("", options:=parseOptions)
             Assert.Same(parseOptions, typeName.SyntaxTree.Options)
         End Sub
+
+        <Fact>
+        Public Shared Sub TestParseArgumentListWithoutParentheses()
+            ' This should not throw NullReferenceException or assertion failure
+            ' when input lacks parentheses
+            Dim result = SyntaxFactory.ParseArgumentList("42")
+            
+            ' Should still produce a valid ArgumentListSyntax with errors
+            Assert.NotNull(result)
+            Assert.True(result.ContainsDiagnostics)
+            
+            ' Should have an error for missing opening parenthesis
+            Dim errors = result.GetDiagnostics().ToArray()
+            Assert.True(errors.Length > 0, "Expected diagnostic errors for missing parentheses")
+            
+            ' Verify that the parse produces a valid tree with missing tokens
+            Assert.NotNull(result.OpenParenToken)
+            Assert.True(result.OpenParenToken.IsMissing)
+            
+            ' Test with parentheses - should work correctly
+            Dim resultWithParens = SyntaxFactory.ParseArgumentList("(42)")
+            Assert.NotNull(resultWithParens)
+            Assert.Equal("(42)", resultWithParens.ToString())
+            Assert.False(resultWithParens.ContainsDiagnostics)
+        End Sub
     End Class
 End Namespace
