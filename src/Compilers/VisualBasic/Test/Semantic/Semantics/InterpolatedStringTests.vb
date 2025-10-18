@@ -2023,8 +2023,9 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="                                                                                                   1" & vbLf &
-                                 "1                                                                                                   " & vbLf, trimOutput:=False)
+</compilation>, expectedOutput:=
+"                                                                                                   1
+1                                                                                                   ")
 
                 verifier.VerifyDiagnostics()
 
