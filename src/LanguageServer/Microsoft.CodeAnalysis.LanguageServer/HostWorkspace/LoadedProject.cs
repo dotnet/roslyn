@@ -126,6 +126,11 @@ internal sealed class LoadedProject : IDisposable
         return _mostRecentFileInfo.TargetFramework;
     }
 
+    public ProjectSystemProject GetProjectSystemProject()
+    {
+        return _projectSystemProject;
+    }
+
     /// <summary>
     /// Unloads the project and removes it from the workspace.
     /// </summary>
