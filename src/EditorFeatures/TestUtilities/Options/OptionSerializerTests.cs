@@ -165,7 +165,7 @@ public sealed class OptionSerializerTests
         foreach (var enumValue in possibleEnumValues)
         {
             var serializedValue = serializer.Serialize(enumValue);
-            var expectedPascalCase = enumValue.ToString()!;
+            var expectedPascalCase = enumValue.ToString();
             var expectedSnakeCase = PascalToSnakeCase(expectedPascalCase);
 
             // if option allows snake case it should use it for serialization:

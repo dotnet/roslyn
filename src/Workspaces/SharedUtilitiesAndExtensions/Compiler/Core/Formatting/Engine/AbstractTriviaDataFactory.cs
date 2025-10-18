@@ -124,7 +124,7 @@ internal abstract partial class AbstractTriviaDataFactory
             if (indentationLevel < IndentationLevelCacheSize)
             {
                 var lineIndex = lineBreaks - 1;
-                return _whitespaces[lineIndex, indentationLevel]!;
+                return _whitespaces[lineIndex, indentationLevel];
             }
         }
 

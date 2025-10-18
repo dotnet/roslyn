@@ -83,11 +83,24 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
             return null;
 
         // If the user is actually passing an array to a params argument, we can't change this to be an interpolated string.
+        // This includes explicit array creation expressions (new object[] {...}), implicit array creation expressions (new[] {...}),
+        // and collection expressions ([...]).
         if (invocationSymbol.IsParams())
         {
             var lastArgument = syntaxFacts.GetArgumentsOfInvocationExpression(invocation).Last();
-            var lastArgumentType = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(lastArgument), cancellationToken).Type;
-            if (lastArgumentType is IArrayTypeSymbol)
+            var lastArgumentExpression = syntaxFacts.GetExpressionOfArgument(lastArgument);
+
+            // Check if it's syntactically an array or collection expression
+            if (syntaxFacts.IsArrayCreationExpression(lastArgumentExpression) ||
+                lastArgumentExpression.RawKind == syntaxFacts.SyntaxKinds.ImplicitArrayCreationExpression)
+            {
+                return null;
+            }
+
+            // Also check for collection expressions (C# 12+)
+            // Collection expressions are target-typed and may not have a natural Type, so we check the ConvertedType
+            var typeInfo = semanticModel.GetTypeInfo(lastArgumentExpression, cancellationToken);
+            if (typeInfo.Type is IArrayTypeSymbol || typeInfo.ConvertedType is IArrayTypeSymbol)
                 return null;
         }
 

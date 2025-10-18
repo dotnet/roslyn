@@ -75,7 +75,7 @@ public partial class CSharpJsonParserTests
             """, """
             ""
             """);
-        AssertEx.Equal(expectedTree!.Replace("""
+        AssertEx.Equal(expectedTree.Replace("""
             "
             """, """
             ""

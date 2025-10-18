@@ -51,7 +51,6 @@ public sealed class EditSessionActiveStatementsTests : TestBase
             mockDebuggerService,
             mockCompilationOutputsProvider,
             NullPdbMatchingSourceTextProvider.Instance,
-            initialDocumentStates: [],
             log,
             log,
             reportDiagnostics: true);

@@ -126,7 +126,7 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
                 document.Project,
                 codeFixProvider,
                 FixAllScope.Solution,
-                codeActionEquivalenceKey: action?.EquivalenceKey!, // FixAllState supports null equivalence key. This should still be supported.
+                codeActionEquivalenceKey: action?.EquivalenceKey, // FixAllState supports null equivalence key. This should still be supported.
                 diagnosticIds: codeFixProvider.FixableDiagnosticIds,
                 fixAllDiagnosticProvider: diagnosticProvider),
             progressTracker,

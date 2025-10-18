@@ -129,11 +129,9 @@ public sealed class RemoteEditAndContinueServiceTests
 
         IManagedHotReloadService? remoteDebuggeeModuleMetadataProvider = null;
 
-        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
+        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, reportDiagnostics) =>
         {
             Assert.Equal("proj", solution.GetRequiredProject(projectId).Name);
-            AssertEx.Equal(new[] { documentId }, captureMatchingDocuments);
-            Assert.False(captureAllMatchingDocuments);
             Assert.True(reportDiagnostics);
 
             remoteDebuggeeModuleMetadataProvider = debuggerService;
@@ -148,10 +146,8 @@ public sealed class RemoteEditAndContinueServiceTests
                 GetActiveStatementsImpl = () => [as1]
             },
             sourceTextProvider: NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [documentId],
-            captureAllMatchingDocuments: false,
             reportDiagnostics: true,
-            CancellationToken.None);
+            cancellationToken: CancellationToken.None);
 
         Contract.ThrowIfNull(sessionProxy);
 

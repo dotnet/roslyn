@@ -5,7 +5,6 @@
 #if NET
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -44,23 +42,15 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         var source2 = "class C { void M() { System.Console.WriteLine(2); /*2*/} }";
         var source3 = "class C { void M() { System.Console.WriteLine(2); /*3*/} }";
         var dir = Temp.CreateDirectory();
-        var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1, Encoding.UTF8);
+        var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1);
 
         using var workspace = CreateWorkspace(out var solution, out var encService);
 
-        var projectP = solution.
-            AddTestProject("P", out var projectId);
+        solution = solution.
+            AddTestProject("P", out var projectId).
+            AddTestDocument(source: null, sourceFileA.Path, out var documentIdA).Project.Solution;
 
-        solution = projectP.Solution;
-
-        var moduleId = EmitLibrary(projectP.Id, source1, sourceFileA.Path, assemblyName: "Proj");
-
-        var documentIdA = DocumentId.CreateNewId(projectId, debugName: "A");
-        solution = solution.AddDocument(DocumentInfo.Create(
-            id: documentIdA,
-            name: "A",
-            loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
-            filePath: sourceFileA.Path));
+        EmitLibrary(solution.GetRequiredProject(projectId));
 
         var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
@@ -68,11 +58,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         var sessionId = hotReload.GetTestAccessor().SessionId;
         var session = encService.GetTestAccessor().GetDebuggingSession(sessionId);
-        var matchingDocuments = session.LastCommittedSolution.Test_GetDocumentStates();
-        AssertEx.Equal(
-        [
-            "(A, MatchesBuildOutput)"
-        ], matchingDocuments.Select(e => (solution.GetRequiredDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+        Assert.Empty(session.LastCommittedSolution.Test_GetDocumentStates());
 
         // Valid update:
         solution = solution.WithDocumentText(documentIdA, CreateText(source2));
@@ -178,7 +164,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
                     throw new InvalidOperationException("Source generator failed");
                 }
 
-                context.AddSource("generated.cs", SourceText.From("generated: " + additionalText, Encoding.UTF8, SourceHashAlgorithm.Sha256));
+                context.AddSource("generated.cs", CreateText("generated: " + additionalText));
             }
         };
 
@@ -215,6 +201,185 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Equal("CS8785", diagnostic.Id);
         Assert.Contains("Source generator failed", diagnostic.GetMessage());
         hotReload.EndSession();
+    }
+
+    [Fact]
+    public async Task AdditionalFile()
+    {
+        using var workspace = CreateWorkspace(out var solution, out _);
+
+        var source1 = "class C;";
+        var source2 = "class C { virtual void M() { } }";
+
+        var dir = Temp.CreateDirectory();
+        var additionalFileA = dir.CreateFile("A.txt").WriteAllText(source1);
+
+        var generator = new TestSourceGenerator()
+        {
+            ExecuteImpl = context =>
+            {
+                var additionalText = context.AdditionalFiles.Single().GetText()!.ToString();
+                context.AddSource("generated.cs", CreateText("/* generated */ " + additionalText));
+            }
+        };
+
+        solution = solution
+            .AddTestProject("A", out var projectId)
+            .AddAdditionalTestDocument(source: null, additionalFileA.Path, out var documentIdA)
+            .Project.Solution
+            .AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
+
+        EmitLibrary(solution.GetRequiredProject(projectId));
+
+        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType"]);
+
+        await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+        // rude edit in the generated code:
+        solution = solution.WithAdditionalDocumentText(documentIdA, CreateText(source2));
+
+        var result = await hotReload.GetUpdatesAsync(solution, ImmutableDictionary<ProjectId, HotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
+
+        var generatedDoc = (await solution.GetRequiredProject(projectId).GetSourceGeneratedDocumentsAsync()).Single();
+
+        AssertEx.Equal(
+            [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
+            InspectDiagnostics(result.TransientDiagnostics));
+    }
+
+    [Fact]
+    public async Task AnalyzerConfigFile()
+    {
+        using var workspace = CreateWorkspace(out var solution, out _);
+
+        var source1 = "class C;";
+        var source2 = "class C { virtual void M() { } }";
+
+        var dir = Temp.CreateDirectory();
+        var sourceFile = dir.CreateFile("empty.cs").WriteAllText("");
+        var configFile = dir.CreateFile(".editorconfig").WriteAllText(source1);
+
+        var generator = new TestSourceGenerator()
+        {
+            ExecuteImpl = context =>
+            {
+                var syntaxTree = context.Compilation.SyntaxTrees.Single(t => t.FilePath == sourceFile.Path);
+                var content = context.AnalyzerConfigOptions.GetOptions(syntaxTree).TryGetValue("content", out var optionValue) ? optionValue.ToString() : "none";
+                context.AddSource("generated.cs", CreateText("/* generated */ " + content));
+            }
+        };
+
+        solution = solution
+            .AddTestProject("A", out var projectId)
+            .AddTestDocument(source: null, sourceFile.Path).Project
+            .AddAnalyzerConfigTestDocument([("content", source1)], configFile.Path, out var configId).Project.Solution
+            .AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
+
+        EmitLibrary(solution.GetRequiredProject(projectId));
+
+        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType"]);
+
+        await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+        // rude edit in the generated code:
+        solution = solution.WithAnalyzerConfigDocumentText(configId, CreateText(Extensions.GetAnalyzerConfigSource([("content", source2)])));
+
+        var result = await hotReload.GetUpdatesAsync(solution, ImmutableDictionary<ProjectId, HotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
+
+        var generatedDoc = (await solution.GetRequiredProject(projectId).GetSourceGeneratedDocumentsAsync()).Single();
+
+        AssertEx.Equal(
+            [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
+            InspectDiagnostics(result.TransientDiagnostics));
+    }
+
+    [Fact]
+    public async Task StaleSource()
+    {
+        var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
+        var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
+        var source3 = "class C { void M() { System.Console.WriteLine(3); } }";
+        var dir = Temp.CreateDirectory();
+        var sourceFileA = dir.CreateFile("A.cs");
+
+        using var workspace = CreateWorkspace(out var solution, out _);
+
+        solution = solution.
+            AddTestProject("P", out var projectId).
+            AddTestDocument(source: null, sourceFileA.Path, out var documentIdA).Project.Solution;
+
+        EmitLibrary(projectId, source1, sourceFileA.Path, assemblyName: "Proj");
+
+        sourceFileA.WriteAllText(source2, Encoding.UTF8);
+
+        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+
+        // loads source text V2 from disk:
+        await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+        // Out of sync:
+        solution = solution.WithDocumentText(documentIdA, CreateText(source3));
+
+        var result = await hotReload.GetUpdatesAsync(solution, runningProjects: ImmutableDictionary<ProjectId, HotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
+
+        Assert.Empty(result.ProjectUpdates);
+        Assert.Empty(result.ProjectsToRestart);
+        Assert.Empty(result.ProjectsToRebuild);
+
+        AssertEx.Equal(
+        [
+            $"P: {sourceFileA.Path}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourceFileA.Path)}",
+        ], InspectDiagnostics(result.TransientDiagnostics));
+    }
+
+    [Fact]
+    public async Task StaleSource_AdditionalFile()
+    {
+        using var workspace = CreateWorkspace(out var solution, out _);
+
+        var source1 = "class C { virtual void M() { } }";
+        var source2 = "class C {}";
+        var source3 = "class C { virtual void M() { } }";
+
+        var dir = Temp.CreateDirectory();
+        var additionalFileA = dir.CreateFile("A.txt").WriteAllText(source1);
+
+        var generator = new TestSourceGenerator()
+        {
+            ExecuteImpl = context =>
+            {
+                var additionalText = context.AdditionalFiles.Single().GetText()!.ToString();
+                context.AddSource("generated.cs", CreateText("/* generated */ " + additionalText));
+            }
+        };
+
+        solution = solution
+            .AddTestProject("A", out var projectId)
+            .AddAdditionalTestDocument(source: null, additionalFileA.Path, out var documentIdA)
+            .Project.Solution
+            .AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
+
+        EmitLibrary(solution.GetRequiredProject(projectId));
+
+        additionalFileA.WriteAllText(source2);
+
+        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType"]);
+
+        // V2 of the text is loaded from disk:
+        await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+        // rude edit in the generated code:
+        solution = solution.WithAdditionalDocumentText(documentIdA, CreateText(source3));
+
+        // The generated file in the old compilation is regenerated based on V2.
+        // The generated file in the new compilation is generated based on V3.
+        var result = await hotReload.GetUpdatesAsync(solution, ImmutableDictionary<ProjectId, HotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
+
+        var generatedDoc = (await solution.GetRequiredProject(projectId).GetSourceGeneratedDocumentsAsync()).Single();
+
+        AssertEx.Equal(
+            [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
+            InspectDiagnostics(result.TransientDiagnostics));
     }
 }
 #endif

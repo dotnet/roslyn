@@ -179,7 +179,7 @@ internal sealed class FindReferenceCache
                     foreach (var trivia in token.LeadingTrivia)
                     {
                         if (trivia.HasStructure)
-                            stack.Push(trivia.GetStructure()!);
+                            stack.Push(trivia.GetStructure());
                     }
                 }
             }

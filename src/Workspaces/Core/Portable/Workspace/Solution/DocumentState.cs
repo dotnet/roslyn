@@ -558,7 +558,7 @@ internal partial class DocumentState : TextDocumentState
             return newTextVersion;
         }
 
-        if (!TreeSource.TryGetValue(out var oldTreeAndVersion) || !oldTreeAndVersion!.Tree.TryGetRoot(out var oldRoot))
+        if (!TreeSource.TryGetValue(out var oldTreeAndVersion) || !oldTreeAndVersion.Tree.TryGetRoot(out var oldRoot))
         {
             return newTextVersion;
         }
@@ -570,7 +570,7 @@ internal partial class DocumentState : TextDocumentState
     {
         if (TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
         {
-            return textAndVersion!.Version.GetNewerVersion();
+            return textAndVersion.Version.GetNewerVersion();
         }
 
         if (TreeSource != null && TreeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)

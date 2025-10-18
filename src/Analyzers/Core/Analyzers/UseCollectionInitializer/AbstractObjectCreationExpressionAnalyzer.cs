@@ -95,7 +95,7 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
         TObjectCreationExpressionSyntax rootExpression,
         CancellationToken cancellationToken)
     {
-        var statement = rootExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
+        var statement = rootExpression.FirstAncestorOrSelf<TStatementSyntax>();
         if (statement != null)
         {
             var result =

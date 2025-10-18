@@ -45,7 +45,7 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
 
         // Keep track of the unnecessary spans in all linked documents.  If we're trying to fix something that would
         // cause a problem in another linked document, then we'll still fix it (since the analyzer did report it), we'll
-        // just report a warning on it.
+        // just report a warning on it letting the user know in the preview window.
         using var _1 = ArrayBuilder<HashSet<TextSpan>>.GetInstance(out var linkedSpansArray);
         foreach (var linkedDocument in document.GetLinkedDocuments())
         {
@@ -126,6 +126,6 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
 #endif
 
         protected override void FixAll(SyntaxEditor editor, IEnumerable<TextSpan> commonSpans)
-            => CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider.FixAllInDocument(editor, commonSpans, getAnnotation: null);
+            => FixAllInDocument(editor, commonSpans, getAnnotation: null);
     }
 }

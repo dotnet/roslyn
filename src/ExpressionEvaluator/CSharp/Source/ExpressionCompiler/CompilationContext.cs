@@ -1797,7 +1797,7 @@ REPARSE:
             //    so we may have to walk out more than one level.
             while (IsDisplayClassType(type))
             {
-                type = type.ContainingType!;
+                type = type.ContainingType;
             }
 
             return type;

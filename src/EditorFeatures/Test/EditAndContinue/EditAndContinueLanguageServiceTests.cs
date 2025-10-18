@@ -133,7 +133,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         // StartDebuggingSession
 
-        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (_, _, _, _, _, _) => new DebuggingSessionId(1);
+        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (_, _, _, _) => new DebuggingSessionId(1);
 
         Assert.False(sessionState.IsSessionActive);
         Assert.Empty(sessionState.ApplyChangesDiagnostics);

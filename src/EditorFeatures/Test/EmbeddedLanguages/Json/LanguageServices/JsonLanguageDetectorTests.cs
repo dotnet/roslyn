@@ -26,7 +26,7 @@ public sealed class JsonLanguageDetectorTests
 
             if (expectedOptions != null)
             {
-                Assert.True(EmbeddedLanguageCommentOptions<JsonOptions>.TryGetOptions(captures!, out var actualOptions));
+                Assert.True(EmbeddedLanguageCommentOptions<JsonOptions>.TryGetOptions(captures, out var actualOptions));
                 Assert.Equal(expectedOptions.Value, actualOptions);
             }
         }

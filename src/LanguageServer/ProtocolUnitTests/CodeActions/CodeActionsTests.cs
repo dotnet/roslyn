@@ -280,7 +280,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var result = await testLspServer.ExecuteRequestAsync<CodeAction, CodeAction>(
             LSP.Methods.CodeActionResolveName, codeAction, CancellationToken.None);
         Assert.NotNull(result);
-        return (VSInternalCodeAction)result!;
+        return (VSInternalCodeAction)result;
     }
 
     private static CodeActionResolveData? GetCodeActionResolveData(CodeAction codeAction)

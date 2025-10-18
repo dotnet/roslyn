@@ -186,7 +186,7 @@ internal sealed class DefinitionContextTracker : ITextViewConnectionListener
                     var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     locations.Add(new CodeDefinitionWindowLocation(
-                        symbol.ToDisplayString(), declarationFile.FilePath!, identifierSpan.Start));
+                        symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
                 }
             }
         }

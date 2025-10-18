@@ -144,7 +144,7 @@ internal sealed class ExtensionAssemblyManager
 
         AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
         {
-            var simpleName = assemblyName.Name!;
+            var simpleName = assemblyName.Name;
             var assemblyPath = Path.Combine(devKitDependencyDirectory, simpleName + ".dll");
             if (File.Exists(assemblyPath))
             {
@@ -209,7 +209,7 @@ internal sealed class ExtensionAssemblyManager
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            var simpleName = assemblyName.Name!;
+            var simpleName = assemblyName.Name;
             var assemblyPath = Path.Combine(_extensionDirectory, simpleName + ".dll");
             if (File.Exists(assemblyPath))
             {

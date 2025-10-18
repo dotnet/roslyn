@@ -168,7 +168,7 @@ public sealed partial class AsyncLazyTests
                     c.ThrowIfCancellationRequested();
                 }
             },
-            synchronousComputeFunction: synchronousComputation!,
+            synchronousComputeFunction: synchronousComputation,
             arg: computeFunctionRunning);
 
         var cancellationTokenSource = new CancellationTokenSource();
@@ -242,7 +242,7 @@ public sealed partial class AsyncLazyTests
 
         var lazy = AsyncLazy.Create(
             static (synchronousComputation, c) => Task.FromResult(synchronousComputation(c)),
-            includeSynchronousComputation ? static (synchronousComputation, c) => synchronousComputation(c) : null!,
+            includeSynchronousComputation ? static (synchronousComputation, c) => synchronousComputation(c) : null,
             arg: synchronousComputation);
 
         var thrownException = Assert.Throws<OperationCanceledException>(() =>

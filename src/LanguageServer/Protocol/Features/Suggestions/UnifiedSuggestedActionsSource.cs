@@ -216,7 +216,7 @@ internal sealed class UnifiedSuggestedActionsSource
         if (diagnostics is not [var firstDiagnostic, ..])
             return null;
 
-        var textDocument = fixAllState.Document!;
+        var textDocument = fixAllState.Document;
         using var _ = ArrayBuilder<SuggestedAction>.GetInstance(out var fixAllSuggestedActions);
         foreach (var scope in supportedScopes)
         {

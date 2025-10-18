@@ -121,15 +121,13 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         Solution solution,
         IManagedHotReloadService debuggerService,
         IPdbMatchingSourceTextProvider sourceTextProvider,
-        ImmutableArray<DocumentId> captureMatchingDocuments,
-        bool captureAllMatchingDocuments,
         bool reportDiagnostics,
         CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
         if (client == null)
         {
-            var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
+            var sessionId = GetLocalService().StartDebuggingSession(solution, debuggerService, sourceTextProvider, reportDiagnostics);
             return new RemoteDebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
         }
 
@@ -139,7 +137,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
 
         var sessionIdOpt = await connection.TryInvokeAsync(
             solution,
-            async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
+            async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, reportDiagnostics, cancellationToken).ConfigureAwait(false),
             cancellationToken).ConfigureAwait(false);
 
         if (sessionIdOpt.HasValue)

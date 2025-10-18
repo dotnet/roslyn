@@ -45,7 +45,7 @@ public abstract class AbstractSemanticTokensTests : AbstractLanguageServerProtoc
     private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangesAsync(TestLspServer testLspServer, LSP.Location caret, Range[] ranges)
     {
         var result = await testLspServer.ExecuteRequestAsync<SemanticTokensRangesParams, LSP.SemanticTokens>(SemanticTokensRangesHandler.SemanticRangesMethodName,
-            CreateSemanticTokensRangesParams(caret, ranges!), CancellationToken.None);
+            CreateSemanticTokensRangesParams(caret, ranges), CancellationToken.None);
         Contract.ThrowIfNull(result);
         return result;
     }

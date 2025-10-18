@@ -46604,5 +46604,407 @@ class Program
 
             CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.Skipped).VerifyDiagnostics();
         }
+
+        private static readonly string s_collectionWithRefStructElementType = """
+                #nullable enable
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                ref struct SpanCollection<T>() : IEnumerable<T> where T : allows ref struct
+                {
+                    int _count = 0;
+                    T? _item0;
+                    T? _item1;
+
+                    public SpanEnumerator GetEnumerator()
+                        => new SpanEnumerator(this);
+
+                    public void Add(T element)
+                    {
+                        switch (_count)
+                        {
+                            case 0: _item0 = element; break;
+                            case 1: _item1 = element; break;
+                            default: throw new InvalidOperationException();
+                        }
+                        _count++;
+                    }
+
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+                        => throw new NotImplementedException();
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                        => throw new NotImplementedException();
+
+                    public ref struct SpanEnumerator(SpanCollection<T> spans)
+                    {
+                        private SpanCollection<T> spans = spans;
+                        private int _index = -1;
+                        public T Current
+                        {
+                            get
+                            {
+                                switch (_index)
+                                {
+                                    case 0: return spans._item0!;
+                                    case 1: return spans._item1!;
+                                    default: throw new InvalidOperationException();
+                                }
+                            }
+                        }
+                        public bool MoveNext() => ++_index < spans._count;
+                    }
+                }
+                """;
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_01()
+        {
+            var source = """
+                #nullable enable
+
+                using System;
+
+                Test1();
+                Test2();
+
+                partial class Program
+                {
+                    public static void Test1()
+                    {
+                        SpanCollection<Span<int>> spans1 = [[1], [2]];
+                        foreach (Span<int> span in spans1)
+                        {
+                            foreach (int item in span)
+                                Console.Write(item);
+                        }
+                    }
+
+                    public static void Test2()
+                    {
+                        ReadOnlySpan<int> span3 = [3];
+                        ReadOnlySpan<int> span4 = [4];
+                        SpanCollection<ReadOnlySpan<int>> spans2 = [span3, span4];
+                        foreach (ReadOnlySpan<int> span in spans2)
+                        {
+                            foreach (int item in span)
+                                Console.Write(item);
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("1234"), verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", """
+                {
+                  // Code size      108 (0x6c)
+                  .maxstack  2
+                  .locals init (SpanCollection<System.Span<int>> V_0, //spans1
+                                int V_1,
+                                int V_2,
+                                SpanCollection<System.Span<int>> V_3,
+                                SpanCollection<System.Span<int>>.SpanEnumerator V_4,
+                                System.Span<int> V_5,
+                                int V_6)
+                  IL_0000:  ldloca.s   V_3
+                  IL_0002:  call       "SpanCollection<System.Span<int>>..ctor()"
+                  IL_0007:  ldloca.s   V_3
+                  IL_0009:  ldc.i4.1
+                  IL_000a:  stloc.1
+                  IL_000b:  ldloca.s   V_1
+                  IL_000d:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_0012:  call       "void SpanCollection<System.Span<int>>.Add(System.Span<int>)"
+                  IL_0017:  ldloca.s   V_3
+                  IL_0019:  ldc.i4.2
+                  IL_001a:  stloc.2
+                  IL_001b:  ldloca.s   V_2
+                  IL_001d:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_0022:  call       "void SpanCollection<System.Span<int>>.Add(System.Span<int>)"
+                  IL_0027:  ldloc.3
+                  IL_0028:  stloc.0
+                  IL_0029:  ldloca.s   V_0
+                  IL_002b:  call       "SpanCollection<System.Span<int>>.SpanEnumerator SpanCollection<System.Span<int>>.GetEnumerator()"
+                  IL_0030:  stloc.s    V_4
+                  IL_0032:  br.s       IL_0062
+                  IL_0034:  ldloca.s   V_4
+                  IL_0036:  call       "System.Span<int> SpanCollection<System.Span<int>>.SpanEnumerator.Current.get"
+                  IL_003b:  stloc.s    V_5
+                  IL_003d:  ldc.i4.0
+                  IL_003e:  stloc.s    V_6
+                  IL_0040:  br.s       IL_0057
+                  IL_0042:  ldloca.s   V_5
+                  IL_0044:  ldloc.s    V_6
+                  IL_0046:  call       "ref int System.Span<int>.this[int].get"
+                  IL_004b:  ldind.i4
+                  IL_004c:  call       "void System.Console.Write(int)"
+                  IL_0051:  ldloc.s    V_6
+                  IL_0053:  ldc.i4.1
+                  IL_0054:  add
+                  IL_0055:  stloc.s    V_6
+                  IL_0057:  ldloc.s    V_6
+                  IL_0059:  ldloca.s   V_5
+                  IL_005b:  call       "int System.Span<int>.Length.get"
+                  IL_0060:  blt.s      IL_0042
+                  IL_0062:  ldloca.s   V_4
+                  IL_0064:  call       "bool SpanCollection<System.Span<int>>.SpanEnumerator.MoveNext()"
+                  IL_0069:  brtrue.s   IL_0034
+                  IL_006b:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test2", """
+                {
+                  // Code size      114 (0x72)
+                  .maxstack  2
+                  .locals init (System.ReadOnlySpan<int> V_0, //span3
+                                System.ReadOnlySpan<int> V_1, //span4
+                                SpanCollection<System.ReadOnlySpan<int>> V_2, //spans2
+                                SpanCollection<System.ReadOnlySpan<int>> V_3,
+                                SpanCollection<System.ReadOnlySpan<int>>.SpanEnumerator V_4,
+                                System.ReadOnlySpan<int> V_5,
+                                int V_6)
+                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.9D9F290527A6BE626A8F5985B26E19B237B44872B03631811DF4416FC17131784"
+                  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.FB5E512425FC9449316EC95969EBE71E2D576DBAB833D61E2A5B9330FD70EE024"
+                  IL_0010:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_0015:  stloc.1
+                  IL_0016:  ldloca.s   V_3
+                  IL_0018:  call       "SpanCollection<System.ReadOnlySpan<int>>..ctor()"
+                  IL_001d:  ldloca.s   V_3
+                  IL_001f:  ldloc.0
+                  IL_0020:  call       "void SpanCollection<System.ReadOnlySpan<int>>.Add(System.ReadOnlySpan<int>)"
+                  IL_0025:  ldloca.s   V_3
+                  IL_0027:  ldloc.1
+                  IL_0028:  call       "void SpanCollection<System.ReadOnlySpan<int>>.Add(System.ReadOnlySpan<int>)"
+                  IL_002d:  ldloc.3
+                  IL_002e:  stloc.2
+                  IL_002f:  ldloca.s   V_2
+                  IL_0031:  call       "SpanCollection<System.ReadOnlySpan<int>>.SpanEnumerator SpanCollection<System.ReadOnlySpan<int>>.GetEnumerator()"
+                  IL_0036:  stloc.s    V_4
+                  IL_0038:  br.s       IL_0068
+                  IL_003a:  ldloca.s   V_4
+                  IL_003c:  call       "System.ReadOnlySpan<int> SpanCollection<System.ReadOnlySpan<int>>.SpanEnumerator.Current.get"
+                  IL_0041:  stloc.s    V_5
+                  IL_0043:  ldc.i4.0
+                  IL_0044:  stloc.s    V_6
+                  IL_0046:  br.s       IL_005d
+                  IL_0048:  ldloca.s   V_5
+                  IL_004a:  ldloc.s    V_6
+                  IL_004c:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
+                  IL_0051:  ldind.i4
+                  IL_0052:  call       "void System.Console.Write(int)"
+                  IL_0057:  ldloc.s    V_6
+                  IL_0059:  ldc.i4.1
+                  IL_005a:  add
+                  IL_005b:  stloc.s    V_6
+                  IL_005d:  ldloc.s    V_6
+                  IL_005f:  ldloca.s   V_5
+                  IL_0061:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_0066:  blt.s      IL_0048
+                  IL_0068:  ldloca.s   V_4
+                  IL_006a:  call       "bool SpanCollection<System.ReadOnlySpan<int>>.SpanEnumerator.MoveNext()"
+                  IL_006f:  brtrue.s   IL_003a
+                  IL_0071:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_01()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test()
+                    {
+                        SpanCollection<Span<int>> spans = [[1], [2]];
+                        return spans;
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/80750
+            // The spec implies the safe-context of 'spans' should be 'caller-context'. (That would be bad.)
+            // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_02()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(scoped Span<int> span1, scoped Span<int> span2)
+                    {
+                        scoped var spans = new SpanCollection<Span<int>>();
+                        spans.Add(span1);
+                        spans.Add(span2);
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(11, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_03()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(scoped Span<int> span1, scoped Span<int> span2)
+                    {
+                        scoped var spans = new SpanCollection<Span<int>>() { span1, span2 };
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_04()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>();
+                        spans.Add(span1);
+                        spans.Add(span2);
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_05()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>() { span1, span2 };
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_06()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        SpanCollection<Span<int>> spans = [span1, span2];
+                        return spans;
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/80750
+            // The spec implies the safe-context of 'spans' should be 'caller-context'.
+            // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_07()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>();
+                        spans.Add(span1);
+                        spans.Add(span2);
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
+        public void RefStructElementType_SafeContext_08()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                partial class Program
+                {
+                    public static SpanCollection<Span<int>> Test(Span<int> span1, Span<int> span2)
+                    {
+                        var spans = new SpanCollection<Span<int>>() { span1, span2 };
+                        return spans;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                );
+        }
     }
 }

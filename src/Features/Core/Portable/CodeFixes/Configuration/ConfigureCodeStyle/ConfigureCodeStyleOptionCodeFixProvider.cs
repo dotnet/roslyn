@@ -121,7 +121,7 @@ internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigu
             {
                 foreach (var enumValue in Enum.GetValues(t))
                 {
-                    AddCodeActionWithOptionValue(defaultValue, enumValue!);
+                    AddCodeActionWithOptionValue(defaultValue, enumValue);
                 }
             }
 

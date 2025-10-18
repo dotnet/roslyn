@@ -668,7 +668,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     return goo($$)
                 }
             }
-            """, completionActive: true);
+            """);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
     public void EmbeddedStatement3()

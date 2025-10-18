@@ -228,7 +228,7 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
             AssertEx.Empty(await project.GetSourceGeneratorDiagnosticsAsync(CancellationToken.None), $"The following source generator diagnostics are being reported for the template.");
 
             // Unnecessary using directives are reported with a severity of Hidden
-            var nonHiddenDiagnostics = compilation!.GetDiagnostics()
+            var nonHiddenDiagnostics = compilation.GetDiagnostics()
                 .WhereAsArray(diagnostic => diagnostic.Severity > DiagnosticSeverity.Hidden);
 
             // For good test hygiene lets ensure that all ignored diagnostics were actually reported.

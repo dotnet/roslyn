@@ -634,13 +634,13 @@ internal static partial class SyntaxTokenExtensions
         // delegate X D<A,|
         // delegate X D<[Bar]|
         if (targetToken.Kind() == SyntaxKind.LessThanToken &&
-            IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent!))
+            IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent))
         {
             return true;
         }
 
         if (targetToken.Kind() == SyntaxKind.CommaToken &&
-            IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent!))
+            IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent))
         {
             return true;
         }
