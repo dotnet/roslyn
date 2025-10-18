@@ -639,6 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
                 or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
+                or ErrorCode.ERR_NonTaskMainCantBeAsync
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -1548,7 +1549,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeAsyncArgType
                 or ErrorCode.ERR_VarargsAsync
                 or ErrorCode.ERR_BadAwaitArgVoidCall
-                or ErrorCode.ERR_NonTaskMainCantBeAsync
                 or ErrorCode.ERR_CantConvAsyncAnonFuncReturns
                 or ErrorCode.ERR_BadAwaiterPattern
                 or ErrorCode.ERR_BadSpecialByRefParameter
