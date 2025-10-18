@@ -15595,5 +15595,112 @@ class K
                 Assert.Equal(SymbolKind.NamedType, semanticInfo.Type.Kind);
             }
         }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion5()
+        {
+            string source = """
+                record R(int I);
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1));
+                        return new R(1);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Empty(semanticInfo.CandidateSymbols);
+                Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor(System.Int32 I)", semanticInfo.Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion6()
+        {
+            string source = """
+                record R(int I);
+
+                class C
+                {
+                    public C Repro1()
+                    {
+                        M(new R(1));
+                        return new R(1);
+                    }
+
+                    public static void M(C c) { }
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Empty(semanticInfo.CandidateSymbols);
+                Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor(System.Int32 I)", semanticInfo.Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion7()
+        {
+            string source = """
+                record R(int I);
+
+                class C
+                {
+                    public C Repro1()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+                var candidate = semanticInfo.CandidateSymbols[0];
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor(System.Int32 I)", candidate.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate.Kind);
+            }
+        }
     }
 }
