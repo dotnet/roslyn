@@ -26681,6 +26681,144 @@ partial class Program
         }
 
         [Fact]
+        public void SpanAssignment_ScopedParameter_Constructor_Span()
+        {
+            string source = """
+                using System;
+
+                class C
+                {
+                    public C(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = new ReadOnlySpan<int>(ref x);
+                    }
+
+                    void M(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = new ReadOnlySpan<int>(ref x);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void SpanAssignment_ScopedParameter_Constructor_CollectionExpression()
+        {
+            string source = """
+                using System;
+
+                class C
+                {
+                    public C(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = [x];
+                    }
+
+                    void M(scoped ReadOnlySpan<int> items)
+                    {
+                        int x = 0;
+                        items = [x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void SpanAssignment_ScopedParameter_PrimaryConstructor_Span()
+        {
+            // Each field initializer can be considered its own local scope as variables declared within it are not visible to the other initializers.
+            string source = """
+                using System;
+
+                class C(scoped ReadOnlySpan<int> items) // 1
+                {
+                    private int x = M0(M1(out int x1), items = new ReadOnlySpan<int>(ref x1)); // 2, 3
+                    private int y = x1; // 4
+
+                    static int M0(int x0, ReadOnlySpan<int> items) => items[0];
+                    static int M1(out int x1) { return x1 = 0; }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,34): warning CS9113: Parameter 'items' is unread.
+                // class C(scoped ReadOnlySpan<int> items) // 1
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "items").WithArguments("items").WithLocation(3, 34),
+                // (5,48): error CS8347: Cannot use a result of 'ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)' in this context because it may expose variables referenced by parameter 'reference' outside of their declaration scope
+                //     private int x = M0(M1(out int x1), items = new ReadOnlySpan<int>(ref x1)); // 2, 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new ReadOnlySpan<int>(ref x1)").WithArguments("System.ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)", "reference").WithLocation(5, 48),
+                // (5,74): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //     private int x = M0(M1(out int x1), items = new ReadOnlySpan<int>(ref x1)); // 2, 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(5, 74),
+                // (6,21): error CS0103: The name 'x1' does not exist in the current context
+                //     private int y = x1; // 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 21));
+        }
+
+        [Fact]
+        public void SpanAssignment_StaticFieldInitializer()
+        {
+            // Each field initializer can be considered its own local scope as variables declared within it are not visible to the other initializers.
+            string source = """
+                using System;
+
+                class C
+                {
+                    private static int x = M0(M1(out ReadOnlySpan<int> items, out int x1), items = new ReadOnlySpan<int>(ref x1)); // 1, 2
+                    private static int y = items[0]; // 3
+
+                    static int M0(int x0, ReadOnlySpan<int> items) => items[0];
+                    static int M1(out ReadOnlySpan<int> span, out int x1) { span = default; return x1 = 0; }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (5,84): error CS8347: Cannot use a result of 'ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)' in this context because it may expose variables referenced by parameter 'reference' outside of their declaration scope
+                //     private static int x = M0(M1(out ReadOnlySpan<int> items, out int x1), items = new ReadOnlySpan<int>(ref x1)); // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new ReadOnlySpan<int>(ref x1)").WithArguments("System.ReadOnlySpan<int>.ReadOnlySpan(ref readonly int)", "reference").WithLocation(5, 84),
+                // (5,110): error CS8168: Cannot return local 'x1' by reference because it is not a ref local
+                //     private static int x = M0(M1(out ReadOnlySpan<int> items, out int x1), items = new ReadOnlySpan<int>(ref x1)); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x1").WithArguments("x1").WithLocation(5, 110),
+                // (6,28): error CS0103: The name 'items' does not exist in the current context
+                //     private static int y = items[0]; // 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "items").WithArguments("items").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void SpanAssignment_ScopedParameter_PrimaryConstructor_CollectionExpression()
+        {
+            // '[M1()]' cannot be assigned to 'items' because its backing storage lives in a narrower scope than 'items'.
+            string source = """
+                using System;
+
+                class C(scoped ReadOnlySpan<int> items)
+                {
+                    private int x = M0(items = [M1()]);
+
+                    static int M0(ReadOnlySpan<int> x) => x[0];
+                    static int M1() => 0;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,34): warning CS9113: Parameter 'items' is unread.
+                // class C(scoped ReadOnlySpan<int> items)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "items").WithArguments("items").WithLocation(3, 34)
+                // This error will be missing until changes from other PR are integrated: https://github.com/dotnet/roslyn/pull/80684
+                // // (5,32): error CS9203: A collection expression of type 'ReadOnlySpan<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                // //     private int x = M0(items = [M1()]);
+                // Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[M1()]").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
         public void SpanAssignment_WithUsingDeclaration()
         {
             string source = """
