@@ -3199,7 +3199,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Object, I
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
               IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?, IsInvalid) (Syntax: 'x')
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0186: Use of null is not valid in this context
@@ -3246,7 +3246,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Object, I
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
               IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?, IsInvalid) (Syntax: 'x')
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1936: Could not find an implementation of the query pattern for source type 'anonymous method'.  'Select' not found.

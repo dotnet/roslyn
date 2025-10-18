@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Unused 8193-8195
 
         #region diagnostics for out var
-        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
+        ERR_ImplicitlyTypedVariableUsedInForbiddenZone = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
         #endregion diagnostics for out var

@@ -2772,9 +2772,9 @@ struct Empty
 }
 ";
             CreateCompilation(program).VerifyDiagnostics(
-                // (6,25): error CS8196: Reference to an implicitly-typed out variable 'x' is not permitted in the same argument list.
+                // (6,25): error CS8196: Reference to an implicitly-typed out variable 'x' is not permitted in this location.
                 //         Test(out var x, x);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x").WithArguments("x").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(6, 25)
                 );
         }
     }

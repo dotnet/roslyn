@@ -2307,11 +2307,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             LocalSymbol localSymbol = node.LocalSymbol;
-            if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node.Syntax) == true)
+            if (node.Type == (object)this.compilation.ImplicitlyTypedVariableUsedInForbiddenZoneType)
             {
                 // Since we've already reported a use of the variable where not permitted, we
                 // suppress the diagnostic that the variable may not be assigned where used.
-                int slot = GetOrCreateSlot(node.LocalSymbol);
+                int slot = GetOrCreateSlot(localSymbol);
                 if (slot > 0)
                 {
                     _alreadyReported[slot] = true;
