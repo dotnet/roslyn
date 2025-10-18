@@ -5205,9 +5205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindArgumentsAndNames(node.ArgumentList, diagnostics, arguments, allowArglist: true);
             var result = new BoundUnconvertedObjectCreationExpression(
                 node,
-                arguments.Arguments.ToImmutable(),
-                arguments.Names.ToImmutableOrNull(),
-                arguments.RefKinds.ToImmutableOrNull(),
+                arguments.ToBoundUnconvertedArguments(),
                 node.Initializer,
                 binder: this);
             arguments.Free();
@@ -5613,7 +5611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression BindObjectCreationForErrorRecovery(BoundUnconvertedObjectCreationExpression node, BindingDiagnosticBag diagnostics)
         {
-            var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
+            var arguments = AnalyzedArguments.GetInstance(node.Arguments);
             var result = MakeBadExpressionForObjectCreation(node.Syntax, CreateErrorType(), arguments, node.InitializerOpt, typeSyntax: node.Syntax, diagnostics);
             arguments.Free();
             return result;
