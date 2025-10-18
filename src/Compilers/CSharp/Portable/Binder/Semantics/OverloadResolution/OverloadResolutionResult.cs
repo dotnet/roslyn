@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the best bad method.
                         case MemberResolutionKind.RequiredParameterMissing:
                             // Special case for collection expressions and 'params' arrays. Note: if the collection
-                            // expression has a 'with' element, we want to so normal diagnostic reporting as we want
+                            // expression has a 'with' element, we want to do normal diagnostic reporting as we want
                             // to give accurate information about the arguments they supplied and the end construct
                             // signature they were trying to create.
                             if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0 &&
