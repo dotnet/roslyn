@@ -2018,13 +2018,13 @@ Imports System.Console
 Module Program
     Sub Main()
         Dim st = "1"
-        Write($"{st,100}")    ' Positive alignment
-        Write($"{st,-100}")   ' Negative alignment - this is the problematic case
+        WriteLine($"{st,100}")    ' Positive alignment
+        WriteLine($"{st,-100}")   ' Negative alignment - this is the problematic case
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="                                                                                                   1" &
-                                 "1                                                                                                   ")
+</compilation>, expectedOutput:="                                                                                                   1" & vbLf &
+                                 "1                                                                                                   " & vbLf, trimOutput:=False)
 
                 verifier.VerifyDiagnostics()
 
@@ -2039,11 +2039,11 @@ End Module
   IL_0006:  ldstr      ""{0,100}""
   IL_000b:  ldloc.0
   IL_000c:  call       ""Function String.Format(String, Object) As String""
-  IL_0011:  call       ""Sub System.Console.Write(String)""
+  IL_0011:  call       ""Sub System.Console.WriteLine(String)""
   IL_0016:  ldstr      ""{0,-100}""
   IL_001b:  ldloc.0
   IL_001c:  call       ""Function String.Format(String, Object) As String""
-  IL_0021:  call       ""Sub System.Console.Write(String)""
+  IL_0021:  call       ""Sub System.Console.WriteLine(String)""
   IL_0026:  ret
 }
 ")
