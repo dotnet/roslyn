@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionExprType is null) // There's no way to enumerate something without a type.
                 {
-                    if (collectionExpr.ConstantValueOpt is { IsNull: true })
+                    if (collectionExpr is BoundLiteral && collectionExpr.ConstantValueOpt is { IsNull: true })
                     {
                         diagnostics.Add(ErrorCode.ERR_NullNotValid, collectionExpr.Syntax.Location);
                     }
