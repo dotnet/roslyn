@@ -11387,17 +11387,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
-            // The resulting type must be either a reference type T or Nullable<T>
+            // The resulting type must be either a reference type T, Nullable<T>, or a pointer type.
             // Therefore we must reject cases resulting in types that are not reference types and cannot be lifted into nullable.
             // - access cannot have unconstrained generic type
-            // - access cannot be a pointer
+            // - access cannot be a function pointer
             // - access cannot be a restricted type
-            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerOrFunctionPointer() || accessType.IsRestrictedType())
+            // Note: Regular pointers are allowed because they can represent null (as the zero value).
+            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsFunctionPointer() || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.
                 // For improved diagnostics we detect the cases where the value will be used and produce a
-                // more specific (though not technically correct) diagnostic here:
-                // "Error CS0023: Operator '?' cannot be applied to operand of type 'T'"
+                // more specific error here.
                 if (ResultIsUsed(node))
                 {
                     return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
@@ -11406,10 +11406,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 accessType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
             }
 
-            // if access has value type, the type of the conditional access is nullable of that
+            // if access has value type (but not a pointer), the type of the conditional access is nullable of that
             // https://github.com/dotnet/roslyn/issues/35075: The test `accessType.IsValueType && !accessType.IsNullableType()`
             // should probably be `accessType.IsNonNullableValueType()`
-            if (accessType.IsValueType && !accessType.IsNullableType() && !accessType.IsVoidType())
+            // Note: Pointers are not wrapped in Nullable<> because they can already represent null (as the zero value).
+            if (accessType.IsValueType && !accessType.IsNullableType() && !accessType.IsVoidType() && !accessType.IsPointerType())
             {
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
             }
