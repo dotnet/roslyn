@@ -5,10 +5,12 @@
 using System;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 
@@ -64,5 +66,11 @@ internal sealed class CSharpCompletionService : CommonCompletionService
         Interlocked.Exchange(ref _latestRules, newRules);
 
         return newRules;
+    }
+
+    internal override async Task<bool> IsSpeculativeTypeParameterContextAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        return CompletionUtilities.IsSpeculativeTypeParameterContext(syntaxTree, position, semanticModel: null, inMemberDeclarationOnly: true, cancellationToken);
     }
 }

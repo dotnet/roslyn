@@ -6,7 +6,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -236,6 +238,90 @@ internal static class CompletionUtilities
 
             default:
                 throw ExceptionUtilities.Unreachable();
+        }
+    }
+
+    public static bool IsSpeculativeTypeParameterContext(SyntaxTree syntaxTree, int position, SemanticModel? semanticModel, bool inMemberDeclarationOnly, CancellationToken cancellationToken)
+    {
+        var spanStart = position;
+
+        // We could be in the middle of a ref/generic/tuple type, instead of a simple T case.
+        // If we managed to walk out and get a different SpanStart, we treat it as a simple $$T case.
+        while (true)
+        {
+            var oldSpanStart = spanStart;
+
+            spanStart = WalkOutOfGenericType(syntaxTree, spanStart, semanticModel, cancellationToken);
+            spanStart = WalkOutOfTupleType(syntaxTree, spanStart, cancellationToken);
+            spanStart = WalkOutOfRefType(syntaxTree, spanStart, cancellationToken);
+
+            if (spanStart == oldSpanStart)
+            {
+                break;
+            }
+        }
+
+        var token = syntaxTree.FindTokenOnLeftOfPosition(spanStart, cancellationToken);
+
+        return syntaxTree.IsMemberDeclarationContext(spanStart, context: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken) ||
+               syntaxTree.IsGlobalMemberDeclarationContext(spanStart, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+               (!inMemberDeclarationOnly && (syntaxTree.IsStatementContext(spanStart, token, cancellationToken) ||
+                                             syntaxTree.IsGlobalStatementContext(spanStart, cancellationToken) ||
+                                             syntaxTree.IsDelegateReturnTypeContext(spanStart, token)));
+
+        static int WalkOutOfGenericType(SyntaxTree syntaxTree, int position, SemanticModel? semanticModel, CancellationToken cancellationToken)
+        {
+            var spanStart = position;
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+
+            if (syntaxTree.IsGenericTypeArgumentContext(position, token, cancellationToken, semanticModel))
+            {
+                if (syntaxTree.IsInPartiallyWrittenGeneric(spanStart, cancellationToken, out var nameToken))
+                {
+                    spanStart = nameToken.SpanStart;
+                }
+
+                // If the user types Goo<T, automatic brace completion will insert the close brace
+                // and the generic won't be "partially written".
+                if (spanStart == position)
+                {
+                    spanStart = token.GetAncestor<GenericNameSyntax>()?.SpanStart ?? spanStart;
+                }
+
+                var tokenLeftOfGenericName = syntaxTree.FindTokenOnLeftOfPosition(spanStart, cancellationToken);
+                if (tokenLeftOfGenericName.IsKind(SyntaxKind.DotToken) && tokenLeftOfGenericName.Parent.IsKind(SyntaxKind.QualifiedName))
+                {
+                    spanStart = tokenLeftOfGenericName.Parent.SpanStart;
+                }
+            }
+
+            return spanStart;
+        }
+
+        static int WalkOutOfRefType(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var prevToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                      .GetPreviousTokenIfTouchingWord(position);
+
+            if (prevToken.Kind() is SyntaxKind.RefKeyword or SyntaxKind.ReadOnlyKeyword && prevToken.Parent.IsKind(SyntaxKind.RefType))
+            {
+                return prevToken.SpanStart;
+            }
+
+            return position;
+        }
+
+        static int WalkOutOfTupleType(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var prevToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                      .GetPreviousTokenIfTouchingWord(position);
+
+            if (prevToken.IsPossibleTupleOpenParenOrComma())
+            {
+                return prevToken.Parent!.SpanStart;
+            }
+
+            return position;
         }
     }
 }
