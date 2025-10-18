@@ -15,11 +15,9 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 
@@ -34,147 +32,100 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
     {
         context.RegisterCodeFix(CodeAction.Create(
             AnalyzersResources.Remove_unnecessary_suppression,
-            cancellationToken => FixAllAsync(context.Document, context.Diagnostics, cancellationToken),
+            cancellationToken => FixSingleDocumentAsync(context.Document, context.Diagnostics, cancellationToken),
             nameof(AnalyzersResources.Remove_unnecessary_suppression)),
             context.Diagnostics);
 
         return Task.CompletedTask;
     }
 
-    private static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+    private static async Task<Document> FixSingleDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var newRoot = FixAll(
-            document.Project.Solution.Services, root, diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan));
+        // Keep track of the unnecessary spans in all linked documents.  If we're trying to fix something that would
+        // cause a problem in another linked document, then we'll still fix it (since the analyzer did report it), we'll
+        // just report a warning on it letting the user know in the preview window.
+        using var _1 = ArrayBuilder<HashSet<TextSpan>>.GetInstance(out var linkedSpansArray);
+        foreach (var linkedDocument in document.GetLinkedDocuments())
+        {
+            using var _2 = ArrayBuilder<PostfixUnaryExpressionSyntax>.GetInstance(out var unnecessaryNodes);
 
-        return document.WithSyntaxRoot(newRoot);
+            var linkedSemanticModel = await linkedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            UnnecessaryNullableWarningSuppressionsUtilities.AddUnnecessaryNodes(
+                linkedSemanticModel, unnecessaryNodes, cancellationToken);
+
+            linkedSpansArray.Add([.. unnecessaryNodes.Select(n => n.Span)]);
+        }
+
+        var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+
+        FixAllInDocument(
+            editor,
+            diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan),
+            expr =>
+            {
+                // If we don't see this span in any of the linked documents, then that means analyzing that document
+                // didn't reveal this suppression as unnecessary.  Therefore, we need to add a warning annotation
+                // message to inform the user that removing this suppression may cause warnings in other projects.
+                foreach (var linkedSpans in linkedSpansArray)
+                {
+                    if (!linkedSpans.Contains(expr.Span))
+                        return WarningAnnotation.Create(CodeFixesResources.May_be_neccessary_in_other_project_this_document_is_linked_in);
+                }
+
+                return null;
+            });
+
+        return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
-    private static SyntaxNode FixAll(
-        SolutionServices services,
-        SyntaxNode root,
-        IEnumerable<TextSpan> spans)
+    private static void FixAllInDocument(
+        SyntaxEditor editor,
+        IEnumerable<TextSpan> spans,
+        Func<PostfixUnaryExpressionSyntax, SyntaxAnnotation?>? getAnnotation)
     {
-        var editor = new SyntaxEditor(root, services);
+        var root = editor.OriginalRoot;
 
         foreach (var span in spans.OrderByDescending(d => d.Start))
         {
             if (root.FindNode(span, getInnermostNodeForTie: true) is PostfixUnaryExpressionSyntax unaryExpression)
             {
+                var annotation = getAnnotation?.Invoke(unaryExpression);
                 editor.ReplaceNode(
                     unaryExpression,
-                    (current, _) => ((PostfixUnaryExpressionSyntax)current).Operand.WithTriviaFrom(current));
+                    (current, _) =>
+                    {
+                        var result = ((PostfixUnaryExpressionSyntax)current).Operand.WithTriviaFrom(current);
+                        return annotation != null
+                            ? result.WithAdditionalAnnotations(annotation)
+                            : result;
+                    });
             }
         }
-
-        return editor.GetChangedRoot();
     }
 
     public override FixAllProvider? GetFixAllProvider()
         => new RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider();
 
-    private sealed class RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider : FixAllProvider
+    /// <summary>
+    /// Fix-all for removing unnecessary `!` operators works in a fairly specialized fashion.  The core problem is that
+    /// it's normal to have situations where a `!` operator is unnecessary in one linked document in one project, but
+    /// necessary in another.  Consider something as mundane as `string.IsNullOrEmpty(s)`.  In projects that reference a
+    /// modern, annotated, BCL, the nullable attributes on this method will allow the compiler to determine that `s` is
+    /// non-null after the call, allowing superfluous `!` operators to be removed.  However, in projects that reference
+    /// an unannotated BCL, no such determination can be made, and the `!` on a following statement may be necessary.
+    ///
+    /// To deal with this, we consider all linked documents together.  If a `!` operator is unnecessary in *all* linked
+    /// documents, then we can remove it.  Otherwise, we must keep it.
+    /// </summary>
+    private sealed class RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider : MultiProjectSafeFixAllProvider
     {
 #if !CODE_STYLE
         internal override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
 #endif
 
-        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-        {
-            var cancellationToken = fixAllContext.CancellationToken;
-
-            // Fix-all for removing unnecessary `!` operators works in a fairly specialized fashion.  The core problem
-            // is that it's normal to have situations where a `!` operator is unnecessary in one linked document in one
-            // project, but necessary in another.  Consider something as mundane as `string.IsNullOrEmpty(s)`.  In
-            // projects that reference a modern, annotated, BCL, the nullable attributes on this method will allow the
-            // compiler to determine that `s` is non-null after the call, allowing superfluous `!` operators to be
-            // removed.  However, in projects that reference an unannotated BCL, no such determination can be made, and
-            // the `!` on a following statement may be necessary.
-            //
-            // To deal with this, we consider all linked documents together.  If a `!` operator is unnecessary in *all*
-            // linked documents, then we can remove it.  Otherwise, we must keep it.
-
-            var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-
-            // Note: we can only do this if we're doing a fix-all in the solution level.  That's the only way we can see
-            // the diagnostics for other linked documents.  If someone is just asking to fix in a project we'll only
-            // know about that project and thus can't make the right decision.
-            var filterBasedOnScope = fixAllContext.Scope == FixAllScope.Solution;
-
-            // Map from a document to all linked documents it has (not including itself).
-            using var _ = PooledDictionary<DocumentId, ImmutableArray<DocumentId>>.GetInstance(out var documentToLinkedDocuments);
-
-            PopulateLinkedDocumentMap();
-            var updatedSolution = await ProcessLinkedDocumentMapAsync().ConfigureAwait(false);
-
-            return CodeAction.Create(
-                fixAllContext.GetDefaultFixAllTitle(),
-                (_, _) => Task.FromResult(updatedSolution),
-                equivalenceKey: null,
-                CodeActionPriority.Default
-#if !CODE_STYLE
-                , this.Cleanup
-#endif
-                );
-
-            void PopulateLinkedDocumentMap()
-            {
-                var solution = fixAllContext.Solution;
-                foreach (var (document, _) in documentToDiagnostics)
-                {
-                    // Note: GetLinkedDocuments does not return the document it was called on.
-                    var linkedDocuments = document.GetLinkedDocumentIds();
-
-                    // Ignore any linked documents we already saw by processing another document in that linked set.
-                    if (linkedDocuments.Any(id => documentToLinkedDocuments.ContainsKey(id)))
-                        continue;
-
-                    documentToLinkedDocuments[document.Id] = linkedDocuments;
-                }
-            }
-
-            async Task<Solution> ProcessLinkedDocumentMapAsync()
-            {
-                var currentSolution = fixAllContext.Solution;
-
-                foreach (var (documentId, linkedDocumentIds) in documentToLinkedDocuments)
-                {
-                    // Now, for each group of linked documents, only remove the suppression operators we see in all documents.
-                    var document = fixAllContext.Solution.GetRequiredDocument(documentId);
-                    using var _ = PooledHashSet<TextSpan>.GetInstance(out var commonSpans);
-
-                    var diagnostics = documentToDiagnostics[document];
-
-                    // Start initially with all the spans in this document.
-                    commonSpans.UnionWith(GetDiagnosticSpans(diagnostics));
-
-                    // Now, only keep those spans that are also in all other linked documents.
-                    if (filterBasedOnScope)
-                    {
-                        foreach (var linkedDocumentId in linkedDocumentIds)
-                        {
-                            var linkedDocument = fixAllContext.Solution.GetRequiredDocument(linkedDocumentId);
-                            var linkedDiagnostics = documentToDiagnostics.TryGetValue(linkedDocument, out var result) ? result : [];
-
-                            commonSpans.IntersectWith(GetDiagnosticSpans(linkedDiagnostics));
-                        }
-                    }
-
-                    // Now process the common spans on this initial document.  Note: we don't need to bother updating
-                    // the linked documents since, by definition, they will get the same changes.  And the workspace
-                    // will automatically edit all linked files when making a change to only one of them.
-                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var newRoot = FixAll(fixAllContext.Solution.Services, root, commonSpans);
-
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
-                }
-
-                return currentSolution;
-            }
-
-            static IEnumerable<TextSpan> GetDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics)
-                => diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan);
-        }
+        protected override void FixAll(SyntaxEditor editor, IEnumerable<TextSpan> commonSpans)
+            => FixAllInDocument(editor, commonSpans, getAnnotation: null);
     }
 }
