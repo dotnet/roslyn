@@ -25,7 +25,7 @@ internal static class MetadataNameHelpers
             var typeArguments = namedTypeSymbol.TypeArguments;
 
             builder.Append('`');
-            builder.Append(typeArguments.Length);
+            builder.Append(typeArguments.Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             // Append generic arguments
             builder.Append('[');
