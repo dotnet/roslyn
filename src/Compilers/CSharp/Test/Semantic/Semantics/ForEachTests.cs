@@ -373,7 +373,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -410,7 +410,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp).VerifyEmitDiagnostics(
                 // (6,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (var x in (dynamic)null)
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(dynamic)null").WithLocation(6, 27),
