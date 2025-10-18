@@ -231,7 +231,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (6,27): warning CS8602: Dereference of a possibly null reference.
                 //         foreach (int x in default(int[]))
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(int[])").WithLocation(6, 27));
@@ -253,7 +253,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (6,28): warning CS8602: Dereference of a possibly null reference.
                 //         foreach (char c in default(string))
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(string)").WithLocation(6, 28));
@@ -276,7 +276,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (7,27): warning CS8602: Dereference of a possibly null reference.
                 //         foreach (var x in default(IEnumerable<int>))
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(IEnumerable<int>)").WithLocation(7, 27));
@@ -299,7 +299,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (7,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (var x in (IEnumerable<int>)null)
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IEnumerable<int>)null").WithLocation(7, 27),
@@ -324,7 +324,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (6,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (int x in (int[])null)
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(int[])null").WithLocation(6, 27),
@@ -349,7 +349,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (6,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (char c in (string)null)
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(6, 28),
@@ -391,7 +391,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -435,7 +435,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (6,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (int x in (int[,])null)
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(int[,])null").WithLocation(6, 27),
@@ -460,7 +460,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -480,7 +480,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (7,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (var x in (T)null)
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)null").WithLocation(7, 27),

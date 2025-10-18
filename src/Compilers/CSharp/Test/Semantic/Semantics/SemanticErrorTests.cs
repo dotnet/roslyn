@@ -6990,7 +6990,7 @@ public class Test
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyEmitDiagnostics();
         }
 
         [WorkItem(540983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540983")]
