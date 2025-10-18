@@ -340,6 +340,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public MustOverride ReadOnly Property Locations As ImmutableArray(Of Location)
 
+        Public Function GetFirstLocation() As Location Implements ISymbolInternal.GetFirstLocation
+            Dim locations = Me.Locations
+            If locations.Length = 0 Then
+                Throw New InvalidOperationException("Symbol has no locations")
+            End If
+
+            Return locations(0)
+        End Function
+
+        Public Function GetFirstLocationOrNone() As Location Implements ISymbolInternal.GetFirstLocationOrNone
+            Return If(Me.Locations.IsEmpty, Location.None, GetFirstLocation())
+        End Function
+
         ''' <summary>
         ''' Get the syntax node(s) where this symbol was declared in source. Some symbols (for example,
         ''' partial classes) may be defined in more than one location. This property should return

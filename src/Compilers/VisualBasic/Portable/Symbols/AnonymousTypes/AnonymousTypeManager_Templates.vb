@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Conditional("DEBUG")>
         Private Sub CheckSourceLocationSeen(anonymous As AnonymousTypeOrDelegatePublicSymbol)
 #If DEBUG Then
-            Dim location As Location = anonymous.Locations(0)
+            Dim location As Location = anonymous.GetFirstLocation()
             If location.IsInSource Then
                 If Me.AreTemplatesSealed Then
                     Debug.Assert(Me._sourceLocationsSeen.ContainsKey(location))

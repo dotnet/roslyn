@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         alreadyReportedExtensions ??= PooledHashSet<SourceNamedTypeSymbol>.GetInstance();
                         if (alreadyReportedExtensions.Add(extension))
                         {
-                            diagnostics.Add(ErrorCode.ERR_ExtensionBlockCollision, extension.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_ExtensionBlockCollision, extension.GetFirstLocation());
                         }
                     }
                 }

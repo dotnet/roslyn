@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim parameterType As TypeSymbol
                     If Me.MethodKind = MethodKind.EventRemove AndAlso m_propertyOrEvent.IsWindowsRuntimeEvent Then
                         parameterType = Me.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
-                        diagnostics.Add(Binder.GetUseSiteInfoForWellKnownType(parameterType), Me.Locations(0))
+                        diagnostics.Add(Binder.GetUseSiteInfoForWellKnownType(parameterType), Me.GetFirstLocation())
                     Else
                         parameterType = SourceEvent.Type
                     End If
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         useSiteInfo = Binder.GetUseSiteInfoForWellKnownType(type)
                     End If
 
-                    diagnostics.Add(useSiteInfo, Me.Locations(0))
+                    diagnostics.Add(useSiteInfo, Me.GetFirstLocation())
 
                     DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyReturnType, type, diagnostics)
 
