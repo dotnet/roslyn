@@ -209,7 +209,7 @@ namespace Roslyn.Test.Utilities.Desktop
                     if (i < (parts.Length - 1))
                     {
                         formatString.Append('{');
-                        formatString.Append(i);
+                        formatString.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                         formatString.Append(newFormat);
                         formatString.Append('}');
                     }

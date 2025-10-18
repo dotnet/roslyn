@@ -17472,7 +17472,7 @@ partial class Program
             for (int i = 0; i < n; i++)
             {
                 if (i > 0) builder.Append(", ");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             string sourceC = $$"""
                 using System;

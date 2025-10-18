@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.Arity != 0)
                 {
                     builder.Append("``");
-                    builder.Append(symbol.Arity);
+                    builder.Append(symbol.Arity.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
 
                 if (symbol.Parameters.Any() || symbol.IsVararg)
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append('`');
                 }
 
-                builder.Append(symbol.Ordinal + ordinalOffset);
+                builder.Append((symbol.Ordinal + ordinalOffset).ToString(System.Globalization.CultureInfo.InvariantCulture));
 
                 return null;
             }
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!_inParameterOrReturnType && TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.AllIgnoreOptions))
                     {
                         builder.Append('`');
-                        builder.Append(symbol.Arity);
+                        builder.Append(symbol.Arity.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     }
                     else
                     {

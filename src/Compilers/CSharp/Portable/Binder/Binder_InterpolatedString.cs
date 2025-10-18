@@ -381,11 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (part is BoundStringInsert fillin)
                     {
                         // this is one of the expression holes
-                        stringBuilder.Append('{').Append(nextFormatPosition++);
+                        stringBuilder.Append('{').Append(nextFormatPosition++.ToString(System.Globalization.CultureInfo.InvariantCulture));
                         if (fillin.Alignment != null && !fillin.Alignment.HasErrors)
                         {
                             Debug.Assert(fillin.Alignment.ConstantValueOpt is { });
-                            stringBuilder.Append(',').Append(fillin.Alignment.ConstantValueOpt.Int64Value);
+                            stringBuilder.Append(',').Append(fillin.Alignment.ConstantValueOpt.Int64Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
                         }
                         if (fillin.Format != null && !fillin.Format.HasErrors)
                         {

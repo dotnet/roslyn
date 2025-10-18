@@ -859,13 +859,13 @@ $@"        if (F({i}))
 
             builder.AppendLine(preamble);
 
-            builder.Append(0);
+            builder.Append(0.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             for (int i = 1; i < numBinaryExpressions; i++)
             {
                 builder.Append(append);
                 // Make sure the emitter has to handle lots of nodes
-                builder.Append(i * 2);
+                builder.Append((i * 2).ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
             builder.AppendLine(postscript);

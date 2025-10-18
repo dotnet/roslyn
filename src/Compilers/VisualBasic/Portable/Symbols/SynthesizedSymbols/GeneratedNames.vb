@@ -107,11 +107,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             builder.Append(prefix)
 
             If methodOrdinal >= 0 Then
-                builder.Append(methodOrdinal)
+                builder.Append(methodOrdinal.ToString(Globalization.CultureInfo.InvariantCulture))
 
                 If methodGeneration > 0 Then
                     builder.Append(GenerationSeparator)
-                    builder.Append(methodGeneration)
+                    builder.Append(methodGeneration.ToString(Globalization.CultureInfo.InvariantCulture))
                 End If
             End If
 
@@ -121,11 +121,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     builder.Append(GeneratedNameConstants.IdSeparator)
                 End If
 
-                builder.Append(entityOrdinal)
+                builder.Append(entityOrdinal.ToString(Globalization.CultureInfo.InvariantCulture))
 
                 If entityGeneration > 0 Then
                     builder.Append(GenerationSeparator)
-                    builder.Append(entityGeneration)
+                    builder.Append(entityGeneration.ToString(Globalization.CultureInfo.InvariantCulture))
                 End If
             End If
 

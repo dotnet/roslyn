@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis
             EscapeName(sb, Name);
 
             sb.Append(", Version=");
-            sb.Append(_version.Major);
+            sb.Append(_version.Major.ToString(System.Globalization.CultureInfo.InvariantCulture));
             sb.Append('.');
-            sb.Append(_version.Minor);
+            sb.Append(_version.Minor.ToString(System.Globalization.CultureInfo.InvariantCulture));
             sb.Append('.');
-            sb.Append(_version.Build);
+            sb.Append(_version.Build.ToString(System.Globalization.CultureInfo.InvariantCulture));
             sb.Append('.');
-            sb.Append(_version.Revision);
+            sb.Append(_version.Revision.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             sb.Append(", Culture=");
             if (_cultureName.Length == 0)

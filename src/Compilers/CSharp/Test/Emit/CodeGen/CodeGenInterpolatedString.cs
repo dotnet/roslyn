@@ -283,5 +283,62 @@ public class Test
 
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/44678")]
+        public void AlignmentWithNegativeValue()
+        {
+            // This test verifies that negative alignment values are formatted using invariant culture.
+            // The issue occurs when compiling under non-US cultures (e.g., Swedish sv-SE) where the
+            // minus sign is formatted as '−' (U+2212) instead of '-' (U+002D), causing runtime errors.
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    static void Main()
+                    {
+                        var st = "1";
+                        var st2 = $"{st,100}";  // Positive alignment
+                        var st3 = $"{st,-100}"; // Negative alignment - this is the problematic case
+                        Console.WriteLine(st2);
+                        Console.WriteLine(st3);
+                    }
+                }
+                """;
+
+            // Test under Swedish culture (sv-SE) where minus sign is represented differently
+            using (new CultureContext(new System.Globalization.CultureInfo("sv-SE", useUserOverride: false)))
+            {
+                var comp = CompileAndVerify(source, expectedOutput: """
+                                                                                                       1
+                    1                                                                                                   
+                    """);
+
+                comp.VerifyDiagnostics();
+
+                // Verify that the emitted IL contains the correct format string with a proper minus sign
+                comp.VerifyIL("Test.Main", """
+                    {
+                      // Code size       41 (0x29)
+                      .maxstack  2
+                      .locals init (string V_0, //st
+                                    string V_1) //st2
+                      IL_0000:  ldstr      "1"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldstr      "{0,100}"
+                      IL_000b:  ldloc.0
+                      IL_000c:  call       "string string.Format(string, object)"
+                      IL_0011:  stloc.1
+                      IL_0012:  ldstr      "{0,-100}"
+                      IL_0017:  ldloc.0
+                      IL_0018:  call       "string string.Format(string, object)"
+                      IL_001d:  ldloc.1
+                      IL_001e:  call       "void System.Console.WriteLine(string)"
+                      IL_0023:  call       "void System.Console.WriteLine(string)"
+                      IL_0028:  ret
+                    }
+                    """);
+            }
+        }
     }
 }
