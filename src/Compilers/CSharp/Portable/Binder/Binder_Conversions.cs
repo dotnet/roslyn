@@ -1617,9 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // Otherwise, fall through.  We have no constructors whatsoever and should report the below message
                     // saying that that we can't find any applicable constructor.
-                    constructor =
-                        candidateConstructors is [var firstAccessibleConstructor, ..] ? firstAccessibleConstructor :
-                        allInstanceConstructors is [var firstInaccessibleConstructor, ..] ? firstInaccessibleConstructor : null;
+                    constructor = candidateConstructors.FirstOrDefault() ?? allInstanceConstructors.FirstOrDefault();
                     if (constructor is not null)
                         return true;
                 }
