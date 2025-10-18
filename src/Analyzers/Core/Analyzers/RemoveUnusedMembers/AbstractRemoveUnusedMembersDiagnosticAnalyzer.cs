@@ -467,7 +467,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             if (semanticModel is null)
                 return;
 
-            ImmutableArray<IParameterSymbol> parameters = operationContext.Operation switch
+            var parameters = operationContext.Operation switch
             {
                 IAnonymousFunctionOperation anonymousFunction => anonymousFunction.Symbol.Parameters,
                 ILocalFunctionOperation localFunction => localFunction.Symbol.Parameters,
