@@ -842,6 +842,12 @@ This version used in: {2}</value>
   <data name="Rename_file_to_0" xml:space="preserve">
     <value>Rename file to {0}</value>
   </data>
+  <data name="Rename_all_files_in_0_to_match_types" xml:space="preserve">
+    <value>Rename all file in '{0}' to match types</value>
+  </data>
+  <data name="Rename_all_files_in_solution_to_match_types" xml:space="preserve">
+    <value>Rename all file in solution to match types</value>
+  </data>
   <data name="Rename_type_to_0" xml:space="preserve">
     <value>Rename type to {0}</value>
   </data>
