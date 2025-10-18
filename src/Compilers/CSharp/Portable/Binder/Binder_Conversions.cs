@@ -1606,17 +1606,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         namedType, allowProtectedConstructorsOfBaseType: false,
                         out var allInstanceConstructors, ref useSiteInfo);
 
-                    // As long as we have an available instance constructor, this is a type we consider applicable
-                    // to collection expressions.  It may be the case that a `with(...)` element is required.  But
-                    // that will be reported later when doing the actual conversion to a BoundCollectionExpression.
-                    if (candidateConstructors is [var firstConstructor, ..])
-                    {
-                        constructor = firstConstructor;
+                    // As long as we have an available *accessible* instance constructor, this is a type we consider
+                    // applicable to collection expressions.  It may be the case that a `with(...)` element is required.
+                    // But that will be reported later when doing the actual conversion to a BoundCollectionExpression.
+                    //
+                    // Otherwise, if we have *some* instance constructor (but not accessible), return it as well as this
+                    // could be an error scenario with the user wanting the 'with(...)' element to bind to that. The
+                    // actual attempt to bind the collection conversion will attempt to use this constructor and will
+                    // report an appropriate error about it not being viable because it is not accessible.
+                    //
+                    // Otherwise, fall through.  We have no constructors whatsoever and should report the below message
+                    // saying that that we can't find any applicable constructor.
+                    constructor =
+                        candidateConstructors is [var firstAccessibleConstructor, ..] ? firstAccessibleConstructor :
+                        allInstanceConstructors is [var firstInaccessibleConstructor, ..] ? firstInaccessibleConstructor : null;
+                    if (constructor is not null)
                         return true;
-                    }
-
-                    // Otherwise, fall through.  If we don't have any available instance constructors, we definitely
-                    // don't have the no-arg one, and should report the below message saying there is a problem.
                 }
 
                 // This is the 'a' case, and the error recovery path for the 'b' case as well.

@@ -1298,11 +1298,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
         CreateCompilation(source).VerifyDiagnostics(
-            // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
+            // (12,29): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
             //         MyList<int> list = [with(10)];
-            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[with(10)]").WithArguments("MyList<int>", "0").WithLocation(12, 28));
+            Diagnostic(ErrorCode.ERR_BadAccess, "with(10)").WithArguments("MyList<int>.MyList(int)").WithLocation(12, 29));
     }
 
     [Fact]
@@ -1325,11 +1324,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        // PROTOTYPE: This error message isn't good.  We should say that the constructor is inaccessible.
         CreateCompilation(source).VerifyDiagnostics(
-            // (12,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
+            // (12,29): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
             //         MyList<int> list = [with(10)];
-            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[with(10)]").WithArguments("MyList<int>", "0").WithLocation(12, 28));
+            Diagnostic(ErrorCode.ERR_BadAccess, "with(10)").WithArguments("MyList<int>.MyList(int)").WithLocation(12, 29));
     }
 
     [Fact]
@@ -1367,9 +1365,9 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             // (14,13): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
             //         new MyList<int>(10);
             Diagnostic(ErrorCode.ERR_BadAccess, "MyList<int>").WithArguments("MyList<int>.MyList(int)").WithLocation(14, 13),
-            // (15,28): error CS1729: 'MyList<int>' does not contain a constructor that takes 0 arguments
+            // (15,29): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
             //         MyList<int> list = [with(10)];
-            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[with(10)]").WithArguments("MyList<int>", "0").WithLocation(15, 28));
+            Diagnostic(ErrorCode.ERR_BadAccess, "with(10)").WithArguments("MyList<int>.MyList(int)").WithLocation(15, 29));
     }
 
     [Fact]
