@@ -9929,7 +9929,7 @@ public class C
     }
 }";
             CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics();
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -9952,7 +9952,7 @@ public class C
     public IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
 }";
             CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics();
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]

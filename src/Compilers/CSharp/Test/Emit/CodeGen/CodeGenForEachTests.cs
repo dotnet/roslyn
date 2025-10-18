@@ -2434,7 +2434,7 @@ public class C
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics();
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2456,7 +2456,7 @@ public class C
     public IEnumerator<int> GetEnumerator() => throw null;
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics();
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2475,7 +2475,7 @@ public class C
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics();
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]

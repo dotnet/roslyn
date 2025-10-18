@@ -99,7 +99,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -117,7 +117,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -136,7 +136,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -155,7 +155,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -173,7 +173,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -191,7 +191,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]

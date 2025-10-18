@@ -938,14 +938,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionExprType is null) // There's no way to enumerate something without a type.
                 {
-                    if (collectionExpr.ConstantValueOpt is not { IsNull: true })
+                    if (collectionExpr.ConstantValueOpt is { IsNull: true })
                     {
-                        // Anything else with a null type is a method group or anonymous function
-                        diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, collectionSyntax.Location, collectionExpr.Display);
+                        diagnostics.Add(ErrorCode.ERR_NullNotValid, collectionExpr.Syntax.Location);
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.ERR_NullNotValid, collectionExpr.Syntax.Location);
+                        // Anything else with a null type is a method group or anonymous function
+                        diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, collectionSyntax.Location, collectionExpr.Display);
                     }
 
                     // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
