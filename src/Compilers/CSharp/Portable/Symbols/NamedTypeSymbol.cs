@@ -395,7 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct)
+            if (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                && (!thisParam.Type.IsValueType || thisParam.TypeWithAnnotations.TypeKind == TypeKind.TypeParameter))
             {
                 return false;
             }
