@@ -127,5 +127,11 @@ namespace Microsoft.CodeAnalysis
         /// Returns true if this is a partial definition part.  Otherwise false.
         /// </summary>
         bool IsPartialDefinition { get; }
+
+        /// <summary>
+        /// If this is an extension property that can be applied to a receiver of the given type,
+        /// returns the property symbol in the substituted extension for that receiver type. Otherwise, returns null.
+        /// </summary>
+        IPropertySymbol? ReduceExtensionMember(ITypeSymbol receiverType);
     }
 }

@@ -281,9 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         Debug.Assert(method.GetIsNewExtensionMember());
-                        constructed = (MethodSymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructed, receiverType);
-
-                        if (checkFullyInferred && constructed?.IsGenericMethod == true && typeArguments.IsDefaultOrEmpty)
+                        constructed = (MethodSymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation, constructed, receiverType, out bool wasExtensionFullyInferred);
+                        if (checkFullyInferred && (!wasExtensionFullyInferred || (constructed?.IsGenericMethod == true && typeArguments.IsDefaultOrEmpty)))
                         {
                             return null;
                         }
@@ -297,7 +296,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // infer type arguments based off the receiver type if needed, check applicability
                 Debug.Assert(receiverType is not null);
                 Debug.Assert(property.GetIsNewExtensionMember());
-                return (PropertySymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType);
+                var result = (PropertySymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation, property, receiverType, wasExtensionFullyInferred: out bool wasFullyInferred);
+                if (checkFullyInferred && !wasFullyInferred)
+                {
+                    return null;
+                }
+
+                return result;
             }
 
             throw ExceptionUtilities.UnexpectedValue(member.Kind);

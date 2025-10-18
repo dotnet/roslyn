@@ -826,6 +826,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ReduceExtensionMethod(instanceType, proximity:=0, useSiteInfo, languageVersion)
         End Function
 
+        Public Function ReduceExtensionMember(receiverType As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.ReduceExtensionMember
+            Return Nothing
+        End Function
+
         ''' <summary>
         ''' Proximity level of a reduced extension method.
         ''' </summary>

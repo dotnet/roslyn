@@ -117,4 +117,7 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
 
     public DllImportData GetDllImportData()
         => null;
+
+    public IMethodSymbol ReduceExtensionMember(ITypeSymbol receiverType)
+        => throw new System.NotImplementedException();
 }

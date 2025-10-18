@@ -691,6 +691,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitProperty(Me)
         End Function
 
+        Public Function ReduceExtensionMember(receiverType As ITypeSymbol) As IPropertySymbol Implements IPropertySymbol.ReduceExtensionMember
+            Return Nothing
+        End Function
 #End Region
 
     End Class
