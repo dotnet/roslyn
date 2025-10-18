@@ -2006,12 +2006,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsUserDefinedTrueOrFalse(BoundUnaryOperator @operator)
-        {
-            UnaryOperatorKind operatorKind = @operator.OperatorKind;
-            return operatorKind == UnaryOperatorKind.UserDefinedTrue || operatorKind == UnaryOperatorKind.UserDefinedFalse;
-        }
-
         // Gets the semantic info from a specific bound node and a set of diagnostics
         // lowestBoundNode: The lowest node in the bound tree associated with node
         // highestBoundNode: The highest node in the bound tree associated with node
