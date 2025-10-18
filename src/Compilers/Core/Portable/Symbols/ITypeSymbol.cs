@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The declared base type of this type, or null. The object type, interface types,
-        /// and pointer types do not have a base type. The base type of a type parameter
-        /// is its effective base class.
+        /// pointer types, and type parameters do not have a base type.
         /// </summary>
         INamedTypeSymbol? BaseType { get; }
 

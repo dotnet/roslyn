@@ -7460,5 +7460,116 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
             Assert.Null(model.GetAliasInfo(nest));
             Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        public void TypeParameter_BaseType_ReturnsNull()
+        {
+            var source = """
+                abstract class Base
+                {
+                    public abstract void Method();
+                }
+
+                class Derived<T> where T : Base
+                {
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var derivedType = comp.GetTypeByMetadataName("Derived`1");
+            Assert.NotNull(derivedType);
+
+            var typeParameter = derivedType.TypeParameters[0];
+            Assert.NotNull(typeParameter);
+
+            var publicTypeParameter = (ITypeParameterSymbol)typeParameter.GetPublicSymbol();
+            Assert.Null(publicTypeParameter.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        public void MethodTypeParameter_BaseType_ReturnsNull()
+        {
+            var source = """
+                class C
+                {
+                    void M<T>() where T : class
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("C");
+            Assert.NotNull(type);
+
+            var method = type.GetMethod("M");
+            Assert.NotNull(method);
+
+            var typeParameter = method.TypeParameters[0];
+            Assert.NotNull(typeParameter);
+
+            var publicTypeParameter = (ITypeParameterSymbol)typeParameter.GetPublicSymbol();
+            Assert.Null(publicTypeParameter.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        public void ObjectType_BaseType_ReturnsNull()
+        {
+            var comp = CreateCompilation("");
+            var objectType = comp.GetSpecialType(SpecialType.System_Object);
+            Assert.NotNull(objectType);
+
+            var publicObjectType = (INamedTypeSymbol)objectType.GetPublicSymbol();
+            Assert.Null(publicObjectType.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        public void InterfaceType_BaseType_ReturnsNull()
+        {
+            var source = """
+                interface IMyInterface
+                {
+                    void Method();
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var interfaceType = comp.GetTypeByMetadataName("IMyInterface");
+            Assert.NotNull(interfaceType);
+
+            var publicInterfaceType = (INamedTypeSymbol)interfaceType.GetPublicSymbol();
+            Assert.Null(publicInterfaceType.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        public void PointerType_BaseType_ReturnsNull()
+        {
+            var source = """
+                unsafe class C
+                {
+                    int* ptr;
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (3,10): warning CS0169: The field 'C.ptr' is never used
+                //     int* ptr;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "ptr").WithArguments("C.ptr").WithLocation(3, 10));
+
+            var type = comp.GetTypeByMetadataName("C");
+            Assert.NotNull(type);
+
+            var field = type.GetField("ptr");
+            Assert.NotNull(field);
+
+            var pointerType = field.Type;
+            Assert.Equal(TypeKind.Pointer, pointerType.TypeKind);
+
+            var publicPointerType = (IPointerTypeSymbol)pointerType.GetPublicSymbol();
+            Assert.Null(publicPointerType.BaseType);
+        }
     }
 }
