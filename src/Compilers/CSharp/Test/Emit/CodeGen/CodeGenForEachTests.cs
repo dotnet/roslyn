@@ -2434,11 +2434,7 @@ public class C
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics(
-                    // (8,27): error CS0186: Use of null is not valid in this context
-                    //         foreach (var i in (IEnumerable<int>)null)
-                    Diagnostic(ErrorCode.ERR_NullNotValid, "(IEnumerable<int>)null").WithLocation(8, 27)
-                    );
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2460,11 +2456,7 @@ public class C
     public IEnumerator<int> GetEnumerator() => throw null;
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics(
-                    // (8,27): error CS0186: Use of null is not valid in this context
-                    //         foreach (var i in (C)null)
-                    Diagnostic(ErrorCode.ERR_NullNotValid, "(C)null").WithLocation(8, 27)
-                    );
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2483,11 +2475,7 @@ public class C
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics(
-                    // (7,27): error CS0186: Use of null is not valid in this context
-                    //         foreach (var i in (int[])null)
-                    Diagnostic(ErrorCode.ERR_NullNotValid, "(int[])null").WithLocation(7, 27)
-                    );
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]
