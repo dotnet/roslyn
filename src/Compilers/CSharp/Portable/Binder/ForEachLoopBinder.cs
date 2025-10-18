@@ -945,7 +945,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
                         diagnostics.Add(ErrorCode.ERR_NullNotValid, collectionExpr.Syntax.Location);
                     }
 
