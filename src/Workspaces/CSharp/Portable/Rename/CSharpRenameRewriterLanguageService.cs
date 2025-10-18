@@ -513,6 +513,49 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
             return result;
         }
 
+        public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
+        {
+            // First, visit the node to process any renames in the expression
+            var result = (AnonymousObjectMemberDeclaratorSyntax)base.VisitAnonymousObjectMemberDeclarator(node)!;
+
+            // If this is an inferred member (no explicit name), we need to check if the inferred name
+            // is changing due to a rename operation
+            if (result.NameEquals == null)
+            {
+                // Get the inferred name from the original expression
+                var inferredName = GetInferredMemberName(node.Expression);
+                if (inferredName != null && inferredName == _originalText)
+                {
+                    // The inferred name matches the symbol being renamed, so we need to add
+                    // an explicit name to preserve the member name after the rename
+                    var nameEquals = SyntaxFactory.NameEquals(
+                        SyntaxFactory.IdentifierName(_replacementText));
+
+                    // Update the declarator with the explicit name
+                    result = result.Update(nameEquals, result.Expression);
+
+                    // Track the modified span
+                    var oldSpan = node.Span;
+                    AddModifiedSpan(oldSpan, result.Span);
+                }
+            }
+
+            return result;
+        }
+
+        private static string? GetInferredMemberName(ExpressionSyntax expression)
+        {
+            // Get the inferred name from the expression
+            // For member access like "obj.Member", the inferred name is "Member"
+            // For identifier like "args", the inferred name is "args"
+            return expression switch
+            {
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
+                IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
+                _ => null
+            };
+        }
+
         private bool IsRenameLocation(SyntaxToken token)
         {
             if (!_isProcessingComplexifiedSpans)
