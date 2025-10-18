@@ -9877,6 +9877,7 @@ internal sealed partial class InterpolationFormatClauseSyntax : CSharpSyntaxNode
         => new InterpolationFormatClauseSyntax(this.Kind, this.colonToken, this.formatStringToken, GetDiagnostics(), annotations);
 }
 
+/// <summary>Represents a global statement in a compilation unit. Each statement at the top level of a compilation unit is wrapped in a GlobalStatementSyntax node. Global statements are top-level statements that can appear in a C# program or script. In regular C# programs (C# 9.0+), they are synthesized into a Main method. In C# scripts, they are executed as top-level code.</summary>
 internal sealed partial class GlobalStatementSyntax : MemberDeclarationSyntax
 {
     internal readonly GreenNode? attributeLists;
