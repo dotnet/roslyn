@@ -92,6 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Note: we intentionally are not setting .StringValue for raw string literals.  That will be determined in
             // the parser later on in LanguageParser.ParseRawStringToken
             Debug.Assert(info.StringValue == null);
+
+            // We should not have reported any errors for this raw string literal.  Any errors should be deferred to the parser.
+            Debug.Assert(!this.HasErrors);
             info.Text = this.GetInternedLexemeText();
         }
 
@@ -103,17 +106,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var currentChar = TextWindow.PeekChar();
 
-                // See if we reached the end of the line or file before hitting the end.
-                if (SyntaxFacts.IsNewLine(currentChar))
-                {
-                    this.AddError(TextWindow.Position, width: TextWindow.GetNewLineWidth(), ErrorCode.ERR_UnterminatedRawString);
+                // See if we reached the end of the line or file before hitting the end. Errors about this will be
+                // reported by the parser.
+                if (SyntaxFacts.IsNewLine(currentChar) || IsAtEndOfText(currentChar))
                     return;
-                }
-                else if (IsAtEndOfText(currentChar))
-                {
-                    this.AddError(TextWindow.Position, width: 0, ErrorCode.ERR_UnterminatedRawString);
-                    return;
-                }
 
                 if (currentChar != '"')
                 {
@@ -128,18 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (currentQuoteCount < startingQuoteCount)
                     continue;
 
-                // A raw string could never be followed by another string.  So once we've consumed all the closing quotes
-                // if we have any more closing quotes then that's an error we can give a message for.
-                if (currentQuoteCount > startingQuoteCount)
-                {
-                    var excessQuoteCount = currentQuoteCount - startingQuoteCount;
-                    this.AddError(
-                        position: TextWindow.Position - excessQuoteCount,
-                        width: excessQuoteCount,
-                        ErrorCode.ERR_TooManyQuotesForRawString);
-                }
-
-                // We have enough quotes to finish this string at this point.
+                // We have enough quotes to finish this string at this point.  Errors about excess quotes will be
+                // reported in the parser.
                 return;
             }
         }
@@ -160,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ConsumeWhitespace();
 
             // after the whitespace see if this the line that ends the multiline literal.  If so we're done scanning
-            // lines.  Note: any errors about seeing more close quotes than expected will be reported by the parser.
+            // lines.  Errors about this will be reported by the parser.
             if (ConsumeQuoteSequence() >= startingQuoteCount)
                 return false;
 
@@ -170,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var currentChar = TextWindow.PeekChar();
 
-                // Check if we have an unterminated raw string.  Note: any errors about this will be reported by the parser.
+                // Check if we have an unterminated raw string. Errors about this will be reported by the parser.
                 if (IsAtEndOfText(currentChar))
                     return false;
 
@@ -180,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (currentChar == '"')
                 {
                     // Don't allow a content line to contain a quote sequence that looks like a delimiter (or longer).
-                    // Note: any errors about this will be reported by the parser.
+                    // Errors about this will be reported by the parser.
                     if (ConsumeQuoteSequence() >= startingQuoteCount)
                         return false;
                 }
