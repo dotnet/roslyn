@@ -577,8 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         Debug.Assert(IsAtEnd(kind));
 
                         TrySetError(_lexer.MakeError(
-                            IsAtEnd(allowNewline: true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position,
-                            width: 1, ErrorCode.ERR_UnterminatedRawString));
+                            _lexer.TextWindow.Position,
+                            width: SyntaxFacts.IsNewLine(_lexer.TextWindow.PeekChar()) ? 1 : 0, ErrorCode.ERR_UnterminatedRawString));
                     }
                     else
                     {
