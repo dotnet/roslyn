@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             InterpolatedStringContentSyntax? makeContent(
                 ReadOnlySpan<char> indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, ReadOnlySpan<char> text)
             {
-                if (text.Length == 0)
+                if (text.IsEmpty)
                 {
                     // For the raw string case, always include an InterpolatedStringText token, even if empty. This
                     // allows the caller to uniformly assume there is always at least one text token that it can 
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // If we're not dedenting then just make a standard interpolated text token.  Also, we can short-circuit
                 // if the indentation whitespace is empty (nothing to dedent in that case).
-                if (!needsDedentation || indentationWhitespace.Length == 0)
+                if (!needsDedentation || indentationWhitespace.IsEmpty)
                     return SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(kind, text.ToString()));
 
                 content.Clear();
