@@ -5,6 +5,8 @@
 // Largely copied from https://github.com/dotnet/sdk/blob/ce691a53dad7f2b6057c85c1e7fd7800dfe0788f/src/Cli/dotnet/Commands/Run/VirtualProjectBuildingCommand.cs#L1410
 // TODO: we'd like to extract a source package which makes this copy of the source unnecessary.
 
+#if false // TODO2: delete this file in favor of the source package.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -701,3 +703,5 @@ internal static class CliCommandStrings
     public static string DuplicateDirective => CSharpAnalyzersResources.DuplicateDirective;
     public static string CannotConvertDirective => CSharpAnalyzersResources.CannotConvertDirective;
 }
+
+#endif

@@ -168,4 +168,8 @@
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- TODO2: central package version. Use published version. -->
+    <PackageReference Include="Microsoft.DotNet.FileBasedPrograms" VersionOverride="10.0.100-dev" />
+  </ItemGroup>
 </Project>
