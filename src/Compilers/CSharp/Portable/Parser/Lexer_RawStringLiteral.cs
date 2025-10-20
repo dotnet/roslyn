@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -160,51 +159,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             ConsumeWhitespace();
 
-            // after the whitespace see if this the line that ends the multiline literal.
-            var currentQuoteCount = ConsumeQuoteSequence();
-            if (currentQuoteCount >= startingQuoteCount)
-            {
-                // A raw string could never be followed by another string.  So once we've consumed all the closing quotes
-                // if we have any more closing quotes then that's an error we can give a message for.
-                if (currentQuoteCount > startingQuoteCount)
-                {
-                    var excessQuoteCount = currentQuoteCount - startingQuoteCount;
-                    this.AddError(
-                        position: TextWindow.Position - excessQuoteCount,
-                        width: excessQuoteCount,
-                        ErrorCode.ERR_TooManyQuotesForRawString);
-                }
-
-                // Done scanning lines.
+            // after the whitespace see if this the line that ends the multiline literal.  If so we're done scanning
+            // lines.  Note: any errors about seeing more close quotes than expected will be reported by the parser.
+            if (ConsumeQuoteSequence() >= startingQuoteCount)
                 return false;
-            }
 
             // We're not on the terminating line. Consume a normal content line.  Eat to the end of line (or file in the
             // case of errors).
             while (true)
             {
                 var currentChar = TextWindow.PeekChar();
+
+                // Check if we have an unterminated raw string.  Note: any errors about this will be reported by the parser.
                 if (IsAtEndOfText(currentChar))
-                {
-                    this.AddError(TextWindow.Position, width: 0, ErrorCode.ERR_UnterminatedRawString);
                     return false;
-                }
 
                 if (SyntaxFacts.IsNewLine(currentChar))
                     return true;
 
                 if (currentChar == '"')
                 {
-                    // Don't allow a content line to contain a quote sequence that looks like a delimiter (or longer)
-                    currentQuoteCount = ConsumeQuoteSequence();
-                    if (currentQuoteCount >= startingQuoteCount)
-                    {
-                        this.AddError(
-                            position: TextWindow.Position - currentQuoteCount,
-                            width: currentQuoteCount,
-                            ErrorCode.ERR_RawStringDelimiterOnOwnLine);
+                    // Don't allow a content line to contain a quote sequence that looks like a delimiter (or longer).
+                    // Note: any errors about this will be reported by the parser.
+                    if (ConsumeQuoteSequence() >= startingQuoteCount)
                         return false;
-                    }
                 }
                 else
                 {
