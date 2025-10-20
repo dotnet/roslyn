@@ -236,6 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (text.Length == 0)
                 {
+                    // For the raw string case, always include an InterpolatedStringText token, even if empty. This
+                    // allows the caller to uniformly assume there is always at least one text token that it can 
+                    // extract data from.
                     return isInterpolatedString
                         ? null
                         : SyntaxFactory.InterpolatedStringText(
