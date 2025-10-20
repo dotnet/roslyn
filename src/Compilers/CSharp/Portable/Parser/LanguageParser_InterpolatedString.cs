@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             SyntaxDiagnosticInfo? getInterpolationIndentationError(ReadOnlySpan<char> indentationWhitespace, Lexer.Interpolation interpolation)
             {
-                if (needsDedentation && indentationWhitespace.Length > 0)
+                if (needsDedentation && !indentationWhitespace.IsEmpty)
                 {
                     var openBracePosition = interpolation.OpenBraceRange.Start.Value;
                     if (openBracePosition > 0 && SyntaxFacts.IsNewLine(originalText[openBracePosition - 1]))
