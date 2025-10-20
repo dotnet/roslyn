@@ -55,6 +55,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - Language-specific test bases: `CSharpTestBase`, `VisualBasicTestBase`
 - Add `[WorkItem("https://github.com/dotnet/roslyn/issues/issueNumber")]` attribute to tests that fix specific GitHub issues
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) when creating test source code
+- Avoid unnecessary intermediary assertions - tests should do the minimal amount of work to validate just the core issue being addressed
 
 ## Critical Integration Points
 
