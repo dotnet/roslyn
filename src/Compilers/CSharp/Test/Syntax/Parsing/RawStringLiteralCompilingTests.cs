@@ -241,17 +241,14 @@ class C
     public void TestMultiLineRawLiteralInMultiLineInterpolatedString1()
     {
         CreateCompilation(
-            """"
-            class C
-            {
-                void M()
-                {
-                    var v = $@"{"""
-
-            """}";
-                }
-            }
-            """").VerifyDiagnostics();
+@"class C
+{
+    void M()
+    {
+        var v = $@""{""""""
+""""""}"";
+    }
+}").VerifyDiagnostics();
     }
 
     [Fact]
