@@ -81,7 +81,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
         private static INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
         {
             return new[] { compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType(),
-                compilation.DynamicAttributeType(), compilation.NativeIntegerAttributeType() }.WhereNotNull().ToArray()!;
+                compilation.DynamicAttributeType(), compilation.NativeIntegerAttributeType() }.WhereNotNull().ToArray();
         }
 
         private IMethodSymbol? GenerateSetAccessor(

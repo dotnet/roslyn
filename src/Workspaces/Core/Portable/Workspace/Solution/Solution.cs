@@ -340,7 +340,7 @@ public partial class Solution
             }
             else if (documentState is DocumentState)
             {
-                return GetDocument(documentState.Id)!;
+                return GetDocument(documentState.Id);
             }
         }
 
