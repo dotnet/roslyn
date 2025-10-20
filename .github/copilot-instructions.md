@@ -56,6 +56,8 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - Add `[WorkItem("https://github.com/dotnet/roslyn/issues/issueNumber")]` attribute to tests that fix specific GitHub issues
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) when creating test source code
 - Avoid unnecessary intermediary assertions - tests should do the minimal amount of work to validate just the core issue being addressed
+  - Use concise methods like `.Single()` instead of asserting count and extracting elements
+  - For compiler tests, validate diagnostics (e.g., `comp.VerifyDiagnostics()`) so reviewers can easily see if the code is in error or represents something legal
 
 ## Critical Integration Points
 
