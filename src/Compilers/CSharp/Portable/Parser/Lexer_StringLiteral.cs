@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Now see if this was a single-line or multi-line raw literal.
 
                 var afterQuotePosition = window.Position;
-                _lexer.ConsumeWhitespace(builder: null);
+                _lexer.ConsumeWhitespace();
                 if (SyntaxFacts.IsNewLine(window.PeekChar()))
                 {
                     // We had whitespace followed by a newline.  That section is considered the open-quote section of
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else
                     {
                         _lexer.TextWindow.AdvancePastNewLine();
-                        _lexer.ConsumeWhitespace(builder: null);
+                        _lexer.ConsumeWhitespace();
 
                         var closeQuoteCount = _lexer.ConsumeQuoteSequence();
 
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (kind == InterpolatedStringKind.MultiLineRaw)
                 {
-                    _lexer.ConsumeWhitespace(builder: null);
+                    _lexer.ConsumeWhitespace();
                     var beforeQuotesPosition = _lexer.TextWindow.Position;
                     var closeQuoteCount = _lexer.ConsumeQuoteSequence();
 
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (SyntaxFacts.IsNewLine(_lexer.TextWindow.PeekChar()))
                     {
                         _lexer.TextWindow.AdvancePastNewLine();
-                        _lexer.ConsumeWhitespace(builder: null);
+                        _lexer.ConsumeWhitespace();
                         var closeQuoteCount = _lexer.ConsumeQuoteSequence();
 
                         _lexer.TextWindow.Reset(startPosition);

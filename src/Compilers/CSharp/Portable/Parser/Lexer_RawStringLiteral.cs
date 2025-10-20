@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int ConsumeCloseBraceSequence()
             => ConsumeCharSequence('}');
 
-        private void ConsumeWhitespace(StringBuilder? builder)
+        private void ConsumeWhitespace()
         {
             while (true)
             {
@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (!SyntaxFacts.IsWhitespace(ch))
                     break;
 
-                builder?.Append(ch);
                 TextWindow.AdvanceChar();
             }
         }
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(startingQuoteCount >= 3);
 
             // Keep consuming whitespace after the initial quote sequence.
-            ConsumeWhitespace(builder: null);
+            ConsumeWhitespace();
 
             if (SyntaxFacts.IsNewLine(TextWindow.PeekChar()))
             {
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             TextWindow.AdvancePastNewLine();
 
-            ConsumeWhitespace(builder: null);
+            ConsumeWhitespace();
 
             // after the whitespace see if this the line that ends the multiline literal.
             var currentQuoteCount = ConsumeQuoteSequence();
