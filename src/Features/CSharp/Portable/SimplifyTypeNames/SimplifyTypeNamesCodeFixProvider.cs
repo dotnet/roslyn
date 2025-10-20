@@ -19,15 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyNames), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
-internal sealed partial class SimplifyTypeNamesCodeFixProvider : AbstractSimplifyTypeNamesCodeFixProvider<SyntaxKind, CSharpSimplifierOptions>
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class SimplifyTypeNamesCodeFixProvider()
+    : AbstractSimplifyTypeNamesCodeFixProvider<SyntaxKind, CSharpSimplifierOptions>(new CSharpSimplifyTypeNamesDiagnosticAnalyzer())
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public SimplifyTypeNamesCodeFixProvider()
-        : base(new CSharpSimplifyTypeNamesDiagnosticAnalyzer())
-    {
-    }
-
     protected override string GetTitle(string diagnosticId, string nodeText)
     {
         switch (diagnosticId)

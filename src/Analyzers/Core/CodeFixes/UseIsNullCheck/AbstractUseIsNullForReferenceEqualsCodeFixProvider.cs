@@ -38,9 +38,7 @@ internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<
         {
             var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
             var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
-            context.RegisterCodeFix(
-                CodeAction.Create(title, GetDocumentUpdater(context), title),
-                context.Diagnostics);
+            RegisterCodeFix(context, title, title);
         }
 
         return Task.CompletedTask;

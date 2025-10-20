@@ -30,12 +30,7 @@ internal sealed class CSharpRemoveUnusedLocalFunctionCodeFixProvider() : SyntaxE
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                CSharpCodeFixesResources.Remove_unused_function,
-                GetDocumentUpdater(context),
-                nameof(CSharpCodeFixesResources.Remove_unused_function)),
-            context.Diagnostics);
+        RegisterCodeFix(context, CSharpCodeFixesResources.Remove_unused_function, nameof(CSharpCodeFixesResources.Remove_unused_function));
         return Task.CompletedTask;
     }
 

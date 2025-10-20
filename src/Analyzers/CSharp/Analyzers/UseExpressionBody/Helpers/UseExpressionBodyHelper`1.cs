@@ -186,7 +186,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration>(
         var languageVersion = declaration.GetLanguageVersion();
         if (languageVersion < LanguageVersion.CSharp7)
         {
-            if (expressionBody!.Expression.IsKind(SyntaxKind.ThrowExpression))
+            if (expressionBody.Expression.IsKind(SyntaxKind.ThrowExpression))
             {
                 // If they're using a throw expression in a declaration and it's prior to C# 7
                 // then always mark this as something that can be fixed by the analyzer.  This way

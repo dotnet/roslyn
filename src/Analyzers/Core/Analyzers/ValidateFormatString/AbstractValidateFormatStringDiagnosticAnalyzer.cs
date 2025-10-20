@@ -200,7 +200,7 @@ internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKi
         }
 
         Debug.Assert(syntaxFacts.IsArgument(argsArgument));
-        var expression = syntaxFacts.GetExpressionOfArgument(argsArgument)!;
+        var expression = syntaxFacts.GetExpressionOfArgument(argsArgument);
         return semanticModel.GetTypeInfo(expression).ConvertedType;
     }
 

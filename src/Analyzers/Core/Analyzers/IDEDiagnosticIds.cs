@@ -211,6 +211,8 @@ internal static class IDEDiagnosticIds
 
     public const string SimplifyPropertyAccessorDiagnosticId = "IDE0360";
 
+    public const string RemoveUnnecessaryNullableWarningSuppression = "IDE0370";
+
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
     public const string AnalyzerDependencyConflictId = "IDE1002";
