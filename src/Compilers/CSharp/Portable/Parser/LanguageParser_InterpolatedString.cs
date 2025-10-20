@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // the quotes. So it's safe to just pull off the first two characters here to find where the
                 // newline-ends.
                 var afterNewLine = SlidingTextWindow.GetNewLineWidth(closeQuoteText[0], closeQuoteText[1]);
-                var afterWhitespace = skipWhitespace(closeQuoteText, afterNewLine);
+                var afterWhitespace = SkipWhitespace(closeQuoteText, afterNewLine);
 
                 Debug.Assert(closeQuoteText[afterWhitespace] == '"');
                 return closeQuoteText[afterNewLine..afterWhitespace];
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Only bother reporting a single indentation error on a text chunk.
                     if (indentationError == null)
                     {
-                        currentIndex = skipWhitespace(text, currentIndex);
+                        currentIndex = SkipWhitespace(text, currentIndex);
                         var currentLineWhitespace = text[lineStartPosition..currentIndex];
 
                         var isBlankLine = (currentIndex == textLength && isLast) || (currentIndex < textLength && SyntaxFacts.IsNewLine(text[currentIndex]));
@@ -354,14 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 return null;
-            }
-
-            int skipWhitespace(ReadOnlySpan<char> text, int currentIndex)
-            {
-                var textLength = text.Length;
-                while (currentIndex < textLength && SyntaxFacts.IsWhitespace(text[currentIndex]))
-                    currentIndex++;
-                return currentIndex;
             }
 
             int consumeRemainingContentThroughNewLine(StringBuilder content, ReadOnlySpan<char> text, int currentIndex)
@@ -467,6 +459,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => text == ""
                 ? SyntaxFactory.MissingToken(leading, kind, trailing)
                 : SyntaxFactory.Token(leading, kind, text, trailing);
+
+        private static int SkipWhitespace(ReadOnlySpan<char> text, int currentIndex)
+        {
+            while (currentIndex < text.Length && SyntaxFacts.IsWhitespace(text[currentIndex]))
+                currentIndex++;
+            return currentIndex;
+        }
 
         private static InterpolationSyntax ParseInterpolation(
             CSharpParseOptions options,
