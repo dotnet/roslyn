@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this.CalculateUseSiteDiagnostic(ref useSiteInfo);
             if (useSiteInfo.DiagnosticInfo != null && useSiteInfo.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
             {
-                diagnostics.Add(useSiteInfo.DiagnosticInfo, this.Locations[0]);
+                diagnostics.Add(useSiteInfo.DiagnosticInfo, this.GetFirstLocation());
                 return;
             }
 
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         var name = local.Name;
                         if (name.StartsWith("$", StringComparison.Ordinal))
                         {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedCharacter, local.Locations[0], name[0]);
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedCharacter, local.GetFirstLocation(), name[0]);
                             return;
                         }
                     }

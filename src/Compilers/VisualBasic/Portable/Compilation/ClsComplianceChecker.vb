@@ -763,7 +763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If attributeData.IsTargetAttribute(AttributeDescription.CLSCompliantAttribute) Then
                     Dim attributeClass = attributeData.AttributeClass
                     If attributeClass IsNot Nothing Then
-                        _diagnostics.ReportUseSite(attributeClass, If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.Locations(0)))
+                        _diagnostics.ReportUseSite(attributeClass, If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.GetFirstLocation()))
                     End If
 
                     If Not attributeData.HasErrors Then
@@ -831,7 +831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub AddDiagnostic(symbol As Symbol, code As ERRID, ParamArray args As Object())
-            Dim location = If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.Locations(0))
+            Dim location = If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.GetFirstLocation())
             Me.AddDiagnostic(symbol, code, location, args)
         End Sub
 

@@ -963,10 +963,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         typeParameterSet.Add(s.Name)
 
                         If ShadowsTypeParameter(s) Then
-                            Binder.ReportDiagnostic(diagBag, s.Locations(0), ERRID.WRN_ShadowingGenericParamWithParam1, s.Name)
+                            Binder.ReportDiagnostic(diagBag, s.GetFirstLocation(), ERRID.WRN_ShadowingGenericParamWithParam1, s.Name)
                         End If
                     Else
-                        Binder.ReportDiagnostic(diagBag, s.Locations(0), ERRID.ERR_DuplicateTypeParamName1, s.Name)
+                        Binder.ReportDiagnostic(diagBag, s.GetFirstLocation(), ERRID.ERR_DuplicateTypeParamName1, s.Name)
                     End If
                 Next
             End If
@@ -1447,7 +1447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' script, submission and implicit classes have no identifier location:
                     location = If(syntax.Kind = SyntaxKind.CompilationUnit OrElse syntax.Kind = SyntaxKind.NamespaceBlock,
-                                  Locations(0),
+                                  GetFirstLocation(),
                                   GetTypeIdentifierToken(syntax).GetLocation())
                 End If
 
@@ -2236,12 +2236,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Select Case Me.TypeKind
                 Case TypeKind.Class
                     If attrData.IsTargetAttribute(AttributeDescription.CaseInsensitiveExtensionAttribute) Then
-                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Me.GetFirstLocation())
                         decoded = True
 
                     ElseIf attrData.IsTargetAttribute(AttributeDescription.VisualBasicComClassAttribute) Then
                         If Me.IsGenericType Then
-                            diagnostics.Add(ERRID.ERR_ComClassOnGeneric, Me.Locations(0))
+                            diagnostics.Add(ERRID.ERR_ComClassOnGeneric, Me.GetFirstLocation())
                         Else
                             Interlocked.CompareExchange(_comClassData, New ComClassData(attrData), Nothing)
                         End If
@@ -2289,7 +2289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ElseIf attrData.IsTargetAttribute(AttributeDescription.VisualBasicComClassAttribute) Then
                         ' Can't apply ComClassAttribute to a Module
-                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidAttributeUsage2, AttributeDescription.VisualBasicComClassAttribute.Name, Me.Name), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidAttributeUsage2, AttributeDescription.VisualBasicComClassAttribute.Name, Me.Name), Me.GetFirstLocation())
                         decoded = True
                     End If
             End Select
@@ -2303,7 +2303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim defaultProperty = DefaultPropertyName
                     If Not String.IsNullOrEmpty(defaultProperty) AndAlso
                         Not IdentifierComparison.Equals(defaultProperty, attributeValue) Then
-                        diagnostics.Add(ERRID.ERR_ConflictDefaultPropertyAttribute, Locations(0), Me)
+                        diagnostics.Add(ERRID.ERR_ConflictDefaultPropertyAttribute, GetFirstLocation(), Me)
                     End If
 
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.SerializableAttribute) Then
@@ -2454,7 +2454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.Microsoft_VisualBasic_CompilerServices_StandardModuleAttribute__ctor,
                                                                  Me.DeclaringCompilation,
-                                                                 Locations(0),
+                                                                 GetFirstLocation(),
                                                                  diagnostics)
             End If
         End Sub
