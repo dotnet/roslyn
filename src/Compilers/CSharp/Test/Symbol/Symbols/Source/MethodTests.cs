@@ -2603,10 +2603,7 @@ public partial class C
             var comp = CreateCompilation([(source1, "source1"), (source2, "source2")]);
             comp.VerifyDiagnostics();
 
-            var methodSymbols = comp.GetSymbolsWithName("PartialM");
-
-            var method = (IMethodSymbol)methodSymbols.Single();
-            Assert.NotNull(method);
+            var method = (IMethodSymbol)comp.GetSymbolsWithName("PartialM").Single();
 
             // For partial methods, Locations and DeclaringSyntaxReferences contain only one location
             Assert.Equal(1, method.Locations.Length);
