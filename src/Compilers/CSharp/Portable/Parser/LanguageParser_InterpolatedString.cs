@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Make sure the interpolation starts at the right location.
                     var indentationError = getInterpolationIndentationError(indentationWhitespace, interpolation);
                     if (indentationError != null)
-                        interpolationNode = interpolationNode.WithDiagnosticsGreen([indentationError]);
+                        interpolationNode = interpolationNode.WithDiagnosticsGreen(new[] { indentationError });
 
                     builder.Add(interpolationNode);
                     currentContentStart = interpolation.CloseBraceRange.End;
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     SyntaxFactory.Literal(leading: null, textString, SyntaxKind.InterpolatedStringTextToken, valueString, trailing: null));
 
                 return indentationError != null
-                    ? node.WithDiagnosticsGreen([indentationError])
+                    ? node.WithDiagnosticsGreen(new[] { indentationError })
                     : node;
             }
 
