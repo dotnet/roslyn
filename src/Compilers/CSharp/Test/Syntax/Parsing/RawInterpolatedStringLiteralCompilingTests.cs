@@ -593,9 +593,9 @@ System.Console.Write(
 /**/$""""""""""""/**/
 #nullable enable
 );",
-                // (4,16): error CS8997: Unterminated raw string literal.
-                // /**/$""""""/**/
-                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 16));
+            // (4,16): error CS8997: Unterminated raw string literal.
+            // /**/$""""""/**/
+            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 16));
     }
 
     [Fact]
