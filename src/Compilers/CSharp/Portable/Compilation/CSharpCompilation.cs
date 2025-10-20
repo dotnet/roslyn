@@ -164,7 +164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return field ??= new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                if (field is null)
+                {
+                    Interlocked.CompareExchange(ref field, new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true), null);
+                }
+
+                return field;
             }
         }
 
@@ -172,7 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return field ??= new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, unreported: false);
+                if (field is null)
+                {
+                    Interlocked.CompareExchange(ref field, new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, unreported: false), null);
+                }
+
+                return field;
             }
         }
 
