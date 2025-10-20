@@ -139,43 +139,6 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
     }
 
     [Theory, CombinatorialData]
-    public async Task TestNoSuppressionFixerInStandardLSP(bool mutatingLspWorkspace)
-    {
-        var markup = """
-            class ABC
-            {
-                private static async void {|caret:XYZ|}()
-                {
-                }
-            }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-
-        var caret = testLspServer.GetLocations("caret").Single();
-        var codeActionParams = new CodeActionParams
-        {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
-            Range = caret.Range,
-            Context = new CodeActionContext
-            {
-                Diagnostics =
-                [
-                    new LSP.Diagnostic
-                    {
-                        // async method lack of await.
-                        Code = "CS1998"
-                    }
-                ]
-            }
-        };
-
-        var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-        Assert.Equal(3, results.Length);
-        Assert.Equal("Make method synchronous", results[0].Title);
-    }
-
-    [Theory, CombinatorialData]
     public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -227,8 +190,9 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var markup = """
             class ABC
             {
-                private static async void {|caret:XYZ|}()
+                private static async void XYZ()
                 {
+                    {|caret:System.Threading.Tasks.Task.Yield()|};
                 }
             }
             """;
@@ -246,17 +210,17 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
                 [
                     new LSP.Diagnostic
                     {
-                        // async method lack of await.
-                        Code = "CS1998"
+                        // Task-returning method not awaited
+                        Code = "CS4014"
                     }
                 ]
             }
         };
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-        Assert.Equal(3, results.Length);
-        Assert.Equal("Suppress or configure issues", results[2].Title);
-        var data = GetCodeActionResolveData(results[2]);
+        Assert.Equal(10, results.Length);
+        Assert.Equal("Suppress or configure issues", results[9].Title);
+        var data = GetCodeActionResolveData(results[9]);
         Assert.NotNull(data);
 
         // Asserts that there are NestedActions present
@@ -316,7 +280,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var result = await testLspServer.ExecuteRequestAsync<CodeAction, CodeAction>(
             LSP.Methods.CodeActionResolveName, codeAction, CancellationToken.None);
         Assert.NotNull(result);
-        return (VSInternalCodeAction)result!;
+        return (VSInternalCodeAction)result;
     }
 
     private static CodeActionResolveData? GetCodeActionResolveData(CodeAction codeAction)
@@ -325,7 +289,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
     }
 
     internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
-        => new CodeActionParams
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,

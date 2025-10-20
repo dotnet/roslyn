@@ -17,16 +17,15 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
 
     protected abstract ISyntaxFacts SyntaxFacts { get; }
 
-    protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
+    protected abstract VirtualCharGreenSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
     protected abstract bool IsMultiLineRawStringToken(SyntaxToken token);
 
     /// <summary>
     /// Returns <see langword="true"/> if the next two characters at <c>tokenText[index]</c> are <c>{{</c> or
-    /// <c>}}</c>.  If so, <paramref name="span"/> will contain the span of those two characters (based on <paramref
-    /// name="tokenText"/> starting at <paramref name="offset"/>).
+    /// <c>}}</c>.
     /// </summary>
     protected static bool IsLegalBraceEscape(
-        string tokenText, int index, int offset, out TextSpan span)
+        string tokenText, int index, out int width)
     {
         if (index + 1 < tokenText.Length)
         {
@@ -35,12 +34,12 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
             if ((ch == '{' && next == '{') ||
                 (ch == '}' && next == '}'))
             {
-                span = new TextSpan(offset + index, 2);
+                width = 2;
                 return true;
             }
         }
 
-        span = default;
+        width = 0;
         return false;
     }
 
@@ -50,11 +49,10 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         // trust that all the string's contents (most importantly, the escape sequences) are well
         // formed.
         if (token.ContainsDiagnostics)
-        {
             return default;
-        }
 
-        var result = TryConvertToVirtualCharsWorker(token);
+        var greenSequence = TryConvertToVirtualCharsWorker(token);
+        var result = new VirtualCharSequence(token.SpanStart, greenSequence);
         CheckInvariants(token, result);
 
         return result;
@@ -65,61 +63,63 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
     {
         // Do some invariant checking to make sure we processed the string token the same
         // way the C# and VB compilers did.
-        if (!result.IsDefault)
+        if (result.IsDefault)
+            return;
+
+        // Ensure that we properly broke up the token into a sequence of characters that matches what the compiler did.
+        // Note: we don't do this for all syntaxKinds.  For example an InterpolatedStringTextToken does not do the
+        // ValueText processing that a StringLiteralToken does.  So, for example, $"{{" will have a ValueText of "{{"
+        // not "{" which might otherwise be expected.
+        var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
+        if (token.RawKind == syntaxKinds.StringLiteralToken ||
+            token.RawKind == syntaxKinds.Utf8StringLiteralToken ||
+            token.RawKind == syntaxKinds.CharacterLiteralToken)
         {
-            // Ensure that we properly broke up the token into a sequence of characters that
-            // matches what the compiler did.
-            var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
+            var expectedValueText = token.ValueText;
+            var actualValueText = result.CreateString();
+            Debug.Assert(expectedValueText == actualValueText);
+        }
+
+        if (result.Length > 0)
+        {
+            var currentVC = result[0];
+            Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
             if (token.RawKind == syntaxKinds.StringLiteralToken ||
-                token.RawKind == syntaxKinds.Utf8StringLiteralToken ||
                 token.RawKind == syntaxKinds.CharacterLiteralToken)
             {
-                var expectedValueText = token.ValueText;
-                var actualValueText = result.CreateString();
-                Debug.Assert(expectedValueText == actualValueText);
+                Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
+                                currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
             }
 
-            if (result.Length > 0)
+            if (IsMultiLineRawStringToken(token))
             {
-                var currentVC = result[0];
-                Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
-                if (token.RawKind == syntaxKinds.StringLiteralToken ||
-                    token.RawKind == syntaxKinds.CharacterLiteralToken)
+                for (var i = 1; i < result.Length; i++)
                 {
-                    Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
-                                 currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
+                    var nextVC = result[i];
+                    Debug.Assert(currentVC.Span.End <= nextVC.Span.Start, "Virtual character spans have to be ordered.");
+                    currentVC = nextVC;
                 }
+            }
+            else
+            {
+                for (var i = 1; i < result.Length; i++)
+                {
+                    var nextVC = result[i];
+                    Debug.Assert(currentVC.Span.End == nextVC.Span.Start, "Virtual character spans have to be touching.");
+                    currentVC = nextVC;
+                }
+            }
 
-                if (IsMultiLineRawStringToken(token))
-                {
-                    for (var i = 1; i < result.Length; i++)
-                    {
-                        var nextVC = result[i];
-                        Debug.Assert(currentVC.Span.End <= nextVC.Span.Start, "Virtual character spans have to be ordered.");
-                        currentVC = nextVC;
-                    }
-                }
-                else
-                {
-                    for (var i = 1; i < result.Length; i++)
-                    {
-                        var nextVC = result[i];
-                        Debug.Assert(currentVC.Span.End == nextVC.Span.Start, "Virtual character spans have to be touching.");
-                        currentVC = nextVC;
-                    }
-                }
+            var lastVC = result[^1];
 
-                var lastVC = result.Last();
-
-                if (token.RawKind == syntaxKinds.StringLiteralToken ||
-                    token.RawKind == syntaxKinds.CharacterLiteralToken)
-                {
-                    Debug.Assert(lastVC.Span.End == token.Span.End - "\"".Length, "Last span has to end right before the end of the string token.");
-                }
-                else if (token.RawKind == syntaxKinds.Utf8StringLiteralToken)
-                {
-                    Debug.Assert(lastVC.Span.End == token.Span.End - "\"u8".Length, "Last span has to end right before the end of the string token.");
-                }
+            if (token.RawKind == syntaxKinds.StringLiteralToken ||
+                token.RawKind == syntaxKinds.CharacterLiteralToken)
+            {
+                Debug.Assert(lastVC.Span.End == token.Span.End - "\"".Length, "Last span has to end right before the end of the string token.");
+            }
+            else if (token.RawKind == syntaxKinds.Utf8StringLiteralToken)
+            {
+                Debug.Assert(lastVC.Span.End == token.Span.End - "\"u8".Length, "Last span has to end right before the end of the string token.");
             }
         }
     }
@@ -129,7 +129,7 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
     /// how normal VB literals and c# verbatim string literals work.
     /// </summary>
     /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
-    protected static VirtualCharSequence TryConvertSimpleDoubleQuoteString(
+    protected static VirtualCharGreenSequence TryConvertSimpleDoubleQuoteString(
         SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
     {
         Debug.Assert(!token.ContainsDiagnostics);
@@ -157,78 +157,59 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         var startIndexInclusive = startDelimiter.Length;
         var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
-        var offset = token.SpanStart;
+        var result = ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>();
 
         for (var index = startIndexInclusive; index < endIndexExclusive;)
         {
             if (tokenText[index] == '"' && tokenText[index + 1] == '"')
             {
-                result.Add(VirtualChar.Create(new Rune('"'), new TextSpan(offset + index, 2)));
+                result.Add(new VirtualCharGreen('"', offset: index, width: 2));
                 index += 2;
                 continue;
             }
             else if (escapeBraces && IsOpenOrCloseBrace(tokenText[index]))
             {
-                if (!IsLegalBraceEscape(tokenText, index, offset, out var span))
+                if (!IsLegalBraceEscape(tokenText, index, out var width))
                     return default;
 
-                result.Add(VirtualChar.Create(new Rune(tokenText[index]), span));
-                index += result[^1].Span.Length;
+                result.Add(new VirtualCharGreen(tokenText[index], offset: index, width: width));
+                index += width;
                 continue;
             }
 
-            index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
+            index += ConvertTextAtIndexToVirtualChar(tokenText, index, result);
         }
 
         return CreateVirtualCharSequence(
-            tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+            tokenText, startIndexInclusive, endIndexExclusive, result);
     }
 
     /// <summary>
     /// Returns the number of characters to jump forward (either 1 or 2);
     /// </summary>
-    protected static int ConvertTextAtIndexToRune(string tokenText, int index, ImmutableSegmentedList<VirtualChar>.Builder result, int offset)
-        => ConvertTextAtIndexToRune(tokenText, index, new StringTextInfo(), result, offset);
+    protected static int ConvertTextAtIndexToVirtualChar(string tokenText, int index, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
+        => ConvertTextAtIndexToVirtualChar(tokenText, index, new StringTextInfo(), result);
 
-    protected static int ConvertTextAtIndexToRune(SourceText tokenText, int index, ImmutableSegmentedList<VirtualChar>.Builder result, int offset)
-        => ConvertTextAtIndexToRune(tokenText, index, new SourceTextTextInfo(), result, offset);
+    protected static int ConvertTextAtIndexToVirtualChar(SourceText tokenText, int index, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
+        => ConvertTextAtIndexToVirtualChar(tokenText, index, new SourceTextTextInfo(), result);
 
-    private static int ConvertTextAtIndexToRune<T, TTextInfo>(
-        T tokenText, int index, TTextInfo info, ImmutableSegmentedList<VirtualChar>.Builder result, int offset)
+    private static int ConvertTextAtIndexToVirtualChar<T, TTextInfo>(
+        T tokenText, int index, TTextInfo info, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
         where TTextInfo : struct, ITextInfo<T>
     {
         var ch = info.Get(tokenText, index);
-
-        if (Rune.TryCreate(ch, out var rune))
-        {
-            // First, see if this was a single char that can become a rune (the common case).
-            result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 1)));
-            return 1;
-        }
-        else if (index + 1 < info.Length(tokenText) &&
-                 Rune.TryCreate(ch, info.Get(tokenText, index + 1), out rune))
-        {
-            // Otherwise, see if we have a surrogate pair (less common, but possible).
-            result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 2)));
-            return 2;
-        }
-        else
-        {
-            // Something that couldn't be encoded as runes.
-            Debug.Assert(char.IsSurrogate(ch));
-            result.Add(VirtualChar.Create(ch, new TextSpan(offset + index, 1)));
-            return 1;
-        }
+        result.Add(new VirtualCharGreen(ch, offset: index, width: 1));
+        return 1;
     }
 
     protected static bool IsOpenOrCloseBrace(char ch)
         => ch is '{' or '}';
 
-    protected static VirtualCharSequence CreateVirtualCharSequence(
-        string tokenText, int offset,
-        int startIndexInclusive, int endIndexExclusive,
-        ImmutableSegmentedList<VirtualChar>.Builder result)
+    protected static VirtualCharGreenSequence CreateVirtualCharSequence(
+        string tokenText,
+        int startIndexInclusive,
+        int endIndexExclusive,
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result)
     {
         // Check if we actually needed to create any special virtual chars.
         // if not, we can avoid the entire array allocation and just wrap
@@ -237,10 +218,10 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         var textLength = endIndexExclusive - startIndexInclusive;
         if (textLength == result.Count)
         {
-            var sequence = VirtualCharSequence.Create(offset, tokenText);
-            return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
+            var sequence = VirtualCharGreenSequence.Create(tokenText);
+            return sequence[startIndexInclusive..endIndexExclusive];
         }
 
-        return VirtualCharSequence.Create(result.ToImmutable());
+        return VirtualCharGreenSequence.Create(result.ToImmutable());
     }
 }

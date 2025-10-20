@@ -450,7 +450,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_NameNotEvent2,
                      ERRID.ERR_AddOrRemoveHandlerEvent,
                      ERRID.ERR_UnrecognizedEnd,
-                     ERRID.ERR_ArrayInitForNonArray2,
                      ERRID.ERR_EndRegionNoRegion,
                      ERRID.ERR_ExpectedEndRegion,
                      ERRID.ERR_InheritsStmtWrongOrder,
@@ -1425,7 +1424,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_MissingAsClauseinOperator,
                      ERRID.WRN_ConstraintsFailedForInferredArgs2,
                      ERRID.WRN_ConditionalNotValidOnFunction,
-                     ERRID.WRN_UseSwitchInsteadOfAttribute,
                      ERRID.WRN_TupleLiteralNameMismatch,
                      ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName,
                      ERRID.WRN_RecursiveAddHandlerCall,
@@ -1550,9 +1548,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_ConvertingLock,
                      ERRID.ERR_EmbeddedAttributeMustFollowPattern,
                      ERRID.ERR_MethodImplAttributeAsyncCannotBeUsed,
+                     ERRID.ERR_AttributeCannotBeAppliedManually,
                      ERRID.ERR_StructLayoutAndExtendedLayout,
                      ERRID.ERR_InvalidExtendedLayoutAttribute
-
                     Return False
                 Case Else
                     ' NOTE: All error codes must be explicitly handled in the below select case statement

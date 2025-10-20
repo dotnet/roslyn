@@ -49,7 +49,6 @@ internal static class Guids
     // option page guids from csharp\rad\pkg\guids.h
     public const string CSharpOptionPageAdvancedIdString = "8FD0B177-B244-4A97-8E37-6FB7B27DE3AF";
     public const string CSharpOptionPageNamingStyleIdString = "294FBC9C-EF70-4AA0-BD4F-EB0C6A5908D7";
-    public const string CSharpOptionPageIntelliSenseIdString = "EDE66829-7A36-4c5d-8E20-9290195DCF80";
     public const string CSharpOptionPageCodeStyleIdString = "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F";
     public const string CSharpOptionPageFormattingGeneralIdString = "DA0446DD-55BA-401F-A364-7D3238412AE4";
     public const string CSharpOptionPageFormattingIndentationIdString = "5E21D017-6D2A-4114-A1F1-C923F001CBBB";
@@ -94,7 +93,6 @@ internal static class Guids
     // option page guid from setupauthoring\vb\components\vblanguageservice.pkgdef
     public const string VisualBasicOptionPageVBSpecificIdString = "F1E1021E-A781-4862-9F4B-88746A288A67";
     public const string VisualBasicOptionPageNamingStyleIdString = "BCA454E0-95E4-4877-B4CB-B1D642B7BAFA";
-    public const string VisualBasicOptionPageIntelliSenseIdString = "04460A3B-1B5F-4402-BC6D-89A4F6F0A8D7";
 
     public const string FSharpPackageIdString = "871D2A70-12A2-4e42-9440-425DD92A4116";
 

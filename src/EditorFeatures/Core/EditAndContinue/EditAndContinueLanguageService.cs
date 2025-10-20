@@ -126,8 +126,6 @@ internal sealed class EditAndContinueLanguageService(
                 solution,
                 new ManagedHotReloadServiceBridge(debuggerService.Value),
                 sourceTextProvider,
-                captureMatchingDocuments: [],
-                captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -312,7 +310,14 @@ internal sealed class EditAndContinueLanguageService(
 
     [Obsolete]
     public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+    {
+        // StreamJsonRpc may use this overload when the method is invoked with empty parameters. Call the new implementation instead.
+
+        if (!runningProjects.IsEmpty)
+            throw new NotImplementedException();
+
+        return GetUpdatesAsync(ImmutableArray<RunningProjectInfo>.Empty, cancellationToken);
+    }
 
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {

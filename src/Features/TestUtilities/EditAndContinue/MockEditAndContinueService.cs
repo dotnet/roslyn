@@ -20,7 +20,7 @@ internal sealed class MockEditAndContinueService() : IEditAndContinueService
     public Func<Solution, ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<ActiveStatementSpan>>>? GetBaseActiveStatementSpansImpl;
 
     public Func<TextDocument, ActiveStatementSpanProvider, ImmutableArray<ActiveStatementSpan>>? GetAdjustedActiveStatementSpansImpl;
-    public Func<Solution, IManagedHotReloadService, IPdbMatchingSourceTextProvider, ImmutableArray<DocumentId>, bool, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
+    public Func<Solution, IManagedHotReloadService, IPdbMatchingSourceTextProvider, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
 
     public Action? EndDebuggingSessionImpl;
     public Func<Solution, ImmutableDictionary<ProjectId, RunningProjectOptions>, ActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
@@ -57,8 +57,8 @@ internal sealed class MockEditAndContinueService() : IEditAndContinueService
     public void OnSourceFileUpdated(Document document)
         => OnSourceFileUpdatedImpl?.Invoke(document);
 
-    public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
-        => new((StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics));
+    public DebuggingSessionId StartDebuggingSession(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, bool reportDiagnostics)
+        => (StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, sourceTextProvider, reportDiagnostics);
 
     public void SetFileLoggingDirectory(string? logDirectory)
         => throw new NotImplementedException();

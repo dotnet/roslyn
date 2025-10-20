@@ -65,6 +65,8 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         ISyntaxFacts syntaxFacts,
         IInterpolationOperation interpolation,
         ImmutableDictionary<IMethodSymbol, string> knownToStringFormats,
+        INamedTypeSymbol? readOnlySpanOfCharType,
+        bool handlersAvailable,
         out TExpressionSyntax? unwrapped,
         out TExpressionSyntax? alignment,
         out bool negate,
@@ -82,7 +84,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
             UnwrapAlignmentPadding(expression, out expression, out alignment, out negate, unnecessarySpans);
 
         if (interpolation.FormatString == null)
-            UnwrapFormatString(virtualCharService, syntaxFacts, expression, knownToStringFormats, out expression, out formatString, unnecessarySpans);
+            UnwrapFormatString(virtualCharService, syntaxFacts, expression, knownToStringFormats, readOnlySpanOfCharType, handlersAvailable, out expression, out formatString, unnecessarySpans);
 
         unwrapped = GetPreservedInterpolationExpressionSyntax(expression) as TExpressionSyntax;
 
@@ -118,6 +120,8 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         ISyntaxFacts syntaxFacts,
         IOperation expression,
         ImmutableDictionary<IMethodSymbol, string> knownToStringFormats,
+        INamedTypeSymbol? readOnlySpanOfCharType,
+        bool handlersAvailable,
         out IOperation unwrapped,
         out string? formatString,
         ArrayBuilder<TextSpan> unnecessarySpans)
@@ -128,41 +132,43 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
             HasNonImplicitInstance(invocation, out var instance) &&
             !syntaxFacts.IsBaseExpression(instance.Syntax))
         {
-            if (targetMethod.Name == nameof(ToString) &&
-                instance.Type is { IsRefLikeType: false })
+            if (targetMethod.Name == nameof(ToString))
             {
-                if (invocation.Arguments.Length == 1
-                    || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
+                // If type of instance is not ref-like type or is {ReadOnly}Span<char> that is allowed in interpolated strings in .NET 6+
+                if (instance.Type is { IsRefLikeType: false } || IsRefLikeTypeAllowed(instance.Type))
                 {
-                    if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
-                        FindType<IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
-                        instance.Type.Implements(systemIFormattable))
+                    if (invocation.Arguments.Length == 1
+                        || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
                     {
+                        if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
+                            FindType<IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
+                            instance.Type.Implements(systemIFormattable))
+                        {
+                            unwrapped = instance;
+                            formatString = value;
+
+                            unnecessarySpans.AddRange(invocation.Syntax.Span
+                                .Subtract(GetPreservedInterpolationExpressionSyntax(instance).FullSpan)
+                                .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
+                            return;
+                        }
+                    }
+
+                    if (IsObjectToStringOverride(invocation.TargetMethod)
+                        || (invocation.Arguments.Length == 1 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 0)))
+                    {
+                        // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
+                        // Just remove entirely.
                         unwrapped = instance;
-                        formatString = value;
+                        formatString = "";
 
                         unnecessarySpans.AddRange(invocation.Syntax.Span
-                            .Subtract(GetPreservedInterpolationExpressionSyntax(instance).FullSpan)
-                            .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
+                            .Subtract(GetPreservedInterpolationExpressionSyntax(instance).FullSpan));
                         return;
                     }
                 }
-
-                if (IsObjectToStringOverride(invocation.TargetMethod)
-                    || (invocation.Arguments.Length == 1 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 0)))
-                {
-                    // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
-                    // Just remove entirely.
-                    unwrapped = instance;
-                    formatString = "";
-
-                    unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(GetPreservedInterpolationExpressionSyntax(instance).FullSpan));
-                    return;
-                }
             }
-
-            if (knownToStringFormats.TryGetValue(targetMethod, out var format))
+            else if (knownToStringFormats.TryGetValue(targetMethod, out var format))
             {
                 // A call to a known ToString-like method, e.g. `DateTime.ToLongDateString()`
                 // We replace this call with predefined format specifier
@@ -177,6 +183,13 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
 
         unwrapped = expression;
         formatString = null;
+
+        bool IsRefLikeTypeAllowed([NotNullWhen(true)] ITypeSymbol? type)
+        {
+            var compilation = expression.SemanticModel.Compilation;
+            // {ReadOnly}Span<char> is allowed if interpolated string handlers are available in the compilation (.NET 6+)
+            return handlersAvailable && compilation.HasImplicitConversion(type, readOnlySpanOfCharType);
+        }
     }
 
     private static bool IsObjectToStringOverride(IMethodSymbol method)
@@ -243,9 +256,9 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
     private static TextSpan GetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxToken formatToken)
     {
         var sequence = virtualCharService.TryConvertToVirtualChars(formatToken);
-        return sequence.IsDefaultOrEmpty
+        return sequence.IsDefaultOrEmpty()
             ? default
-            : TextSpan.FromBounds(sequence.First().Span.Start, sequence.Last().Span.End);
+            : TextSpan.FromBounds(sequence[0].Span.Start, sequence[^1].Span.End);
     }
 
     private void UnwrapAlignmentPadding(

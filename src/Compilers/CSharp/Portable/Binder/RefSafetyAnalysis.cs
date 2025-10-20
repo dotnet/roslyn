@@ -757,12 +757,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BeforeVisitingSkippedBoundCallChildren(node);
 
-                VisitReceiver(in methodInvocationInfo);
+                visitReceiver(node, in methodInvocationInfo);
 
                 var nodeAndInvocationInfo = (call: node, methodInvocationInfo);
                 do
                 {
-                    VisitArguments(nodeAndInvocationInfo.call, in nodeAndInvocationInfo.methodInvocationInfo);
+                    visitArguments(nodeAndInvocationInfo.call, in nodeAndInvocationInfo.methodInvocationInfo);
                 }
                 while (calls.TryPop(out nodeAndInvocationInfo!));
 
@@ -770,8 +770,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitReceiver(in methodInvocationInfo);
-                VisitArguments(node, in methodInvocationInfo);
+                visitReceiver(node, in methodInvocationInfo);
+                visitArguments(node, in methodInvocationInfo);
             }
 
             return null;
@@ -779,8 +779,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             static MethodInvocationInfo getInvocationInfo(BoundCall node)
             {
                 var methodInvocationInfo = MethodInvocationInfo.FromCall(node);
-                methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
+
+                if (!node.IsErroneousNode)
+                {
+                    methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
+                }
+
                 return methodInvocationInfo;
+            }
+
+            void visitReceiver(BoundCall node, ref readonly MethodInvocationInfo methodInvocationInfo)
+            {
+                if (node.IsErroneousNode)
+                {
+                    Visit(node.ReceiverOpt);
+                }
+                else
+                {
+                    VisitReceiver(in methodInvocationInfo);
+                }
+            }
+
+            void visitArguments(BoundCall node, ref readonly MethodInvocationInfo methodInvocationInfo)
+            {
+                if (node.IsErroneousNode)
+                {
+                    VisitList(node.Arguments);
+                }
+                else
+                {
+                    VisitArguments(node, in methodInvocationInfo);
+                }
             }
         }
 
@@ -1092,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (invocation.Method is null)
+            if (invocation.IsErroneousNode || invocation.Method is null)
             {
                 return;
             }
@@ -1147,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var (placeholder, placeholderConversion) = conversion.DeconstructConversionInfo[i];
                     var underlyingConversion = BoundNode.GetConversion(placeholderConversion, placeholder);
-                    VisitDeconstructionArguments(nestedVariables, syntax, underlyingConversion, right: invocation.Arguments[i + offset]);
+                    VisitDeconstructionArguments(nestedVariables, syntax, underlyingConversion, right: methodInvocationInfo.ArgsOpt[i + offset]);
                 }
             }
         }
@@ -1242,16 +1271,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholders.Add((targetPlaceholder, SafeContextAndLocation.Create(collectionEscape)));
             }
 
-            if (node.AwaitOpt is { } awaitableInfo)
+            if (node.EnumeratorInfoOpt is { MoveNextAwaitableInfo: { } awaitableInfo })
             {
                 GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, collectionEscape);
+            }
+            else
+            {
+                awaitableInfo = null;
             }
 
             using var region = new PlaceholderRegion(this, placeholders);
             this.Visit(node.IterationVariableType);
             this.Visit(node.IterationErrorExpressionOpt);
             this.Visit(node.DeconstructionOpt);
-            this.Visit(node.AwaitOpt);
+            this.Visit(awaitableInfo);
             this.Visit(node.Body);
 
             foreach (var local in node.IterationVariables)

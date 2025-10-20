@@ -411,6 +411,11 @@
         <target state="translated">개체 초기화 단순화</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppression_is_unnecessary">
+        <source>Suppression is unnecessary</source>
+        <target state="new">Suppression is unnecessary</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_file_header_does_not_match_the_required_text">
         <source>The file header does not match the required text</source>
         <target state="translated">파일 헤더가 필요한 텍스트와 일치하지 않습니다.</target>

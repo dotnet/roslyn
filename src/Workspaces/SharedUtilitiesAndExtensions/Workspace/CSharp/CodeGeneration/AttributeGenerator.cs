@@ -69,8 +69,7 @@ internal static class AttributeGenerator
         if (attribute.AttributeClass == null)
             return null;
 
-        var attributeArguments = GenerateAttributeArgumentList(
-            attribute, reusableSyntax);
+        var attributeArguments = GenerateAttributeArgumentList(attribute, reusableSyntax);
         return attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax
             ? Attribute(nameSyntax, attributeArguments)
             : null;

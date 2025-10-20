@@ -175,7 +175,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
 
         // Semicolons in an empty for statement.  i.e.   for(;;)
         if (previousParentKind == SyntaxKind.ForStatement
-            && IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
+            && IsEmptyForStatement((ForStatementSyntax)previousToken.Parent))
         {
             if (currentKind == SyntaxKind.SemicolonToken
                 && (previousKind != SyntaxKind.SemicolonToken
@@ -536,7 +536,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         // Right of Range expressions
         if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
         {
-            var rangeExpression = (RangeExpressionSyntax)previousToken.Parent!;
+            var rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
             var hasRightOperand = rangeExpression.RightOperand != null;
             if (hasRightOperand)
             {
@@ -547,7 +547,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         // Left of Range expressions
         if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
         {
-            var rangeExpression = (RangeExpressionSyntax)currentToken.Parent!;
+            var rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
             var hasLeftOperand = rangeExpression.LeftOperand != null;
             if (hasLeftOperand)
             {
@@ -566,10 +566,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
     }
 
     private static bool IsEmptyForStatement(ForStatementSyntax forStatement)
-        => forStatement.Initializers.Count == 0
-        && forStatement.Declaration == null
-        && forStatement.Condition == null
-        && forStatement.Incrementors.Count == 0;
+        => forStatement is { Initializers.Count: 0, Declaration: null, Condition: null, Incrementors.Count: 0 };
 
     private void SuppressVariableDeclaration(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {

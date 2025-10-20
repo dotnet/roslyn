@@ -190,11 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (and return type, for conversions) as constructed with its own type parameters.
                     if (!_inParameterOrReturnType && TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.AllIgnoreOptions))
                     {
-                        if (!symbol.IsExtension)
-                        {
-                            builder.Append('`');
-                            builder.Append(symbol.Arity);
-                        }
+                        builder.Append('`');
+                        builder.Append(symbol.Arity);
                     }
                     else
                     {

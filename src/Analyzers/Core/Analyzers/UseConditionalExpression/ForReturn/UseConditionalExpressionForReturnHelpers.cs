@@ -46,6 +46,12 @@ internal static class UseConditionalExpressionForReturnHelpers
         //
         // note: either (but not both) of these statements can be throw-statements.
 
+        // If true/false operators are used simplifying expression will cause a compiler error
+        if (ifOperation.Condition is IUnaryOperation { OperatorKind: UnaryOperatorKind.True or UnaryOperatorKind.False })
+        {
+            return false;
+        }
+
         if (falseStatement == null)
         {
             if (ifOperation.Parent is not IBlockOperation parentBlock)

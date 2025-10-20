@@ -307,15 +307,7 @@ function GetIbcSourceBranchName() {
   }
 
   function calculate {
-    $fallback = "main"
-
-    $branchData = GetBranchPublishData $officialSourceBranchName
-    if ($branchData -eq $null) {
-      Write-LogIssue -Type "warning" -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'."
-      Write-Host "Override by setting IbcDrop build variable." -ForegroundColor Yellow
-      return $fallback
-    }
-
+    $branchData = GetBranchPublishData
     return $branchData.vsBranch
   }
 
@@ -741,6 +733,15 @@ try {
   }
 
   Push-Location $RepoRoot
+
+  # Workaround for DOTNET_HOST_PATH not being set by older MSBuild
+  # Removal is tracked by https://github.com/dotnet/roslyn/issues/80742
+  if (-not $env:DOTNET_HOST_PATH) {
+    $env:DOTNET_HOST_PATH = Join-Path (Join-Path $RepoRoot '.dotnet') 'dotnet'
+    if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
+      $env:DOTNET_HOST_PATH = "$($env:DOTNET_HOST_PATH).exe"
+    }
+  }
 
   Subst-TempDir
 

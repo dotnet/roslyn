@@ -2225,7 +2225,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            var exportedTypes = module.GetExportedTypes(Context.Diagnostics);
+            var exportedTypes = module.GetExportedTypes(Context);
             if (exportedTypes.Length == 0)
             {
                 return;

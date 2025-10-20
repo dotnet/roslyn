@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue? constantValue = boundCall.ConstantValueOpt;
             bool isImplicit = boundCall.WasCompilerGenerated;
 
-            if (!boundCall.OriginalMethodsOpt.IsDefault || IsMethodInvalid(boundCall.ResultKind, targetMethod))
+            if (boundCall.IsErroneousNode)
             {
                 ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -1988,7 +1988,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ILabelSymbol exitLabel = boundForEachStatement.BreakLabel.GetPublicSymbol();
             SyntaxNode syntax = boundForEachStatement.Syntax;
             bool isImplicit = boundForEachStatement.WasCompilerGenerated;
-            bool isAsynchronous = boundForEachStatement.AwaitOpt != null;
+            bool isAsynchronous = boundForEachStatement.EnumeratorInfoOpt is { MoveNextAwaitableInfo: not null };
             return new ForEachLoopOperation(loopControlVariable, collection, nextVariables, info, isAsynchronous, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 

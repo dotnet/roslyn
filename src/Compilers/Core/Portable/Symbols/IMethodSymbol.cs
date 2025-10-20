@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         MethodKind MethodKind { get; }
 
         /// <summary>
-        /// Returns the arity of this method, or the number of type parameters it takes.
+        /// Returns the arity of this method. Arity is the number of type parameters a method declares.
         /// A non-generic method has zero arity.
         /// </summary>
         int Arity { get; }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Returns false for methods in <c>extension()</c> blocks.
         /// To check if a method is a "new" extension method (a member of an <c>extension()</c> block),
-        /// check <see cref="ITypeSymbol.IsExtension"/> on the method's <see cref="ISymbol.ContainingType"/>.
+        /// check <see cref="INamedTypeSymbol.IsExtension"/> on the method's <see cref="ISymbol.ContainingType"/>.
         /// </remarks>
         bool IsExtensionMethod { get; }
 
@@ -304,5 +304,27 @@ namespace Microsoft.CodeAnalysis
         /// Returns <see langword="true"/> if this method is a source method implemented as an iterator (either sync or async)
         /// </summary>
         bool IsIterator { get; }
+
+        /// <summary>
+        /// For a method/accessor/operator in an extension block, returns the corresponding implementation method if one exists.
+        /// Returns null otherwise.
+        /// 
+        /// For example, considering:
+        /// <code>
+        /// static class E
+        /// {
+        ///     extension(int i)
+        ///     {
+        ///         public void M() { }
+        ///     }
+        /// }
+        /// </code>
+        /// When given the method symbol for <c>E.extension(int i).M()</c>,
+        /// it returns the corresponding static implementation method <c>E.M(this int i)</c>.
+        ///
+        /// When given a generic extension member definition, it returns an implementation method constructed
+        /// with the extension member's type parameters.
+        /// </summary>
+        IMethodSymbol? AssociatedExtensionImplementation { get; }
     }
 }

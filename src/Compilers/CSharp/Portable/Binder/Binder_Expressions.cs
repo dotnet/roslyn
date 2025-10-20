@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (memberOpt?.GetIsNewExtensionMember() == true)
+            if (memberOpt is { ContainingSymbol: NamedTypeSymbol { IsExtension: true } })
             {
                 return false;
             }
@@ -504,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.InParameterDefaultValue);
             Debug.Assert(this.ContainingMemberOrLambda.Kind == SymbolKind.Method
                 || this.ContainingMemberOrLambda.Kind == SymbolKind.Property
-                || this.ContainingMemberOrLambda is TypeSymbol { IsExtension: true });
+                || this.ContainingMemberOrLambda is NamedTypeSymbol { IsExtension: true });
 
             // UNDONE: The binding and conversion has to be executed in a checked context.
             Binder defaultValueBinder = this.GetBinder(defaultValueSyntax);
@@ -1445,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindFieldExpression(FieldExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(ContainingType is { });
-            SynthesizedBackingFieldSymbolBase? field = null;
+            FieldSymbol? field = null;
 
             if (hasOtherFieldSymbolInScope())
             {
@@ -1459,6 +1460,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case MethodSymbol { AssociatedSymbol: SourcePropertySymbol property }:
                     field = property.BackingField;
+                    break;
+                case MethodSymbol { AssociatedSymbol.OriginalDefinition: PEPropertySymbol property } method when
+                        (Flags & BinderFlags.InEEMethodBinder) != 0 &&
+                        IsPropertyWithBackingField(property, out FieldSymbol? backingField):
+
+                    field = backingField.AsMember(method.ContainingType);
                     break;
                 default:
                     {
@@ -1493,6 +1500,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupResult.Free();
                 return result;
             }
+        }
+
+        internal static bool IsPropertyWithBackingField(PEPropertySymbol property, [NotNullWhen(true)] out FieldSymbol? backingField)
+        {
+            if (!property.GetIsNewExtensionMember() &&
+                property.ContainingType.GetMembers(GeneratedNames.MakeBackingFieldName(property.Name)) is [FieldSymbol candidateField] &&
+                candidateField.RefKind == property.RefKind &&
+                candidateField.IsStatic == property.IsStatic &&
+                candidateField.Type.Equals(property.Type, TypeCompareKind.AllIgnoreOptions))
+            {
+                backingField = candidateField;
+                return true;
+            }
+
+            backingField = null;
+            return false;
         }
 
         /// <summary>
@@ -3792,7 +3815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
                             Debug.Assert(methodResult.Member.GetIsNewExtensionMember());
-                            var receiverParameter = ((TypeSymbol)methodResult.Member.ContainingSymbol).ExtensionParameter;
+                            var receiverParameter = ((NamedTypeSymbol)methodResult.Member.ContainingSymbol).ExtensionParameter;
                             Debug.Assert(receiverParameter is not null);
                             refKind = receiverParameter.RefKind;
                             placeholderType = receiverParameter.Type;
@@ -5068,7 +5091,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     primaryConstructor.SetParametersPassedToTheBase(parametersPassedToBase);
                 }
 
-                BindDefaultArguments(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
+                Debug.Assert(!resultMember.GetIsNewExtensionMember());
+                BindDefaultArguments(nonNullSyntax, resultMember.Parameters, extensionReceiver: null, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -5282,6 +5306,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
             {
+                // Spreads are blocked in exception filters because the try/finally from disposing the enumerator is not allowed in a filter.
+                if (@this.Flags.Includes(BinderFlags.InCatchFilter))
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadSpreadInCatchFilter, syntax);
+                }
+
                 var expression = @this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
                 ForEachEnumeratorInfo.Builder builder;
                 bool hasErrors = !@this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
@@ -6803,6 +6833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var method = memberResolutionResult.Member;
+            Debug.Assert(!method.GetIsNewExtensionMember());
 
             bool hasError = false;
 
@@ -6825,7 +6856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 null;
 
             var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+            BindDefaultArguments(node, method.Parameters, extensionReceiver: null, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics: diagnostics);
 
             var arguments = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -10865,7 +10896,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
-                        Symbol extensionMember = singleLookupResult.Symbol;
+                        var extensionMember = singleLookupResult.Symbol;
+                        Debug.Assert(extensionMember is not null);
                         if (IsStaticInstanceMismatchForUniqueSignatureFromMethodGroup(receiver, extensionMember))
                         {
                             // Remove static/instance mismatches
@@ -11078,7 +11110,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: singleLookupResults.Count);
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
-                        Symbol extensionMember = singleLookupResult.Symbol;
+                        var extensionMember = singleLookupResult.Symbol;
+                        Debug.Assert(extensionMember is not null);
                         if (IsStaticInstanceMismatchForUniqueSignatureFromMethodGroup(receiver, extensionMember))
                         {
                             // Remove static/instance mismatches

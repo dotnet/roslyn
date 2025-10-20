@@ -1804,7 +1804,7 @@ static class Extensions
 }
 ";
             var expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'await forea ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'await forea ... }')
   Locals: Local_1: var value
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: var value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
@@ -5837,7 +5837,7 @@ Block[B4] - Exit
 
             var expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
     Locals: Local_1: System.String value
     LoopControlVariable:
       IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
@@ -5866,7 +5866,6 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
         public void AsyncForeach_StructEnumerator()
         {
             var compilation = CreateCompilation(@"
-#pragma warning disable CS1998 // async method lacks awaits
 using System.Threading.Tasks;
 class C
 {
@@ -5990,7 +5989,6 @@ Block[B5] - Exit
         public void AsyncForeach_StructEnumerator_ExplicitAsyncDisposeInterface()
         {
             var compilation = CreateCompilation(@"
-#pragma warning disable CS1998 // async method lacks awaits
 using System.Threading.Tasks;
 class C
 {

@@ -3,14 +3,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <StartupObject />
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CommonLanguageServerProtocol.Framework.UnitTests</RootNamespace>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
-  
+
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\Features\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
     <ProjectReference Include="..\Microsoft.CommonLanguageServerProtocol.Framework.Example\Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj" />
   </ItemGroup>
 </Project>

@@ -593,6 +593,130 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "field").WithLocation(4, 39));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_03()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class DemoCscBreaks
+                {
+                    public List<string> WillBreak => MethodReturningLambda(() => field ?? new List<string>());
+
+                    private T MethodReturningLambda<T>(Func<T> thisGet) => thisGet();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+            var fieldType = model.GetTypeInfo(fieldExpression);
+            AssertEx.Equal("System.Collections.Generic.List<System.String!>?", fieldType.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, fieldType.Type.NullableAnnotation);
+
+            // Note that the member symbol does not expose the inferred nullable annotation via 'FieldSymbol.TypeWithAnnotations'.
+            var fieldSymbol = comp.GetMember<FieldSymbol>("DemoCscBreaks.<WillBreak>k__BackingField");
+            Assert.Equal(NullableAnnotation.NotAnnotated, fieldSymbol.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, ((SynthesizedBackingFieldSymbol)fieldSymbol).GetInferredNullableAnnotation());
+
+            var publicFieldSymbol = fieldSymbol.GetPublicSymbol();
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, publicFieldSymbol.NullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_04()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class Program
+                {
+                    public List<string> Prop
+                    {
+                        get => M(() => field);
+                        set => M(() => field = value ?? new List<string>());
+                    }
+
+                    private T M<T>(Func<T> fn) => fn();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,25): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public List<string> Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 25));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpressions = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().ToArray();
+            Assert.Equal(2, fieldExpressions.Length);
+            verify(fieldExpressions[0]);
+            // https://github.com/dotnet/roslyn/issues/77215: a setter should have a maybe-null initial state for the 'field'.
+            verify(fieldExpressions[1]);
+
+            void verify(FieldExpressionSyntax fieldExpression)
+            {
+                var fieldType = model.GetTypeInfo(fieldExpression);
+                AssertEx.Equal("System.Collections.Generic.List<System.String!>!", fieldType.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, fieldType.Type.NullableAnnotation);
+
+                var fieldSymbol = comp.GetMember<FieldSymbol>("Program.<Prop>k__BackingField");
+                Assert.Equal(NullableAnnotation.NotAnnotated, fieldSymbol.TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.NotAnnotated, ((SynthesizedBackingFieldSymbol)fieldSymbol).GetInferredNullableAnnotation());
+
+                var publicFieldSymbol = fieldSymbol.GetPublicSymbol();
+                Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, publicFieldSymbol.NullableAnnotation);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_05()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class Program
+                {
+                    public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
+
+                    private T M<T>(Func<T> fn) => fn();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,26): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 26),
+                // (7,58): warning CS8602: Dereference of a possibly null reference.
+                //     public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field[0]").WithLocation(7, 58));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+            var fieldType = model.GetTypeInfo(fieldExpression);
+            AssertEx.Equal("System.Collections.Generic.List<System.String?>!", fieldType.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, fieldType.Type.NullableAnnotation);
+
+            var fieldSymbol = comp.GetMember<FieldSymbol>("Program.<Prop>k__BackingField");
+            Assert.Equal(NullableAnnotation.NotAnnotated, fieldSymbol.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, ((SynthesizedBackingFieldSymbol)fieldSymbol).GetInferredNullableAnnotation());
+
+            var publicFieldSymbol = fieldSymbol.GetPublicSymbol();
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, publicFieldSymbol.NullableAnnotation);
+        }
+
         [Fact]
         public void LocalFunction_01()
         {

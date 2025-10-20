@@ -88,7 +88,7 @@ internal static class RenameUtilities
         }
         else
         {
-            var documentsOfRenameSymbolDeclaration = symbol.Locations.Where(l => l.IsInSource).Select(l => solution.GetRequiredDocument(l.SourceTree!));
+            var documentsOfRenameSymbolDeclaration = symbol.Locations.SelectAsArray(l => l.IsInSource, l => solution.GetRequiredDocument(l.SourceTree!));
             var projectIdsOfRenameSymbolDeclaration =
                 documentsOfRenameSymbolDeclaration.SelectMany(d => d.GetLinkedDocumentIds())
                 .Concat(documentsOfRenameSymbolDeclaration.First().Id)

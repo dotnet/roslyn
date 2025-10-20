@@ -1659,9 +1659,9 @@ public class BarImpl : IBar
             CSharpCompilation comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
 
             comp3.VerifyDiagnostics(
-    // (4,24): error CS0539: 'BarImpl.Moniker' in explicit interface declaration is not a member of interface
+    // (4,24): error CS9333: 'BarImpl.Moniker': type must be 'Nullable<ImageMoniker>?' to match implemented member 'IBar.Moniker'
     //     ImageMoniker? IBar.Moniker    
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Moniker").WithArguments("BarImpl.Moniker").WithLocation(4, 24),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Moniker").WithArguments("BarImpl.Moniker", "Nullable<ImageMoniker>?", "IBar.Moniker").WithLocation(4, 24),
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
     // public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
@@ -1670,9 +1670,9 @@ public class BarImpl : IBar
             comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
 
             comp3.VerifyDiagnostics(
-    // (4,24): error CS0539: 'BarImpl.Moniker' in explicit interface declaration is not a member of interface
+    // (4,24): error CS9333: 'BarImpl.Moniker': type must be 'Nullable<ImageMoniker>' to match implemented member 'IBar.Moniker'
     //     ImageMoniker? IBar.Moniker    
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Moniker").WithArguments("BarImpl.Moniker").WithLocation(4, 24),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Moniker").WithArguments("BarImpl.Moniker", "Nullable<ImageMoniker>", "IBar.Moniker").WithLocation(4, 24),
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
     // public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)

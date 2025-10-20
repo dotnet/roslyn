@@ -144,11 +144,8 @@ internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            var factory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-            using var waitContext = factory.Create(
-                textView,
-                applicableToSpan,
-                CSharpEditorResources.Generating_event);
+            var factory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            using var waitContext = factory.Create(textView, applicableToSpan, CSharpEditorResources.Generating_event);
 
             var cancellationToken = waitContext.UserCancellationToken;
 
@@ -168,7 +165,7 @@ internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
             var disposable = await waitContext.SuppressAutoCancelAsync().ConfigureAwait(true);
-            await using var _ = disposable.ConfigureAwait(true);
+            await using var _2 = disposable.ConfigureAwait(true);
 
             var workspace = document.Project.Solution.Workspace;
             if (!workspace.TryApplyChanges(solutionAndRenameSpan.Value.solution))

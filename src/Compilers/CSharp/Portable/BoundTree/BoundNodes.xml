@@ -1284,7 +1284,6 @@
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep?"/>
-    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
@@ -1823,7 +1822,7 @@
     <Field Name="Properties" Type="ImmutableArray&lt;PropertySymbol&gt;" />
   </Node>
 
-  <Node Name="BoundCall" Base="BoundExpression">
+  <Node Name="BoundCall" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
@@ -1839,7 +1838,17 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
+
+    <!--
+    Result kind for the invocation. Never LookupResultKind.MemberGroup or LookupResultKind.StaticInstanceMismatch.
+    If the value is something other than LookupResultKind.Viable, then the node represents a bad invocation,
+    the consistency among information stored in other properties is not guaranteed, and the Method property might
+    be set to an ErrorMethodSymbol. A special care should be taken when dealing with such nodes. It is recommended
+    to treat them similar to BoundBadExpressions nodes, unless there is a good reason to have more complicated
+    error recovery. 
+    -->
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+
     <!--The set of method symbols from which this call's method was chosen.
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best method.-->
@@ -2520,7 +2529,7 @@
            Left.InputType is the InputType 
            Right.InputType is the Left.NarrowedType 
   -->
-  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true">
+  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true" SkipInNullabilityRewriter="true">
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>

@@ -115,7 +115,7 @@ public class CSharpWinForms : AbstractEditorTest
             """, codeFileActualText);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
+    [IdeFact]
     public async Task RenameControl()
     {
         var project = ProjectName;
@@ -152,7 +152,7 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.DoesNotContain(@"private System.Windows.Forms.Button SomeButton;", actualText);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
+    [IdeFact]
     public async Task RemoveEventHandler()
     {
         var project = ProjectName;
@@ -182,7 +182,7 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Click += new System.EventHandler(VisualStudio.Editor.GooHandler);", actualText);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
+    [IdeFact]
     public async Task ChangeAccessibility()
     {
         var project = ProjectName;
@@ -211,7 +211,7 @@ public class CSharpWinForms : AbstractEditorTest
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(@"public System.Windows.Forms.Button SomeButton;", actualText);
     }
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
+    [IdeFact]
     public async Task DeleteControl()
     {
         if (ExecutionConditionUtil.IsBitness64)

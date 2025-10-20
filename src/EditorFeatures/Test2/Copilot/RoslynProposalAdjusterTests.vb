@@ -2,8 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Copilot
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -16,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                 code As String,
                 expected As String,
                 language As String,
+                Optional fixers As ImmutableHashSet(Of String) = Nothing,
                 Optional compilationOptions As CompilationOptions = Nothing) As Task
             Using workspace = If(language Is LanguageNames.CSharp,
                     EditorTestWorkspace.CreateCSharp(code, compilationOptions:=compilationOptions, composition:=s_composition),
@@ -38,12 +41,32 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                     delta -= selectionSpan.Length
                 Next
 
-                Dim service = workspace.Services.GetRequiredService(Of ICopilotProposalAdjusterService)
-                Dim adjustedChanges = Await service.TryAdjustProposalAsync(
-                    originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
+                ' Default to all the flags on if adjuster not specified.
+                If fixers Is Nothing Then
+                    fixers = {
+                        ProposalAdjusterKinds.AddMissingTokens,
+                        ProposalAdjusterKinds.AddMissingImports,
+                        ProposalAdjusterKinds.FormatCode
+                    }.ToImmutableHashSet()
+                End If
 
+                Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
+                Dim tuple = Await service.TryAdjustProposalAsync(
+                    allowableAdjustments:=fixers, originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
+
+                Dim adjustedChanges = tuple.TextChanges
+                Dim format = tuple.Format
                 Dim originalDocumentText = Await originalDocument.GetTextAsync()
-                Dim adjustedDocumentText = originalDocumentText.WithChanges(adjustedChanges)
+                Dim adjustedDocumentTextAndFinalSpans = CopilotUtilities.GetNewTextAndChangedSpans(originalDocumentText, adjustedChanges)
+                Dim adjustedDocumentText = adjustedDocumentTextAndFinalSpans.newText
+                Dim finalSpans = adjustedDocumentTextAndFinalSpans.newSpans
+
+                If format Then
+                    Dim adjustedDocument = originalDocument.WithText(adjustedDocumentText)
+                    Dim formattedDocument = Await Formatter.FormatAsync(adjustedDocument, finalSpans)
+                    Dim formattedText = Await formattedDocument.GetTextAsync()
+                    adjustedDocumentText = formattedText
+                End If
 
                 AssertEx.Equal(expected, adjustedDocumentText.ToString())
             End Using
@@ -51,8 +74,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
 
 #Region "C#"
 
-        Private Shared Async Function TestCSharp(code As String, expected As String) As Task
-            Await Test(code, expected, LanguageNames.CSharp)
+        Private Shared Async Function TestCSharp(code As String, expected As String, Optional fixers As ImmutableHashSet(Of String) = Nothing) As Task
+            Await Test(code, expected, LanguageNames.CSharp, fixers)
         End Function
 
         <WpfFact>
@@ -202,12 +225,346 @@ class C
 }")
         End Function
 
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBrace1() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console.WriteLine(1);|]
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBrace2() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console.WriteLine(1);|]
+", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBrace3() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console.WriteLine(1);|]
+
+    public void N() { }
+}
+", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+
+    public void N() { }
+}
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_RequiresFormatting() As Task
+            Await TestCSharp("
+using System;
+
+class C
+{
+    void M()
+    {
+            [| Console  .  WriteLine ( 1 )   ;|]
+    }
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_RequiresUsingAndFormatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+            [| Console  .  WriteLine ( 1 )   ;|]
+    }
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBraceUsingAndFormatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console  . WriteLine( 1 )  ;|]
+
+    public void N() { }
+}
+", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+
+    public void N() { }
+}
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBraceAndFormattingPlusWhiteSpaceAfter() As Task
+            ' Note that the trailing whitespace after the proposal causes the AddMissingTokens fixer
+            ' to not add the closing brace. This could be improved in the future.
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        System.Console  . WriteLine( 1 )  ; |]
+
+    public void N() { }
+}
+", "
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine(1);
+
+    public void N() { }
+}
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBraceAndFormatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        System.Console  . WriteLine( 1 )  ;|]
+
+    public void N() { }
+}
+", "
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine(1);
+    }
+
+    public void N() { }
+}
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_Multi_Line_Formatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [| if (false) {
+System.Console  .  WriteLine ( 1 )   ; } |]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        if (false)
+        {
+            System.Console.WriteLine(1);
+        }
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_Formatting_Outside_Proposal() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [| Console  .  WriteLine ( 1 )   ;|]
+            if (    true    ) {
+            [| Console  .  WriteLine ( 1 )   ;|]
+            }
+    }
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+        if (true)
+        {
+            Console.WriteLine(1);
+        }
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_Partial_Formatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [| System . Console  .  Writ|]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        System.Console.Writ
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_AnalyzersOff() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}", ImmutableHashSet(Of String).Empty)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingImportsOnly() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+    }
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}", {ProposalAdjusterKinds.AddMissingImports}.ToImmutableHashSet())
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingTokensOnly() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}", {ProposalAdjusterKinds.AddMissingTokens}.ToImmutableHashSet())
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_FormatOnly() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}", {ProposalAdjusterKinds.FormatCode}.ToImmutableHashSet())
+        End Function
+
 #End Region
 
 #Region "Visual Basic"
 
-        Private Shared Async Function TestVisualBasic(code As String, expected As String) As Task
-            Await Test(code, expected, LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+        Private Shared Async Function TestVisualBasic(code As String, expected As String, Optional fixers As ImmutableHashSet(Of String) = Nothing) As Task
+            Await Test(code, expected, LanguageNames.VisualBasic, fixers, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
         End Function
 
         <WpfFact>
@@ -335,6 +692,120 @@ class C
         Console.WriteLine()
     end sub
 end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_RequiresFormatting() As Task
+            Await TestVisualBasic("
+Imports System
+
+class C
+    sub M()
+        [| Console . WriteLine ( 1 )   |]
+    end sub
+end class", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_RequiresUsingAndFormatting() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| Console . WriteLine ( 1 )   |]
+    end sub
+end class", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_Multi_Line_Formatting() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| Console . WriteLine ( 1 )   |]
+        if (false)
+        end if
+        [| Console . WriteLine ( 1 )   |]
+    end sub
+end class
+", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+        if (false)
+        end if
+        Console.WriteLine(1)
+    end sub
+end class
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_Formatting_Outside_Proposal() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| Console  .  WriteLine ( 1 )  |]
+            if (    true    )
+            [| Console  .  WriteLine ( 1 )   |]
+            end if
+    end sub
+end class", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+        if (true)
+            Console.WriteLine(1)
+        end if
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_Partial_Formatting() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| System .  Console  .  Writ|]
+    end sub
+end class", "
+class C
+    sub M()
+        System.Console.Writ
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_AnalyzersOff() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| Console . WriteLine ( 1 )   |]
+    end sub
+end class", "
+class C
+    sub M()
+         Console . WriteLine ( 1 )   
+    end sub
+end class", ImmutableHashSet(Of String).Empty)
         End Function
 
 #End Region

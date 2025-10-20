@@ -73,15 +73,15 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
         }
     }
 
-    private readonly TaskCompletionSource<int> _shuttingDown = new TaskCompletionSource<int>();
-    private readonly TaskCompletionSource<int> _exiting = new TaskCompletionSource<int>();
+    private readonly TaskCompletionSource<int> _shuttingDown = new();
+    private readonly TaskCompletionSource<int> _exiting = new();
 
     protected override ILspServices ConstructLspServices()
     {
         return base.ConstructLspServices();
     }
 
-    private void _clientRpc_Disconnected(object sender, JsonRpcDisconnectedEventArgs e)
+    private void _clientRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
     {
         throw new NotImplementedException();
     }

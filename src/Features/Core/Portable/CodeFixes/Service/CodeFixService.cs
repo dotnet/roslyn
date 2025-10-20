@@ -70,9 +70,9 @@ internal sealed partial class CodeFixService : ICodeFixService
         _configurationProvidersMap = new(() => GetConfigurationProvidersPerLanguageMap(configurationProviders));
     }
 
-    private Func<string, bool>? GetShouldIncludeDiagnosticPredicate(
+    private DiagnosticIdFilter GetShouldIncludeDiagnosticPredicate(
         TextDocument document,
-        ICodeActionRequestPriorityProvider priorityProvider)
+        CodeActionRequestPriority? priority)
     {
         // For Normal or Low priority, we only need to execute analyzers which can report at least one fixable
         // diagnostic that can have a non-suppression/configuration fix.
@@ -80,35 +80,30 @@ internal sealed partial class CodeFixService : ICodeFixService
         // For CodeActionPriorityRequest.High, we only run compiler analyzer, which always has fixable diagnostics,
         // so we can return a null predicate here to include all diagnostics.
 
-        if (!(priorityProvider.Priority is CodeActionRequestPriority.Default or CodeActionRequestPriority.Low))
-            return null;
+        if (!(priority is CodeActionRequestPriority.Default or CodeActionRequestPriority.Low))
+            return DiagnosticIdFilter.All;
 
-        var hasWorkspaceFixers = TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
+        TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
+        workspaceFixersMap ??= ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.Empty;
         var projectFixersMap = GetProjectFixers(document);
 
-        return id =>
-        {
-            if (hasWorkspaceFixers && workspaceFixersMap!.ContainsKey(id))
-                return true;
-
-            return projectFixersMap.ContainsKey(id);
-        };
+        return DiagnosticIdFilter.Include([.. workspaceFixersMap.Keys, .. projectFixersMap.Keys]);
     }
 
     public async Task<CodeFixCollection?> GetMostSevereFixAsync(
-        TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CancellationToken cancellationToken)
+        TextDocument document, TextSpan range, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
     {
-        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
+        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
         ImmutableArray<DiagnosticData> allDiagnostics;
 
         using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
-            FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
+            FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             allDiagnostics = await service.GetDiagnosticsForSpanAsync(
-                document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                priorityProvider, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
+                document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
+                priority, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
             // NOTE(cyrusn): We do not include suppressed diagnostics here as they are effectively hidden from the
             // user in the editor.  As far as the user is concerned, there is no squiggle for it and no lightbulb
@@ -116,7 +111,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             allDiagnostics = allDiagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
 
-        var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
+        var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priority, cancellationToken).ConfigureAwait(false);
         allDiagnostics = allDiagnostics.AddRange(copilotDiagnostics);
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -160,7 +155,7 @@ internal sealed partial class CodeFixService : ICodeFixService
 
             await foreach (var collection in StreamFixesAsync(
                 document, spanToDiagnostics, fixAllForInSpan: false,
-                priorityProvider, cancellationToken).ConfigureAwait(false))
+                priority, cancellationToken).ConfigureAwait(false))
             {
                 // Stop at the result error we see.
                 return collection;
@@ -173,14 +168,14 @@ internal sealed partial class CodeFixService : ICodeFixService
     public async IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
         TextDocument document,
         TextSpan range,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        CodeActionRequestPriority? priority,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
+        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}");
 
         // We only need to compute suppression/configuration fixes when request priority is
         // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
-        var includeSuppressionFixes = priorityProvider.Priority is null or CodeActionRequestPriority.Lowest;
+        var includeSuppressionFixes = priority is null or CodeActionRequestPriority.Lowest;
 
         // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic
         // service to give back current diagnostics for the given span, and it will use that to get fixes.
@@ -195,17 +190,17 @@ internal sealed partial class CodeFixService : ICodeFixService
         ImmutableArray<DiagnosticData> diagnostics;
 
         using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
-            FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
+            FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             diagnostics = await service.GetDiagnosticsForSpanAsync(
-                document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                priorityProvider, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
+                document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
+                priority, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
             if (!includeSuppressionFixes)
                 diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
 
-        var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
+        var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priority, cancellationToken).ConfigureAwait(false);
         diagnostics = diagnostics.AddRange(copilotDiagnostics);
 
         if (diagnostics.IsEmpty)
@@ -217,11 +212,11 @@ internal sealed partial class CodeFixService : ICodeFixService
             var spanToDiagnostics = ConvertToMap(text, diagnostics);
 
             // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
-            if (priorityProvider.Priority != CodeActionRequestPriority.Lowest)
+            if (priority != CodeActionRequestPriority.Lowest)
             {
                 await foreach (var collection in StreamFixesAsync(
                     document, spanToDiagnostics, fixAllForInSpan: false,
-                    priorityProvider, cancellationToken).ConfigureAwait(false))
+                    priority, cancellationToken).ConfigureAwait(false))
                 {
                     yield return collection;
                 }
@@ -285,19 +280,25 @@ internal sealed partial class CodeFixService : ICodeFixService
     }
 
     public async Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
-        TextDocument document, TextSpan range, string diagnosticId, DiagnosticSeverity minimumSeverity, CancellationToken cancellationToken)
+        Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity minimumSeverity, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
         ImmutableArray<DiagnosticData> diagnostics;
 
+        if (textSpan is null)
+        {
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            textSpan = new TextSpan(0, text.Length);
+        }
+
         using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
             FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             diagnostics = await service.GetDiagnosticsForSpanAsync(
-                document, range, diagnosticId, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+                document, textSpan, diagnosticId, priority: null,
                 DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
             // NOTE(cyrusn): We do not include suppressed diagnostics here as they are effectively hidden from the
@@ -310,15 +311,13 @@ internal sealed partial class CodeFixService : ICodeFixService
         if (!diagnostics.Any())
             return null;
 
-        using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
         var spanToDiagnostics = new SortedDictionary<TextSpan, List<DiagnosticData>>
         {
-            { range, diagnostics.ToList() },
+            { textSpan.Value, diagnostics.ToList() },
         };
 
         await foreach (var collection in StreamFixesAsync(
-            document, spanToDiagnostics, fixAllForInSpan: true, new DefaultCodeActionRequestPriorityProvider(),
-            cancellationToken).ConfigureAwait(false))
+            document, spanToDiagnostics, fixAllForInSpan: true, priority: null, cancellationToken).ConfigureAwait(false))
         {
             if (collection.FixAllState is not null && collection.SupportedScopes.Contains(FixAllScope.Document))
             {
@@ -331,25 +330,20 @@ internal sealed partial class CodeFixService : ICodeFixService
         return null;
     }
 
-    public async Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(
-        TDocument document,
+    public async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
+        Document document,
+        TextSpan? textSpan,
         string diagnosticId,
         DiagnosticSeverity severity,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
-        where TDocument : TextDocument
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var textSpan = new TextSpan(0, text.Length);
 
         var fixCollection = await GetDocumentFixAllForIdInSpanAsync(
             document, textSpan, diagnosticId, severity, cancellationToken).ConfigureAwait(false);
         if (fixCollection == null)
-        {
             return document;
-        }
 
         var fixAllService = document.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
@@ -357,7 +351,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             new FixAllContext(fixCollection.FixAllState!, progressTracker, cancellationToken)).ConfigureAwait(false);
         Contract.ThrowIfNull(solution);
 
-        return (TDocument)(solution.GetTextDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported));
+        return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
     }
 
     private bool TryGetWorkspaceFixersMap(TextDocument document, [NotNullWhen(true)] out ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>? fixerMap)
@@ -443,7 +437,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         TextDocument document,
         SortedDictionary<TextSpan, List<DiagnosticData>> spanToDiagnostics,
         bool fixAllForInSpan,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        CodeActionRequestPriority? priority,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -500,13 +494,15 @@ internal sealed partial class CodeFixService : ICodeFixService
         if (TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
             allFixers = allFixers.Sort(new FixerComparer(allFixers, fixersForLanguage.Value));
 
-        var extensionManager = document.Project.Solution.Services.GetService<IExtensionManager>();
+        var solution = document.Project.Solution;
+        var extensionManager = solution.Services.GetService<IExtensionManager>();
+        var diagnosticAnalyzerService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         // Run each CodeFixProvider to gather individual CodeFixes for reported diagnostics.
         // Ensure that no diagnostic has registered code actions from different code fix providers with same equivalance key.
         // This prevents duplicate registered code actions from NuGet and VSIX code fix providers.
         // See https://github.com/dotnet/roslyn/issues/18818 for details.
-        var uniqueDiagosticToEquivalenceKeysMap = new Dictionary<Diagnostic, PooledHashSet<string?>>();
+        var uniqueDiagnosticToEquivalenceKeysMap = new Dictionary<Diagnostic, PooledHashSet<string?>>();
 
         // NOTE: For backward compatibility, we allow multiple registered code actions from the same code fix provider
         // to have the same equivalence key. See https://github.com/dotnet/roslyn/issues/44553 for details.
@@ -519,7 +515,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!priorityProvider.MatchesPriority(fixer))
+                if (!await MatchesPriorityAsync(fixer).ConfigureAwait(false))
                     continue;
 
                 foreach (var (span, diagnostics) in fixerToRangesAndDiagnostics[fixer])
@@ -553,13 +549,13 @@ internal sealed partial class CodeFixService : ICodeFixService
                                 {
                                     var primaryDiagnostic = dxs.First();
                                     return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata,
-                                        [primaryDiagnostic], uniqueDiagosticToEquivalenceKeysMap,
+                                        [primaryDiagnostic], uniqueDiagnosticToEquivalenceKeysMap,
                                         diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                 }
                                 else
                                 {
                                     return GetCodeFixesAsync(document, span, fixer, fixerMetadata, dxs,
-                                        uniqueDiagosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
+                                        uniqueDiagnosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                 }
                             }
                         },
@@ -578,7 +574,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         }
         finally
         {
-            foreach (var pooledSet in uniqueDiagosticToEquivalenceKeysMap.Values)
+            foreach (var pooledSet in uniqueDiagnosticToEquivalenceKeysMap.Values)
             {
                 pooledSet.Free();
             }
@@ -598,6 +594,41 @@ internal sealed partial class CodeFixService : ICodeFixService
                 if (currentFixers.Add(fixer))
                     fixerToRangesAndDiagnostics.MultiAdd(fixer, (range, diagnostics));
             }
+        }
+
+        // <summary>
+        // Returns true if the given <paramref name="codeFixProvider"/> should be considered a candidate when computing
+        // fixes for the given <see cref="ICodeActionRequestPriorityProvider.Priority"/>.
+        // </summary>
+        async Task<bool> MatchesPriorityAsync(CodeFixProvider codeFixProvider)
+        {
+            if (priority == null)
+            {
+                // We are computing fixes for all priorities
+                return true;
+            }
+
+            if (priority == codeFixProvider.RequestPriority)
+            {
+                return true;
+            }
+
+            if (priority == CodeActionRequestPriority.Low &&
+                codeFixProvider.RequestPriority > CodeActionRequestPriority.Low &&
+                await diagnosticAnalyzerService.IsAnyDiagnosticIdDeprioritizedAsync(
+                    document.Project, codeFixProvider.FixableDiagnosticIds, cancellationToken).ConfigureAwait(false))
+            {
+                // 'Low' priority can be used for two types of code fixers:
+                //  1. Those which explicitly set their 'RequestPriority' to 'Low' and
+                //  2. Those which can fix diagnostics for expensive analyzers which were de-prioritized
+                //     to 'Low' priority bucket to improve lightbulb population performance.
+                // The first case is handled by the earlier check against matching priorities. For the second
+                // case, we accept fixers with any RequestPriority, as long as they can fix a diagnostic from
+                // an analyzer that was executed in the 'Low' bucket.
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -650,7 +681,7 @@ internal sealed partial class CodeFixService : ICodeFixService
                         // name metadata.
                         action.AddCustomTagAndTelemetryInfo(fixerMetadata, fixer);
 
-                        fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
+                        fixes.Add(new CodeFix(action, applicableDiagnostics));
                     }
                 }
             },
@@ -750,15 +781,14 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var allDiagnostics =
-            await diagnosticsWithSameSpan.OrderByDescending(d => d.Severity)
-                                         .ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
+        var allDiagnostics = await diagnosticsWithSameSpan
+            .OrderByDescending(d => d.Severity)
+            .ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
         var diagnostics = allDiagnostics.WhereAsArray(hasFix);
-        if (diagnostics.Length <= 0)
-        {
-            // this can happen for suppression case where all diagnostics can't be suppressed
+
+        // this can happen for suppression case where all diagnostics can't be suppressed
+        if (diagnostics.IsEmpty)
             return null;
-        }
 
         var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
         var fixes = await extensionManager.PerformFunctionAsync(fixer,
@@ -776,13 +806,10 @@ internal sealed partial class CodeFixService : ICodeFixService
         var supportedScopes = ImmutableArray<FixAllScope>.Empty;
         if (fixAllProviderInfo != null && textDocument is Document document)
         {
-            var diagnosticIds = diagnostics.Where(fixAllProviderInfo.CanBeFixed)
-                                           .Select(d => d.Id)
-                                           .ToImmutableHashSet();
-
-            var diagnosticProvider = fixAllForInSpan
-                ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
-                : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(diagnosticIds);
+            var diagnosticIds = diagnostics
+                .Where(fixAllProviderInfo.CanBeFixed)
+                .Select(d => d.Id)
+                .ToImmutableHashSet();
 
             var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
 
@@ -795,14 +822,15 @@ internal sealed partial class CodeFixService : ICodeFixService
                 FixAllScope.Document,
                 fixes[0].Action.EquivalenceKey,
                 diagnosticIds,
-                diagnosticProvider);
+                fixAllForInSpan
+                    ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
+                    : new FixAllDiagnosticProvider(diagnosticIds));
 
             supportedScopes = fixAllProviderInfo.SupportedScopes;
         }
 
         return new CodeFixCollection(
-            fixer, fixesSpan, fixes, fixAllState,
-            supportedScopes, diagnostics.First());
+            fixer, fixesSpan, fixes, fixAllState, supportedScopes, diagnostics);
     }
 
     /// <summary> Looks explicitly for an <see cref="AbstractSuppressionCodeFixProvider"/>.</summary>

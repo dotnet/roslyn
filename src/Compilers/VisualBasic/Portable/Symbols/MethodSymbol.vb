@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns the arity of this method, or the number of type parameters it takes.
+        ''' Returns the arity of this method. Arity is the number of type parameters a method declares.
         ''' A non-generic method has zero arity.
         ''' </summary>
         Public MustOverride ReadOnly Property Arity As Integer
@@ -1235,6 +1235,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitMethod(Me)
         End Function
+
+        Public ReadOnly Property AssociatedExtensionImplementation As IMethodSymbol Implements IMethodSymbol.AssociatedExtensionImplementation
+            Get
+                Return Nothing
+            End Get
+        End Property
 
 #End Region
 

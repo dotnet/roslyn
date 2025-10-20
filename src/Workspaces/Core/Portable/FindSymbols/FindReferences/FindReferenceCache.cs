@@ -69,6 +69,7 @@ internal sealed class FindReferenceCache
     private ImmutableHashSet<string>? _aliasNameSet;
     private ImmutableArray<SyntaxToken> _constructorInitializerCache;
     private ImmutableArray<SyntaxToken> _newKeywordsCache;
+    private ImmutableArray<SyntaxNode> _constructorDeclarations;
 
     private FindReferenceCache(
         Document document, SourceText text, SemanticModel semanticModel, SemanticModel nullableEnabledSemanticModel, SyntaxNode root, SyntaxTreeIndex syntaxTreeIndex)
@@ -178,7 +179,7 @@ internal sealed class FindReferenceCache
                     foreach (var trivia in token.LeadingTrivia)
                     {
                         if (trivia.HasStructure)
-                            stack.Push(trivia.GetStructure()!);
+                            stack.Push(trivia.GetStructure());
                     }
                 }
             }
@@ -223,7 +224,7 @@ internal sealed class FindReferenceCache
         {
             var syntaxFacts = this.SyntaxFacts;
             using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var initializers);
-            foreach (var constructor in syntaxFacts.GetConstructors(this.Root, cancellationToken))
+            foreach (var constructor in this.GetConstructorDeclarations(cancellationToken))
             {
                 foreach (var token in constructor.DescendantTokens(descendIntoTrivia: false))
                 {
@@ -233,6 +234,47 @@ internal sealed class FindReferenceCache
             }
 
             return initializers.ToImmutableAndClear();
+        }
+    }
+
+    public ImmutableArray<SyntaxNode> GetConstructorDeclarations(CancellationToken cancellationToken)
+    {
+        if (_constructorDeclarations.IsDefault)
+        {
+            ImmutableInterlocked.InterlockedInitialize(
+                ref _constructorDeclarations,
+                ComputeConstructorDeclarations(cancellationToken));
+        }
+        return _constructorDeclarations;
+    }
+
+    private ImmutableArray<SyntaxNode> ComputeConstructorDeclarations(CancellationToken cancellationToken)
+    {
+        if (this.Root is not ICompilationUnitSyntax)
+            return [];
+
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var constructors);
+        AppendConstructors(this.SyntaxFacts.GetMembersOfCompilationUnit(this.Root));
+        return constructors.ToImmutableAndClear();
+
+        void AppendConstructors(SyntaxList<SyntaxNode> members)
+        {
+            foreach (var member in members)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (this.SyntaxFacts.IsConstructorDeclaration(member))
+                {
+                    constructors.Add(member);
+                }
+                else if (this.SyntaxFacts.IsBaseNamespaceDeclaration(member))
+                {
+                    AppendConstructors(this.SyntaxFacts.GetMembersOfBaseNamespaceDeclaration(member));
+                }
+                else if (this.SyntaxFacts.IsTypeDeclaration(member))
+                {
+                    AppendConstructors(this.SyntaxFacts.GetMembersOfTypeDeclaration(member));
+                }
+            }
         }
     }
 

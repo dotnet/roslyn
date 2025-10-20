@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <SignAssembly>false</SignAssembly>
+    <DefineConstants>$(DefineConstants);ROSLYN_NO_INDEXRANGE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +28,7 @@
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="MSBuild.StructuredLogger" />
     <PackageReference Include="Basic.CompilerLog.Util" />
+    <PackageReference Include="MessagePack" VersionOverride="3.1.4" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
 

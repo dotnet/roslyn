@@ -1477,6 +1477,7 @@ class Variable
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22342")>
         Public Async Function TestParenthesizedDeconstructionDeclarationWithSymbol(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1493,7 +1494,7 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Assert.Contains("(Variable ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                Await state.AssertNoCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=False)
 
                 state.SendTypeChars("x, vari")
                 Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=True)
@@ -13078,8 +13079,8 @@ public class Class1
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/78284")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78284")>
         Public Async Function TestOverrideInstanceAssignmentOperator(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -13107,6 +13108,106 @@ class C2 : C1
     {
         throw new System.NotImplementedException();
     }", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/54070")>
+        Public Async Function TestRecommendRefInArgumentList1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public class TestClass1
+{
+    public void TestMethod1()
+    {
+        int x = 5;
+        Goo($$)
+    }
+
+    private void Goo(ref int a)
+    {
+    }
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("ref")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/54070")>
+        Public Async Function TestRecommendRefInArgumentList2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public class TestClass1
+{
+    public void TestMethod1()
+    {
+        int x = 5;
+        Goo($$)
+    }
+
+    private void Goo(int i, ref int a)
+    {
+    }
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("x")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/54070")>
+        Public Async Function TestRecommendRefInArgumentList3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public class TestClass1
+{
+    public void TestMethod1()
+    {
+        int x = 5;
+        Goo(x, $$)
+    }
+
+    private void Goo(int i, ref int a)
+    {
+    }
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("ref")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/54070")>
+        Public Async Function TestRecommendRefInArgumentList4(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public class TestClass1
+{
+    public void TestMethod1()
+    {
+        int x = 5;
+        Goo(a: $$)
+    }
+
+    private void Goo(int i, ref int a)
+    {
+    }
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("ref")
             End Using
         End Function
     End Class
