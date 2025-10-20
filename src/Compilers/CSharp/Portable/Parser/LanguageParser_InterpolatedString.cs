@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RawStringIndentationHelper;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
