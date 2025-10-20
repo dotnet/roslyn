@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -24,10 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // from that.
 
             var originalText = token.Text;
-            var originalTextSpan = new TextSpan(0, originalText.Length);
 
             var interpolatedString = ParseInterpolatedOrRawStringToken(
-                token, originalText, (originalText, originalTextSpan), default(StringAndSpanCharHelper), isInterpolatedString: false);
+                token, originalText, originalText.AsSpan().Slice(0, originalText.Length), isInterpolatedString: false);
 
             Debug.Assert(interpolatedString.StringStartToken.Kind is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken);
 
@@ -111,26 +111,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalTextSpan = new TextSpan(0, originalText.Length);
 
             return ParseInterpolatedOrRawStringToken(
-                originalToken, originalText, (originalText, originalTextSpan), default(StringAndSpanCharHelper), isInterpolatedString: true);
+                originalToken, originalText, (originalText, originalTextSpan), isInterpolatedString: true);
         }
 
-        private InterpolatedStringExpressionSyntax ParseInterpolatedOrRawStringToken<TString, TStringHelper>(
+        private InterpolatedStringExpressionSyntax ParseInterpolatedOrRawStringToken(
             SyntaxToken originalToken,
             string originalText,
-            TString originalTextSpan,
-            TStringHelper helper,
+            ReadOnlySpan<char> originalTextSpan,
             bool isInterpolatedString)
-            where TStringHelper : struct, IStringHelper<TString>
         {
             if (isInterpolatedString)
             {
-                Debug.Assert(helper.GetCharAt(originalTextSpan, 0) is '$' or '@');
+                Debug.Assert(originalTextSpan[0] is '$' or '@');
             }
             else
             {
-                Debug.Assert(helper.GetCharAt(originalTextSpan, 0) is '"');
-                Debug.Assert(helper.GetCharAt(originalTextSpan, 1) is '"');
-                Debug.Assert(helper.GetCharAt(originalTextSpan, 2) is '"');
+                Debug.Assert(originalTextSpan[0] is '"');
+                Debug.Assert(originalTextSpan[1] is '"');
+                Debug.Assert(originalTextSpan[2] is '"');
             }
 
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
@@ -176,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     trailing: null);
             }
 
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent(TString originalTextSpan)
+            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent(ReadOnlySpan<char> originalTextSpan)
             {
                 var content = PooledStringBuilder.GetInstance();
                 var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
@@ -192,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Add a token for text preceding the interpolation
                     builder.Add(makeContent(
                         indentationWhitespace, content, isFirst: i == 0, isLast: false,
-                        helper.Slice(originalTextSpan, currentContentStart..interpolation.OpenBraceRange.Start)));
+                        originalTextSpan[currentContentStart..interpolation.OpenBraceRange.Start]));
 
                     // Now parse the interpolation itself.
                     var interpolationNode = ParseInterpolation(this.Options, originalText, interpolation, kind, IsInFieldKeywordContext);
@@ -209,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Add a token for text following the last interpolation
                 builder.Add(makeContent(
                     indentationWhitespace, content, isFirst: interpolationsCount == 0, isLast: true,
-                    helper.Slice(originalTextSpan, currentContentStart..closeQuoteRange.Start)));
+                    originalTextSpan[currentContentStart..closeQuoteRange.Start]));
 
                 CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> result = builder;
                 _pool.Free(builder);
@@ -218,27 +216,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // Gets the indentation whitespace from the last line of a multi-line raw literal.
-            TString getIndentationWhitespace(TString originalTextSpan)
+            ReadOnlySpan<char> getIndentationWhitespace(ReadOnlySpan<char> originalTextSpan)
             {
                 // The content we want to create text token out of.  Effectively, what is in the text sections
                 // minus leading whitespace.
-                var closeQuoteText = helper.Slice(originalTextSpan, closeQuoteRange);
+                var closeQuoteText = originalTextSpan[closeQuoteRange];
 
                 // A multi-line raw interpolation without errors always ends with a new-line, some number of spaces, and
                 // the quotes. So it's safe to just pull off the first two characters here to find where the
                 // newline-ends.
-                var afterNewLine = SlidingTextWindow.GetNewLineWidth(
-                    helper.GetCharAt(closeQuoteText, 0), helper.GetCharAt(closeQuoteText, 1));
+                var afterNewLine = SlidingTextWindow.GetNewLineWidth(closeQuoteText[0], closeQuoteText[1]);
                 var afterWhitespace = skipWhitespace(closeQuoteText, afterNewLine);
 
-                Debug.Assert(helper.GetCharAt(closeQuoteText, afterWhitespace) == '"');
-                return helper.Slice(closeQuoteText, afterNewLine..afterWhitespace);
+                Debug.Assert(closeQuoteText[afterWhitespace] == '"');
+                return closeQuoteText[afterNewLine..afterWhitespace];
             }
 
             InterpolatedStringContentSyntax? makeContent(
-                TString indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, TString text)
+                ReadOnlySpan<char> indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, ReadOnlySpan<char> text)
             {
-                if (helper.GetLength(text) == 0)
+                if (text.Length == 0)
                 {
                     return isInterpolatedString
                         ? null
@@ -249,8 +246,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // If we're not dedenting then just make a standard interpolated text token.  Also, we can short-circuit
                 // if the indentation whitespace is empty (nothing to dedent in that case).
-                if (!needsDedentation || helper.GetLength(indentationWhitespace) == 0)
-                    return SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(kind, helper.ToString(text)));
+                if (!needsDedentation || indentationWhitespace.Length == 0)
+                    return SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(kind, text.ToString()));
 
                 content.Clear();
                 var currentIndex = 0;
@@ -267,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Consume one line at a time.
                 SyntaxDiagnosticInfo? indentationError = null;
-                var textLength = helper.GetLength(text);
+                var textLength = text.Length;
                 while (currentIndex < textLength)
                 {
                     var lineStartPosition = currentIndex;
@@ -276,10 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (indentationError == null)
                     {
                         currentIndex = skipWhitespace(text, currentIndex);
-                        var currentLineWhitespace = helper.Slice(text, lineStartPosition..currentIndex);
+                        var currentLineWhitespace = text[lineStartPosition..currentIndex];
 
-                        var isBlankLine = (currentIndex == textLength && isLast) || (currentIndex < textLength && SyntaxFacts.IsNewLine(helper.GetCharAt(text, currentIndex)));
-                        var (errorCode, errorArguments) = CheckForIndentationError(currentLineWhitespace, indentationWhitespace, isBlankLine, helper);
+                        var isBlankLine = (currentIndex == textLength && isLast) || (currentIndex < textLength && SyntaxFacts.IsNewLine(text[currentIndex]));
+                        var (errorCode, errorArguments) = CheckForIndentationError(currentLineWhitespace, indentationWhitespace, isBlankLine);
                         if (errorCode != 0)
                         {
                             indentationError = MakeError(
@@ -292,12 +289,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     // Skip the leading whitespace that matches the terminator line and add any text after that to our content.
-                    currentIndex = Math.Min(currentIndex, lineStartPosition + helper.GetLength(indentationWhitespace));
+                    currentIndex = Math.Min(currentIndex, lineStartPosition + indentationWhitespace.Length);
                     currentIndex = consumeRemainingContentThroughNewLine(content, text, currentIndex);
                 }
 
                 // if we ran into any errors, don't give this item any special value.  It just has the value of our actual text.
-                var textString = helper.ToString(text);
+                var textString = text.ToString();
                 var valueString = indentationError != null ? textString : content.ToString();
 
                 var node = SyntaxFactory.InterpolatedStringText(
@@ -347,9 +344,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // as initial whitespace in text will already be checked in makeContent.  This is only for the case where
             // the interpolation is at the start of a line.
 
-            SyntaxDiagnosticInfo? getInterpolationIndentationError(TString indentationWhitespace, Lexer.Interpolation interpolation)
+            SyntaxDiagnosticInfo? getInterpolationIndentationError(ReadOnlySpan<char> indentationWhitespace, Lexer.Interpolation interpolation)
             {
-                if (needsDedentation && helper.GetLength(indentationWhitespace) > 0)
+                if (needsDedentation && indentationWhitespace.Length > 0)
                 {
                     var openBracePosition = interpolation.OpenBraceRange.Start.Value;
                     if (openBracePosition > 0 && SyntaxFacts.IsNewLine(originalText[openBracePosition - 1]))
@@ -360,21 +357,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return null;
             }
 
-            int skipWhitespace(TString text, int currentIndex)
+            int skipWhitespace(ReadOnlySpan<char> text, int currentIndex)
             {
-                var textLength = helper.GetLength(text);
-                while (currentIndex < textLength && SyntaxFacts.IsWhitespace(helper.GetCharAt(text, currentIndex)))
+                var textLength = text.Length;
+                while (currentIndex < textLength && SyntaxFacts.IsWhitespace(text[currentIndex]))
                     currentIndex++;
                 return currentIndex;
             }
 
-            int consumeRemainingContentThroughNewLine(StringBuilder content, TString text, int currentIndex)
+            int consumeRemainingContentThroughNewLine(StringBuilder content, ReadOnlySpan<char> text, int currentIndex)
             {
                 var start = currentIndex;
-                var textLength = helper.GetLength(text);
+                var textLength = text.Length;
                 while (currentIndex < textLength)
                 {
-                    var ch = helper.GetCharAt(text, currentIndex);
+                    var ch = text[currentIndex];
                     if (!SyntaxFacts.IsNewLine(ch))
                     {
                         currentIndex++;
@@ -382,14 +379,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     currentIndex += SlidingTextWindow.GetNewLineWidth(
-                        ch, currentIndex + 1 < textLength ? helper.GetCharAt(text, currentIndex + 1) : '\0');
+                        ch, currentIndex + 1 < textLength ? text[currentIndex + 1] : '\0');
                     break;
                 }
 
-                var slice = helper.Slice(text, start..currentIndex);
+                var slice = text[start..currentIndex];
                 helper.AppendTo(slice, content);
                 return currentIndex;
             }
+        }
+
+        /// <summary>
+        /// Converts a whitespace character to its string representation for error messages.
+        /// </summary>
+        private static string CharToString(char ch)
+        {
+            return ch switch
+            {
+                '\t' => @"\t",
+                '\v' => @"\v",
+                '\f' => @"\f",
+                _ => @$"\u{(int)ch:x4}",
+            };
+        }
+
+        public static (ErrorCode code, object[] arguments) CheckForIndentationError(
+            ReadOnlySpan<char> currentLineWhitespace, ReadOnlySpan<char> indentationWhitespace, bool isBlankLine)
+        {
+            if (!currentLineWhitespace.StartsWith(indentationWhitespace))
+            {
+                // We have a line where the indentation of that line isn't a prefix of indentation
+                // whitespace.
+                //
+                // If we're not on a blank line then this is bad.  That's a content line that doesn't start
+                // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
+                // we do have is a prefix of the indentation whitespace.
+                var isLegalBlankLine = isBlankLine && indentationWhitespace.StartsWith(currentLineWhitespace);
+                if (!isLegalBlankLine)
+                {
+                    // Specialized error message if this is a spacing difference.
+                    if (CheckForSpaceDifference(
+                            currentLineWhitespace, indentationWhitespace,
+                            out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
+                    {
+                        return (ErrorCode.ERR_LineContainsDifferentWhitespace, [currentLineWhitespaceChar, indentationWhitespaceChar]);
+                    }
+                    else
+                    {
+                        return (ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, []);
+                    }
+                }
+            }
+
+            return default;
+        }
+
+        /// <summary>
+        /// Checks if two whitespace sequences differ at a specific character position where both
+        /// characters are whitespace but different types (e.g., tab vs space).
+        /// </summary>
+        private static bool CheckForSpaceDifference(
+            ReadOnlySpan<char> currentLineWhitespace,
+            ReadOnlySpan<char> indentationLineWhitespace,
+            [NotNullWhen(true)] out string? currentLineMessage,
+            [NotNullWhen(true)] out string? indentationLineMessage)
+        {
+            for (int i = 0, n = Math.Min(currentLineWhitespace.Length, indentationLineWhitespace.Length); i < n; i++)
+            {
+                var currentLineChar = currentLineWhitespace[i];
+                var indentationLineChar = indentationLineWhitespace[i];
+
+                if (currentLineChar != indentationLineChar &&
+                    SyntaxFacts.IsWhitespace(currentLineChar) &&
+                    SyntaxFacts.IsWhitespace(indentationLineChar))
+                {
+                    currentLineMessage = CharToString(currentLineChar);
+                    indentationLineMessage = CharToString(indentationLineChar);
+                    return true;
+                }
+            }
+
+            currentLineMessage = null;
+            indentationLineMessage = null;
+            return false;
         }
 
         private static SyntaxToken TokenOrMissingToken(GreenNode? leading, SyntaxKind kind, string text, GreenNode? trailing)
