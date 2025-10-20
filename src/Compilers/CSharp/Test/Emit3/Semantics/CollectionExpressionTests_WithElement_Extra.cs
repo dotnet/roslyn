@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -1514,6 +1515,23 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             expectedOutput: IncludeExpectedOutput("0, [1], 2, [2], "),
             verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
+
+        var semanticModel = verifier.Compilation.GetSemanticModel(verifier.Compilation.SyntaxTrees.ToArray()[1]);
+        var withElements = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType<WithElementSyntax>().ToArray();
+        Assert.Equal(2, withElements.Length);
+
+        var method1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
+        var method2 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[1]).Symbol;
+
+        Assert.NotNull(method1);
+        Assert.NotNull(method2);
+
+        Assert.NotEqual(method1, method2);
+
+        Assert.Equal("MyBuilder", method1.ContainingType.Name);
+
+        Assert.True(method1.Parameters is [{ Name: "items", Type.Name: "ReadOnlySpan" }]);
+        Assert.True(method2.Parameters is [{ Name: "arg", Type.Name: "T" }, { Name: "items", Type.Name: "ReadOnlySpan" }]);
     }
 
     [Fact]

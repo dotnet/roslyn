@@ -1027,17 +1027,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, withElement != null, constructor);
                         collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
-                        collectionCreation.WasCompilerGenerated = true;
                     }
                     else if (@this._targetType is TypeParameterSymbol typeParameter)
                     {
                         collectionCreation = @this._binder.BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: false, @this._diagnostics);
-                        collectionCreation.WasCompilerGenerated = true;
                     }
                     else
                     {
                         throw ExceptionUtilities.UnexpectedValue(@this._targetType);
                     }
+
+                    collectionCreation.WasCompilerGenerated = withElement is null;
                     analyzedArguments.Free();
                     return collectionCreation;
                 }
@@ -1366,7 +1366,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argsToParams,
                         defaultArguments: projectionCall.DefaultArguments,
                         resultKind: LookupResultKind.Viable,
-                        type: collectionBuilderMethod.ReturnType).MakeCompilerGenerated();
+                        type: collectionBuilderMethod.ReturnType)
+                    {
+                        WasCompilerGenerated = @this._node.WithElement is null,
+                    };
 
                     // Wrap in a conversion if necessary.  Note that GetCollectionBuilderMethods guarantees that either
                     // return and target type are identical, or that a valid implicit conversion exists between them.

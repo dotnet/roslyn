@@ -2290,6 +2290,8 @@ done:
                             !(node is OrderingSyntax) &&
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
+                            !(node is ConstructorInitializerSyntax) &&
+                            !(node is WithElementSyntax) &&
                             !(node is PrimaryConstructorBaseTypeSyntax) &&
                             !(node is ArrowExpressionClauseSyntax) &&
                             !(node is PatternSyntax))
