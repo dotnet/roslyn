@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tempLexer.ScanInterpolatedOrRawStringLiteralTop(
                     ref info, isInterpolatedString, out error, out kind, out openQuoteRange, interpolations, out closeQuoteRange);
 
-                Debug.Assert(isInterpolatedString || interpolations.Count == 0);
+                Debug.Assert(isInterpolatedString || interpolations.Count == 0, "Non-interpolated parsing should never produce interpolations");
             }
 
             SyntaxToken getOpenQuote()
