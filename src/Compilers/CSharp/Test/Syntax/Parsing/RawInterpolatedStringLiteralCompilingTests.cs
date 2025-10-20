@@ -792,15 +792,15 @@ class C
         RenderAndVerify(@"
 System.Console.Write(
     $"""""");",
-            // (3,11): error CS8997: Unterminated raw string literal.
-            //     $""");
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(3, 11),
-            // (3,11): error CS1026: ) expected
-            //     $""");
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 11),
-            // (3,11): error CS1002: ; expected
-            //     $""");
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 11));
+                // (3,11): error CS8997: Unterminated raw string literal.
+                //     $""");
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(3, 11),
+                // (3,11): error CS1026: ) expected
+                //     $""");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 11),
+                // (3,11): error CS1002: ; expected
+                //     $""");
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 11));
     }
 
     [Fact]
