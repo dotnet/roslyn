@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             //    Debug.Assert(info.StringValue != null);
             //}
 
-            Debug.Assert(info.StringValue != null);
+            // Debug.Assert(info.StringValue != null);
             Debug.Assert(info.Kind is (SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken));
 
             if (!inDirective && ScanUtf8Suffix())

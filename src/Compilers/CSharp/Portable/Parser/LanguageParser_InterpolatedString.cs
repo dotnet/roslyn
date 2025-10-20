@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             diagnosticsBuilder.AddRange(interpolatedString.GetDiagnostics());
             var diagnostics = diagnosticsBuilder.ToArrayAndFree();
 
+            // We preserve everything from the original raw token.  Except we use the computed value text from the
+            // interpolated text token instead.
             var finalToken = SyntaxFactory
                 .Literal(token.GetLeadingTrivia(), token.Text, token.Kind, textToken.GetValueText(), token.GetTrailingTrivia())
                 .WithDiagnosticsGreen(diagnostics);
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the open and close quotes can be found.
-            var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
+            var interpolations = isInterpolatedString ? ArrayBuilder<Lexer.Interpolation>.GetInstance() : null;
 
             rescanInterpolation(out var kind, out var error, out var openQuoteRange, interpolations, out var closeQuoteRange);
 
@@ -120,14 +122,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(originalTextSpan), getCloseQuote());
 
-            interpolations.Free();
+            interpolations?.Free();
             if (error != null)
                 result = result.WithDiagnosticsGreen([error]);
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return result;
 
-            void rescanInterpolation(out Lexer.InterpolatedStringKind kind, out SyntaxDiagnosticInfo? error, out Range openQuoteRange, ArrayBuilder<Lexer.Interpolation> interpolations, out Range closeQuoteRange)
+            void rescanInterpolation(out Lexer.InterpolatedStringKind kind, out SyntaxDiagnosticInfo? error, out Range openQuoteRange, ArrayBuilder<Lexer.Interpolation>? interpolations, out Range closeQuoteRange)
             {
                 using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
                 var info = default(Lexer.TokenInfo);
@@ -159,9 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var indentationWhitespace = needsDedentation ? getIndentationWhitespace(originalTextSpan) : default!;
 
                 var currentContentStart = openQuoteRange.End;
-                for (var i = 0; i < interpolations.Count; i++)
+                var interpolationsCount = interpolations?.Count ?? 0;
+                for (var i = 0; i < interpolationsCount; i++)
                 {
-                    var interpolation = interpolations[i];
+                    var interpolation = interpolations![i];
 
                     // Add a token for text preceding the interpolation
                     builder.Add(makeContent(
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Add a token for text following the last interpolation
                 builder.Add(makeContent(
-                    indentationWhitespace, content, isFirst: interpolations.Count == 0, isLast: true,
+                    indentationWhitespace, content, isFirst: interpolationsCount == 0, isLast: true,
                     helper.Slice(originalTextSpan, currentContentStart..closeQuoteRange.Start)));
 
                 CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> result = builder;
@@ -213,7 +216,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TString indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, TString text)
             {
                 if (helper.GetLength(text) == 0)
-                    return null;
+                {
+                    return isInterpolatedString
+                        ? null
+                        : SyntaxFactory.InterpolatedStringText(
+                            SyntaxFactory.Literal(leading: null, "", SyntaxKind.InterpolatedStringTextToken, "", trailing: null));
+
+                }
 
                 // If we're not dedenting then just make a standard interpolated text token.  Also, we can short-circuit
                 // if the indentation whitespace is empty (nothing to dedent in that case).

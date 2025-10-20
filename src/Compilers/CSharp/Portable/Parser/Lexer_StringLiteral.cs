@@ -452,7 +452,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // of some sort.
                 var prefixAtCount = _lexer.ConsumeAtSignSequence();
                 startingDollarSignCount = _lexer.ConsumeDollarSignSequence();
-                Debug.Assert(startingDollarSignCount > 0);
+
+                if (_isInterpolatedString)
+                    Debug.Assert(startingDollarSignCount > 0);
 
                 var suffixAtCount = _lexer.ConsumeAtSignSequence();
                 startingQuoteCount = _lexer.ConsumeQuoteSequence();
@@ -524,6 +526,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     Debug.Assert(kind is InterpolatedStringKind.SingleLineRaw or InterpolatedStringKind.MultiLineRaw);
                     ScanRawInterpolatedStringLiteralEnd(kind, startingQuoteCount);
+
+                    //if (_isInterpolatedString)
+                    //    _lexer.ScanUtf8Suffix();
                 }
 
                 // Note: this range may be empty.  For example, if we hit the end of a line for a single-line construct,
@@ -671,10 +676,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return;
 
                             continue;
-                        case '}':
+                        case '}' when _isInterpolatedString:
                             HandleCloseBraceInContent(kind, startingDollarSignCount);
                             continue;
-                        case '{':
+                        case '{' when _isInterpolatedString:
                             HandleOpenBraceInContent(kind, startingDollarSignCount, interpolations);
                             continue;
                         case '\\':
