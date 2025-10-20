@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var content = PooledStringBuilder.GetInstance();
                 var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
 
-                var indentationWhitespace = needsDedentation ? getIndentationWhitespace(originalTextSpan) : default!;
+                var indentationWhitespace = needsDedentation ? getIndentationWhitespace(originalTextSpan) : default;
 
                 var currentContentStart = openQuoteRange.End;
                 var interpolationsCount = interpolations?.Count ?? 0;
