@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -184,9 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
 
             Assert.True(spans.Count == 0 || spans.Count == 1);
 
-            var token = SyntaxFactory.ParseToken(input);
-            var literal = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, token);
-            token = literal.Token;
+            var literal = (LiteralExpressionSyntax)SyntaxFactory.ParseExpression(input);
+            var token = literal.Token;
 
             Assert.Equal(expectedKind, token.Kind());
             Assert.Equal(input.Length, token.FullWidth);
