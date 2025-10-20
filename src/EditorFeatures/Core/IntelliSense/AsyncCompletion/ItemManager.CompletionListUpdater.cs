@@ -848,6 +848,7 @@ internal partial class ItemManager
             if (string.IsNullOrEmpty(text))
                 return false;
 
+            // This is just a very simple heuristic to catch common cases where user is typing a type parameter name in .NET
             // Pattern: starts with 'T', and optionally followed by an uppercase letter
             return text == "T" || text.Length >= 2 && text[0] == 'T' && char.IsUpper(text[1]);
         }

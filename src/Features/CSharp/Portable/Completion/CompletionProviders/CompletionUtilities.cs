@@ -241,7 +241,15 @@ internal static class CompletionUtilities
         }
     }
 
-    public static bool IsSpeculativeTypeParameterContext(SyntaxTree syntaxTree, int position, SemanticModel? semanticModel, bool inMemberDeclarationOnly, CancellationToken cancellationToken)
+    /// <summary>
+    /// Determines whether the specified position in the syntax tree is a valid context for speculatively typing
+    /// a type parameter (which might be undeclared yet). This handles cases where the user may be in the middle of typing a generic type, tuple
+    /// and ref type as well.
+    /// 
+    /// For example, when you typed `public TBuilder$$`, you might want to type `public TBuilder M&lt;TBuilder&gt;(){}`,
+    /// so TBuilder is a valid speculative type parameter context.
+    /// </summary>
+    public static bool IsSpeculativeTypeParameterContext(SyntaxTree syntaxTree, int position, SemanticModel? semanticModel, bool includeStatementContexts, CancellationToken cancellationToken)
     {
         var spanStart = position;
 
@@ -263,11 +271,38 @@ internal static class CompletionUtilities
 
         var token = syntaxTree.FindTokenOnLeftOfPosition(spanStart, cancellationToken);
 
-        return syntaxTree.IsMemberDeclarationContext(spanStart, context: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken) ||
-               syntaxTree.IsGlobalMemberDeclarationContext(spanStart, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-               (!inMemberDeclarationOnly && (syntaxTree.IsStatementContext(spanStart, token, cancellationToken) ||
-                                             syntaxTree.IsGlobalStatementContext(spanStart, cancellationToken) ||
-                                             syntaxTree.IsDelegateReturnTypeContext(spanStart, token)));
+        // Always want to allow in member declaration and delegate return type context, for example:
+        // class C
+        // {
+        //     public T$$
+        // }
+        //
+        // delegate T$$
+        if (syntaxTree.IsMemberDeclarationContext(spanStart, context: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken) ||
+            syntaxTree.IsGlobalMemberDeclarationContext(spanStart, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+            syntaxTree.IsDelegateReturnTypeContext(spanStart, token))
+        {
+            return true;
+        }
+
+        // Because it's less likely the user wants to type a (undeclared) type parameter when they are inside a method body, treating them so
+        // might intefere with user intention. For example, while it's fine to provide a speculative `T` item in a statement context,
+        // since typing 2 characters would filter it out, but for selection, we don't want to soft-select item `TypeBuilder`after `TB`
+        // is typed in the example below (as if user want to add `TBuilder` to method declaration later):
+        //
+        // class C
+        // {
+        //     void M()
+        //     {
+        //         TB$$
+        //     }
+        if (includeStatementContexts)
+        {
+            return syntaxTree.IsStatementContext(spanStart, token, cancellationToken) ||
+                syntaxTree.IsGlobalStatementContext(spanStart, cancellationToken);
+        }
+
+        return false;
 
         static int WalkOutOfGenericType(SyntaxTree syntaxTree, int position, SemanticModel? semanticModel, CancellationToken cancellationToken)
         {

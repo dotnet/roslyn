@@ -13251,7 +13251,7 @@ public class C
         <WpfTheory, CombinatorialData>
         Public Async Function TestSpeculativeTypeParameterPattern_InMemberDeclaration(
             showCompletionInArgumentLists As Boolean,
-            <CombinatorialValues("TBu", "(TBu", "Func<TBu")> typeParameter As String) As Task
+            <CombinatorialValues("TBu", "(TBu", "Func<TBu", "delegate TBu")> typeParameter As String) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
 public class TypeBuilder { }
@@ -13270,7 +13270,7 @@ public class C
         <WpfTheory, CombinatorialData>
         Public Async Function TestSpeculativeTypeParameterPattern_InMemberDeclarationNoModifier(
             showCompletionInArgumentLists As Boolean,
-            <CombinatorialValues("TBu", "(TBu", "Func<TBu")> typeParameter As String) As Task
+            <CombinatorialValues("TBu", "(TBu", "Func<TBu", "delegate TBu")> typeParameter As String) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
 public class TypeBuilder { }

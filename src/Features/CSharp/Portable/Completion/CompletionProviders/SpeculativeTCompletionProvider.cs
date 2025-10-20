@@ -74,6 +74,8 @@ internal sealed class SpeculativeTCompletionProvider : LSPCompletionProvider
         if (context.IsTaskLikeTypeContext)
             return false;
 
-        return CompletionUtilities.IsSpeculativeTypeParameterContext(syntaxTree, position, context.SemanticModel, inMemberDeclarationOnly: false, cancellationToken);
+        // While it's less likely the user wants to type a (undeclared) type parameter when they are in a statement context, it's probably
+        // fine to provide a speculative `T` item here since typing 2 characters would easily filter it out.
+        return CompletionUtilities.IsSpeculativeTypeParameterContext(syntaxTree, position, context.SemanticModel, includeStatementContexts: true, cancellationToken);
     }
 }
