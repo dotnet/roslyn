@@ -7044,5 +7044,165 @@ class Program
                 </Workspace>, host:=host, renameTo:="FullName")
             End Using
         End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
+        Public Sub RenameAnonymousTypeInferredMemberFromPropertyAccessAtUseSite(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj = new MyClass { Member = 42 };
+        var x = new { obj.Member };
+        
+        Console.WriteLine(x.[|$$Member|]);
+    }
+}
+
+class MyClass
+{
+    public int Member { get; set; }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Property")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
+        Public Sub RenameAnonymousTypeMixedExplicitAndInferredMembers(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj = new MyClass { Member = 42 };
+        var x = new 
+        { 
+            [|$$Name|] = "Test",
+            obj.Member 
+        };
+        
+        Console.WriteLine(x.[|Name|]);
+        Console.WriteLine(x.Member);
+    }
+}
+
+class MyClass
+{
+    public int Member { get; set; }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="FullName")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
+        Public Sub RenameAnonymousTypeMultipleInferredMembers(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj = new MyClass { Name = "Test", Age = 30 };
+        var x = new { obj.Name, obj.Age };
+        
+        Console.WriteLine(x.[|$$Name|]);
+        Console.WriteLine(x.Age);
+    }
+}
+
+class MyClass
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="FullName")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
+        Public Sub RenameAnonymousTypeNestedInferredMember(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj = new MyClass { Name = "Test" };
+        var inner = new { obj.Name };
+        var outer = new { inner.Name };
+        
+        Console.WriteLine(outer.[|$$Name|]);
+    }
+}
+
+class MyClass
+{
+    public string Name { get; set; }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="FullName")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/883")>
+        Public Sub RenameAnonymousTypeNestedInferredMemberComplex(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj = new MyClass { Name = "Test", Age = 30 };
+        var nested = new { obj.Name, Inner = new { obj.Age } };
+        
+        Console.WriteLine(nested.[|$$Name|]);
+        Console.WriteLine(nested.Inner.Age);
+    }
+}
+
+class MyClass
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="FullName")
+            End Using
+        End Sub
     End Class
 End Namespace
