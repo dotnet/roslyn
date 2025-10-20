@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Preserve what the lexer used to do here.  In the presence of any diagnostics, the text of the raw
                 // string minus the starting quotes is used as the value.
                 var startIndex = 0;
-                while (originalText[startIndex] is '"')
+                while (startIndex < originalText.Length && originalText[startIndex] is '"')
                     startIndex++;
 
                 return originalText[startIndex..];
