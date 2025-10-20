@@ -181,6 +181,17 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
         _tracker.RemoveIdentifier(node.Identifier);
     }
 
+    public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+    {
+        // Create a new scope for local functions since C# allows variables
+        // in the outer scope to have the same name as variables in the local function.
+        var parameterTokens = node.ParameterList.Parameters.Select(p => p.Identifier);
+        _tracker.AddIdentifiers(parameterTokens);
+        Visit(node.Body);
+        Visit(node.ExpressionBody);
+        _tracker.RemoveIdentifiers(parameterTokens);
+    }
+
     public override void VisitSwitchStatement(SwitchStatementSyntax node)
     {
         var statements = node.ChildNodes().Where(x => x.IsKind(SyntaxKind.SwitchSection)).SelectMany(x => x.ChildNodes());
