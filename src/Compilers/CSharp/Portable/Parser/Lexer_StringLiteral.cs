@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (IsAtEnd(kind))
                     {
                         TrySetError(_lexer.MakeError(
-                            _lexer.TextWindow.Position - 1, width: 1, ErrorCode.ERR_UnterminatedRawString));
+                            _lexer.TextWindow.Position, width: 0, ErrorCode.ERR_UnterminatedRawString));
                     }
                     else if (_lexer.TextWindow.PeekChar() == '"')
                     {

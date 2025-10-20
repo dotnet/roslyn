@@ -60,12 +60,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(diagnosticsBuilder.Count > 0);
 
             // We preserve everything from the original raw token.  Except we use the computed value text from the
-            // interpolated text token instead.
+            // interpolated text token instead as long as we got no diagnostics for this raw string.
             var finalToken = SyntaxFactory
-                .Literal(token.GetLeadingTrivia(), token.Text, token.Kind, textToken.GetValueText(), token.GetTrailingTrivia())
+                .Literal(token.GetLeadingTrivia(), token.Text, token.Kind, getTokenValue(), token.GetTrailingTrivia())
                 .WithDiagnosticsGreen(diagnosticsBuilder.ToArrayAndFree());
 
             return _syntaxFactory.LiteralExpression(expressionKind, finalToken);
+
+            string getTokenValue()
+            {
+                if (diagnosticsBuilder.Count == 0)
+                    return textToken.GetValueText();
+
+                // Preserve what the lexer used to do here.  In the presence of any diagnostics, the text of the raw
+                // string minus the starting quotes is used as the value.
+                var startIndex = 0;
+                while (originalText[startIndex] is '"')
+                    startIndex++;
+
+                return originalText[startIndex..];
+            }
         }
 
         private ExpressionSyntax ParseInterpolatedStringToken()
