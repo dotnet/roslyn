@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the open and close quotes can be found.
-            var interpolations = isInterpolatedString ? ArrayBuilder<Lexer.Interpolation>.GetInstance() : null;
+            var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
 
             rescanInterpolation(out var kind, out var error, out var openQuoteRange, interpolations, out var closeQuoteRange);
 
@@ -137,19 +137,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(originalTextSpan), getCloseQuote());
 
-            interpolations?.Free();
+            interpolations.Free();
             if (error != null)
                 result = result.WithDiagnosticsGreen([error]);
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return result;
 
-            void rescanInterpolation(out Lexer.InterpolatedStringKind kind, out SyntaxDiagnosticInfo? error, out Range openQuoteRange, ArrayBuilder<Lexer.Interpolation>? interpolations, out Range closeQuoteRange)
+            void rescanInterpolation(out Lexer.InterpolatedStringKind kind, out SyntaxDiagnosticInfo? error, out Range openQuoteRange, ArrayBuilder<Lexer.Interpolation> interpolations, out Range closeQuoteRange)
             {
                 using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
                 var info = default(Lexer.TokenInfo);
                 tempLexer.ScanInterpolatedOrRawStringLiteralTop(
                     ref info, isInterpolatedString, out error, out kind, out openQuoteRange, interpolations, out closeQuoteRange);
+
+                Debug.Assert(isInterpolatedString || interpolations.Count == 0);
             }
 
             SyntaxToken getOpenQuote()
@@ -176,10 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var indentationWhitespace = needsDedentation ? getIndentationWhitespace(originalTextSpan) : default;
 
                 var currentContentStart = openQuoteRange.End;
-                var interpolationsCount = interpolations?.Count ?? 0;
-                for (var i = 0; i < interpolationsCount; i++)
+                for (var i = 0; i < interpolations.Count; i++)
                 {
-                    var interpolation = interpolations![i];
+                    var interpolation = interpolations[i];
 
                     // Add a token for text preceding the interpolation
                     builder.Add(makeContent(
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Add a token for text following the last interpolation
                 builder.Add(makeContent(
-                    indentationWhitespace, content, isFirst: interpolationsCount == 0, isLast: true,
+                    indentationWhitespace, content, isFirst: interpolations.Count == 0, isLast: true,
                     originalTextSpan[currentContentStart..closeQuoteRange.Start]));
 
                 CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> result = builder;
