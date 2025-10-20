@@ -268,25 +268,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // /**/ comments, ' characters quotes, () parens
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
-            ScanInterpolatedStringLiteralTop(
+            ScanInterpolatedOrRawStringLiteralTop(
                 ref info,
+                isInterpolatedString: true,
                 out var error,
                 kind: out _,
                 openQuoteRange: out _,
                 interpolations: null,
-                closeQuoteRange: out _);
+                closeQuoteRange: out _,);
             this.AddError(error);
         }
 
-        internal void ScanInterpolatedStringLiteralTop(
+        internal void ScanInterpolatedOrRawStringLiteralTop(
             ref TokenInfo info,
+            bool isInterpolatedString,
             out SyntaxDiagnosticInfo? error,
             out InterpolatedStringKind kind,
             out Range openQuoteRange,
             ArrayBuilder<Interpolation>? interpolations,
             out Range closeQuoteRange)
         {
-            var subScanner = new InterpolatedStringScanner(this);
+            var subScanner = new InterpolatedStringScanner(this, isInterpolatedString);
             subScanner.ScanInterpolatedStringLiteralTop(out kind, out openQuoteRange, interpolations, out closeQuoteRange);
             error = subScanner.Error;
             info.Kind = SyntaxKind.InterpolatedStringToken;
@@ -336,9 +338,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// recursing to process interpolated strings.
         /// </summary>
         [NonCopyable]
-        private ref struct InterpolatedStringScanner
+        private ref struct InterpolatedOrRawStringScanner
         {
             private readonly Lexer _lexer;
+            private readonly bool _isInterpolatedString;
 
             /// <summary>
             /// Error encountered while scanning.  If we run into an error, then we'll attempt to stop parsing at the
@@ -346,9 +349,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// </summary>
             public SyntaxDiagnosticInfo? Error = null;
 
-            public InterpolatedStringScanner(Lexer lexer)
+            public InterpolatedOrRawStringScanner(Lexer lexer, bool isInterpolatedString)
             {
                 _lexer = lexer;
+                _isInterpolatedString = isInterpolatedString;
             }
 
             private bool IsAtEnd(InterpolatedStringKind kind)
@@ -370,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Error ??= error;
             }
 
-            internal void ScanInterpolatedStringLiteralTop(
+            internal void ScanStringLiteralTop(
                 out InterpolatedStringKind kind,
                 out Range openQuoteRange,
                 ArrayBuilder<Interpolation>? interpolations,

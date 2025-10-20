@@ -29,13 +29,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var interpolatedString = ParseInterpolatedOrRawStringToken(
                 token, originalText, (originalText, originalTextSpan), default(StringAndSpanCharHelper), isInterpolatedString: false);
 
+            Debug.Assert(interpolatedString.StringStartToken.Kind is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken);
+
             Debug.Assert(interpolatedString.Contents.Count == 1);
             Debug.Assert(interpolatedString.Contents[0] is InterpolatedStringTextSyntax);
 
-            var textToken = (InterpolatedStringTextSyntax)interpolatedString.Contents[0]!;
+            var interpolatedText = (InterpolatedStringTextSyntax)interpolatedString.Contents[0]!;
+            var textToken = interpolatedText.TextToken;
+
+            // Based on how ParseInterpolatedOrRawStringToken works we should never get a diagnostic on the actual
+            // interpolated string text token (since we create it, and immediately add it to the InterpolatedStringText
+            // node).  So assert the lack of diagnostics here.  However, to be resilient to bugs, we still check and add
+            // any diagnostics on this token to the final token.
+            Debug.Assert(!textToken.ContainsDiagnostics);
 
             var diagnosticsBuilder = ArrayBuilder<DiagnosticInfo>.GetInstance();
+            diagnosticsBuilder.AddRange(token.GetDiagnostics());
             diagnosticsBuilder.AddRange(textToken.GetDiagnostics());
+            diagnosticsBuilder.AddRange(interpolatedText.GetDiagnostics());
             diagnosticsBuilder.AddRange(interpolatedString.GetDiagnostics());
             var diagnostics = diagnosticsBuilder.ToArrayAndFree();
 
@@ -120,7 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
                 var info = default(Lexer.TokenInfo);
-                tempLexer.ScanInterpolatedStringLiteralTop(ref info, out error, out kind, out openQuoteRange, interpolations, out closeQuoteRange);
+                tempLexer.ScanInterpolatedOrRawStringLiteralTop(
+                    ref info, isInterpolatedString, out error, out kind, out openQuoteRange, interpolations, out closeQuoteRange);
             }
 
             SyntaxToken getOpenQuote()
