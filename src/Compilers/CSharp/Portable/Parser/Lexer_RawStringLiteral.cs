@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     continue;
                 }
 
-                var beforeEndDelimiter = TextWindow.Position;
                 var currentQuoteCount = ConsumeQuoteSequence();
 
                 // A raw string literal starting with some number of quotes can contain a quote sequence with fewer quotes.
@@ -140,9 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         ErrorCode.ERR_TooManyQuotesForRawString);
                 }
 
-                //// We have enough quotes to finish this string at this point.
-                //var afterStartDelimiter = this.LexemeStartPosition + startingQuoteCount;
-                //var valueLength = beforeEndDelimiter - afterStartDelimiter;
+                // We have enough quotes to finish this string at this point.
                 return;
             }
         }
