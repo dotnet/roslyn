@@ -7461,7 +7461,7 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
             Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
         public void TypeParameter_BaseType_ReturnsNull()
         {
             var source = """
@@ -7487,7 +7487,7 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
             Assert.Null(publicTypeParameter.BaseType);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
         public void MethodTypeParameter_BaseType_ReturnsNull()
         {
             var source = """
@@ -7514,7 +7514,7 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
             Assert.Null(publicTypeParameter.BaseType);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
         public void ObjectType_BaseType_ReturnsNull()
         {
             var comp = CreateCompilation("");
@@ -7525,7 +7525,7 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
             Assert.Null(publicObjectType.BaseType);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
         public void InterfaceType_BaseType_ReturnsNull()
         {
             var source = """
@@ -7544,7 +7544,7 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
             Assert.Null(publicInterfaceType.BaseType);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78605")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
         public void PointerType_BaseType_ReturnsNull()
         {
             var source = """
