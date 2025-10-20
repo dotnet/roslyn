@@ -276,16 +276,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         currentIndex = SkipWhitespace(text, currentIndex);
                         var currentLineWhitespace = text[lineStartPosition..currentIndex];
 
+                        // We have a line where the indentation of that line isn't a prefix of indentation
+                        // whitespace.
+                        //
+                        // If we're not on a blank line then this is bad.  That's a content line that doesn't start
+                        // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
+                        // we do have is a prefix of the indentation whitespace.
                         var isBlankLine = (currentIndex == text.Length && isLast) || (currentIndex < text.Length && SyntaxFacts.IsNewLine(text[currentIndex]));
-                        var (errorCode, errorArguments) = CheckForIndentationError(currentLineWhitespace, indentationWhitespace, isBlankLine);
-                        if (errorCode != 0)
+                        var isLegalBlankLine = isBlankLine && indentationWhitespace.StartsWith(currentLineWhitespace);
+                        if (!isLegalBlankLine)
                         {
-                            indentationError = MakeError(
-                                lineStartPosition,
-                                width: currentIndex - lineStartPosition,
-                                errorCode,
-                                errorArguments);
-
+                            // Specialized error message if this is a spacing difference.
+                            if (CheckForSpaceDifference(
+                                    currentLineWhitespace, indentationWhitespace,
+                                    out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
+                            {
+                                indentationError ??= MakeError(
+                                    lineStartPosition,
+                                    width: currentIndex - lineStartPosition,
+                                    ErrorCode.ERR_LineContainsDifferentWhitespace,
+                                    currentLineWhitespaceChar, indentationWhitespaceChar);
+                            }
+                            else
+                            {
+                                indentationError ??= MakeError(
+                                    lineStartPosition,
+                                    width: currentIndex - lineStartPosition,
+                                    ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
+                            }
                         }
                     }
 
