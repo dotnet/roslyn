@@ -360,7 +360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // as initial whitespace in text will already be checked in makeContent.  This is only for the case where
             // the interpolation is at the start of a line.
 
-            SyntaxDiagnosticInfo? getInterpolationIndentationError(ReadOnlySpan<char> indentationWhitespace, Lexer.Interpolation interpolation)
+            SyntaxDiagnosticInfo? getInterpolationIndentationError(
+                ReadOnlySpan<char> indentationWhitespace,
+                Lexer.Interpolation interpolation)
             {
                 if (needsDedentation && !indentationWhitespace.IsEmpty)
                 {
