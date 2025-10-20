@@ -13214,7 +13214,7 @@ public class TestClass1
         <WpfTheory, CombinatorialData>
         Public Async Function TestTypeParameterPattern_InMemberDeclaration(
             showCompletionInArgumentLists As Boolean,
-            <CombinatorialValues("TBu", "(TBu", "Func<TBu")> typeParameter As String) As Task
+            <CombinatorialValues("TBu", "Func<TBu")> typeParameter As String) As Task ' not testing "(TBu" here because `TBuilder` would not be in the completion list in this case
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
 public class TypeBuilder { }
@@ -13226,7 +13226,25 @@ public class C
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem(displayText:="TBuilder", isHardSelected:=True) ' hard-select TBuilder type parameter
+                Await state.AssertSelectedCompletionItem(displayText:="TBuilder", isHardSelected:=True) ' hard-select TBuilder type parameter (which is in the completion list)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTypeParameterPatternInTuple_InMemberDeclaration(
+            showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class TypeBuilder { }
+public class C
+{
+    public (TBu$$ GetBuilder&lt;TBuilder&gt;() { }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="TypeBuilder", isSoftSelected:=True) ' soft-select TypeBuilder type parameter (because `TBuilder` is not in the completion list)
             End Using
         End Function
 
