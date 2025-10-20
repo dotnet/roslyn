@@ -6089,8 +6089,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(6, 9));
     }
 
-    // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
-
 #if DICTIONARY_EXPRESSIONS
 
     [Fact]
