@@ -13,6 +13,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LanguageParser
     {
+        private LiteralExpressionSyntax ParseRawStringToken(SyntaxToken token)
+        {
+            var expressionKind = SyntaxFacts.GetLiteralExpression(token.Kind);
+            Debug.Assert(expressionKind != SyntaxKind.None);
+
+            // We want to share as much code as possible with raw-interpolated-strings.  Especially the code for dealing
+            // with indentation removal and determining the 'value' of the string.  As such, we will reinterpret this
+            // raw string as an interpolated string with no $'s and no holes, and then extract out the content token
+            // from that.
+
+            var originalText = token.ValueText; // this is actually the source text
+            var originalTextSpan = new TextSpan(0, originalText.Length);
+
+            var interpolatedString = ParseInterpolatedOrRawStringToken(
+                token, originalText, (originalText, originalTextSpan), default(StringAndSpanCharHelper), isInterpolatedString: false);
+
+            Debug.Assert(interpolatedString.Contents.Count == 1);
+            Debug.Assert(interpolatedString.Contents[0] is InterpolatedStringTextSyntax);
+
+            var textToken = (InterpolatedStringTextSyntax)interpolatedString.Contents[0]!;
+
+            var diagnosticsBuilder = ArrayBuilder<DiagnosticInfo>.GetInstance();
+            diagnosticsBuilder.AddRange(textToken.GetDiagnostics());
+            diagnosticsBuilder.AddRange(interpolatedString.GetDiagnostics());
+            var diagnostics = diagnosticsBuilder.ToArrayAndFree();
+
+            var finalToken = SyntaxFactory
+                .Literal(token.GetLeadingTrivia(), token.Text, token.Kind, textToken.GetValueText(), token.GetTrailingTrivia())
+                .WithDiagnosticsGreen(diagnostics);
+
+            return _syntaxFactory.LiteralExpression(expressionKind, finalToken);
+        }
+
         private ExpressionSyntax ParseInterpolatedStringToken()
         {
             // We don't want to make the scanner stateful (between tokens) if we can possibly avoid it.
@@ -41,17 +74,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalText = originalToken.ValueText; // this is actually the source text
             var originalTextSpan = new TextSpan(0, originalText.Length);
 
-            return ParseInterpolatedStringToken(originalToken, originalText, (originalText, originalTextSpan), default(StringAndSpanCharHelper));
+            return ParseInterpolatedOrRawStringToken(
+                originalToken, originalText, (originalText, originalTextSpan), default(StringAndSpanCharHelper), isInterpolatedString: true);
         }
 
-        private InterpolatedStringExpressionSyntax ParseInterpolatedStringToken<TString, TStringHelper>(
+        private InterpolatedStringExpressionSyntax ParseInterpolatedOrRawStringToken<TString, TStringHelper>(
             SyntaxToken originalToken,
             string originalText,
             TString originalTextSpan,
-            TStringHelper helper)
+            TStringHelper helper,
+            bool isInterpolatedString)
             where TStringHelper : struct, IStringHelper<TString>
         {
-            Debug.Assert(helper.GetCharAt(originalTextSpan, 0) is '$' or '@');
+            if (isInterpolatedString)
+            {
+                Debug.Assert(helper.GetCharAt(originalTextSpan, 0) is '$' or '@');
+            }
+            else
+            {
+                Debug.Assert(helper.GetCharAt(originalTextSpan, 0) is '"');
+                Debug.Assert(helper.GetCharAt(originalTextSpan, 1) is '"');
+                Debug.Assert(helper.GetCharAt(originalTextSpan, 2) is '"');
+            }
 
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the open and close quotes can be found.
