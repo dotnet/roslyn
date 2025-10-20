@@ -7331,7 +7331,7 @@ select t";
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10446")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11418")]
         public void LetClauseWithKeywordAsIdentifier()
         {
             UsingExpression("from m in methods let params = 1 select m",
