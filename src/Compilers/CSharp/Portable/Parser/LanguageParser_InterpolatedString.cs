@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalText = token.Text;
 
             var interpolatedString = ParseInterpolatedOrRawStringToken(
-                token, originalText, originalText.AsSpan().Slice(0, originalText.Length), isInterpolatedString: false);
+                token, originalText, originalText.AsSpan(), isInterpolatedString: false);
 
             Debug.Assert(interpolatedString.StringStartToken.Kind is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken);
 
@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalToken = this.EatToken();
 
             var originalText = originalToken.ValueText; // this is actually the source text
-            var originalTextSpan = new TextSpan(0, originalText.Length);
+            var originalTextSpan = originalText.AsSpan();
 
             return ParseInterpolatedOrRawStringToken(
-                originalToken, originalText, (originalText, originalTextSpan), isInterpolatedString: true);
+                originalToken, originalText, originalTextSpan, isInterpolatedString: true);
         }
 
         private InterpolatedStringExpressionSyntax ParseInterpolatedOrRawStringToken(
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // an interpolation.  In that case, we need to consume up through the next newline of that chunk as
                 // content that is not subject to dedentation.
                 if (!isFirst)
-                    currentIndex = consumeRemainingContentThroughNewLine(content, text, currentIndex);
+                    currentIndex = ConsumeRemainingContentThroughNewLine(content, text, currentIndex);
 
                 // We're either the first item, or we consumed up through a newline from the previous line. We're
                 // definitely at the start of a new line (or at the end).  Regardless, we want to consume each
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     // Skip the leading whitespace that matches the terminator line and add any text after that to our content.
                     currentIndex = Math.Min(currentIndex, lineStartPosition + indentationWhitespace.Length);
-                    currentIndex = consumeRemainingContentThroughNewLine(content, text, currentIndex);
+                    currentIndex = ConsumeRemainingContentThroughNewLine(content, text, currentIndex);
                 }
 
                 // if we ran into any errors, don't give this item any special value.  It just has the value of our actual text.
@@ -354,29 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 return null;
-            }
-
-            int consumeRemainingContentThroughNewLine(StringBuilder content, ReadOnlySpan<char> text, int currentIndex)
-            {
-                var start = currentIndex;
-                var textLength = text.Length;
-                while (currentIndex < textLength)
-                {
-                    var ch = text[currentIndex];
-                    if (!SyntaxFacts.IsNewLine(ch))
-                    {
-                        currentIndex++;
-                        continue;
-                    }
-
-                    currentIndex += SlidingTextWindow.GetNewLineWidth(
-                        ch, currentIndex + 1 < textLength ? text[currentIndex + 1] : '\0');
-                    break;
-                }
-
-                var slice = text[start..currentIndex];
-                helper.AppendTo(slice, content);
-                return currentIndex;
             }
         }
 
@@ -464,6 +441,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             while (currentIndex < text.Length && SyntaxFacts.IsWhitespace(text[currentIndex]))
                 currentIndex++;
+            return currentIndex;
+        }
+
+        private static int ConsumeRemainingContentThroughNewLine(StringBuilder content, ReadOnlySpan<char> text, int currentIndex)
+        {
+            var start = currentIndex;
+            while (currentIndex < text.Length)
+            {
+                var ch = text[currentIndex];
+                if (!SyntaxFacts.IsNewLine(ch))
+                {
+                    currentIndex++;
+                    continue;
+                }
+
+                currentIndex += SlidingTextWindow.GetNewLineWidth(ch, currentIndex + 1 < text.Length ? text[currentIndex + 1] : '\0');
+                break;
+            }
+
+            var slice = text[start..currentIndex];
+#if NET
+            content.Append(slice);
+#else
+            unsafe
+            {
+                fixed (char* pointer = slice)
+                    content.Append(pointer, slice.Length);
+            }
+#endif
             return currentIndex;
         }
 
