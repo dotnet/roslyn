@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -333,7 +335,32 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("default-4,default-10,custom-4,both-20"));
+        var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("default-4,default-10,custom-4,both-20"));
+        var compilation = verifier.Compilation;
+
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+        var root = semanticModel.SyntaxTree.GetRoot();
+
+        var withElements = root.DescendantNodes().OfType<WithElementSyntax>().ToArray();
+        Assert.Equal(4, withElements.Length);
+
+        var constructor1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
+        var constructor2 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[1]).Symbol;
+        var constructor3 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[2]).Symbol;
+        var constructor4 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[3]).Symbol;
+
+        Assert.NotNull(constructor1);
+        Assert.NotNull(constructor2);
+        Assert.NotNull(constructor3);
+        Assert.NotNull(constructor4);
+
+        Assert.Equal(constructor1, constructor2);
+        Assert.Equal(constructor1, constructor3);
+        Assert.Equal(constructor1, constructor4);
+
+        Assert.Equal("MyList", constructor1.ContainingType.Name);
+
+        Assert.True(constructor1.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }, { Name: "name", Type.SpecialType: SpecialType.System_String }]);
     }
 
     #endregion
