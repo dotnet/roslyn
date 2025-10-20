@@ -63,33 +63,6 @@ internal static class RawStringIndentationHelper
         }
     }
 
-    public readonly struct StringBuilderCharHelper : IStringHelper<StringBuilder>
-    {
-        public int GetLength(StringBuilder str) => str.Length;
-        public char GetCharAt(StringBuilder str, int index) => str[index];
-
-        public string ToString(StringBuilder str) => str.ToString();
-
-        public void AppendTo(StringBuilder str, StringBuilder sb) => sb.Append(str);
-
-        StringBuilder IStringHelper<StringBuilder>.Slice(StringBuilder str, Range range)
-            => throw new NotImplementedException();
-
-        public bool StartsWith(StringBuilder sb, StringBuilder value)
-        {
-            if (sb.Length < value.Length)
-                return false;
-
-            for (int i = 0; i < value.Length; i++)
-            {
-                if (sb[i] != value[i])
-                    return false;
-            }
-
-            return true;
-        }
-    }
-
     /// <summary>
     /// Converts a whitespace character to its string representation for error messages.
     /// </summary>
