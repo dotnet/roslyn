@@ -135,44 +135,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             info.Kind = SyntaxKind.MultiLineRawStringLiteralToken;
 
             Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
-            while (ScanMultiLineRawStringLiteralLine(startingQuoteCount))
+            while (scanMultiLineRawStringLiteralLine(startingQuoteCount))
                 ;
-        }
 
-        private bool ScanMultiLineRawStringLiteralLine(int startingQuoteCount)
-        {
-            TextWindow.AdvancePastNewLine();
-
-            ConsumeWhitespace();
-
-            // after the whitespace see if this the line that ends the multiline literal.  If so we're done scanning
-            // lines.  Errors about this will be reported by the parser.
-            if (ConsumeQuoteSequence() >= startingQuoteCount)
-                return false;
-
-            // We're not on the terminating line. Consume a normal content line.  Eat to the end of line (or file in the
-            // case of errors).
-            while (true)
+            bool scanMultiLineRawStringLiteralLine(int startingQuoteCount)
             {
-                var currentChar = TextWindow.PeekChar();
+                TextWindow.AdvancePastNewLine();
 
-                // Check if we have an unterminated raw string. Errors about this will be reported by the parser.
-                if (IsAtEndOfText(currentChar))
+                ConsumeWhitespace();
+
+                // after the whitespace see if this the line that ends the multiline literal.  If so we're done scanning
+                // lines.  Errors about this will be reported by the parser.
+                if (ConsumeQuoteSequence() >= startingQuoteCount)
                     return false;
 
-                if (SyntaxFacts.IsNewLine(currentChar))
-                    return true;
+                // We're not on the terminating line. Consume a normal content line.  Eat to the end of line (or file in the
+                // case of errors).
+                while (true)
+                {
+                    var currentChar = TextWindow.PeekChar();
 
-                if (currentChar == '"')
-                {
-                    // Don't allow a content line to contain a quote sequence that looks like a delimiter (or longer).
-                    // Errors about this will be reported by the parser.
-                    if (ConsumeQuoteSequence() >= startingQuoteCount)
+                    // Check if we have an unterminated raw string. Errors about this will be reported by the parser.
+                    if (IsAtEndOfText(currentChar))
                         return false;
-                }
-                else
-                {
-                    TextWindow.AdvanceChar();
+
+                    if (SyntaxFacts.IsNewLine(currentChar))
+                        return true;
+
+                    if (currentChar == '"')
+                    {
+                        // Don't allow a content line to contain a quote sequence that looks like a delimiter (or longer).
+                        // Errors about this will be reported by the parser.
+                        if (ConsumeQuoteSequence() >= startingQuoteCount)
+                            return false;
+                    }
+                    else
+                    {
+                        TextWindow.AdvanceChar();
+                    }
                 }
             }
         }
