@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ScanSingleLineRawStringLiteral(ref info, startingQuoteCount);
             }
 
-            Debug.Assert(info.StringValue == null);
             Debug.Assert(info.Kind is (SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken));
 
             if (!inDirective && ScanUtf8Suffix())
@@ -92,7 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            info.StringValue = info.Text = this.GetInternedLexemeText();
+            // Note: we intentionally are not setting .StringValue for raw string literals.  That will be determined in
+            // the parser later on in LanguageParser.ParseRawStringToken
+            Debug.Assert(info.StringValue == null);
+            info.Text = this.GetInternedLexemeText();
         }
 
         private void ScanSingleLineRawStringLiteral(ref TokenInfo info, int startingQuoteCount)
