@@ -44,19 +44,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var diagnosticsBuilder = ArrayBuilder<DiagnosticInfo>.GetInstance();
             // Move any diagnostics on the original token to the new token.
-            diagnosticsBuilder.AddRange(token.GetDiagnostics());
+            // diagnosticsBuilder.AddRange(token.GetDiagnostics());
             // And any diagnostics from the interpolated string as a whole.
             diagnosticsBuilder.AddRange(interpolatedString.GetDiagnostics());
             // If there are any diagnostics on the interpolated text node, move those over too.  However, move them as
             // they are relative to the text token, and now need to be relative to the start of the token as a whole.
-            diagnosticsBuilder.AddRange(MoveDiagnostics(interpolatedText.GetDiagnostics(), interpolatedString.StringStartToken.Width));
-            var diagnostics = diagnosticsBuilder.ToArrayAndFree();
+            var textTokenDiagnostics = MoveDiagnostics(interpolatedText.GetDiagnostics(), interpolatedString.StringStartToken.Width);
+            if (textTokenDiagnostics != null)
+                diagnosticsBuilder.AddRange(textTokenDiagnostics);
+
+            // if the original token had diagnostics, then we absolutely must have produced some diagnostics creating
+            // the interpolated version.  Note: the converse does not hold.  Producing the interpolation may produce
+            // indentation diagnostics, which are not something the lexer would have produced.
+            if (token.ContainsDiagnostics)
+                Debug.Assert(diagnosticsBuilder.Count > 0);
 
             // We preserve everything from the original raw token.  Except we use the computed value text from the
             // interpolated text token instead.
             var finalToken = SyntaxFactory
                 .Literal(token.GetLeadingTrivia(), token.Text, token.Kind, textToken.GetValueText(), token.GetTrailingTrivia())
-                .WithDiagnosticsGreen(diagnostics);
+                .WithDiagnosticsGreen(diagnosticsBuilder.ToArrayAndFree());
 
             return _syntaxFactory.LiteralExpression(expressionKind, finalToken);
         }
@@ -492,12 +499,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        private static DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[]? infos, int offset)
+        private static DiagnosticInfo[]? MoveDiagnostics(DiagnosticInfo[]? infos, int offset)
         {
-            if (infos is null)
+            if (infos is null || infos.Length == 0)
                 return null;
 
-            Debug.Assert(infos.Length > 0);
             var builder = ArrayBuilder<DiagnosticInfo>.GetInstance(infos.Length);
             foreach (var info in infos)
             {
