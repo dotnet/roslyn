@@ -39,15 +39,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Based on how ParseInterpolatedOrRawStringToken works we should never get a diagnostic on the actual
             // interpolated string text token (since we create it, and immediately add it to the InterpolatedStringText
-            // node).  So assert the lack of diagnostics here.  However, to be resilient to bugs, we still check and add
-            // any diagnostics on this token to the final token.
+            // node).
             Debug.Assert(!textToken.ContainsDiagnostics);
 
             var diagnosticsBuilder = ArrayBuilder<DiagnosticInfo>.GetInstance();
+            // Move any diagnostics on the original token to the new token.
             diagnosticsBuilder.AddRange(token.GetDiagnostics());
-            diagnosticsBuilder.AddRange(textToken.GetDiagnostics());
-            diagnosticsBuilder.AddRange(interpolatedText.GetDiagnostics());
+            // And any diagnostics from the interpolated string as a whole.
             diagnosticsBuilder.AddRange(interpolatedString.GetDiagnostics());
+            // If there are any diagnostics on the interpolated text node, move those over too.  However, move them as
+            // they are relative to the text token, and now need to be relative to the start of the token as a whole.
+            diagnosticsBuilder.AddRange(MoveDiagnostics(interpolatedText.GetDiagnostics(), interpolatedString.StringStartToken.Width));
             var diagnostics = diagnosticsBuilder.ToArrayAndFree();
 
             // We preserve everything from the original raw token.  Except we use the computed value text from the
@@ -490,8 +492,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        private static DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
+        private static DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[]? infos, int offset)
         {
+            if (infos is null)
+                return null;
+
             Debug.Assert(infos.Length > 0);
             var builder = ArrayBuilder<DiagnosticInfo>.GetInstance(infos.Length);
             foreach (var info in infos)
