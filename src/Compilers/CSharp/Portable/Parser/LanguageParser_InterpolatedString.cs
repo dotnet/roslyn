@@ -266,8 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Consume one line at a time.
                 SyntaxDiagnosticInfo? indentationError = null;
-                var textLength = text.Length;
-                while (currentIndex < textLength)
+                while (currentIndex < text.Length)
                 {
                     var lineStartPosition = currentIndex;
 
@@ -277,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         currentIndex = SkipWhitespace(text, currentIndex);
                         var currentLineWhitespace = text[lineStartPosition..currentIndex];
 
-                        var isBlankLine = (currentIndex == textLength && isLast) || (currentIndex < textLength && SyntaxFacts.IsNewLine(text[currentIndex]));
+                        var isBlankLine = (currentIndex == text.Length && isLast) || (currentIndex < text.Length && SyntaxFacts.IsNewLine(text[currentIndex]));
                         var (errorCode, errorArguments) = CheckForIndentationError(currentLineWhitespace, indentationWhitespace, isBlankLine);
                         if (errorCode != 0)
                         {
