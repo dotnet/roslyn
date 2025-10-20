@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var interpolatedString = ParseInterpolatedOrRawStringToken(
                 originalToken, originalText, originalText.AsSpan(), isInterpolatedString: false);
 
+            // Because there are no actual interpolations, we expect to only see a single text content node containing
+            // the interpreted value of the raw string.
             Debug.Assert(interpolatedString.StringStartToken.Kind is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken);
-
             Debug.Assert(interpolatedString.Contents.Count == 1);
             Debug.Assert(interpolatedString.Contents[0] is InterpolatedStringTextSyntax);
 
