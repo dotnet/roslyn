@@ -1552,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal bool HasCollectionExpressionApplicableConstructor(
-            bool hasWithElement,
+            BoundUnconvertedWithElement? withElement,
             SyntaxNode syntax,
             TypeSymbol targetType,
             out MethodSymbol? constructor,
@@ -1562,11 +1562,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
 #if DEBUG
             Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax);
-            if (hasWithElement)
+            if (withElement != null)
                 Debug.Assert(!isParamsModifierValidation);
 
             if (isParamsModifierValidation)
-                Debug.Assert(!hasWithElement);
+                Debug.Assert(withElement is null);
 #endif
 
             // This is what BindClassCreationExpression is doing in terms of reporting diagnostics
@@ -1602,7 +1602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //    accessible at the location of the collection expression.
 
                 // This is the 'b' case above. 
-                if (hasWithElement)
+                if (withElement is not null)
                 {
                     var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     var candidateConstructors = GetAccessibleConstructorsForOverloadResolution(
@@ -1612,22 +1612,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // As long as we have an available *accessible* instance constructor, this is a type we consider
                     // applicable to collection expressions.  It may be the case that a `with(...)` element is required.
                     // But that will be reported later when doing the actual conversion to a BoundCollectionExpression.
-                    //
-                    // Otherwise, if we have *some* instance constructor (but not accessible), return it as well as this
-                    // could be an error scenario with the user wanting the 'with(...)' element to bind to that. The
-                    // actual attempt to bind the collection conversion will attempt to use this constructor and will
-                    // report an appropriate error about it not being viable because it is not accessible.
-                    //
-                    // Otherwise, fall through.  We have no constructors whatsoever and should report the below message
-                    // saying that that we can't find any applicable constructor.
-                    constructor = candidateConstructors.FirstOrDefault() ?? allInstanceConstructors.FirstOrDefault();
+                    constructor = candidateConstructors.FirstOrDefault();
                     if (constructor is not null)
                         return true;
                 }
 
                 // This is the 'a' case, and the error recovery path for the 'b' case as well.
-                var analyzedArguments = AnalyzedArguments.GetInstance();
-                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, hasWithElement);
+                var analyzedArguments = withElement is null
+                    ? AnalyzedArguments.GetInstance()
+                    : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
+
+                var binder = new ParamsCollectionTypeInProgressBinder(
+                    namedType, this, bindingCollectionExpressionWithArguments: withElement is not null);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                     namedType,
@@ -2289,7 +2285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
                     if (!HasCollectionExpressionApplicableConstructor(
-                            hasWithElement: node.WithElement != null, node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
+                            node.WithElement, node.WithElement?.Syntax ?? node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }
