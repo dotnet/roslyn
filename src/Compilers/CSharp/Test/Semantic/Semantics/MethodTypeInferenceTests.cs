@@ -1232,8 +1232,7 @@ public class Test
                 }
                 """;
 
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }
