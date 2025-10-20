@@ -14299,7 +14299,7 @@ class PointerImpl : IPointerTest
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36877")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
         public void PointerToNonExistentType_NoSuperfluousError()
         {
             var source = """
