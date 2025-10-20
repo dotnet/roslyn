@@ -391,37 +391,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             };
         }
 
-        public static (ErrorCode code, object[] arguments) CheckForIndentationError(
-            ReadOnlySpan<char> currentLineWhitespace, ReadOnlySpan<char> indentationWhitespace, bool isBlankLine)
-        {
-            if (!currentLineWhitespace.StartsWith(indentationWhitespace))
-            {
-                // We have a line where the indentation of that line isn't a prefix of indentation
-                // whitespace.
-                //
-                // If we're not on a blank line then this is bad.  That's a content line that doesn't start
-                // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
-                // we do have is a prefix of the indentation whitespace.
-                var isLegalBlankLine = isBlankLine && indentationWhitespace.StartsWith(currentLineWhitespace);
-                if (!isLegalBlankLine)
-                {
-                    // Specialized error message if this is a spacing difference.
-                    if (CheckForSpaceDifference(
-                            currentLineWhitespace, indentationWhitespace,
-                            out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
-                    {
-                        return (ErrorCode.ERR_LineContainsDifferentWhitespace, [currentLineWhitespaceChar, indentationWhitespaceChar]);
-                    }
-                    else
-                    {
-                        return (ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, []);
-                    }
-                }
-            }
-
-            return default;
-        }
-
         /// <summary>
         /// Checks if two whitespace sequences differ at a specific character position where both
         /// characters are whitespace but different types (e.g., tab vs space).
