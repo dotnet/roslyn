@@ -14316,7 +14316,7 @@ class PointerImpl : IPointerTest
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(3, 31));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36877")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
         public void PointerToNonExistentType_MultiplePointers()
         {
             var source = """
@@ -14357,7 +14357,7 @@ class PointerImpl : IPointerTest
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(5, 15));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36877")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
         public void PointerToExistingManagedType_StillReportsError()
         {
             var source = """
