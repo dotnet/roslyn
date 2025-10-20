@@ -488,24 +488,24 @@ System.Console.Write(
     $""""""xml
     <hi/>
     """""");",
-            // (3,11): error CS8997: Unterminated raw string literal.
-            //     $"""xml
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "l").WithLocation(3, 11),
-            // (4,6): error CS0103: The name 'hi' does not exist in the current context
-            //     <hi/>
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "hi").WithArguments("hi").WithLocation(4, 6),
-            // (4,9): error CS1525: Invalid expression term '>'
-            //     <hi/>
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(4, 9),
-            // (5,9): error CS8997: Unterminated raw string literal.
-            //     """);
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(5, 9),
-            // (5,10): error CS1026: ) expected
-            //     """);
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 10),
-            // (5,10): error CS1002: ; expected
-            //     """);
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 10));
+                // (3,12): error CS8997: Unterminated raw string literal.
+                //     $"""xml
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(3, 12),
+                // (4,6): error CS0103: The name 'hi' does not exist in the current context
+                //     <hi/>
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "hi").WithArguments("hi").WithLocation(4, 6),
+                // (4,9): error CS1525: Invalid expression term '>'
+                //     <hi/>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(4, 9),
+                // (5,10): error CS8997: Unterminated raw string literal.
+                //     """);
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(5, 10),
+                // (5,10): error CS1026: ) expected
+                //     """);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 10),
+                // (5,10): error CS1002: ; expected
+                //     """);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 10));
     }
 
     [Fact]
@@ -516,24 +516,24 @@ System.Console.Write(
     $"""""" // lang=xml
     <hi/>
     """""");",
-            // (3,20): error CS8997: Unterminated raw string literal.
-            //     $""" // lang=xml
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "l").WithLocation(3, 20),
-            // (4,6): error CS0103: The name 'hi' does not exist in the current context
-            //     <hi/>
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "hi").WithArguments("hi").WithLocation(4, 6),
-            // (4,9): error CS1525: Invalid expression term '>'
-            //     <hi/>
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(4, 9),
-            // (5,9): error CS8997: Unterminated raw string literal.
-            //     """);
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(5, 9),
-            // (5,10): error CS1026: ) expected
-            //     """);
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 10),
-            // (5,10): error CS1002: ; expected
-            //     """);
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 10));
+                // (3,21): error CS8997: Unterminated raw string literal.
+                //     $""" // lang=xml
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(3, 21),
+                // (4,6): error CS0103: The name 'hi' does not exist in the current context
+                //     <hi/>
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "hi").WithArguments("hi").WithLocation(4, 6),
+                // (4,9): error CS1525: Invalid expression term '>'
+                //     <hi/>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(4, 9),
+                // (5,10): error CS8997: Unterminated raw string literal.
+                //     """);
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(5, 10),
+                // (5,10): error CS1026: ) expected
+                //     """);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 10),
+                // (5,10): error CS1002: ; expected
+                //     """);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 10));
     }
 
     [Fact]
@@ -593,9 +593,9 @@ System.Console.Write(
 /**/$""""""""""""/**/
 #nullable enable
 );",
-            // (4,15): error CS8997: Unterminated raw string literal
-            // /**/$""""""/**/
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "/").WithLocation(4, 15));
+                // (4,16): error CS8997: Unterminated raw string literal.
+                // /**/$""""""/**/
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 16));
     }
 
     [Fact]
@@ -792,15 +792,15 @@ class C
         RenderAndVerify(@"
 System.Console.Write(
     $"""""");",
-                // (3,10): error CS8997: Unterminated raw string literal
-                //     $""");
-                Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(3, 10),
-                // (3,11): error CS1026: ) expected
-                //     $""");
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 11),
-                // (3,11): error CS1002: ; expected
-                //     $""");
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 11));
+            // (3,11): error CS8997: Unterminated raw string literal.
+            //     $""");
+            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(3, 11),
+            // (3,11): error CS1026: ) expected
+            //     $""");
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 11),
+            // (3,11): error CS1002: ; expected
+            //     $""");
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 11));
     }
 
     [Fact]
@@ -810,9 +810,9 @@ System.Console.Write(
 System.Console.Write(
     $""""""
     "");",
-                // (4,7): error CS8997: Unterminated raw string literal
+                // (4,8): error CS8997: Unterminated raw string literal.
                 //     ");
-                Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 7),
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 8),
                 // (4,8): error CS1026: ) expected
                 //     ");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 8),
@@ -944,9 +944,9 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     """");",
-                // (4,8): error CS8997: Unterminated raw string literal
+                // (4,9): error CS8997: Unterminated raw string literal.
                 //     "");
-                Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 8),
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 9),
                 // (4,9): error CS1026: ) expected
                 //     "");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 9),
@@ -984,9 +984,9 @@ System.Console.Write(
 System.Console.Write(
     $""""""
     ␠"");",
-                // (4,8): error CS8997: Unterminated raw string literal
+                // (4,9): error CS8997: Unterminated raw string literal.
                 //      ");
-                Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 8),
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 9),
                 // (4,9): error CS1026: ) expected
                 //      ");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 9),
@@ -1002,9 +1002,9 @@ System.Console.Write(
 System.Console.Write(
     $""""""
     ␠"""");",
-                // (4,9): error CS8997: Unterminated raw string literal
+                // (4,10): error CS8997: Unterminated raw string literal.
                 //      "");
-                Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 9),
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 10),
                 // (4,10): error CS1026: ) expected
                 //      "");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 10),
@@ -1020,9 +1020,9 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠
     ␠"""");",
-                // (4,9): error CS8997: Unterminated raw string literal
+                // (4,10): error CS8997: Unterminated raw string literal.
                 //      "");
-                Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 9),
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 10),
                 // (4,10): error CS1026: ) expected
                 //      "");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 10),
@@ -1038,9 +1038,9 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     ␠␠"""");",
-                // (4,10): error CS8997: Unterminated raw string literal
+                // (4,11): error CS8997: Unterminated raw string literal.
                 //       "");
-                Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 10),
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 11),
                 // (4,11): error CS1026: ) expected
                 //       "");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 11),
