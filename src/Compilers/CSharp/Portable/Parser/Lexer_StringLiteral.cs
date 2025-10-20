@@ -314,24 +314,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// The type of string we are producing. 
+        /// The type of string we are producing.  This should be named InterpolatedOrRawStringKind
         /// </summary>
         internal enum InterpolatedStringKind
         {
             /// <summary>
-            /// Normal interpolated string that just starts with <c>$"</c>
+            /// Normal interpolated string that just starts with <c>$"</c>. Not ever produced in the raw-string case.
             /// </summary>
             Normal,
             /// <summary>
-            /// Verbatim interpolated string that starts with <c>$@"</c> or <c>@$"</c>
+            /// Verbatim interpolated string that starts with <c>$@"</c> or <c>@$"</c>. Not ever produced in the raw-string case.
             /// </summary>
             Verbatim,
             /// <summary>
-            /// Single-line raw interpolated string that starts with at least one <c>$</c>, and at least three <c>"</c>s.
+            /// Single-line raw or raw-interpolated string that can start with at least one <c>$</c>, and then at least three <c>"</c>s.
             /// </summary>
             SingleLineRaw,
             /// <summary>
-            /// Multi-line raw interpolated string that starts with at least one <c>$</c>, and at least three <c>"</c>s.
+            /// Multi-line raw or raw-interpolated string that can start with at least one <c>$</c>, and then at least three <c>"</c>s.
             /// </summary>
             MultiLineRaw,
         }
