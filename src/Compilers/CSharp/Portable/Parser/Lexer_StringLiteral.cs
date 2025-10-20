@@ -453,13 +453,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var prefixAtCount = _lexer.ConsumeAtSignSequence();
                 startingDollarSignCount = _lexer.ConsumeDollarSignSequence();
 
-                if (_isInterpolatedString)
-                    Debug.Assert(startingDollarSignCount > 0);
-
                 var suffixAtCount = _lexer.ConsumeAtSignSequence();
                 startingQuoteCount = _lexer.ConsumeQuoteSequence();
 
                 var totalAtCount = prefixAtCount + suffixAtCount;
+
+                if (_isInterpolatedString)
+                {
+                    Debug.Assert(startingDollarSignCount > 0);
+                }
+                else
+                {
+                    Debug.Assert(startingDollarSignCount == 0);
+                    Debug.Assert(totalAtCount == 0);
+                }
 
                 // We should only have gotten here if we had at least two characters that made us think we had an
                 // interpolated string. Note that we may enter here on just `@@` or `$$` (without seeing anything else),
@@ -527,8 +534,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(kind is InterpolatedStringKind.SingleLineRaw or InterpolatedStringKind.MultiLineRaw);
                     ScanRawInterpolatedStringLiteralEnd(kind, startingQuoteCount);
 
-                    //if (_isInterpolatedString)
-                    //    _lexer.ScanUtf8Suffix();
+                    if (!_isInterpolatedString)
+                        _lexer.ScanUtf8Suffix();
                 }
 
                 // Note: this range may be empty.  For example, if we hit the end of a line for a single-line construct,
