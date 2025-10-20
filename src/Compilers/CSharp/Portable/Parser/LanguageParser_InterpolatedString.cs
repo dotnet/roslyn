@@ -13,9 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LanguageParser
     {
-        private LiteralExpressionSyntax ParseRawStringToken(SyntaxToken token)
+        private LiteralExpressionSyntax ParseRawStringToken()
         {
-            var expressionKind = SyntaxFacts.GetLiteralExpression(token.Kind);
+            var originalToken = this.EatToken();
+
+            var expressionKind = SyntaxFacts.GetLiteralExpression(originalToken.Kind);
             Debug.Assert(expressionKind != SyntaxKind.None);
 
             // We want to share as much code as possible with raw-interpolated-strings.  Especially the code for dealing
@@ -23,10 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // raw string as an interpolated string with no $'s and no holes, and then extract out the content token
             // from that.
 
-            var originalText = token.Text;
+            var originalText = originalToken.Text;
+            Debug.Assert(originalText[0] is '"');
+            Debug.Assert(originalText[1] is '"');
+            Debug.Assert(originalText[2] is '"');
 
             var interpolatedString = ParseInterpolatedOrRawStringToken(
-                token, originalText, originalText.AsSpan(), isInterpolatedString: false);
+                originalToken, originalText, originalText.AsSpan(), isInterpolatedString: false);
 
             Debug.Assert(interpolatedString.StringStartToken.Kind is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken);
 
@@ -55,13 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // if the original token had diagnostics, then we absolutely must have produced some diagnostics creating
             // the interpolated version.  Note: the converse does not hold.  Producing the interpolation may produce
             // indentation diagnostics, which are not something the lexer would have produced.
-            if (token.ContainsDiagnostics)
+            if (originalToken.ContainsDiagnostics)
                 Debug.Assert(diagnosticsBuilder.Count > 0);
 
             // We preserve everything from the original raw token.  Except we use the computed value text from the
             // interpolated text token instead as long as we got no diagnostics for this raw string.
             var finalToken = SyntaxFactory
-                .Literal(token.GetLeadingTrivia(), token.Text, token.Kind, getTokenValue(), token.GetTrailingTrivia())
+                .Literal(originalToken.GetLeadingTrivia(), originalToken.Text, originalToken.Kind, getTokenValue(), originalToken.GetTrailingTrivia())
                 .WithDiagnosticsGreen(diagnosticsBuilder.ToArrayAndFree());
 
             return _syntaxFactory.LiteralExpression(expressionKind, finalToken);
@@ -107,10 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalToken = this.EatToken();
 
             var originalText = originalToken.ValueText; // this is actually the source text
-            var originalTextSpan = originalText.AsSpan();
+            Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
             return ParseInterpolatedOrRawStringToken(
-                originalToken, originalText, originalTextSpan, isInterpolatedString: true);
+                originalToken, originalText, originalText.AsSpan(), isInterpolatedString: true);
         }
 
         private InterpolatedStringExpressionSyntax ParseInterpolatedOrRawStringToken(
@@ -119,17 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ReadOnlySpan<char> originalTextSpan,
             bool isInterpolatedString)
         {
-            if (isInterpolatedString)
-            {
-                Debug.Assert(originalTextSpan[0] is '$' or '@');
-            }
-            else
-            {
-                Debug.Assert(originalTextSpan[0] is '"');
-                Debug.Assert(originalTextSpan[1] is '"');
-                Debug.Assert(originalTextSpan[2] is '"');
-            }
-
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the open and close quotes can be found.
             var interpolations = isInterpolatedString ? ArrayBuilder<Lexer.Interpolation>.GetInstance() : null;

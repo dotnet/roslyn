@@ -11733,7 +11733,7 @@ done:
                     case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                     case SyntaxKind.MultiLineRawStringLiteralToken:
                     case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
-                        return this.ParseRawStringToken(this.EatToken());
+                        return this.ParseRawStringToken();
                     case SyntaxKind.OpenParenToken:
                         {
                             return IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda
