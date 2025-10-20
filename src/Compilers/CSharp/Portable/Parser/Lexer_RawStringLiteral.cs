@@ -84,22 +84,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // However, as this is error code anyways, the interpretation of the value is fine for us to define
             // however we want.  The user can (and should) check for the presence of diagnostics before blindly
             // trusting the contents.
-            if (this.HasErrors)
-            {
-                var afterStartDelimiter = this.LexemeStartPosition + startingQuoteCount;
-                var valueLength = TextWindow.Position - afterStartDelimiter;
+            //if (this.HasErrors)
+            //{
+            //    var afterStartDelimiter = this.LexemeStartPosition + startingQuoteCount;
+            //    var valueLength = TextWindow.Position - afterStartDelimiter;
 
-                info.StringValue = TextWindow.GetText(
-                    position: afterStartDelimiter,
-                    length: valueLength,
-                    intern: true);
-            }
-            else
-            {
-                // If we didn't have an error, the subroutines better have set the string value for this literal.
-                Debug.Assert(info.StringValue != null);
-            }
+            //    info.StringValue = TextWindow.GetText(
+            //        position: afterStartDelimiter,
+            //        length: valueLength,
+            //        intern: true);
+            //}
+            //else
+            //{
+            //    // If we didn't have an error, the subroutines better have set the string value for this literal.
+            //    Debug.Assert(info.StringValue != null);
+            //}
 
+            Debug.Assert(info.StringValue != null);
             Debug.Assert(info.Kind is (SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken));
 
             if (!inDirective && ScanUtf8Suffix())
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            info.Text = this.GetInternedLexemeText();
+            info.StringValue = info.Text = this.GetInternedLexemeText();
         }
 
         private void ScanSingleLineRawStringLiteral(ref TokenInfo info, int startingQuoteCount)
@@ -183,77 +184,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             info.Kind = SyntaxKind.MultiLineRawStringLiteralToken;
 
-            // The indentation-whitespace computed from the very last line of the raw string literal
-            var indentationWhitespace = PooledStringBuilder.GetInstance();
+            //// The indentation-whitespace computed from the very last line of the raw string literal
+            //var indentationWhitespace = PooledStringBuilder.GetInstance();
 
-            // The leading whitespace of whatever line we are currently on.
-            var currentLineWhitespace = PooledStringBuilder.GetInstance();
-            try
-            {
+            //// The leading whitespace of whatever line we are currently on.
+            //var currentLineWhitespace = PooledStringBuilder.GetInstance();
+            //try
+            //{
                 // Do the first pass, finding the end of the raw string, and determining the 'indentation whitespace'
                 // that must be complimentary with all content lines of the raw string literal.
                 var afterStartDelimiter = TextWindow.Position;
                 Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
                 var contentLineCount = 0;
-                while (ScanMultiLineRawStringLiteralLine(startingQuoteCount, indentationWhitespace.Builder))
+                while (ScanMultiLineRawStringLiteralLine(startingQuoteCount/*, indentationWhitespace.Builder*/))
                     contentLineCount++;
 
-                // If the initial scan failed then just bail out without a constant value.
-                if (this.HasErrors)
-                    return;
+                //// If the initial scan failed then just bail out without a constant value.
+                //if (this.HasErrors)
+                //    return;
 
-                // The trivial raw string literal is not legal in the language.
-                if (contentLineCount == 0)
-                {
-                    this.AddError(
-                        position: TextWindow.Position - startingQuoteCount,
-                        width: startingQuoteCount,
-                        ErrorCode.ERR_RawStringMustContainContent);
-                    return;
-                }
+                //// The trivial raw string literal is not legal in the language.
+                //if (contentLineCount == 0)
+                //{
+                //    this.AddError(
+                //        position: TextWindow.Position - startingQuoteCount,
+                //        width: startingQuoteCount,
+                //        ErrorCode.ERR_RawStringMustContainContent);
+                //    return;
+                //}
 
-                // Now, do the second pass, building up the literal value.  This may produce an error as well if the
-                // indentation whitespace of the lines isn't complimentary.
+                //// Now, do the second pass, building up the literal value.  This may produce an error as well if the
+                //// indentation whitespace of the lines isn't complimentary.
 
-                // Reset us to right after the starting delimiter.  Note: if we fail to generate a constant value we'll
-                // ensure that we reset back to the original end we scanned to above.
-                var tokenEnd = TextWindow.Position;
-                TextWindow.Reset(afterStartDelimiter);
-                Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
+                //// Reset us to right after the starting delimiter.  Note: if we fail to generate a constant value we'll
+                //// ensure that we reset back to the original end we scanned to above.
+                //var tokenEnd = TextWindow.Position;
+                //TextWindow.Reset(afterStartDelimiter);
+                //Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
-                for (var currentLine = 0; currentLine < contentLineCount; currentLine++)
-                {
-                    AddMultiLineRawStringLiteralLineContents(
-                        indentationWhitespace.Builder,
-                        currentLineWhitespace.Builder,
-                        firstContentLine: currentLine == 0);
+                //for (var currentLine = 0; currentLine < contentLineCount; currentLine++)
+                //{
+                //    AddMultiLineRawStringLiteralLineContents(
+                //        indentationWhitespace.Builder,
+                //        currentLineWhitespace.Builder,
+                //        firstContentLine: currentLine == 0);
 
-                    // If processing the line produced errors, then bail out from continued processing.
-                    if (this.HasErrors)
-                        break;
-                }
+                //    // If processing the line produced errors, then bail out from continued processing.
+                //    if (this.HasErrors)
+                //        break;
+                //}
 
-                info.StringValue = this.HasErrors ? "" : TextWindow.Intern(_builder);
+                //info.StringValue = this.HasErrors ? "" : TextWindow.Intern(_builder);
 
-                // Make sure that even if we fail to determine the constant content value of the string that
-                // we still consume all the way to original end that we computed.
-                TextWindow.Reset(tokenEnd);
-            }
-            finally
-            {
-                indentationWhitespace.Free();
-                currentLineWhitespace.Free();
-            }
+                //// Make sure that even if we fail to determine the constant content value of the string that
+                //// we still consume all the way to original end that we computed.
+                //TextWindow.Reset(tokenEnd);
+            //}
+            //finally
+            //{
+            //    indentationWhitespace.Free();
+            //    currentLineWhitespace.Free();
+            //}
         }
 
         private bool ScanMultiLineRawStringLiteralLine(
-            int startingQuoteCount, StringBuilder indentationWhitespace)
+            int startingQuoteCount/*, StringBuilder indentationWhitespace*/)
         {
             TextWindow.AdvancePastNewLine();
 
-            indentationWhitespace.Clear();
-            ConsumeWhitespace(indentationWhitespace);
+            //            indentationWhitespace.Clear();
+            ConsumeWhitespace(builder: null);///*indentationWhitespace*/);
 
             // after the whitespace see if this the line that ends the multiline literal.
             var currentQuoteCount = ConsumeQuoteSequence();
@@ -308,62 +309,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void AddMultiLineRawStringLiteralLineContents(
-            StringBuilder indentationWhitespace,
-            StringBuilder currentLineWhitespace,
-            bool firstContentLine)
-        {
-            Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
+//        private void AddMultiLineRawStringLiteralLineContents(
+//            StringBuilder indentationWhitespace,
+//            StringBuilder currentLineWhitespace,
+//            bool firstContentLine)
+//        {
+//            Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
-            var newLineWidth = TextWindow.GetNewLineWidth();
-            for (var i = 0; i < newLineWidth; i++)
-            {
-                // the initial newline in `"""   \r\n` is not added to the contents.
-                if (!firstContentLine)
-                    _builder.Append(TextWindow.PeekChar());
+//            var newLineWidth = TextWindow.GetNewLineWidth();
+//            for (var i = 0; i < newLineWidth; i++)
+//            {
+//                // the initial newline in `"""   \r\n` is not added to the contents.
+//                if (!firstContentLine)
+//                    _builder.Append(TextWindow.PeekChar());
 
-                TextWindow.AdvanceChar();
-            }
+//                TextWindow.AdvanceChar();
+//            }
 
-            var lineStartPosition = TextWindow.Position;
-            currentLineWhitespace.Clear();
-            ConsumeWhitespace(currentLineWhitespace);
+//            var lineStartPosition = TextWindow.Position;
+//            currentLineWhitespace.Clear();
+//            ConsumeWhitespace(currentLineWhitespace);
 
-            var (errorCode, errorArguments) = CheckForIndentationError(
-                currentLineWhitespace, indentationWhitespace, isBlankLine: SyntaxFacts.IsNewLine(TextWindow.PeekChar()), default(StringBuilderCharHelper));
+//            var (errorCode, errorArguments) = CheckForIndentationError(
+//                currentLineWhitespace, indentationWhitespace, isBlankLine: SyntaxFacts.IsNewLine(TextWindow.PeekChar()), default(StringBuilderCharHelper));
 
-            if (errorCode != 0)
-            {
-                this.AddError(
-                    lineStartPosition,
-                    width: TextWindow.Position - lineStartPosition,
-                    errorCode,
-                    errorArguments);
-                return;
-            }
+//            if (errorCode != 0)
+//            {
+//                this.AddError(
+//                    lineStartPosition,
+//                    width: TextWindow.Position - lineStartPosition,
+//                    errorCode,
+//                    errorArguments);
+//                return;
+//            }
 
-            // Skip the leading whitespace that matches the terminator line and add any whitespace past that to the
-            // string value.  Note: if the current line is shorter than the indentation whitespace, this will
-            // intentionally copy nothing.
-#if NET
-            _builder.Append(currentLineWhitespace, startIndex: indentationWhitespace.Length, count: Math.Max(0, currentLineWhitespace.Length - indentationWhitespace.Length));
-#else
-            for (var i = indentationWhitespace.Length; i < currentLineWhitespace.Length; i++)
-                _builder.Append(currentLineWhitespace[i]);
-#endif
+//            // Skip the leading whitespace that matches the terminator line and add any whitespace past that to the
+//            // string value.  Note: if the current line is shorter than the indentation whitespace, this will
+//            // intentionally copy nothing.
+//#if NET
+//            _builder.Append(currentLineWhitespace, startIndex: indentationWhitespace.Length, count: Math.Max(0, currentLineWhitespace.Length - indentationWhitespace.Length));
+//#else
+//            for (var i = indentationWhitespace.Length; i < currentLineWhitespace.Length; i++)
+//                _builder.Append(currentLineWhitespace[i]);
+//#endif
 
-            // Consume up to the next new line.
-            while (true)
-            {
-                var currentChar = TextWindow.PeekChar();
+//            // Consume up to the next new line.
+//            while (true)
+//            {
+//                var currentChar = TextWindow.PeekChar();
 
-                if (SyntaxFacts.IsNewLine(currentChar))
-                    return;
+//                if (SyntaxFacts.IsNewLine(currentChar))
+//                    return;
 
-                _builder.Append(currentChar);
-                TextWindow.AdvanceChar();
-            }
-        }
-
+//                _builder.Append(currentChar);
+//                TextWindow.AdvanceChar();
+//            }
+//        }
     }
 }

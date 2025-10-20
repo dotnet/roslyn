@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 kind: out _,
                 openQuoteRange: out _,
                 interpolations: null,
-                closeQuoteRange: out _,);
+                closeQuoteRange: out _);
             this.AddError(error);
         }
 
@@ -288,8 +288,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ArrayBuilder<Interpolation>? interpolations,
             out Range closeQuoteRange)
         {
-            var subScanner = new InterpolatedStringScanner(this, isInterpolatedString);
-            subScanner.ScanInterpolatedStringLiteralTop(out kind, out openQuoteRange, interpolations, out closeQuoteRange);
+            var subScanner = new InterpolatedOrRawStringScanner(this, isInterpolatedString);
+            subScanner.ScanStringLiteralTop(out kind, out openQuoteRange, interpolations, out closeQuoteRange);
             error = subScanner.Error;
             info.Kind = SyntaxKind.InterpolatedStringToken;
             info.Text = this.GetNonInternedLexemeText();
@@ -313,6 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 interpolatedString.GetLastToken().GetTrailingTrivia());
         }
 
+        /// <summary>
+        /// The type of string we are producing. 
+        /// </summary>
         internal enum InterpolatedStringKind
         {
             /// <summary>

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // raw string as an interpolated string with no $'s and no holes, and then extract out the content token
             // from that.
 
-            var originalText = token.ValueText; // this is actually the source text
+            var originalText = token.Text;
             var originalTextSpan = new TextSpan(0, originalText.Length);
 
             var interpolatedString = ParseInterpolatedOrRawStringToken(
