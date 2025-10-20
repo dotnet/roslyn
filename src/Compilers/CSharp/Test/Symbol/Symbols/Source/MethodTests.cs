@@ -2577,7 +2577,7 @@ public partial class C
             Assert.False(partialImplConstructed.IsPartialDefinition);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22598")]
         public void PartialMethodsLocationsAndSyntaxReferences()
         {
             var source1 = """
