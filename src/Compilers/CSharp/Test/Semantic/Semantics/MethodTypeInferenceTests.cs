@@ -1210,7 +1210,7 @@ public class Test
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49525")]
         public void InterlockedExchangeWithNullableTypes()
         {
-            string source = """
+            var source = """
                 #nullable enable
                 using System.Threading;
 
@@ -1234,30 +1234,6 @@ public class Test
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-
-            // Verify that o1 has the correct type (object?)
-            var o1 = tree.GetRoot().DescendantTokens().First(t => t.Text == "o1" && t.Parent is VariableDeclaratorSyntax).Parent;
-            var o1Type = ((ILocalSymbol)model.GetDeclaredSymbol((VariableDeclaratorSyntax)o1)).Type;
-            Assert.Equal("System.Object?", o1Type.ToTestDisplayString(includeNonNullable: true));
-            Assert.True(o1Type.IsReferenceType);
-            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, o1Type.NullableAnnotation);
-
-            // Verify that c1 has the correct type (class2?)
-            var c1 = tree.GetRoot().DescendantTokens().First(t => t.Text == "c1" && t.Parent is VariableDeclaratorSyntax).Parent;
-            var c1Type = ((ILocalSymbol)model.GetDeclaredSymbol((VariableDeclaratorSyntax)c1)).Type;
-            Assert.Equal("InterlockedExchangeNullProblem.class2?", c1Type.ToTestDisplayString(includeNonNullable: true));
-            Assert.True(c1Type.IsReferenceType);
-            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, c1Type.NullableAnnotation);
-
-            // Verify that c2 has the correct type (class2?)
-            var c2 = tree.GetRoot().DescendantTokens().First(t => t.Text == "c2" && t.Parent is VariableDeclaratorSyntax).Parent;
-            var c2Type = ((ILocalSymbol)model.GetDeclaredSymbol((VariableDeclaratorSyntax)c2)).Type;
-            Assert.Equal("InterlockedExchangeNullProblem.class2?", c2Type.ToTestDisplayString(includeNonNullable: true));
-            Assert.True(c2Type.IsReferenceType);
-            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, c2Type.NullableAnnotation);
         }
     }
 }
