@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)type.ContainingAssembly != (object)withinAssembly)
             {
                 // If the type itself is EmbeddedAttribute, assume it was correctly applied to itself and return false.
-                if (type.IsMicrosoftCodeAnalysisEmbeddedAttribute() || type.IsHiddenByCodeAnalysisEmbeddedAttribute())
+                if (type.IsHiddenByCodeAnalysisEmbeddedAttribute())
                 {
                     return false;
                 }

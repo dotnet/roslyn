@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim withinAssembly As AssemblySymbol = If(TryCast(within, AssemblySymbol), DirectCast(within, NamedTypeSymbol).ContainingAssembly)
             If typeSym.ContainingAssembly IsNot withinAssembly Then
                 ' If the type itself is EmbeddedAttribute, assume it was correctly applied to itself and return inaccessible.
-                If typeSym.IsMicrosoftCodeAnalysisEmbeddedAttribute() OrElse typeSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+                If typeSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
                     Return AccessCheckResult.Inaccessible
                 End If
             End If
