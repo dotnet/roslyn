@@ -868,15 +868,15 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠
     "");",
-            // (4,8): error CS8997: Unterminated raw string literal.
-            //     ");
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 8),
-            // (4,8): error CS1026: ) expected
-            //     ");
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 8),
-            // (4,8): error CS1002: ; expected
-            //     ");
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 8));
+                // (4,8): error CS8997: Unterminated raw string literal.
+                //     ");
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 8),
+                // (4,8): error CS1026: ) expected
+                //     ");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 8),
+                // (4,8): error CS1002: ; expected
+                //     ");
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 8));
     }
 
     [Fact]
@@ -886,15 +886,15 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠
     """");",
-            // (4,9): error CS8997: Unterminated raw string literal.
-            //     "");
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 9),
-            // (4,9): error CS1026: ) expected
-            //     "");
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 9),
-            // (4,9): error CS1002: ; expected
-            //     "");
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 9));
+                // (4,9): error CS8997: Unterminated raw string literal.
+                //     "");
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 9),
+                // (4,9): error CS1026: ) expected
+                //     "");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 9),
+                // (4,9): error CS1002: ; expected
+                //     "");
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 9));
     }
 
     [Fact]
@@ -926,15 +926,15 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     "");",
-            // (4,8): error CS8997: Unterminated raw string literal.
-            //     ");
-            Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 8),
-            // (4,8): error CS1026: ) expected
-            //     ");
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 8),
-            // (4,8): error CS1002: ; expected
-            //     ");
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 8));
+                // (4,8): error CS8997: Unterminated raw string literal.
+                //     ");
+                Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(4, 8),
+                // (4,8): error CS1026: ) expected
+                //     ");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 8),
+                // (4,8): error CS1002: ; expected
+                //     ");
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 8));
     }
 
     [Fact]
