@@ -114,19 +114,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private const int CacheSize = 1 << CacheSizeBits;
         private const int CacheMask = CacheSize - 1;
 
-        private readonly struct Entry
-        {
-            public readonly int hash;
-            public readonly GreenNode? node;
-
-            internal Entry(int hash, GreenNode node)
-            {
-                this.hash = hash;
-                this.node = node;
-            }
-        }
-
-        private static readonly Entry[] s_cache = new Entry[CacheSize];
+        private static readonly GreenNode[] s_cache = new GreenNode[CacheSize];
 
         internal static void AddNode(GreenNode node, int hash)
         {
@@ -137,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 Debug.Assert(node.GetCacheHash() == hash);
 
                 var idx = hash & CacheMask;
-                s_cache[idx] = new Entry(hash, node);
+                s_cache[idx] = node;
             }
         }
 
@@ -165,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             int hash = child.GetCacheHash();
             int idx = hash & CacheMask;
-            return s_cache[idx].node == child;
+            return s_cache[idx] == child;
         }
 
         private static bool AllChildrenInCache(GreenNode node)
@@ -195,12 +183,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 GreenStats.ItemCacheable();
 
                 int h = hash = GetCacheHash(kind, flags, child1);
-                int idx = h & CacheMask;
-                var e = s_cache[idx];
-                if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1))
+                var e = s_cache[h & CacheMask];
+                if (e != null && e.IsCacheEquivalent(kind, flags, child1))
                 {
                     GreenStats.CacheHit();
-                    return e.node;
+                    return e;
                 }
             }
             else
@@ -223,12 +210,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 GreenStats.ItemCacheable();
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2);
-                int idx = h & CacheMask;
-                var e = s_cache[idx];
-                if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1, child2))
+                var e = s_cache[h & CacheMask];
+                if (e != null && e.IsCacheEquivalent(kind, flags, child1, child2))
                 {
                     GreenStats.CacheHit();
-                    return e.node;
+                    return e;
                 }
             }
             else
@@ -251,12 +237,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 GreenStats.ItemCacheable();
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2, child3);
-                int idx = h & CacheMask;
-                var e = s_cache[idx];
-                if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1, child2, child3))
+                var e = s_cache[h & CacheMask];
+                if (e != null && e.IsCacheEquivalent(kind, flags, child1, child2, child3))
                 {
                     GreenStats.CacheHit();
-                    return e.node;
+                    return e;
                 }
             }
             else
