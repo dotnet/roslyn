@@ -86,8 +86,8 @@ Base()
             // For class inheriting from class without parameter list, we get the new specific error
             // For other combinations (struct from interface), we get the generic error
             var isClassInheritingFromClass = typeKeyword == "class" && baseKeyword == "class";
-            var errorCode = isClassInheritingFromClass 
-                ? ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList 
+            var errorCode = isClassInheritingFromClass
+                ? ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList
                 : ErrorCode.ERR_UnexpectedArgumentList;
 
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
