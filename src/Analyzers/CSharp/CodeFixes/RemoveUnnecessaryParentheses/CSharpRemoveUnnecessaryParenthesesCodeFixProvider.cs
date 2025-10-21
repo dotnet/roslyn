@@ -20,8 +20,8 @@ internal sealed class CSharpRemoveUnnecessaryParenthesesCodeFixProvider()
     protected override bool CanRemoveParentheses(SyntaxNode current, SemanticModel semanticModel, CancellationToken cancellationToken)
         => current switch
         {
-            ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, cancellationToken, out _, out _),
-            ParenthesizedPatternSyntax p => CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, out _, out _),
+            ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, cancellationToken, out _, out _, out _),
+            ParenthesizedPatternSyntax p => CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, out _, out _, out _),
             _ => false,
         };
 }

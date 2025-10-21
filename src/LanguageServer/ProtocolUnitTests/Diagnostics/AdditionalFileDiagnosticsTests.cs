@@ -231,7 +231,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         {
             if (context.TextDocument is not null && context.TextDocument is not Document)
             {
-                return new([new TestAdditionalFileDocumentSource(context.TextDocument!)]);
+                return new([new TestAdditionalFileDocumentSource(context.TextDocument)]);
             }
 
             return new([]);

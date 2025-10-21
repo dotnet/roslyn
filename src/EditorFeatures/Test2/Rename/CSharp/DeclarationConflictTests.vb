@@ -179,21 +179,41 @@ class Goo
 
         <Theory>
         <CombinatorialData>
-        Public Sub ConflictBetweenMemberDeclarationsWithOutOrRefDifferenceOnly(host As RenameTestHost)
+        Public Sub NoConflictBetweenMethodsDifferingByRefKind(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
 class Goo
 {
-    int [|$$goo|](out int parameter) { }
-    int {|Conflict:bar|}(int parameter) { }
+    int [|$$goo|](out int parameter) { parameter = 0; return 1; }
+    int bar(int parameter) { return 1; }
 }
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="bar")
 
-                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        Public Sub NoConflictBetweenMethodsDifferingByRefKind_RenameToExistingName(host As RenameTestHost)
+            ' Regression test for issue where renaming a method to its own name would incorrectly report a conflict
+            ' when there's another method with the same name but different ref kind
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Program
+{
+    bool [|$$TryDoSomething|](int input) { return true; }
+    bool TryDoSomething(out int output) { output = 0; return true; }
+}
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="TryDoSomething")
+
             End Using
         End Sub
 

@@ -8165,4 +8165,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="HDN_RedundantPatternStackGuard_Title" xml:space="preserve">
     <value>The pattern is too complex to analyze for redundancy.</value>
   </data>
- </root>
+  <data name="ERR_BadVisBaseType" xml:space="preserve">
+    <value>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </value>
+  </data>
+</root>

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         MethodKind MethodKind { get; }
 
         /// <summary>
-        /// Returns the arity of this method, or the number of type parameters it takes.
+        /// Returns the arity of this method. Arity is the number of type parameters a method declares.
         /// A non-generic method has zero arity.
         /// </summary>
         int Arity { get; }

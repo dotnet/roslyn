@@ -322,6 +322,6 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
 
         // Since we expect some types to be error types, we just use display string to make sure we found the right
         // symbol.
-        Assert.Equal(symbol.ToDisplayString(), resolution.Symbol!.ToDisplayString());
+        Assert.Equal(symbol.ToDisplayString(), resolution.Symbol.ToDisplayString());
     }
 }

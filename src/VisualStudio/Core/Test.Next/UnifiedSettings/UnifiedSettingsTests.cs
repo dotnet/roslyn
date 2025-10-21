@@ -274,7 +274,7 @@ public sealed class UnifiedSettingsTests
     private static async Task VerifyTagAsync(string registrationFile, string pkgdefFileName)
     {
         using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream(pkgdefFileName);
-        using var streamReader = new StreamReader(pkgDefFileStream!);
+        using var streamReader = new StreamReader(pkgDefFileStream);
         var pkgdefFile = await streamReader.ReadToEndAsync();
 
         var fileBytes = Encoding.ASCII.GetBytes(registrationFile);

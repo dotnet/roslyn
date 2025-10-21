@@ -357,6 +357,11 @@
         <target state="translated">'{0}' 型は 'using static' では無効です。使用できるのは、クラス、構造体、インターフェイス、列挙型、デリゲート、名前空間のみです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
         <target state="translated">'unsafe' ブロックでは 'yield return' を使用できません</target>

@@ -48,12 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
                     Continue For
                 End If
 
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        VBFeaturesResources.Remove_shared_keyword_from_module_member,
-                        GetDocumentUpdater(context, diagnostic),
-                        NameOf(VBFeaturesResources.Remove_shared_keyword_from_module_member)),
-                    diagnostic)
+                RegisterCodeFix(context, VBFeaturesResources.Remove_shared_keyword_from_module_member, NameOf(VBFeaturesResources.Remove_shared_keyword_from_module_member))
             Next
 
             Return Task.CompletedTask
