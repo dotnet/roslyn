@@ -336,7 +336,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """;
 
         var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("default-4,default-10,custom-4,both-20"));
-        var compilation = verifier.Compilation;
+        var compilation = (CSharpCompilation)verifier.Compilation;
 
         var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
         var root = semanticModel.SyntaxTree.GetRoot();
@@ -362,7 +362,23 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
         Assert.True(constructor1.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }, { Name: "name", Type.SpecialType: SpecialType.System_String }]);
 
-
+        var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToArray()[1]);
+        VerifyOperationTree(compilation, operation, """
+            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'MyList<int> ... y: 10), 2];')
+               IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'MyList<int> ... ty: 10), 2]')
+                 Declarators:
+                     IVariableDeclaratorOperation (Symbol: MyList<System.Int32> list2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'list2 = [wi ... ty: 10), 2]')
+                       Initializer:
+                         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= [with(cap ... ty: 10), 2]')
+                           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: '[with(capacity: 10), 2]')
+                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                             Operand:
+                               ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capacity: 10), 2]')
+                                 Elements(1):
+                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                 Initializer:
+                   null
+           """);
     }
 
     #endregion
