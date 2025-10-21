@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2606,6 +2607,55 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
               IL_001f:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
               IL_0024:  call       "void System.Console.WriteLine(int)"
               IL_0029:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void ExpressionTreeInWithElement()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class MyList : List<int>
+            {
+                public Expression<Func<int>> Expr;
+                public MyList(Expression<Func<int>> expr) : base()
+                {
+                    Expr = expr;
+                }
+            }
+
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyList m = [with(() => 42)];
+                    var v = m.Expr.Compile().Invoke();
+                    Console.WriteLine(v);
+                }
+            }
+            """;
+        var comp = CompileAndVerify(source,  expectedOutput: IncludeExpectedOutput("42")).VerifyDiagnostics().VerifyIL("Program.Main", """
+            {
+              // Code size       58 (0x3a)
+              .maxstack  2
+              IL_0000:  ldc.i4.s   42
+              IL_0002:  box        "int"
+              IL_0007:  ldtoken    "int"
+              IL_000c:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_0011:  call       "System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)"
+              IL_0016:  call       "System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()"
+              IL_001b:  call       "System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])"
+              IL_0020:  newobj     "MyList..ctor(System.Linq.Expressions.Expression<System.Func<int>>)"
+              IL_0025:  ldfld      "System.Linq.Expressions.Expression<System.Func<int>> MyList.Expr"
+              IL_002a:  callvirt   "System.Func<int> System.Linq.Expressions.Expression<System.Func<int>>.Compile()"
+              IL_002f:  callvirt   "int System.Func<int>.Invoke()"
+              IL_0034:  call       "void System.Console.WriteLine(int)"
+              IL_0039:  ret
             }
             """);
     }
