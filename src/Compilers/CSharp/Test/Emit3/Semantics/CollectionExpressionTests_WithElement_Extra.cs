@@ -1552,8 +1552,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var verifier = CompileAndVerify(source);
         verifier.VerifyDiagnostics();
 
-        var semanticModel = verifier.Compilation.GetSemanticModel(verifier.Compilation.SyntaxTrees.Single());
-        var withElements = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType<WithElementSyntax>().ToArray();
+        var compilation = (CSharpCompilation)verifier.Compilation;
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+        SyntaxNode root = semanticModel.SyntaxTree.GetRoot();
+        var withElements = root.DescendantNodes().OfType<WithElementSyntax>().ToArray();
         Assert.Equal(2, withElements.Length);
 
         var method1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
@@ -1561,6 +1563,45 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         Assert.True(method1 is { MethodKind: MethodKind.Constructor, ContainingType.Name: "List", Parameters: [] });
         Assert.True(method2 is { MethodKind: MethodKind.Constructor, ContainingType.Name: "List", Parameters: [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }] });
+
+        var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<BlockSyntax>().Single());
+        VerifyOperationTree(compilation, operation, """
+              IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            Locals: Local_1: System.Collections.Generic.IList<System.Int32> x
+              Local_2: System.Collections.Generic.IList<System.Int32> y
+            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'IList<int>  ... , 1, 2, 3];')
+              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'IList<int>  ... ), 1, 2, 3]')
+                Declarators:
+                    IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.Int32> x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = [with(), 1, 2, 3]')
+                      Initializer:
+                        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= [with(), 1, 2, 3]')
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(), 1, 2, 3]')
+                                Elements(3):
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                Initializer:
+                  null
+            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'IList<int>  ... , 1, 2, 3];')
+              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'IList<int>  ... ), 1, 2, 3]')
+                Declarators:
+                    IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.Int32> y) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
+                      Initializer:
+                        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= [with(cap ... ), 1, 2, 3]')
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                Elements(3):
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                Initializer:
+                  null
+            """);
     }
 
     [Fact]
