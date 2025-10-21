@@ -6,7 +6,6 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.GreenNode;
 
 #if STATS
 using System.Threading;
@@ -335,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         private static bool IsCacheable(GreenNode node)
         {
-            return ((node.Flags & NodeFlags.InheritMask) == NodeFlags.IsNotMissing) &&
+            return ((node.Flags & GreenNode.NodeFlags.InheritMask) == GreenNode.NodeFlags.IsNotMissing) &&
                 node.SlotCount <= MaxCachedChildNum;
         }
 
@@ -357,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return code & Int32.MaxValue;
         }
 
-        private static bool IsCacheEquivalent(GreenNode? parent, int kind, NodeFlags flags, GreenNode? child1)
+        private static bool IsCacheEquivalent(GreenNode? parent, int kind, GreenNode.NodeFlags flags, GreenNode? child1)
         {
             if (parent is null)
                 return false;
@@ -373,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 parent.GetSlot(0) == child1;
         }
 
-        private static bool IsCacheEquivalent(GreenNode? parent, int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2)
+        private static bool IsCacheEquivalent(GreenNode? parent, int kind, GreenNode.NodeFlags flags, GreenNode? child1, GreenNode? child2)
         {
             if (parent is null)
                 return false;
@@ -390,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 parent.GetSlot(1) == child2;
         }
 
-        private static bool IsCacheEquivalent(GreenNode? parent, int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2, GreenNode? child3)
+        private static bool IsCacheEquivalent(GreenNode? parent, int kind, GreenNode.NodeFlags flags, GreenNode? child1, GreenNode? child2, GreenNode? child3)
         {
             if (parent is null)
                 return false;
