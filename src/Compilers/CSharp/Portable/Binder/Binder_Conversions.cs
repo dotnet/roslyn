@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
 
-                var collectionCreation = bindCollectionConstructorConstruction(in this, syntax, constructor);
+                var collectionCreation = bindCollectionConstructorConstruction(in this, _node.WithElement?.Syntax ?? _node.Syntax, constructor);
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression collectionCreation;
                     if (@this._targetType is NamedTypeSymbol namedType)
                     {
-                        var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, constructor);
+                        var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, withElement != null, constructor);
                         collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
                         collectionCreation.WasCompilerGenerated = true;
                     }
@@ -1606,22 +1606,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         namedType, allowProtectedConstructorsOfBaseType: false,
                         out var allInstanceConstructors, ref useSiteInfo);
 
-                    // As long as we have an available instance constructor, this is a type we consider applicable
-                    // to collection expressions.  It may be the case that a `with(...)` element is required.  But
-                    // that will be reported later when doing the actual conversion to a BoundCollectionExpression.
-                    if (candidateConstructors is [var firstConstructor, ..])
-                    {
-                        constructor = firstConstructor;
+                    // As long as we have an available *accessible* instance constructor, this is a type we consider
+                    // applicable to collection expressions.  It may be the case that a `with(...)` element is required.
+                    // But that will be reported later when doing the actual conversion to a BoundCollectionExpression.
+                    //
+                    // Otherwise, if we have *some* instance constructor (but not accessible), return it as well as this
+                    // could be an error scenario with the user wanting the 'with(...)' element to bind to that. The
+                    // actual attempt to bind the collection conversion will attempt to use this constructor and will
+                    // report an appropriate error about it not being viable because it is not accessible.
+                    //
+                    // Otherwise, fall through.  We have no constructors whatsoever and should report the below message
+                    // saying that that we can't find any applicable constructor.
+                    constructor = candidateConstructors.FirstOrDefault() ?? allInstanceConstructors.FirstOrDefault();
+                    if (constructor is not null)
                         return true;
-                    }
-
-                    // Otherwise, fall through.  If we don't have any available instance constructors, we definitely
-                    // don't have the no-arg one, and should report the below message saying there is a problem.
                 }
 
                 // This is the 'a' case, and the error recovery path for the 'b' case as well.
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this);
+                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, hasWithElement);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                     namedType,
@@ -1750,7 +1753,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (namedType is not null)
             {
-                addMethodBinder = new ParamsCollectionTypeInProgressBinder(namedType, addMethodBinder);
+                // We're doing binding on the 'Add' method, not the collection with-arguments.  So pass in false for
+                // bindingCollectionExpressionWithArguments here.
+                addMethodBinder = new ParamsCollectionTypeInProgressBinder(
+                    namedType, addMethodBinder, bindingCollectionExpressionWithArguments: false);
             }
 
             return bindCollectionInitializerElementAddMethod(

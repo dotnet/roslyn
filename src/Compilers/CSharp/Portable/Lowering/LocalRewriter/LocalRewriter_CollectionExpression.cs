@@ -41,27 +41,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        // Don't optimize if the node has an explicit `with(...)` in it.  The code is being explicit
-                        // about which constructor to use and we should respect that.
-                        //
-                        // Note this falls out from the original collection expression specification which says:
-                        //
-                        // Known length translation:
-                        //
-                        //      Having a known length allows for efficient construction of a result with the potential
-                        //      for no copying of data and no unnecessary slack space in a result.
-                        //
-                        //      For a known length literal [e1, ..s1, etc] ...
-                        //
-                        // So once we have a `with(...)` element we no longer match the pattern for a known length literal.
-                        //
-                        // PROTOTYPE: Revisit this.  We should not let construction be changed.  But we could still
-                        // have optimizations like calling .AddRange(spreadedElement) for `[.. spreadedElement]`.
-                        // Ensure that we're not giving that up.
-                        if (!node.HasWithElement &&
-                            ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
+                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {
-                            if (TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
+                            // Don't optimize collection construction if an explicit `with(...)` is present.
+                            // However, adding elements after construction can still be optimized in that case.
+                            //
+                            // Note this falls out from the original collection expression specification which says:
+                            //
+                            // Known length translation:
+                            //
+                            //      Having a known length allows for efficient construction of a result with the potential
+                            //      for no copying of data and no unnecessary slack space in a result.
+                            //
+                            //      For a known length literal [e1, ..s1, etc] ...
+                            //
+                            // So once we have a `with(...)` element we no longer match the pattern for a known length literal.
+                            //
+                            // Note: we can call into CreateAndPopulateList.  Because we will pass in
+                            // node.CollectionCreation as rewrittenReceiver no special codegen will be done to create
+                            // the List<T>.  However, we still still will be able to benefit from calling things
+                            // like .AddRange to more efficiently add spread elements.
+                            var rewrittenReceiver = node.HasWithElement ? VisitExpression(node.CollectionCreation) : null;
+                            if (rewrittenReceiver is null && TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
                             {
                                 return result;
                             }
@@ -69,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (useListOptimization(_compilation, node))
                             {
                                 return CreateAndPopulateList(
-                                    node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node),
-                                    // We have no with-element.  Create a List<T> in an optimal a fashion as possible.
-                                    rewrittenReceiver: null);
+                                    node, listElementType,
+                                    node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node),
+                                    rewrittenReceiver);
                             }
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);

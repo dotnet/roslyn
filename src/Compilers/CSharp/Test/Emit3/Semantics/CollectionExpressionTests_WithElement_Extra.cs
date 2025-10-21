@@ -1092,9 +1092,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (13,46): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+            // (13,47): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyCollection<T>.MyCollection(T)'
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
-            Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(13, 46));
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("arg", "MyCollection<T>.MyCollection(T)").WithLocation(13, 47));
     }
 
     [Fact]
@@ -1269,9 +1269,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
         comp.VerifyEmitDiagnostics(
-            // (7,13): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
+            // (7,14): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
             //         c = [with(default)];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[with(default)]").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(7, 13));
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(7, 14));
     }
 
     [Fact]
@@ -1304,12 +1304,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
         comp.VerifyEmitDiagnostics(
-            // (6,13): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
+            // (6,14): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
             //         c = [with()];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[with()]").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(6, 13),
-            // (7,13): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with()").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(6, 14),
+            // (7,14): warning CS0612: 'MyCollection<int>.MyCollection(int)' is obsolete
             //         c = [with(default)];
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[with(default)]").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(7, 13),
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyCollection<int>.MyCollection(int)").WithLocation(7, 14),
             // (9,22): warning CS0612: 'MyCollection<T>.MyCollection(T)' is obsolete
             //     static void F<T>(params MyCollection<T> c) { }
             Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyCollection<T>.MyCollection(T)").WithLocation(9, 22));
@@ -4718,26 +4718,26 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     public void List_SingleSpread()
     {
         string source = """
-                using System;
-                using System.Collections.Generic;
-                class Program
+            using System;
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main()
                 {
-                    static void Main()
-                    {
-                        Report(ListNoArguments([1, 2]));
-                        Report(ListEmptyArguments([3, 4]));
-                        Report(ListWithCapacity([5, 6], 16));
-                    }
-                    static void Report<T>(List<T> list)
-                    {
-                        list.Report();
-                        Console.WriteLine("Capacity:{0}", list.Capacity);
-                    }
-                    static List<T> ListNoArguments<T>(IEnumerable<T> e) => [..e];
-                    static List<T> ListEmptyArguments<T>(IEnumerable<T> e) => [with(), ..e];
-                    static List<T> ListWithCapacity<T>(IEnumerable<T> e, int capacity) => [with(capacity: capacity), ..e];
+                    Report(ListNoArguments([1, 2]));
+                    Report(ListEmptyArguments([3, 4]));
+                    Report(ListWithCapacity([5, 6], 16));
                 }
-                """;
+                static void Report<T>(List<T> list)
+                {
+                    list.Report();
+                    Console.WriteLine("Capacity:{0}", list.Capacity);
+                }
+                static List<T> ListNoArguments<T>(IEnumerable<T> e) => [..e];
+                static List<T> ListEmptyArguments<T>(IEnumerable<T> e) => [with(), ..e];
+                static List<T> ListWithCapacity<T>(IEnumerable<T> e, int capacity) => [with(capacity: capacity), ..e];
+            }
+            """;
         var verifier = CompileAndVerify(
             [source, s_collectionExtensions],
             expectedOutput: """
@@ -4747,92 +4747,38 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     """);
         verifier.VerifyDiagnostics();
         string expectedILNoArguments = """
-                {
-                  // Code size        7 (0x7)
-                  .maxstack  1
-                  IL_0000:  ldarg.0
-                  IL_0001:  call       "System.Collections.Generic.List<T> System.Linq.Enumerable.ToList<T>(System.Collections.Generic.IEnumerable<T>)"
-                  IL_0006:  ret
-                }
-                """;
+            {
+                // Code size        7 (0x7)
+                .maxstack  1
+                IL_0000:  ldarg.0
+                IL_0001:  call       "System.Collections.Generic.List<T> System.Linq.Enumerable.ToList<T>(System.Collections.Generic.IEnumerable<T>)"
+                IL_0006:  ret
+            }
+            """;
         verifier.VerifyIL("Program.ListNoArguments<T>", expectedILNoArguments);
         verifier.VerifyIL("Program.ListEmptyArguments<T>", """
             {
-              // Code size       51 (0x33)
-              .maxstack  2
-              .locals init (System.Collections.Generic.List<T> V_0,
-                            System.Collections.Generic.IEnumerator<T> V_1,
-                            T V_2)
+              // Code size       13 (0xd)
+              .maxstack  3
               IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
-              IL_0005:  stloc.0
+              IL_0005:  dup
               IL_0006:  ldarg.0
-              IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()"
-              IL_000c:  stloc.1
-              .try
-              {
-                IL_000d:  br.s       IL_001d
-                IL_000f:  ldloc.1
-                IL_0010:  callvirt   "T System.Collections.Generic.IEnumerator<T>.Current.get"
-                IL_0015:  stloc.2
-                IL_0016:  ldloc.0
-                IL_0017:  ldloc.2
-                IL_0018:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
-                IL_001d:  ldloc.1
-                IL_001e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                IL_0023:  brtrue.s   IL_000f
-                IL_0025:  leave.s    IL_0031
-              }
-              finally
-              {
-                IL_0027:  ldloc.1
-                IL_0028:  brfalse.s  IL_0030
-                IL_002a:  ldloc.1
-                IL_002b:  callvirt   "void System.IDisposable.Dispose()"
-                IL_0030:  endfinally
-              }
-              IL_0031:  ldloc.0
-              IL_0032:  ret
+              IL_0007:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+              IL_000c:  ret
             }
             """);
         verifier.VerifyIL("Program.ListWithCapacity<T>", """
-                {
-                  // Code size       52 (0x34)
-                  .maxstack  2
-                  .locals init (System.Collections.Generic.List<T> V_0,
-                                System.Collections.Generic.IEnumerator<T> V_1,
-                                T V_2)
-                  IL_0000:  ldarg.1
-                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
-                  IL_0006:  stloc.0
-                  IL_0007:  ldarg.0
-                  IL_0008:  callvirt   "System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()"
-                  IL_000d:  stloc.1
-                  .try
-                  {
-                    IL_000e:  br.s       IL_001e
-                    IL_0010:  ldloc.1
-                    IL_0011:  callvirt   "T System.Collections.Generic.IEnumerator<T>.Current.get"
-                    IL_0016:  stloc.2
-                    IL_0017:  ldloc.0
-                    IL_0018:  ldloc.2
-                    IL_0019:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
-                    IL_001e:  ldloc.1
-                    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_0024:  brtrue.s   IL_0010
-                    IL_0026:  leave.s    IL_0032
-                  }
-                  finally
-                  {
-                    IL_0028:  ldloc.1
-                    IL_0029:  brfalse.s  IL_0031
-                    IL_002b:  ldloc.1
-                    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0031:  endfinally
-                  }
-                  IL_0032:  ldloc.0
-                  IL_0033:  ret
-                }
-                """);
+            {
+                // Code size       14 (0xe)
+                .maxstack  3
+                IL_0000:  ldarg.1
+                IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                IL_0006:  dup
+                IL_0007:  ldarg.0
+                IL_0008:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+                IL_000d:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -5058,9 +5004,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (9,17): error CS8352: Cannot use variable 'a' in this context because it may expose referenced variables outside of their declaration scope
                 //         c = new(a, out b);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "a").WithArguments("a").WithLocation(9, 17),
-                // (10,13): error CS8350: This combination of arguments to 'MyCollection<T>.MyCollection(R<T>, out R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                // (10,14): error CS8350: This combination of arguments to 'MyCollection<T>.MyCollection(R<T>, out R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         c = [with(a, out b), x, y];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "[with(a, out b), x, y]").WithArguments("MyCollection<T>.MyCollection(R<T>, out R<T>)", "a").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(a, out b)").WithArguments("MyCollection<T>.MyCollection(R<T>, out R<T>)", "a").WithLocation(10, 14),
                 // (10,19): error CS8352: Cannot use variable 'a' in this context because it may expose referenced variables outside of their declaration scope
                 //         c = [with(a, out b), x, y];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "a").WithArguments("a").WithLocation(10, 19));
@@ -5252,16 +5198,16 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
+            // (7,14): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
             //         x = [with(t), t];
-            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "[with(t), t]").WithArguments("U").WithLocation(7, 13),
-            // (8,17): error CS9335: Collection argument element must be the first element.
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "with(t)").WithArguments("U").WithLocation(7, 14),
+            // (8,17): error CS9400: 'with(...)' element must be the first element
             //         x = [t, with(t)];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17),
-            // (14,13): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
+            // (14,14): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
             //         y = [with(t), t];
-            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "[with(t), t]").WithArguments("U").WithLocation(14, 13),
-            // (15,17): error CS9335: Collection argument element must be the first element.
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "with(t)").WithArguments("U").WithLocation(14, 14),
+            // (15,17): error CS9400: 'with(...)' element must be the first element
             //         y = [t, with(t)];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(15, 17));
     }
@@ -5866,9 +5812,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (7,13): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[]").WithLocation(7, 13),
-            // (8,13): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+            // (8,14): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'MyCollection.MyCollection(__arglist)'
             //         c = [with()];
-            Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(8, 13));
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("__arglist", "MyCollection.MyCollection(__arglist)").WithLocation(8, 14));
     }
 
     [Fact]
@@ -7244,77 +7190,35 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             case "with(), ":
                 expectedIL = """
                     {
-                      // Code size       39 (0x27)
-                      .maxstack  2
-                      .locals init (System.Collections.Generic.List<T> V_0,
-                                    T[] V_1,
-                                    int V_2,
-                                    T V_3)
-                      IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
-                      IL_0005:  stloc.0
-                      IL_0006:  ldarg.0
-                      IL_0007:  stloc.1
-                      IL_0008:  ldc.i4.0
-                      IL_0009:  stloc.2
-                      IL_000a:  br.s       IL_001f
-                      IL_000c:  ldloc.1
-                      IL_000d:  ldloc.2
-                      IL_000e:  ldelem     "T"
-                      IL_0013:  stloc.3
-                      IL_0014:  ldloc.0
-                      IL_0015:  ldloc.3
-                      IL_0016:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
-                      IL_001b:  ldloc.2
-                      IL_001c:  ldc.i4.1
-                      IL_001d:  add
-                      IL_001e:  stloc.2
-                      IL_001f:  ldloc.2
-                      IL_0020:  ldloc.1
-                      IL_0021:  ldlen
-                      IL_0022:  conv.i4
-                      IL_0023:  blt.s      IL_000c
-                      IL_0025:  ldloc.0
-                      IL_0026:  ret
+                      // Code size       15 (0xf)
+                      .maxstack  3
+                      .locals init (T[] V_0)
+                      IL_0000:  ldarg.0
+                      IL_0001:  stloc.0
+                      IL_0002:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                      IL_0007:  dup
+                      IL_0008:  ldloc.0
+                      IL_0009:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+                      IL_000e:  ret
                     }
                     """;
                 break;
             case "with(3), ":
                 expectedIL = """
-                        {
-                          // Code size       40 (0x28)
-                          .maxstack  2
-                          .locals init (System.Collections.Generic.List<T> V_0,
-                                        T[] V_1,
-                                        int V_2,
-                                        T V_3)
-                          IL_0000:  ldc.i4.3
-                          IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
-                          IL_0006:  stloc.0
-                          IL_0007:  ldarg.0
-                          IL_0008:  stloc.1
-                          IL_0009:  ldc.i4.0
-                          IL_000a:  stloc.2
-                          IL_000b:  br.s       IL_0020
-                          IL_000d:  ldloc.1
-                          IL_000e:  ldloc.2
-                          IL_000f:  ldelem     "T"
-                          IL_0014:  stloc.3
-                          IL_0015:  ldloc.0
-                          IL_0016:  ldloc.3
-                          IL_0017:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
-                          IL_001c:  ldloc.2
-                          IL_001d:  ldc.i4.1
-                          IL_001e:  add
-                          IL_001f:  stloc.2
-                          IL_0020:  ldloc.2
-                          IL_0021:  ldloc.1
-                          IL_0022:  ldlen
-                          IL_0023:  conv.i4
-                          IL_0024:  blt.s      IL_000d
-                          IL_0026:  ldloc.0
-                          IL_0027:  ret
-                        }
-                        """;
+                    {
+                        // Code size       16 (0x10)
+                        .maxstack  3
+                        .locals init (T[] V_0)
+                        IL_0000:  ldarg.0
+                        IL_0001:  stloc.0
+                        IL_0002:  ldc.i4.3
+                        IL_0003:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                        IL_0008:  dup
+                        IL_0009:  ldloc.0
+                        IL_000a:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+                        IL_000f:  ret
+                    }
+                    """;
                 break;
             default:
                 expectedIL = """
@@ -7513,12 +7417,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (2,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [];
             Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(2, 5),
-            // (3,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+            // (3,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [with()];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with()]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 5),
-            // (5,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with()").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 6),
+            // (5,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 5));
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 6));
     }
 
     [Fact]
@@ -7546,9 +7450,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
         comp.VerifyEmitDiagnostics(
-            // (5,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection()'.
+            // (5,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection()'.
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection()").WithLocation(5, 5));
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection()").WithLocation(5, 6));
     }
 
     [Fact]
@@ -7579,12 +7483,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (2,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [];
             Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(2, 5),
-            // (3,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+            // (3,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [with()];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with()]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 5),
-            // (5,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with()").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 6),
+            // (5,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 5),
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 6),
             // (9,25): error CS9224: Method 'MyCollection<T>.MyCollection()' cannot be less visible than the member with params collection 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
             //     public MyCollection(params MyCollection<T> other) { _list = new(other); }
             Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection<T> other").WithArguments("MyCollection<T>.MyCollection()", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(9, 25));
@@ -7621,12 +7525,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (2,5): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
             // c = [];
             Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[]").WithLocation(2, 5),
-            // (3,5): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+            // (3,6): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int>.MyCollection(int, params MyCollection<int>)'
             // c = [with()];
-            Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(3, 5),
-            // (4,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(T, params MyCollection<T>)'.
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("x", "MyCollection<int>.MyCollection(int, params MyCollection<int>)").WithLocation(3, 6),
+            // (4,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(T, params MyCollection<T>)'.
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(T, params MyCollection<T>)").WithLocation(4, 5),
+            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(T, params MyCollection<T>)").WithLocation(4, 6),
             // (8,30): error CS9228: Non-array params collection type must have an applicable constructor that can be called with no arguments.
             //     public MyCollection(T x, params MyCollection<T> y)
             Diagnostic(ErrorCode.ERR_ParamsCollectionMissingConstructor, "params MyCollection<T> y").WithLocation(8, 30));
