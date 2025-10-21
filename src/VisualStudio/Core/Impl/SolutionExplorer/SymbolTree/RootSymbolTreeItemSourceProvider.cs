@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -189,6 +188,8 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         if (item.CanonicalName is not string currentFilePath)
             return null;
 
+        // We only support this for real files that we'll then have roslyn Documents for.  All the other
+        // things in a project (like folders, nested projects, etc) are not supported.
         if (!IsFileOnDisk(currentFilePath))
             return null;
 
