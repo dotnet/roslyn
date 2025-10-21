@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter
-                && thisParam.Type.IsValidInExtensionParameterType())
+                && !thisParam.Type.IsValidInExtensionParameterType())
             {
                 return false;
             }
