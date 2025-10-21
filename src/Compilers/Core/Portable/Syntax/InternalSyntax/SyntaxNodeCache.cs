@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Roslyn.Utilities;
 
 #if STATS
@@ -127,6 +128,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private const int CacheSize = 1 << CacheSizeBits;
         private const int CacheMask = CacheSize - 1;
 
+        internal static int CacheChecks;
+        internal static int CacheHits;
+        internal static int CacheCollisions;
+        internal static int CacheCollisionsWithSameKind;
+
         /// <summary>
         /// Simply array indexed by the hash of the cached node.  Note that unlike a typical dictionary/hashtable, this
         /// does not exercise any form of collision resolution.  If two different nodes hash to the same index, the
@@ -200,6 +206,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             if (CanBeCached(child1))
             {
+                Interlocked.Increment(ref CacheChecks);
                 GreenStats.ItemCacheable();
 
                 // Determine the hash for the node being created, given its kind, flags, and optional single child. Then
@@ -212,8 +219,15 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 var e = s_cache[h & CacheMask];
                 if (IsCacheEquivalent(e, kind, flags, child1))
                 {
+                    Interlocked.Increment(ref CacheHits);
                     GreenStats.CacheHit();
                     return e;
+                }
+                else if (e != null)
+                {
+                    Interlocked.Increment(ref CacheCollisions);
+                    if (e.RawKind == kind)
+                        Interlocked.Increment(ref CacheCollisionsWithSameKind);
                 }
             }
             else
@@ -233,14 +247,22 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             if (CanBeCached(child1, child2))
             {
+                Interlocked.Increment(ref CacheChecks);
                 GreenStats.ItemCacheable();
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2);
                 var e = s_cache[h & CacheMask];
                 if (IsCacheEquivalent(e, kind, flags, child1, child2))
                 {
+                    Interlocked.Increment(ref CacheHits);
                     GreenStats.CacheHit();
                     return e;
+                }
+                else if (e != null)
+                {
+                    Interlocked.Increment(ref CacheCollisions);
+                    if (e.RawKind == kind)
+                        Interlocked.Increment(ref CacheCollisionsWithSameKind);
                 }
             }
             else
@@ -260,14 +282,22 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             if (CanBeCached(child1, child2, child3))
             {
+                Interlocked.Increment(ref CacheChecks);
                 GreenStats.ItemCacheable();
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2, child3);
                 var e = s_cache[h & CacheMask];
                 if (IsCacheEquivalent(e, kind, flags, child1, child2, child3))
                 {
+                    Interlocked.Increment(ref CacheHits);
                     GreenStats.CacheHit();
                     return e;
+                }
+                else if (e != null)
+                {
+                    Interlocked.Increment(ref CacheCollisions);
+                    if (e.RawKind == kind)
+                        Interlocked.Increment(ref CacheCollisionsWithSameKind);
                 }
             }
             else
@@ -338,7 +368,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 node.SlotCount <= MaxCachedChildNum;
         }
 
-        private static int GetCacheHash(GreenNode node)
+        /// <summary>
+        /// Internal for testing purposes only.  Do not use outside of this type or tests.
+        /// </summary>
+        internal static int GetCacheHash(GreenNode node)
         {
             Debug.Assert(IsCacheable(node));
 
