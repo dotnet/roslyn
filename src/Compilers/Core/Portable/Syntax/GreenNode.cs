@@ -999,6 +999,8 @@ namespace Microsoft.CodeAnalysis
 
             return this.RawKind == kind &&
                 this.Flags == flags &&
+                // TODO(cyrusn): Checking SlotCount here seems redundant.  As we have validated that the 'kind' matches
+                // whatever kind we are, and that kind has a fixed slot count.
                 this.SlotCount == 1 &&
                 this.GetSlot(0) == child1;
         }

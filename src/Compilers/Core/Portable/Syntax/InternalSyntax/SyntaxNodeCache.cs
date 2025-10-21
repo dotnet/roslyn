@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -15,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     /// <summary>
     /// Provides caching functionality for green nonterminals with up to 3 children.
+    /// 
     /// Example:
     ///     When constructing a node with given kind, flags, child1 and child2, we can look up 
     ///     in the cache whether we already have a node that contains same kind, flags, 
@@ -38,8 +37,21 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     ///     We only consider "normal" nodes to be cacheable. 
     ///     Nodes with diagnostics/annotations/directives/skipped, etc... have more complicated identity 
     ///     and are not likely to be repetitive.
-    ///     
     /// </summary>
+    /// <remarks>
+    /// The use of <see cref="GreenNode.RawKind"/>, <see cref="GreenNode.NodeFlags"/> (and any provided child nodes)
+    /// ensures during lookup that we only return a node that is identical in all relevant aspects to the node that
+    /// we're about to create otherwise.  This is a brittle guarantee.  However, given how locked down green nodes are,
+    /// this seems acceptable for now.  Great care needs to be taken if new properties are added to green nodes that
+    /// would affect their identity.
+    /// <para/>
+    /// Only nodes created through SyntaxFactory methods are cached.  Nodes created directly through their constructors
+    /// are not cached.  This is fairly intuitive as a constructor would not be able to somehow return some other
+    /// instance different than the one being constructed.  A subtle aspect of this though is that this is what ensures
+    /// that nodes with diagnostics or annotations on them are not cached.  These nodes are created starting with
+    /// another node and forking it to add diagnostics/annotations.  This forking always calls through a constructor and
+    /// not a factory method.  And as such, never comes through here.
+    /// </remarks>
     internal class GreenStats
     {
         // TODO: remove when done tweaking this cache.
@@ -114,6 +126,13 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private const int CacheSize = 1 << CacheSizeBits;
         private const int CacheMask = CacheSize - 1;
 
+        /// <summary>
+        /// Simply array indexed by the hash of the cached node.  Note that unlike a typical dictionary/hashtable, this
+        /// does not exercise any form of collision resolution.  If two different nodes hash to the same index, the
+        /// latter will overwrite the former.  This is acceptable since this is just an opportunistic cache.  Reads from
+        /// the cache validate that the node they get back is actually the one they were looking for.   See the comments
+        /// in <see cref="TryGetNode(int, GreenNode?, out int)"/> for more details.
+        /// </summary>
         private static readonly GreenNode[] s_cache = new GreenNode[CacheSize];
 
         internal static void AddNode(GreenNode node, int hash)
@@ -182,6 +201,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
                 GreenStats.ItemCacheable();
 
+                // Determine the hash for the node being created, given its kind, flags, and optional single child. Then
+                // grab out a potential cached node from the cache based on that hash.  Note that this may not actually
+                // be a viable match due to potential hash collisions, where we have 'last one wins' semantics.  So if
+                // we do see a node in the cache, we have to validate that it is actually equivalent to the the data
+                // being used populate the cache entry.  This is what IsCacheEquivalent is for.  It allows us to check
+                // that the node already there has that same kind, flags, and the same child (by reference).
                 int h = hash = GetCacheHash(kind, flags, child1);
                 var e = s_cache[h & CacheMask];
                 if (e != null && e.IsCacheEquivalent(kind, flags, child1))
