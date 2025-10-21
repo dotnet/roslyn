@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1631,6 +1632,52 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 Initializer:
                   null
             """);
+
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().Single(), semanticModel);
+        ControlFlowGraphVerifier.VerifyGraph(compilation, """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.IList<System.Int32> x] [System.Collections.Generic.IList<System.Int32> y]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (2)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: 'x = [with(), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: 'x = [with(), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(), 1, 2, 3]')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
+            """, graph, symbol);
     }
 
     [Fact]

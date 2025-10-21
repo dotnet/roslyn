@@ -379,6 +379,174 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                  Initializer:
                    null
            """);
+
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().ToArray()[1], semanticModel);
+        ControlFlowGraphVerifier.VerifyGraph(compilation, """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [MyList<System.Int32> list1] [MyList<System.Int32> list2] [MyList<System.Int32> list3] [MyList<System.Int32> list4]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (5)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list1 = [with(), 1]')
+                          Left:
+                            ILocalReferenceOperation: list1 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list1 = [with(), 1]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: '[with(), 1]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(), 1]')
+                                  Elements(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list2 = [wi ... ty: 10), 2]')
+                          Left:
+                            ILocalReferenceOperation: list2 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list2 = [wi ... ty: 10), 2]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: '[with(capacity: 10), 2]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capacity: 10), 2]')
+                                  Elements(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list3 = [wi ... ustom"), 3]')
+                          Left:
+                            ILocalReferenceOperation: list3 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list3 = [wi ... ustom"), 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: '[with(name: ... ustom"), 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(name: ... ustom"), 3]')
+                                  Elements(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list4 = [wi ... "both"), 4]')
+                          Left:
+                            ILocalReferenceOperation: list4 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list4 = [wi ... "both"), 4]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: '[with(capac ... "both"), 4]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capac ... "both"), 4]')
+                                  Elements(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... apacity}");')
+                          Expression:
+                            IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... Capacity}")')
+                              Instance Receiver:
+                                null
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '$"{list1.Na ... .Capacity}"')
+                                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{list1.Na ... .Capacity}"')
+                                      Parts(15):
+                                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{list1.Name}')
+                                            Expression:
+                                              IPropertyReferenceOperation: System.String MyList<System.Int32>.Name { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'list1.Name')
+                                                Instance Receiver:
+                                                  ILocalReferenceOperation: list1 (OperationKind.LocalReference, Type: MyList<System.Int32>) (Syntax: 'list1')
+                                            Alignment:
+                                              null
+                                            FormatString:
+                                              null
+                                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '-')
+                                            Text:
+                                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "-", IsImplicit) (Syntax: '-')
+                                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{list1.Capacity}')
+                                            Expression:
+                                              IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System.Int32>.Capacity { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'list1.Capacity')
+                                                Instance Receiver:
+                                                  ILocalReferenceOperation: list1 (OperationKind.LocalReference, Type: MyList<System.Int32>) (Syntax: 'list1')
+                                            Alignment:
+                                              null
+                                            FormatString:
+                                              null
+                                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ',')
+                                            Text:
+                                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ",", IsImplicit) (Syntax: ',')
+                                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{list2.Name}')
+                                            Expression:
+                                              IPropertyReferenceOperation: System.String MyList<System.Int32>.Name { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'list2.Name')
+                                                Instance Receiver:
+                                                  ILocalReferenceOperation: list2 (OperationKind.LocalReference, Type: MyList<System.Int32>) (Syntax: 'list2')
+                                            Alignment:
+                                              null
+                                            FormatString:
+                                              null
+                                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '-')
+                                            Text:
+                                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "-", IsImplicit) (Syntax: '-')
+                                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{list2.Capacity}')
+                                            Expression:
+                                              IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System.Int32>.Capacity { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'list2.Capacity')
+                                                Instance Receiver:
+                                                  ILocalReferenceOperation: list2 (OperationKind.LocalReference, Type: MyList<System.Int32>) (Syntax: 'list2')
+                                            Alignment:
+                                              null
+                                            FormatString:
+                                              null
+                                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ',')
+                                            Text:
+                                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ",", IsImplicit) (Syntax: ',')
+                                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{list3.Name}')
+                                            Expression:
+                                              IPropertyReferenceOperation: System.String MyList<System.Int32>.Name { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'list3.Name')
+                                                Instance Receiver:
+                                                  ILocalReferenceOperation: list3 (OperationKind.LocalReference, Type: MyList<System.Int32>) (Syntax: 'list3')
+                                            Alignment:
+                                              null
+                                            FormatString:
+                                              null
+                                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '-')
+                                            Text:
+                                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "-", IsImplicit) (Syntax: '-')
+                                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{list3.Capacity}')
+                                            Expression:
+                                              IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System.Int32>.Capacity { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'list3.Capacity')
+                                                Instance Receiver:
+                                                  ILocalReferenceOperation: list3 (OperationKind.LocalReference, Type: MyList<System.Int32>) (Syntax: 'list3')
+                                            Alignment:
+                                              null
+                                            FormatString:
+                                              null
+                                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ',')
+                                            Text:
+                                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ",", IsImplicit) (Syntax: ',')
+                                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{list4.Name}')
+                                            Expression:
+                                              IPropertyReferenceOperation: System.String MyList<System.Int32>.Name { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'list4.Name')
+                                                Instance Receiver:
+                                                  ILocalReferenceOperation: list4 (OperationKind.LocalReference, Type: MyList<System.Int32>) (Syntax: 'list4')
+                                            Alignment:
+                                              null
+                                            FormatString:
+                                              null
+                                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '-')
+                                            Text:
+                                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "-", IsImplicit) (Syntax: '-')
+                                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{list4.Capacity}')
+                                            Expression:
+                                              IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System.Int32>.Capacity { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'list4.Capacity')
+                                                Instance Receiver:
+                                                  ILocalReferenceOperation: list4 (OperationKind.LocalReference, Type: MyList<System.Int32>) (Syntax: 'list4')
+                                            Alignment:
+                                              null
+                                            FormatString:
+                                              null
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
+            """, graph, symbol);
     }
 
     #endregion
