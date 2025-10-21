@@ -36,6 +36,7 @@ internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFact
             // Initialize method in the queue itself is resilient to being called twice, so it doesn't actually do
             // any harm.
             semanticTokensRefreshQueue.Initialize(clientCapabilities);
+            semanticTokensRefreshQueue.AllowRazorRefresh = true;
         }
 
         public Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken)
