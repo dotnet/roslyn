@@ -2639,7 +2639,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 }
             }
             """;
-        var comp = CompileAndVerify(source,  expectedOutput: IncludeExpectedOutput("42")).VerifyDiagnostics().VerifyIL("Program.Main", """
+        var comp = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42")).VerifyDiagnostics().VerifyIL("Program.Main", """
             {
               // Code size       58 (0x3a)
               .maxstack  2
