@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the locations where the symbol was originally defined, either in source or
         /// metadata. Some symbols (for example, partial types such as classes, structs, and interfaces) may be defined in more than one
-        /// location. Note that for partial members (methods, properties, events), this property returns
+        /// location. Note that for partial members (such as methods, properties, and events), this property returns
         /// only one location. To get all locations for a partial member, use the <c>PartialDefinitionPart</c> and
         /// <c>PartialImplementationPart</c> properties on <see cref="IMethodSymbol"/>, <see cref="IPropertySymbol"/>, or
         /// <see cref="IEventSymbol"/>.
