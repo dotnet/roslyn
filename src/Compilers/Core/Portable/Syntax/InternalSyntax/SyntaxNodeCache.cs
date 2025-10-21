@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     /// <summary>
     /// Provides caching functionality for green nonterminals with up to 3 children.
-    /// 
     /// Example:
     ///     When constructing a node with given kind, flags, child1 and child2, we can look up 
     ///     in the cache whether we already have a node that contains same kind, flags, 
