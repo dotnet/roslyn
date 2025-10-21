@@ -361,6 +361,8 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         Assert.Equal("MyList", constructor1.ContainingType.Name);
 
         Assert.True(constructor1.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }, { Name: "name", Type.SpecialType: SpecialType.System_String }]);
+
+
     }
 
     #endregion

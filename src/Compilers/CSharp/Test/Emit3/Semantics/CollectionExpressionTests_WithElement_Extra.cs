@@ -1516,8 +1516,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
-        var semanticModel = verifier.Compilation.GetSemanticModel(verifier.Compilation.SyntaxTrees.ToArray()[1]);
-        var withElements = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType<WithElementSyntax>().ToArray();
+        var compilation = (CSharpCompilation)verifier.Compilation;
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.ToArray()[1]);
+        var root = semanticModel.SyntaxTree.GetRoot();
+        var withElements = root.DescendantNodes().OfType<WithElementSyntax>().ToArray();
         Assert.Equal(2, withElements.Length);
 
         var method1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
@@ -1532,6 +1534,33 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         Assert.True(method1.Parameters is [{ Name: "items", Type.Name: "ReadOnlySpan" }]);
         Assert.True(method2.Parameters is [{ Name: "arg", Type.Name: "T" }, { Name: "items", Type.Name: "ReadOnlySpan" }]);
+
+        var arrowExpressions = root.DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ToArray();
+        var operation1 = semanticModel.GetOperation(arrowExpressions[0]);
+        VerifyOperationTree(compilation, operation1, """
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(), t]')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(), t]')
+                  ReturnedValue:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(), t]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(), t]')
+                          Elements(1):
+                              IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+            """);
+        var operation2 = semanticModel.GetOperation(arrowExpressions[1]);
+        VerifyOperationTree(compilation, operation2, """
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(t), t]')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(t), t]')
+                  ReturnedValue:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(t), t]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(T arg, System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(t), t]')
+                          Elements(1):
+                              IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+            """);
+
     }
 
     [Fact]
