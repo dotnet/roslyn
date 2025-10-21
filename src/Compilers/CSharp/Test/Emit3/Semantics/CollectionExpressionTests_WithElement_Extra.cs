@@ -1535,6 +1535,35 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
+    public void IList_With_SemanticModel()
+    {
+        var source = """
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main()
+                {
+                    IList<int> x = [with(), 1, 2, 3];
+                    IList<int> y = [with(capacity: 6), 1, 2, 3];
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        verifier.VerifyDiagnostics();
+
+        var semanticModel = verifier.Compilation.GetSemanticModel(verifier.Compilation.SyntaxTrees.Single());
+        var withElements = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType<WithElementSyntax>().ToArray();
+        Assert.Equal(2, withElements.Length);
+
+        var method1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
+        var method2 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[1]).Symbol;
+
+        Assert.True(method1 is { MethodKind: MethodKind.Constructor, ContainingType.Name: "List", Parameters: [] });
+        Assert.True(method2 is { MethodKind: MethodKind.Constructor, ContainingType.Name: "List", Parameters: [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }] });
+    }
+
+    [Fact]
     public void CollectionBuilder_PrivateMethod()
     {
         string sourceA = """
