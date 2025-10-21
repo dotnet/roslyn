@@ -47047,5 +47047,28 @@ class Program
             comp.VerifyDiagnostics(
                 );
         }
+
+        [Fact]
+        public void RequiredProperties()
+        {
+            var source = """
+                using System.Collections.Generic;
+            
+                class MyList<T> : List<T>
+                {
+                    public int RequiredProp { get; init; }
+                }
+            
+                class C
+                {
+                    void M()
+                    {
+                        MyList<int> list = [];
+                    }
+                }
+                """;
+
+            CreateCompilation([source, IsExternalInitTypeDefinition]).VerifyDiagnostics();
+        }
     }
 }

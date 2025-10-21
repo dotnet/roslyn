@@ -305,6 +305,31 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
+    public void WithElement_RequiredProperties()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public int RequiredProp { get; init; }
+
+                public MyList(int capacity) { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with(capacity: 10)];
+                }
+            }
+            """;
+
+        CreateCompilation([source, IsExternalInitTypeDefinition]).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void WithElement_OptionalParameters()
     {
         var source = """
