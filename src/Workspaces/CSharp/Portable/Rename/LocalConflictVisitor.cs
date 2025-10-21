@@ -112,15 +112,19 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
         // Lambdas create a new scope. C# allows variables in the outer scope
-        // to have the same name as lambda parameters.
-        // We don't track lambda parameters to prevent false conflicts.
+        // to have the same name as lambda parameters, so we don't track the
+        // parameter to prevent false cross-scope conflicts. However, we still
+        // visit the body to detect conflicts within the lambda.
+        Visit(node.Body);
     }
 
     public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
     {
         // Lambdas create a new scope. C# allows variables in the outer scope
-        // to have the same name as lambda parameters.
-        // We don't track lambda parameters to prevent false conflicts.
+        // to have the same name as lambda parameters, so we don't track the
+        // parameters to prevent false cross-scope conflicts. However, we still
+        // visit the body to detect conflicts within the lambda.
+        Visit(node.Body);
     }
 
     public override void VisitQueryExpression(QueryExpressionSyntax node)
@@ -182,10 +186,12 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
     {
-        // Local functions create a new scope. C# allows variables in the outer scope 
-        // to have the same name as parameters or variables in the local function.
-        // We don't track identifiers from local functions to prevent false conflicts.
-        // The local function body will be visited separately if needed.
+        // Local functions create a new scope. C# allows variables in the outer scope
+        // to have the same name as parameters or variables in the local function, so
+        // we don't track the parameters to prevent false cross-scope conflicts.
+        // However, we still visit the body to detect conflicts within the local function.
+        Visit(node.Body);
+        Visit(node.ExpressionBody);
     }
 
     public override void VisitSwitchStatement(SwitchStatementSyntax node)
