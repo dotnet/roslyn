@@ -106,7 +106,7 @@ class C
                 }
                 """;
 
-            CompileAndVerify(source, expectedOutput: "NullReferenceException");
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -131,7 +131,7 @@ class C
                 }
                 """;
 
-            CompileAndVerify(source, expectedOutput: "NullReferenceException");
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -157,7 +157,7 @@ class C
                 }
                 """;
 
-            CompileAndVerify(source, expectedOutput: "NullReferenceException");
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -183,7 +183,7 @@ class C
                 }
                 """;
 
-            CompileAndVerify(source, expectedOutput: "NullReferenceException");
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -208,7 +208,7 @@ class C
                 }
                 """;
 
-            CompileAndVerify(source, expectedOutput: "NullReferenceException");
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -233,7 +233,7 @@ class C
                 }
                 """;
 
-            CompileAndVerify(source, expectedOutput: "NullReferenceException");
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -422,7 +422,7 @@ class C
                 }
                 """;
 
-            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "NullReferenceException");
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -447,7 +447,7 @@ class C
                 }
                 """;
 
-            CompileAndVerify(source, expectedOutput: "NullReferenceException");
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -528,7 +528,7 @@ class C
                 }
                 """;
 
-            CompileAndVerify(source, expectedOutput: "NullReferenceException");
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
