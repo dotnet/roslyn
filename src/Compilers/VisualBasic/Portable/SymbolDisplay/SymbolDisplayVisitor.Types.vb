@@ -283,7 +283,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If symbol.Arity > 0 Then
                     Dim suffix As String = MetadataHelpers.GetAritySuffix(symbol.Arity)
                     Dim vbNamedType = TryCast(symbol, NamedTypeSymbol)
-                    Debug.Assert(If(vbNamedType?.MangleName, True) = True)
 
                     If If(vbNamedType IsNot Nothing, vbNamedType.MangleName, symbol.MetadataName.Equals(symbol.Name + suffix)) Then
                         Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, Nothing,

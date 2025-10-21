@@ -405,7 +405,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.Arity > 0)
                 {
                     string suffix = MetadataHelpers.GetAritySuffix(symbol.Arity);
-                    Debug.Assert(underlyingTypeSymbol?.MangleName != false);
 
                     if (underlyingTypeSymbol is not null ? underlyingTypeSymbol.MangleName : (symbol.MetadataName == symbol.Name + suffix))
                     {
