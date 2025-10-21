@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, _location, Name);
                 }
                 else if (parameter0RefKind is RefKind.In or RefKind.RefReadOnlyParameter
-                    && (!parameter0Type.Type.IsValueType || parameter0Type.TypeKind == TypeKind.TypeParameter))
+                    && !parameter0Type.Type.IsValidInExtensionParameterType())
                 {
                     diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, _location, Name);
                 }

@@ -324,6 +324,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public static bool IsValidInExtensionParameterType(this TypeSymbol type)
+        {
+            return type is not { IsValueType: true, TypeKind: not TypeKind.TypeParameter };
+        }
+
         public static bool IsInterfaceType(this TypeSymbol type)
         {
             RoslynDebug.Assert((object)type != null);
