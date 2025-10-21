@@ -7889,4 +7889,25 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 }
                 """);
     }
+
+    [Fact]
+    public void WithOutsideCollectionIsAnInvocation()
+    {
+        var source = """
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    N(with(capacity: 0), 1, 2, 3);
+                }
+
+                void N(params List<int> list) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,11): error CS0103: The name 'with' does not exist in the current context
+            //         N(with(capacity: 0), 1, 2, 3);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(6, 11));
+    }
 }
