@@ -34,12 +34,7 @@ internal abstract class AbstractJsonDetectionCodeFixProvider : SyntaxEditorBased
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                FeaturesResources.Enable_all_JSON_editor_features,
-                GetDocumentUpdater(context),
-                nameof(FeaturesResources.Enable_all_JSON_editor_features)),
-            context.Diagnostics);
+        RegisterCodeFix(context, FeaturesResources.Enable_all_JSON_editor_features, nameof(FeaturesResources.Enable_all_JSON_editor_features));
         return Task.CompletedTask;
     }
 

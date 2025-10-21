@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns the arity of this method, or the number of type parameters it takes.
+        /// Returns the arity of this method. Arity is the number of type parameters a method declares.
         /// A non-generic method has zero arity.
         /// </summary>
         public abstract int Arity { get; }

@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {
-                            // Don't optimize if the node has an explicit `with(...)` in it.  The code is being explicit
-                            // about which constructor to use and we should respect that.
+                            // Don't optimize collection construction if an explicit `with(...)` is present.
+                            // However, adding elements after construction can still be optimized in that case.
                             //
                             // Note this falls out from the original collection expression specification which says:
                             //
