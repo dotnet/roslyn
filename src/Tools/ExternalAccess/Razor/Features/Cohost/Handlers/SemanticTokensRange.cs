@@ -13,18 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers
 {
     internal static class SemanticTokensRange
     {
-        public static void RegisterRefresh(RazorCohostRequestContext requestContext)
-        {
-            var refreshQueue = requestContext.GetRequiredService<SemanticTokensRefreshQueue>();
-            refreshQueue.AllowRazorRefresh = true;
-        }
-
-        public static Task TryEnqueueRefreshComputationAsync(RazorCohostRequestContext requestContext, Project project, CancellationToken cancellationToken)
-        {
-            var refreshQueue = requestContext.GetRequiredService<SemanticTokensRefreshQueue>();
-            return refreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken);
-        }
-
         public static Task<int[]> GetSemanticTokensAsync(
             Document document,
             ImmutableArray<LinePositionSpan> spans,
