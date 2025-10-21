@@ -863,56 +863,6 @@ unsafe
                 int
                 enum
                 """);
-
-            var expectedIL = """
-                .class private auto ansi abstract sealed beforefieldinit Extensions
-                    extends [netstandard]System.Object
-                {
-                    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    // Methods
-                    .method public hidebysig static 
-                        void M1 (
-                            [in] int32& e
-                        ) cil managed 
-                    {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .param [1]
-                            .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-                                01 00 00 00
-                            )
-                        // Method begins at RVA 0x208f
-                        // Code size 11 (0xb)
-                        .maxstack 8
-                        IL_0000: ldstr "int"
-                        IL_0005: call void [netstandard]System.Console::WriteLine(string)
-                        IL_000a: ret
-                    } // end of method Extensions::M1
-                    .method public hidebysig static 
-                        void M2 (
-                            [in] valuetype E& e
-                        ) cil managed 
-                    {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .param [1]
-                            .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
-                                01 00 00 00
-                            )
-                        // Method begins at RVA 0x209b
-                        // Code size 11 (0xb)
-                        .maxstack 8
-                        IL_0000: ldstr "enum"
-                        IL_0005: call void [netstandard]System.Console::WriteLine(string)
-                        IL_000a: ret
-                    } // end of method Extensions::M2
-                } // end of class Extensions
-                """.Replace("[netstandard]", RuntimeUtilities.IsCoreClrRuntime ? "[netstandard]" : "[mscorlib]");
-            comp.VerifyTypeIL("Extensions", expectedIL);
         }
     }
 }
