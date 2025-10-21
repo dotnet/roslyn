@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     /// <summary>
     /// Provides caching functionality for green nonterminals with up to 3 children.
-    /// 
     /// Example:
     ///     When constructing a node with given kind, flags, child1 and child2, we can look up 
     ///     in the cache whether we already have a node that contains same kind, flags, 
@@ -128,11 +127,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private const int CacheSize = 1 << CacheSizeBits;
         private const int CacheMask = CacheSize - 1;
 
-        internal static int CacheChecks;
-        internal static int CacheHits;
-        internal static int CacheCollisions;
-        internal static int CacheCollisionsWithSameKind;
-
         /// <summary>
         /// Simply array indexed by the hash of the cached node.  Note that unlike a typical dictionary/hashtable, this
         /// does not exercise any form of collision resolution.  If two different nodes hash to the same index, the
@@ -206,7 +200,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             if (CanBeCached(child1))
             {
-                Interlocked.Increment(ref CacheChecks);
                 GreenStats.ItemCacheable();
 
                 // Determine the hash for the node being created, given its kind, flags, and optional single child. Then
@@ -219,15 +212,8 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 var e = s_cache[h & CacheMask];
                 if (IsCacheEquivalent(e, kind, flags, child1))
                 {
-                    Interlocked.Increment(ref CacheHits);
                     GreenStats.CacheHit();
                     return e;
-                }
-                else if (e != null)
-                {
-                    Interlocked.Increment(ref CacheCollisions);
-                    if (e.RawKind == kind)
-                        Interlocked.Increment(ref CacheCollisionsWithSameKind);
                 }
             }
             else
@@ -247,22 +233,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             if (CanBeCached(child1, child2))
             {
-                Interlocked.Increment(ref CacheChecks);
                 GreenStats.ItemCacheable();
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2);
                 var e = s_cache[h & CacheMask];
                 if (IsCacheEquivalent(e, kind, flags, child1, child2))
                 {
-                    Interlocked.Increment(ref CacheHits);
                     GreenStats.CacheHit();
                     return e;
-                }
-                else if (e != null)
-                {
-                    Interlocked.Increment(ref CacheCollisions);
-                    if (e.RawKind == kind)
-                        Interlocked.Increment(ref CacheCollisionsWithSameKind);
                 }
             }
             else
@@ -282,22 +260,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             if (CanBeCached(child1, child2, child3))
             {
-                Interlocked.Increment(ref CacheChecks);
                 GreenStats.ItemCacheable();
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2, child3);
                 var e = s_cache[h & CacheMask];
                 if (IsCacheEquivalent(e, kind, flags, child1, child2, child3))
                 {
-                    Interlocked.Increment(ref CacheHits);
                     GreenStats.CacheHit();
                     return e;
-                }
-                else if (e != null)
-                {
-                    Interlocked.Increment(ref CacheCollisions);
-                    if (e.RawKind == kind)
-                        Interlocked.Increment(ref CacheCollisionsWithSameKind);
                 }
             }
             else
