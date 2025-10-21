@@ -1332,6 +1332,33 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
+    public void WithElement_PrivateConstructor2()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                private MyList() { }
+                private MyList(int capacity) : base(capacity) { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with(10)];
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (13,29): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
+            //         MyList<int> list = [with(10)];
+            Diagnostic(ErrorCode.ERR_BadAccess, "with(10)").WithArguments("MyList<int>.MyList(int)").WithLocation(13, 29));
+    }
+
+    [Fact]
     public void WithElement_ProtectedConstructor()
     {
         var source = """
