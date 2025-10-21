@@ -4256,9 +4256,9 @@ public static class C
 
             var ilSource = """
                 .class public auto ansi abstract sealed beforefieldinit Extensions
-                    extends [System.Runtime]System.Object
+                    extends [mscorlib]System.Object
                 {
-                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
                         01 00 00 00
                     )
                     // Methods
@@ -4267,7 +4267,7 @@ public static class C
                             int32* ptr
                         ) cil managed 
                     {
-                        .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
                             01 00 00 00
                         )
                         // Method begins at RVA 0x2050
@@ -4280,23 +4280,8 @@ public static class C
                 } // end of class Extensions
                 """;
 
-            var comp = CreateCompilationWithIL(source, ilSource);
-            comp.VerifyEmitDiagnostics(
-                // (11,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M3' must be a concrete (non-generic) value type.
-                //     public static void M3(this ref readonly C c) { }
-                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M3").WithArguments("M3").WithLocation(11, 24),
-                // (12,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M4' must be a concrete (non-generic) value type.
-                //     public static void M4(this ref readonly I i) { }
-                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M4").WithArguments("M4").WithLocation(12, 24),
-                // (13,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M5' must be a concrete (non-generic) value type.
-                //     public static void M5(this ref readonly D d) { }
-                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M5").WithArguments("M5").WithLocation(13, 24),
-                // (14,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M6' must be a concrete (non-generic) value type.
-                //     public static void M6(this ref readonly S[] s) { }
-                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M6").WithArguments("M6").WithLocation(14, 24),
-                // (15,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M7' must be a concrete (non-generic) value type.
-                //     public static void M7<T>(this ref readonly T t) where T : struct { }
-                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24));
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }
