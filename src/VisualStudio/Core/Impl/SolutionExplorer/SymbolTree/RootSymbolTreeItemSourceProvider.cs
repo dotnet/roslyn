@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -18,6 +20,7 @@ using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -179,26 +182,14 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
         }
 
-        var hierarchy = item.HierarchyIdentity.NestedHierarchy;
-        var itemId = item.HierarchyIdentity.NestedItemID;
-
-        if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) != VSConstants.S_OK ||
-            capabilitiesObj is not string capabilities)
-        {
-            return null;
-        }
-
-        if (!capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.SourceFile)) ||
-            !capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.FileOnDisk)))
-        {
-            return null;
-        }
-
         // Important: currentFilePath is mutable state captured *AND UPDATED* in the local function  
         // OnItemPropertyChanged below.  It allows us to know the file path of the item *prior* to
         // it being changed *when* we hear the update about it having changed (since hte event doesn't
         // contain the old value).  
         if (item.CanonicalName is not string currentFilePath)
+            return null;
+
+        if (!IsFileOnDisk(currentFilePath))
             return null;
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);
@@ -211,6 +202,25 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         item.PropertyChanged += OnItemPropertyChanged;
 
         return source;
+
+        bool IsFileOnDisk(string filePath)
+        {
+            var hierarchy = item.HierarchyIdentity.NestedHierarchy;
+            var itemId = item.HierarchyIdentity.NestedItemID;
+
+            // Try to determine this through the hierarchy first, if it supports directly telling us this.
+            // Otherwise, fall back to checking the file system directly.
+            if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) == VSConstants.S_OK)
+            {
+                return capabilitiesObj is string capabilities &&
+                    (capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.SourceFile)) ||
+                     capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.FileOnDisk)));
+            }
+            else
+            {
+                return IOUtilities.PerformIO(() => File.Exists(filePath));
+            }
+        }
 
         void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
