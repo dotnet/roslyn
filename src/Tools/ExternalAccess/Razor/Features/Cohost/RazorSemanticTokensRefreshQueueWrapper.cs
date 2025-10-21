@@ -27,7 +27,7 @@ internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFact
         return new RazorSemanticTokensRefreshQueueWrapper(semanticTokensRefreshQueue);
     }
 
-    internal class RazorSemanticTokensRefreshQueueWrapper(SemanticTokensRefreshQueue semanticTokensRefreshQueue) : IRazorSemanticTokensRefreshQueue, IDisposable
+    internal class RazorSemanticTokensRefreshQueueWrapper(SemanticTokensRefreshQueue semanticTokensRefreshQueue) : IRazorSemanticTokensRefreshQueue
     {
         public void Initialize(string clientCapabilitiesString)
         {
@@ -40,10 +40,5 @@ internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFact
 
         public Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken)
             => semanticTokensRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken);
-
-        public void Dispose()
-        {
-            semanticTokensRefreshQueue.Dispose();
-        }
     }
 }
