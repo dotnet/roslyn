@@ -64,10 +64,10 @@ internal static class WorkspacePathUtilities
 
         // Get the type hierarchy (e.g., [Outer, Inner] for Outer.Inner)
         var typeHierarchy = GetTypeHierarchy(typeSymbol);
-        
+
         // Join with dots to create the expected pattern
         var fullTypeName = string.Join(".", typeHierarchy.Select(t => t.Name));
-        
+
         return fullTypeName.Equals(documentTypeName, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -79,13 +79,13 @@ internal static class WorkspacePathUtilities
     {
         var hierarchy = new List<INamedTypeSymbol>();
         var current = typeSymbol;
-        
+
         while (current is not null)
         {
             hierarchy.Insert(0, current);
             current = current.ContainingType;
         }
-        
+
         return hierarchy;
     }
 
@@ -106,11 +106,11 @@ internal static class WorkspacePathUtilities
             return null;
 
         var typeHierarchy = GetTypeHierarchy(typeSymbol);
-        
+
         // Build the new type hierarchy by replacing the renamed symbol's name
         var newTypeHierarchy = typeHierarchy.Select(t => SymbolEqualityComparer.Default.Equals(t, typeSymbol) ? newName : t.Name);
         var newDocumentTypeName = string.Join(".", newTypeHierarchy);
-        
+
         // Get the file extension from the original document
         var extension = IOUtilities.PerformIO(() => Path.GetExtension(document.Name));
         if (extension is null)

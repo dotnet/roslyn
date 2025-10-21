@@ -74,12 +74,12 @@ public static partial class Renamer
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var typeDeclarations = syntaxRoot.DescendantNodesAndSelf(n => !syntaxFacts.IsMethodBody(n)).Where(syntaxFacts.IsTypeDeclaration);
-            
+
             // First check for simple type name match (e.g., "Foo.cs" with type "Foo")
             var simpleMatch = typeDeclarations.FirstOrDefault(d => WorkspacePathUtilities.TypeNameMatchesDocumentName(document, d, syntaxFacts));
             if (simpleMatch != null)
                 return simpleMatch;
-            
+
             // Then check for nested type match (e.g., "Outer.Inner.cs" with type Inner inside Outer)
             // Only do this check if the document name contains a dot (indicating potential nested type naming)
             var documentTypeName = WorkspacePathUtilities.GetTypeNameFromDocumentName(document);
@@ -95,7 +95,7 @@ public static partial class Renamer
                     }
                 }
             }
-            
+
             return null;
         }
 
