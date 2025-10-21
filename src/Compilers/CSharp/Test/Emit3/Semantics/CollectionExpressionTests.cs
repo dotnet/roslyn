@@ -28228,6 +28228,10 @@ partial class Program
                     {
                         return () => [a, b];
                     }
+                    static Expression<Func<List<object>>> Create4()
+                    {
+                        return () => [with(capacity: 0)];
+                    }
                 }
                 """;
             var comp = CreateCompilation(source);
@@ -28240,7 +28244,10 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[1, 2]").WithLocation(17, 22),
                 // (21,22): error CS9175: An expression tree may not contain a collection expression.
                 //         return () => [a, b];
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[a, b]").WithLocation(21, 22));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[a, b]").WithLocation(21, 22),
+                // (25,22): error CS9175: An expression tree may not contain a collection expression.
+                //         return () => [with(capacity: 0)];
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[with(capacity: 0)]").WithLocation(25, 22));
         }
 
         [Fact]
