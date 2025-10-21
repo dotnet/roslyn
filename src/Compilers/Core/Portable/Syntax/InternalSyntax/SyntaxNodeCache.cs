@@ -4,7 +4,9 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.GreenNode;
 
 #if STATS
 using System.Threading;
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
                 GreenStats.ItemAdded();
 
-                Debug.Assert(node.GetCacheHash() == hash);
+                Debug.Assert(GetCacheHash(node) == hash);
 
                 var idx = hash & CacheMask;
                 s_cache[idx] = node;
@@ -150,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         private static bool CanBeCached(GreenNode? child1)
         {
-            return child1 == null || child1.IsCacheable;
+            return child1 == null || IsCacheable(child1);
         }
 
         private static bool CanBeCached(GreenNode? child1, GreenNode? child2)
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             // TODO: should use slotCount
             if (child == null || child.SlotCount == 0) return true;
 
-            int hash = child.GetCacheHash();
+            int hash = GetCacheHash(child);
             int idx = hash & CacheMask;
             return s_cache[idx] == child;
         }
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 // that the node already there has that same kind, flags, and the same child (by reference).
                 int h = hash = GetCacheHash(kind, flags, child1);
                 var e = s_cache[h & CacheMask];
-                if (e != null && e.IsCacheEquivalent(kind, flags, child1))
+                if (IsCacheEquivalent(e, kind, flags, child1))
                 {
                     GreenStats.CacheHit();
                     return e;
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2);
                 var e = s_cache[h & CacheMask];
-                if (e != null && e.IsCacheEquivalent(kind, flags, child1, child2))
+                if (IsCacheEquivalent(e, kind, flags, child1, child2))
                 {
                     GreenStats.CacheHit();
                     return e;
@@ -263,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2, child3);
                 var e = s_cache[h & CacheMask];
-                if (e != null && e.IsCacheEquivalent(kind, flags, child1, child2, child3))
+                if (IsCacheEquivalent(e, kind, flags, child1, child2, child3))
                 {
                     GreenStats.CacheHit();
                     return e;
@@ -327,6 +329,83 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             // ensure nonnegative hash
             return code & Int32.MaxValue;
+        }
+
+        private const int MaxCachedChildNum = 3;
+
+        private static bool IsCacheable(GreenNode node)
+        {
+            return ((node.Flags & NodeFlags.InheritMask) == NodeFlags.IsNotMissing) &&
+                node.SlotCount <= MaxCachedChildNum;
+        }
+
+        private static int GetCacheHash(GreenNode node)
+        {
+            Debug.Assert(IsCacheable(node));
+
+            int code = (int)(node.Flags) ^ node.RawKind;
+            int cnt = node.SlotCount;
+            for (int i = 0; i < cnt; i++)
+            {
+                var child = node.GetSlot(i);
+                if (child != null)
+                {
+                    code = Hash.Combine(RuntimeHelpers.GetHashCode(child), code);
+                }
+            }
+
+            return code & Int32.MaxValue;
+        }
+
+        private static bool IsCacheEquivalent(GreenNode? parent, int kind, NodeFlags flags, GreenNode? child1)
+        {
+            if (parent is null)
+                return false;
+
+            Debug.Assert(IsCacheable(parent));
+
+            // If the parent kind matches, the slot count must match as well.  Only if the parent kind does not match
+            // (so two different node kinds hashed to the same array location) could the slot counts differ.
+            Debug.Assert(parent.RawKind != kind || parent.SlotCount == 1);
+
+            return parent.RawKind == kind &&
+                parent.Flags == flags &&
+                parent.GetSlot(0) == child1;
+        }
+
+        private static bool IsCacheEquivalent(GreenNode? parent, int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2)
+        {
+            if (parent is null)
+                return false;
+
+            Debug.Assert(IsCacheable(parent));
+
+            // If the parent kind matches, the slot count must match as well.  Only if the parent kind does not match
+            // (so two different node kinds hashed to the same array location) could the slot counts differ.
+            Debug.Assert(parent.RawKind != kind || parent.SlotCount == 2);
+
+            return parent.RawKind == kind &&
+                parent.Flags == flags &&
+                parent.GetSlot(0) == child1 &&
+                parent.GetSlot(1) == child2;
+        }
+
+        private static bool IsCacheEquivalent(GreenNode? parent, int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2, GreenNode? child3)
+        {
+            if (parent is null)
+                return false;
+
+            Debug.Assert(IsCacheable(parent));
+
+            // If the parent kind matches, the slot count must match as well.  Only if the parent kind does not match
+            // (so two different node kinds hashed to the same array location) could the slot counts differ.
+            Debug.Assert(parent.RawKind != kind || parent.SlotCount == 2);
+
+            return parent.RawKind == kind &&
+                parent.Flags == flags &&
+                parent.GetSlot(0) == child1 &&
+                parent.GetSlot(1) == child2 &&
+                parent.GetSlot(2) == child3;
         }
     }
 }
