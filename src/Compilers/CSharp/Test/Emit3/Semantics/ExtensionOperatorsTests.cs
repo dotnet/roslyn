@@ -19776,7 +19776,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
-                //  (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
                 // (13,44): error CS0019: Operator '&&' cannot be applied to operands of type 'void*' and 'void*'
