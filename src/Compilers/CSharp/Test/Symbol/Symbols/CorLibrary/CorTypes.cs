@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
             var knownMissingInternalSpecialTypes = new HashSet<InternalSpecialType>()
             {
                 InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers,
+                InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
+                InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind,
             };
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
