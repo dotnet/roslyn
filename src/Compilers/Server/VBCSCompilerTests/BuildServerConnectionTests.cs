@@ -205,12 +205,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        [Fact]
-        public void TryCreateServer_LogsErrorWhenDotNetHostPathNotFound()
+        [Theory]
+        [InlineData(null, null, true)] // Both unset - should log warning
+        [InlineData("somepath", null, false)] // DOTNET_HOST_PATH set - no warning
+        [InlineData(null, "somepath", false)] // DOTNET_EXPERIMENTAL_HOST_PATH set - no warning
+        [InlineData("somepath", "somepath", false)] // Both set - no warning
+        public void TryCreateServer_LogsWarningWhenDotNetHostPathNotFound(string? dotnetHostPath, string? dotnetExperimentalHostPath, bool shouldLogWarning)
         {
-            // This test verifies that TryCreateServer logs a warning when DOTNET_HOST_PATH is not found
-            // We can't fully test TryCreateServer without a valid server executable, but we can test
-            // the logging behavior by creating a mock scenario
+            // This test verifies that TryCreateServer logs a warning when DOTNET_HOST_PATH and
+            // DOTNET_EXPERIMENTAL_HOST_PATH are both not set. We use a mock scenario since we
+            // cannot test MSBuild not setting the environment variable in a real build.
 
             var testLogger = new XunitCompilerServerLogger(TestOutputHelper);
 
@@ -227,16 +231,23 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             try
             {
-                // Clear both DOTNET_HOST_PATH environment variables to simulate the missing path scenario
-                Environment.SetEnvironmentVariable("DOTNET_HOST_PATH", null);
-                Environment.SetEnvironmentVariable("DOTNET_EXPERIMENTAL_HOST_PATH", null);
+                // Set or clear the environment variables based on test parameters
+                Environment.SetEnvironmentVariable("DOTNET_HOST_PATH", dotnetHostPath);
+                Environment.SetEnvironmentVariable("DOTNET_EXPERIMENTAL_HOST_PATH", dotnetExperimentalHostPath);
 
                 // Try to create the server
                 var pipeName = ServerUtil.GetPipeName();
                 var result = BuildServerConnection.TryCreateServer(clientDirectory, pipeName, testLogger, out var processId);
 
-                // Verify that a warning was logged about DOTNET_HOST_PATH not being provided
-                Assert.Contains(testLogger.CapturedLogs, log => log == "Warning: Unable to set DOTNET_ROOT environment variable. The DOTNET_HOST_PATH environment variable was not provided by MSBuild.");
+                // Verify that a warning was logged only when both env vars are unset
+                if (shouldLogWarning)
+                {
+                    Assert.Contains(testLogger.CapturedLogs, log => log == "Warning: Unable to set DOTNET_ROOT environment variable. The DOTNET_HOST_PATH environment variable was not provided by MSBuild.");
+                }
+                else
+                {
+                    Assert.DoesNotContain(testLogger.CapturedLogs, log => log.Contains("Warning: Unable to set DOTNET_ROOT environment variable"));
+                }
             }
             finally
             {

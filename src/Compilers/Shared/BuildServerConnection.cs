@@ -480,6 +480,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         /// <param name="currentEnvironment">Current environment variables to use as a base</param>
         /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
+        /// <remarks>
+        /// This method is <see langword="internal"/> for testing purposes only.
+        /// </remarks>
         internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment)
         {
             if (RuntimeHostInfo.GetToolDotNetRoot() is not { } dotNetRoot)
@@ -543,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
                 logger.Log("Warning: Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild.",
                     RuntimeHostInfo.DotNetRootEnvironmentName,
-                    "DOTNET_HOST_PATH");
+                    RuntimeHostInfo.DotNetHostPathEnvironmentName);
             }
 
             if (PlatformInformation.IsWindows)
