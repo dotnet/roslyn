@@ -53,7 +53,6 @@ internal sealed class ProjectAppDirectiveCompletionProvider() : AbstractAppDirec
             [".csproj", ".vbproj"],
             CompletionItemRules.Default);
 
-        // TODO: Span-ify GetDirectoryName and similar helpers
         var contentDirectory = PathUtilities.GetDirectoryName(contentPrefix.ToString());
         var items = await fileSystemHelper.GetItemsAsync(contentDirectory, context.CancellationToken).ConfigureAwait(false);
         context.AddItems(items);
