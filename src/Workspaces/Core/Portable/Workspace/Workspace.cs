@@ -51,6 +51,11 @@ public abstract partial class Workspace : IDisposable
     private readonly NonReentrantLock _stateLock = new(useThisInstanceForSynchronization: true);
 
     /// <summary>
+    /// Cache for initializing generator drivers across different Solution instances from this Workspace.
+    /// </summary>
+    internal SolutionCompilationState.GeneratorDriverInitializationCache GeneratorDriverCreationCache { get; } = new();
+
+    /// <summary>
     /// Current solution.  Must be locked with <see cref="_serializationLock"/> when writing to it.
     /// </summary>
     private Solution _latestSolution;
@@ -274,6 +279,12 @@ public abstract partial class Workspace : IDisposable
             onAfterUpdate: static (oldSolution, newSolution, data) =>
             {
                 data.onAfterUpdate?.Invoke(oldSolution, newSolution);
+
+                // We have a cache which we use for running generators in a Solution instance that doesn't already have a GeneratorDriver
+                // for it -- we can potentially reuse a GeneratorDriver created for another instance (after we update it to match.) The
+                // assumption here is by the time we're updating the CurrentSolution to point to a projects that have GeneratorDrivers,
+                // we won't need that cache anymore since any further requests for generated documents will use the properly held GeneratorDriver.
+                data.@this.GeneratorDriverCreationCache.EmptyCacheForProjectsThatHaveGeneratorDriversInSolution(newSolution.CompilationState);
 
                 // Queue the event but don't execute its handlers on this thread.
                 // Doing so under the serialization lock guarantees the same ordering of the events
