@@ -253,6 +253,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}",
                 ];
             }
+            else
+            {
+                Log.LogWarning("Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild.",
+                    RuntimeHostInfo.DotNetRootEnvironmentName,
+                    RuntimeHostInfo.DotNetHostPathEnvironmentName);
+            }
 
             return base.ValidateParameters();
         }
