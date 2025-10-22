@@ -4281,7 +4281,54 @@ public static class C
                 """;
 
             var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugExe);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,9): error CS1061: 'int*' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int*' could be found (are you missing a using directive or an assembly reference?)
+                //     ptr.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int*", "M").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestMethodPointerExtensionParameterType()
+        {
+            var source = """
+                unsafe
+                {
+                    delegate*<void> ptr = null;
+                    ptr.M();
+                }
+                """;
+
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit Extensions
+                    extends [mscorlib]System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            method void *() ptr
+                        ) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x2050
+                        // Code size 1 (0x1)
+                        .maxstack 8
+
+                        IL_0000: ret
+                    } // end of method Extensions::M
+
+                } // end of class Extensions
+                """;
+
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS1061: 'delegate*<void>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
+                //     ptr.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("delegate*<void>", "M").WithLocation(4, 9));
         }
     }
 }

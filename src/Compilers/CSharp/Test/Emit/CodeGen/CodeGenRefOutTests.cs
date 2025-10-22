@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -859,10 +861,21 @@ unsafe
                 }
                 """;
 
-            var comp = CompileAndVerify(source, expectedOutput: """
+            var comp = CompileAndVerify(source, symbolValidator: validate, expectedOutput: """
                 int
                 enum
                 """);
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.M1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.M2").Parameters.Single().RefKind);
+            }
         }
     }
 }

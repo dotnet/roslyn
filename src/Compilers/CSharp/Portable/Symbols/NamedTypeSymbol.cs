@@ -389,6 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(thisParam is not null);
 
+            if (!thisParam.Type.IsValidExtensionParameterType())
+            {
+                return false;
+            }
+
             // For ref and ref-readonly extension members and classic extension methods, receivers need to be of the correct types to be considered in lookup
             if (thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType)
             {
@@ -396,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter
-                && !thisParam.Type.IsValidInExtensionParameterType())
+                && !thisParam.Type.IsValidRefReadonlyExtensionParameterType())
             {
                 return false;
             }

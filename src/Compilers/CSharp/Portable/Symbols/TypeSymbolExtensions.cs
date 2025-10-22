@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public static bool IsValidInExtensionParameterType(this TypeSymbol type)
+        public static bool IsValidRefReadonlyExtensionParameterType(this TypeSymbol type)
         {
             return type is { IsValueType: true, TypeKind: not TypeKind.TypeParameter };
         }
