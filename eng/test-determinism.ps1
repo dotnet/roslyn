@@ -273,6 +273,17 @@ try {
   Push-Location $RepoRoot
   $prepareMachine = $ci
 
+  # Workaround for https://github.com/dotnet/msbuild/issues/12669
+  # Set DOTNET_HOST_PATH to avoid warning in compiler server and task execution
+  if ($null -eq $env:DOTNET_HOST_PATH) {
+    $dotnetExe = if ($IsWindows -or $env:OS -eq "Windows_NT") { "dotnet.exe" } else { "dotnet" }
+    $dotnetPath = (Get-Command $dotnetExe -ErrorAction SilentlyContinue).Source
+    if ($null -ne $dotnetPath) {
+      $env:DOTNET_HOST_PATH = $dotnetPath
+      Write-Host "Setting DOTNET_HOST_PATH to $dotnetPath"
+    }
+  }
+
   # Create all of the logging directories
   $errorDir = Join-Path $LogDir "DeterminismFailures"
   $errorDirLeft = Join-Path $errorDir "Left"
