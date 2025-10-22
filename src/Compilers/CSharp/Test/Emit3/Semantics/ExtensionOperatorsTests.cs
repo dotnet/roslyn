@@ -4181,7 +4181,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (11,35): error CS0023: Operator '!' cannot be applied to operand of type 'void*'
+                //     unsafe void* Test(void* x) => !x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}x").WithArguments(op, "void*").WithLocation(11, 35)
                 );
         }
 
@@ -4212,7 +4215,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,13): error CS0029: Cannot implicitly convert type 'void*' to 'bool'
+                //         if (x)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("void*", "bool").WithLocation(14, 13)
                 );
         }
 
@@ -6772,7 +6778,10 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
                 //     extension(dynamic x)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15),
+                // (20,14): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         c1 = ++c1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++c1").WithArguments("++", "C1").WithLocation(20, 14)
                 );
         }
 
@@ -19520,7 +19529,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,41): error CS0019: Operator '>' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void* Test(void* x, S1 y) => x > y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, "void*", "S1").WithLocation(14, 41)
                 );
         }
 
@@ -19559,7 +19571,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,41): error CS0019: Operator '&' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void* Test(void* x, S1 y) => y & x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(14, 41),
+                // (14,41): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x, S1 y) => y & x;
+                Diagnostic(ErrorCode.ERR_VoidError, $"y {op} x").WithLocation(14, 41)
                 );
         }
 
@@ -19758,9 +19776,12 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
-                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //  (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,44): error CS0019: Operator '&&' cannot be applied to operands of type 'void*' and 'void*'
+                //     unsafe void* Test(void* x, void* y) => x && y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, "void*", "void*").WithLocation(13, 44)
                 );
         }
 
@@ -22671,7 +22692,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
                 //     extension(dynamic x)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15),
+                // (20,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         c1 += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += 1").WithArguments("+=", "C1", "int").WithLocation(20, 9),
+                // (21,14): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         c1 = c1 += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += 1").WithArguments("+=", "C1", "int").WithLocation(21, 14)
                 );
         }
 
@@ -26997,7 +27024,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,40): error CS0019: Operator '>>=' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void Test(void* x, S1 y) => x >>= y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op}= y").WithArguments($"{op}=", "void*", "S1").WithLocation(13, 40)
                 );
         }
 
@@ -27026,7 +27056,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,40): error CS0019: Operator '^=' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void Test(void* x, S1 y) => y ^= x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op}= x").WithArguments($"{op}=", "S1", "void*").WithLocation(13, 40)
                 );
         }
 
@@ -27184,7 +27217,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,19): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(ref void* x)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 19)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 19),
+                // (13,40): error CS0019: Operator '<<=' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void Test(void* x, S1 y) => x <<= y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op}= y").WithArguments($"{op}=", "void*", "S1").WithLocation(13, 40)
                 );
         }
 
