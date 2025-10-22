@@ -275,6 +275,8 @@ public abstract partial class Workspace : IDisposable
             {
                 data.onAfterUpdate?.Invoke(oldSolution, newSolution);
 
+                newSolution.CompilationState.ClearGeneratorDriverCaches();
+
                 // Queue the event but don't execute its handlers on this thread.
                 // Doing so under the serialization lock guarantees the same ordering of the events
                 // as the order of the changes made to the solution.

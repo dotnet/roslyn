@@ -1383,6 +1383,45 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         }
     }
 
+    [Theory, CombinatorialData]
+    public async Task TwoProjectInstancesOnlyInitializeGeneratorOnce(TestHost testHost)
+    {
+        using var workspace = CreateWorkspace(testHost: testHost);
+
+        var initializationCount = 0;
+
+        var allowGeneratorToCompleteEvent = new ManualResetEventSlim(initialState: false);
+        var generatorBeingInitializedEvent = new ManualResetEventSlim(initialState: false);
+
+        var analyzerReference = new TestGeneratorReference(
+            new PipelineCallbackGenerator(
+                _ =>
+                {
+                    generatorBeingInitializedEvent.Set();
+                    if (Interlocked.Increment(ref initializationCount) == 1)
+                        allowGeneratorToCompleteEvent.Wait();
+                }));
+
+        // Create two projects that contain this generator, but do not request anything yet.
+        var project = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference);
+        var project2 = project.AddDocument("Test.cs", "").Project;
+
+        // Now we'll request generators for both in "parallel". We'll wait until the first generator is initializing before we start the second work
+        var first = Task.Run(() => project.GetCompilationAsync());
+
+        generatorBeingInitializedEvent.Wait();
+
+        // The generator is being initialized now, so let's start the second request
+        var second = Task.Run(() => project2.GetCompilationAsync());
+
+        allowGeneratorToCompleteEvent.Set();
+
+        await first;
+        await second;
+
+        Assert.Equal(1, initializationCount);
+    }
+
 #if NET
 
     private sealed class DoNotLoadAssemblyLoader : IAnalyzerAssemblyLoader
