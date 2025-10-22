@@ -4954,5 +4954,141 @@ System.Console.Write(c.M());
                     m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.M2").Parameters.Single().RefKind);
             }
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestExtensionBlockInModifierWithEnumType()
+        {
+            var source = """
+                int i = 0;
+                i.M1();
+                _ = i.P1;
+                i.P1 = 0;
+                _ = i + new object();
+                
+                E e = (E)0;
+                e.M1();
+                _ = e.P1;
+                e.P1 = 0;
+                _ = e + new object();
+                
+                enum E;
+                
+                static class IntExtensions
+                {
+                    extension(in int i)
+                    {
+                        public void M1()
+                        {
+                            System.Console.WriteLine("method_int");
+                        }
+
+                        public int P1
+                        {
+                            get
+                            {
+                                System.Console.WriteLine("property_get_int");
+                                return 0;
+                            }
+                
+                            set
+                            {
+                                System.Console.WriteLine("property_set_int");
+                            }
+                        }
+
+                        public static int operator +(in int a, object b)
+                        {
+                            System.Console.WriteLine("operator_int");
+                            return 0;
+                        }
+                    }
+                }
+                
+                static class EnumExtensions
+                {
+                    extension(in E e)
+                    {
+                        public void M1()
+                        {
+                            System.Console.WriteLine("method_enum");
+                        }
+
+                        public int P1
+                        {
+                            get
+                            {
+                                System.Console.WriteLine("property_get_enum");
+                                return 0;
+                            }
+                
+                            set
+                            {
+                                System.Console.WriteLine("property_set_enum");
+                            }
+                        }
+
+                        public static int operator +(in E a, object b)
+                        {
+                            System.Console.WriteLine("operator_enum");
+                            return 0;
+                        }
+                    }   
+                }
+                """;
+
+            var comp = CompileAndVerify(source, symbolValidator: validate, expectedOutput: """
+                method_int
+                property_get_int
+                property_set_int
+                operator_int
+                method_enum
+                property_get_enum
+                property_set_enum
+                operator_enum
+                """);
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetTypeMember("IntExtensions").GetTypeMembers().Single().ExtensionParameter.RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("IntExtensions.M1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("IntExtensions.get_P1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("IntExtensions.set_P1").Parameters.First().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("IntExtensions.op_Addition").Parameters.First().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetTypeMember("EnumExtensions").GetTypeMembers().Single().ExtensionParameter.RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("EnumExtensions.M1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("EnumExtensions.get_P1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("EnumExtensions.set_P1").Parameters.First().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("EnumExtensions.op_Addition").Parameters.First().RefKind);
+            }
+        }
     }
 }
