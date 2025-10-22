@@ -30413,7 +30413,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 28));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void ConstructorInitializer_03()
         {
             // Verify that a ref to local declared in a constructor initializer cannot escape into 'this'
@@ -30438,7 +30438,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(4, 41));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void ConstructorInitializer_04()
         {
             // Verify that a local in a constructor initializer is assignable to a scoped ref struct parameter
@@ -30459,7 +30459,7 @@ Block[B2] - Exit
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void ConstructorInitializer_05()
         {
             // Verify that a local in a constructor initializer is not assignable to a ref struct parameter
@@ -30486,7 +30486,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(6, 77));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void OutParamVsConstructor_01()
         {
             // Expect 'this' in a constructor to behave similarly to an 'out' parameter in an ordinary method with respect to ref safety.
@@ -30504,7 +30504,7 @@ Block[B2] - Exit
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void OutParamVsConstructor_02()
         {
             var source = """
@@ -30542,7 +30542,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(15, 22));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void OutParamVsConstructor_03()
         {
             var source = """
@@ -30576,7 +30576,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void OutParamVsConstructor_04()
         {
             var source = """
@@ -30617,7 +30617,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 22));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void OutParamVsConstructor_05()
         {
             var source = """

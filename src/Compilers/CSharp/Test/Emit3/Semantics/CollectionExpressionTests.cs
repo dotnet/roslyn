@@ -26680,7 +26680,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void SpanAssignment_ScopedParameter_Constructor_Span()
         {
             string source = """
@@ -26705,7 +26705,7 @@ partial class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void SpanAssignment_ScopedParameter_Constructor_CollectionExpression()
         {
             string source = """
@@ -26730,7 +26730,7 @@ partial class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void SpanAssignment_ScopedParameter_PrimaryConstructor_Span()
         {
             // Each field initializer can be considered its own local scope as variables declared within it are not visible to the other initializers.
@@ -26762,7 +26762,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 21));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void SpanAssignment_StaticFieldInitializer()
         {
             // Each field initializer can be considered its own local scope as variables declared within it are not visible to the other initializers.
@@ -26791,7 +26791,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "items").WithArguments("items").WithLocation(6, 28));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
         public void SpanAssignment_ScopedParameter_PrimaryConstructor_CollectionExpression()
         {
             // '[M1()]' cannot be assigned to 'items' because its backing storage lives in a narrower scope than 'items'.
