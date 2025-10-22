@@ -4252,7 +4252,7 @@ public static class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
-        public void TestInModifierOnExtensionBlock()
+        public void TestInModifierInExtensionBlock()
         {
             var source = """
                 struct S;
@@ -4297,7 +4297,7 @@ public static class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
-        public void TestRefReadonlyModifierOnExtensionBlock()
+        public void TestRefReadonlyModifierInExtensionBlock()
         {
             var source = """
                 struct S;
