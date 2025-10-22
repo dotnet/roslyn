@@ -275,13 +275,13 @@ try {
 
   # Workaround for https://github.com/dotnet/msbuild/issues/12669
   # Set DOTNET_HOST_PATH to avoid warning in compiler server and task execution
-  if ($null -eq $env:DOTNET_HOST_PATH) {
-    $dotnetExe = GetExecutableFileName "dotnet"
-    $dotnetPath = (Get-Command $dotnetExe -ErrorAction SilentlyContinue).Source
-    if ($null -ne $dotnetPath) {
-      $env:DOTNET_HOST_PATH = $dotnetPath
-      Write-Host "Setting DOTNET_HOST_PATH to $dotnetPath"
+  if (-not $env:DOTNET_HOST_PATH -and (Test-Path variable:global:_DotNetInstallDir)) {
+    $env:DOTNET_HOST_PATH = Join-Path $global:_DotNetInstallDir 'dotnet'
+    if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
+      $env:DOTNET_HOST_PATH = "$($env:DOTNET_HOST_PATH).exe"
     }
+
+    Write-Host "Setting DOTNET_HOST_PATH to $env:DOTNET_HOST_PATH"
   }
 
   # Create all of the logging directories
