@@ -3,8 +3,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Need this fix to delete the static graph disable: https://github.com/dotnet/sdk/pull/50532, 10.0.100-rc.2
-#:property RestoreUseStaticGraphEvaluation=false
 #:project ../src/Tools/Source/CompilerGeneratorTools/Source/BoundTreeGenerator/
 #:project ../src/Tools/Source/CompilerGeneratorTools/Source/IOperationGenerator/
 #:project ../src/Tools/Source/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/
