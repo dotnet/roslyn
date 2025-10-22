@@ -27,7 +27,7 @@ internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFact
         return new RazorSemanticTokensRefreshQueueWrapper(semanticTokensRefreshQueue);
     }
 
-    internal class RazorSemanticTokensRefreshQueueWrapper(SemanticTokensRefreshQueue semanticTokensRefreshQueue) : IRazorSemanticTokensRefreshQueue, IDisposable
+    internal class RazorSemanticTokensRefreshQueueWrapper(SemanticTokensRefreshQueue semanticTokensRefreshQueue) : IRazorSemanticTokensRefreshQueue
     {
         public void Initialize(string clientCapabilitiesString)
         {
@@ -36,14 +36,10 @@ internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFact
             // Initialize method in the queue itself is resilient to being called twice, so it doesn't actually do
             // any harm.
             semanticTokensRefreshQueue.Initialize(clientCapabilities);
+            semanticTokensRefreshQueue.AllowRazorRefresh = true;
         }
 
         public Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken)
             => semanticTokensRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken);
-
-        public void Dispose()
-        {
-            semanticTokensRefreshQueue.Dispose();
-        }
     }
 }

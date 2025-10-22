@@ -892,11 +892,13 @@ $@"        if (F({i}))
         public void ManyBinaryPatterns_02()
         {
             const int numOfEnumMembers = 5_000;
-            const int capacity = 97953;
+            const int capacity = 97973;
 
             var builder = new StringBuilder(capacity);
 
             builder.Append("""
+#nullable enable
+
 class ErrorFacts
 {
     static bool Test(E code)
@@ -942,7 +944,7 @@ _{i},
             var source = builder.ToString();
             RunInThread(() =>
             {
-                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false), parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
 
                 var tree = comp.SyntaxTrees.Single();
                 var model = comp.GetSemanticModel(tree);
@@ -959,9 +961,9 @@ _{i},
                 Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
 
                 model.GetDiagnostics().Verify(
-                    // (5,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(E)5000' is not covered.
+                    // (7,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(E)5000' is not covered.
                     //         return code switch
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(E)" + numOfEnumMembers).WithLocation(5, 21)
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(E)" + numOfEnumMembers).WithLocation(7, 21)
                     );
             });
         }

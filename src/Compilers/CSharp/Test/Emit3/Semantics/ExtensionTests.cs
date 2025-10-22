@@ -1897,17 +1897,17 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,14): error CS1109: Extension methods must be defined in a top level static class;  is a nested class
+            // (5,16): error CS0027: Keyword 'this' is not available in the current context
             //         void M(this int i) { }
-            Diagnostic(ErrorCode.ERR_ExtensionMethodsDecl, "M").WithArguments("").WithLocation(5, 14));
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(5, 16));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(method);
-        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(this System.Int32 i)", symbol.ToTestDisplayString());
-        Assert.True(symbol.IsExtensionMethod);
+        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)", symbol.ToTestDisplayString());
+        Assert.False(symbol.IsExtensionMethod);
     }
 
     [Fact]
