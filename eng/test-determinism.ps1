@@ -273,8 +273,8 @@ try {
   Push-Location $RepoRoot
   $prepareMachine = $ci
 
-  # Workaround for https://github.com/dotnet/msbuild/issues/12669
-  # Set DOTNET_HOST_PATH to avoid warning in compiler server and task execution
+  # We need to make sure DOTNET_HOST_PATH points to that SDK as a workaround for older MSBuild
+  # which will not set it correctly.  Removal is tracked by https://github.com/dotnet/roslyn/issues/80742
   if (-not $env:DOTNET_HOST_PATH -and (Test-Path variable:global:_DotNetInstallDir)) {
     $env:DOTNET_HOST_PATH = Join-Path $global:_DotNetInstallDir 'dotnet'
     if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
