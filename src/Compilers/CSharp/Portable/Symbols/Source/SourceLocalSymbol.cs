@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
 
                         bool added = _forbiddenReferences.Add(reference);
-                        Debug.Assert(added); // This assert can fail if there is a race betweem multiple threads. We can remove it if it becomes a problem, confirming the case.
+                        Debug.Assert(added); // This assert can fail if there is a race between multiple threads. We can remove it if it becomes a problem, confirming the case.
                         diagnostics.Add(ForbiddenDiagnostic, reference.Location, reference);
                         return TypeWithAnnotations.Create(this.DeclaringCompilation.ImplicitlyTypedVariableUsedInForbiddenZoneType);
                     }
