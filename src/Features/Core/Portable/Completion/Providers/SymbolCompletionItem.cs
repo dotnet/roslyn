@@ -104,6 +104,19 @@ internal static class SymbolCompletionItem
         return false;
     }
 
+    public static CompletionItem AddHasAccessibleNestedTypes(CompletionItem item)
+        => item.AddProperty("HasAccessibleNestedTypes", true.ToString());
+
+    public static bool GetHasAccessibleNestedTypes(CompletionItem item)
+    {
+        if (item.TryGetProperty("HasAccessibleNestedTypes", out _))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public static string EncodeSymbols(ImmutableArray<ISymbol> symbols)
     {
         if (symbols.Length > 1)
