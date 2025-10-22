@@ -24,5 +24,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             TestOutputHelper.WriteLine(message);
             CapturedLogs.Add(message);
         }
+
+        public void LogWarning(string message)
+        {
+            var warningMessage = $"Warning: {message}";
+            TestOutputHelper.WriteLine(warningMessage);
+            CapturedLogs.Add(warningMessage);
+        }
     }
 }
