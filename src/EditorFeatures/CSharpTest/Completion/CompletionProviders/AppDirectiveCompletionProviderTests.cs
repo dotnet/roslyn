@@ -100,26 +100,8 @@ public sealed class ProjectAppDirectiveCompletionProviderTests : AbstractAppDire
         await VerifyItemExistsAsync(markup, expectedItem: "Project.csproj");
     }
 
-    [Fact]
-    public async Task PathRecommendation_03()
-    {
-        using var tempRoot = new TempRoot();
-        var tempDirectory = tempRoot.CreateDirectory();
-        var nestedDirectory = tempDirectory.CreateDirectory("SubDirectory");
-        var scriptFilePath = Path.Combine(tempDirectory.Path, "App.cs");
-        var code = """
-            #:project BAD$$
-            """;
-        var markup = $"""
-            <Workspace>
-                <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
-                    <Document FilePath="{scriptFilePath}"><![CDATA[{code}]]></Document>
-                </Project>
-            </Workspace>
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, expectedItem: "SubDirectory");
-    }
+    // Note: The editor uses a shared mechanism to filter out completion items which don't match the prefix of what the user is typing.
+    // Therefore we do not have "negative tests" here for file names.
 }
 
 public abstract class AbstractAppDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
