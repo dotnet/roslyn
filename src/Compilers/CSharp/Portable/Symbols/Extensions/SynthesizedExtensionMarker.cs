@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, parameterTypeSyntax);
                     }
-                    else if (parameterRefKind is RefKind.In or RefKind.RefReadOnlyParameter && parameterType.TypeKind != TypeKind.Struct)
+                    else if (parameterRefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                        && !parameterType.IsValidRefReadonlyExtensionParameterType())
                     {
                         diagnostics.Add(ErrorCode.ERR_InExtensionParameterMustBeValueType, parameterTypeSyntax);
                     }

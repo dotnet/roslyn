@@ -4180,10 +4180,11 @@ public static class C
                     public static void M5(this in D d) { }
                     public static void M6(this in S[] s) { }
                     public static void M7<T>(this in T t) where T : struct { }
+                    public static unsafe void M8(this in int* ptr) { }
                 }
                 """;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
                 // (11,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M3' must be a concrete (non-generic) value type.
                 //     public static void M3(this in C c) { }
@@ -4199,7 +4200,10 @@ public static class C
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M6").WithArguments("M6").WithLocation(14, 24),
                 // (15,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M7' must be a concrete (non-generic) value type.
                 //     public static void M7<T>(this in T t) where T : struct { }
-                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24));
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24),
+                // (16,42): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     public static unsafe void M8(this in int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 42));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
@@ -4221,10 +4225,11 @@ public static class C
                     public static void M5(this ref readonly D d) { }
                     public static void M6(this ref readonly S[] s) { }
                     public static void M7<T>(this ref readonly T t) where T : struct { }
+                    public static unsafe void M8(this ref readonly int* ptr) { }
                 }
                 """;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
                 // (11,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M3' must be a concrete (non-generic) value type.
                 //     public static void M3(this ref readonly C c) { }
@@ -4240,7 +4245,10 @@ public static class C
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M6").WithArguments("M6").WithLocation(14, 24),
                 // (15,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M7' must be a concrete (non-generic) value type.
                 //     public static void M7<T>(this ref readonly T t) where T : struct { }
-                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24));
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24),
+                // (16,52): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     public static unsafe void M8(this ref readonly int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 52));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
@@ -4285,6 +4293,51 @@ public static class C
                 // (4,9): error CS1061: 'int*' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int*' could be found (are you missing a using directive or an assembly reference?)
                 //     ptr.M();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int*", "M").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestDynamicExtensionParameterType()
+        {
+            var source = """
+                object obj = null;
+                obj.M();
+                """;
+
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit Extensions
+                    extends [mscorlib]System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            object obj
+                        ) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        .param [1]
+                            .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x2050
+                        // Code size 1 (0x1)
+                        .maxstack 8
+
+                        IL_0000: ret
+                    } // end of method Extensions::M
+
+                } // end of class Extensions
+                """;
+
+            var comp = CreateCompilationWithIL(source, ilSource);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // obj.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(2, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
