@@ -276,7 +276,9 @@ try {
   # Workaround for https://github.com/dotnet/msbuild/issues/12669
   # Set DOTNET_HOST_PATH to avoid warning in compiler server and task execution
   if ($null -eq $env:DOTNET_HOST_PATH) {
-    $dotnetExe = if ($IsWindows -or $env:OS -eq "Windows_NT") { "dotnet.exe" } else { "dotnet" }
+    # Determine if we're on Windows (compatible with both Windows PowerShell 5.1 and PowerShell Core)
+    $isWindowsOS = ($env:OS -eq "Windows_NT") -or ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT)
+    $dotnetExe = if ($isWindowsOS) { "dotnet.exe" } else { "dotnet" }
     $dotnetPath = (Get-Command $dotnetExe -ErrorAction SilentlyContinue).Source
     if ($null -ne $dotnetPath) {
       $env:DOTNET_HOST_PATH = $dotnetPath
