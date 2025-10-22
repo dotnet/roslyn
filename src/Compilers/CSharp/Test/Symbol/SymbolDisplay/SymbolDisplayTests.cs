@@ -9156,5 +9156,54 @@ class Program
                 ],
                 actual: displayParts);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36654")]
+        public void MinimalNameWithConflict()
+        {
+            var source =
+                """
+                using System;
+                namespace Abc.System {}
+                namespace Abc
+                {
+                    public class Test
+                    {
+                        public void fff()
+                        {
+                            Video vvv = null;
+                            foreach (var ooo in vvv.getlist()) {}
+                        }
+                    }
+                }
+
+                class Video
+                {
+                    public System.Collections.Generic.IEnumerable<int> getlist() { return null; }
+                }
+                """;
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var type = model.GetTypeInfo(invocation).Type;
+
+            // ToMinimalDisplayString does not include 'global::' by default even with a conflict due it
+            // explicitly having the flag SymbolDisplayGlobalNamespaceStyle.Omitted. 
+            Assert.Equal("System.Collections.Generic.IEnumerable<int>", type.ToMinimalDisplayString(model, invocation.SpanStart));
+
+            // Demonstrate that one can opt into getting 'global::' included.
+            Assert.Equal(
+                "global::System.Collections.Generic.IEnumerable<int>",
+                type.ToMinimalDisplayString(model, invocation.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)));
+
+            // However, opting into getting 'global::' included does not force it to be included when not needed.
+            Assert.Equal(
+                "System.Collections.Generic.IEnumerable<int>",
+                type.ToMinimalDisplayString(model, tree.GetRoot().Span.End,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)));
+        }
     }
 }

@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument;
 
@@ -167,7 +168,8 @@ internal sealed class PdbSourceDocumentLoaderService(
 
     private SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry)
     {
-        if (File.Exists(sourceDocument.FilePath))
+        // The path in the PDB could be a relative path; since we don't have any path to compute an absolute path from, just disregard those.
+        if (PathUtilities.IsAbsolute(sourceDocument.FilePath) && File.Exists(sourceDocument.FilePath))
         {
             var result = LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, FeaturesResources.external, ignoreChecksum: false, fromRemoteLocation: false);
             if (result is not null)

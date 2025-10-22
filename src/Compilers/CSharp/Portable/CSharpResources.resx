@@ -5297,8 +5297,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureOutVar" xml:space="preserve">
     <value>out variable declaration</value>
   </data>
-  <data name="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList" xml:space="preserve">
-    <value>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</value>
+  <data name="ERR_ImplicitlyTypedVariableUsedInForbiddenZone" xml:space="preserve">
+    <value>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</value>
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed out variable '{0}'.</value>
