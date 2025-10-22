@@ -2048,10 +2048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundExpr = lowestBoundNode as BoundExpression;
             var highestBoundExpr = highestBoundNode as BoundExpression;
 
-            if (boundExpr != null &&
-                !(boundNodeForSyntacticParent != null &&
-                  boundNodeForSyntacticParent.Syntax.Kind() == SyntaxKind.ObjectCreationExpression &&
-                  ((ObjectCreationExpressionSyntax)boundNodeForSyntacticParent.Syntax).Type == boundExpr.Syntax)) // Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
+            if (boundExpr != null)
             {
                 // TODO: Should parenthesized expression really not have symbols? At least for C#, I'm not sure that 
                 // is right. For example, C# allows the assignment statement:

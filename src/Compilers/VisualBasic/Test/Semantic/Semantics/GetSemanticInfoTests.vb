@@ -5350,8 +5350,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Null(typeInfo.Type)
-                Assert.Null(typeInfo.ConvertedType)
+                Assert.Equal("Test.C", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("Test.C", typeInfo.ConvertedType.ToTestDisplayString())
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -5439,8 +5439,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Null(typeInfo.Type)
-                Assert.Null(typeInfo.ConvertedType)
+                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString())
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -5544,8 +5544,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Null(typeInfo.Type)
-                Assert.Null(typeInfo.ConvertedType)
+                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString())
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -6636,6 +6636,113 @@ IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.Stri
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75147")>
+        Public Sub GetTypeInfoOnObjectCreationExpressionType()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Class TestClass
+End Class
+Module TestModule
+    Sub Main()
+        Dim obj = New TestClass()
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim objCreation = tree.GetRoot().DescendantNodes().OfType(Of ObjectCreationExpressionSyntax)().First()
+            
+            ' Test getting TypeInfo on the Type property
+            Dim typeNode = objCreation.Type
+            Dim typeInfo = model.GetTypeInfo(typeNode)
+            
+            ' Verify that GetTypeInfo returns the type information for the Type node of ObjectCreationExpression
+            Assert.NotNull(typeInfo.Type)
+            Assert.Equal("TestClass", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind)
+            Assert.Equal("TestClass", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(TypeKind.Class, typeInfo.ConvertedType.TypeKind)
+            
+            ' Test SymbolInfo as well
+            Dim symbolInfo = model.GetSymbolInfo(typeNode)
+            Assert.NotNull(symbolInfo.Symbol)
+            Assert.Equal("TestClass", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75147")>
+        Public Sub GetTypeInfoOnObjectCreationExpressionTypeWithGeneric()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+Module TestModule
+    Sub Main()
+        Dim list = New List(Of Integer)()
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim objCreation = tree.GetRoot().DescendantNodes().OfType(Of ObjectCreationExpressionSyntax)().First()
+            
+            Dim typeNode = objCreation.Type
+            Dim typeInfo = model.GetTypeInfo(typeNode)
+            
+            Assert.NotNull(typeInfo.Type)
+            Assert.Equal("System.Collections.Generic.List(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind)
+            Assert.Equal("System.Collections.Generic.List(Of System.Int32)", typeInfo.ConvertedType.ToTestDisplayString())
+            
+            Dim symbolInfo = model.GetSymbolInfo(typeNode)
+            Assert.NotNull(symbolInfo.Symbol)
+            Assert.Equal("System.Collections.Generic.List(Of System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75147")>
+        Public Sub GetTypeInfoOnObjectCreationExpressionTypeWithQualifiedName()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Namespace N
+    Class TestClass
+    End Class
+End Namespace
+Module TestModule
+    Sub Main()
+        Dim obj = New N.TestClass()
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim objCreation = tree.GetRoot().DescendantNodes().OfType(Of ObjectCreationExpressionSyntax)().First()
+            
+            Dim typeNode = objCreation.Type
+            Dim typeInfo = model.GetTypeInfo(typeNode)
+            
+            Assert.NotNull(typeInfo.Type)
+            Assert.Equal("N.TestClass", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind)
+            Assert.Equal("N.TestClass", typeInfo.ConvertedType.ToTestDisplayString())
+            
+            Dim symbolInfo = model.GetSymbolInfo(typeNode)
+            Assert.NotNull(symbolInfo.Symbol)
+            Assert.Equal("N.TestClass", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind)
         End Sub
     End Class
 End Namespace
