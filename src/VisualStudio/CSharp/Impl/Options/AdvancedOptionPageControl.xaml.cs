@@ -165,7 +165,7 @@ internal sealed partial class AdvancedOptionPageControl : AbstractOptionPageCont
         BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsStorage.OpenOnFocus);
 
         // Solution Explorer
-        BindToOption(ShowLanguageSymbolsInsideSolutionExplorerFiles, SolutionExplorerOptionsStorage.ShowSymbols, LanguageNames.CSharp);
+        BindToOption(ShowLanguageSymbolsInsideSolutionExplorerFiles, SolutionExplorerOptionsStorage.ShowLanguageSymbolsInsideSolutionExplorerFiles);
     }
 
     // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

@@ -153,7 +153,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(IncludeGlobalImports, InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, LanguageNames.VisualBasic)
 
             ' Solution Explorer
-            BindToOption(ShowLanguageSymbolsInsideSolutionExplorerFiles, SolutionExplorerOptionsStorage.ShowSymbols, LanguageNames.VisualBasic)
+            BindToOption(ShowLanguageSymbolsInsideSolutionExplorerFiles, SolutionExplorerOptionsStorage.ShowLanguageSymbolsInsideSolutionExplorerFiles)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

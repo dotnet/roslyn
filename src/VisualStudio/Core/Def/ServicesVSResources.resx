@@ -1896,6 +1896,6 @@ Additional information: {1}</value>
     <value>Solution Explorer</value>
   </data>
   <data name="Show_language_symbols_inside_solution_explorer_files" xml:space="preserve">
-    <value>Show language symbols inside solution explorer files</value>
+    <value>Show language symbols inside solution explorer files (requires restart)</value>
   </data>
 </root>

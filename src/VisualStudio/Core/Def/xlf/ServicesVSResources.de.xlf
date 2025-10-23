@@ -1438,8 +1438,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_language_symbols_inside_solution_explorer_files">
-        <source>Show language symbols inside solution explorer files</source>
-        <target state="new">Show language symbols inside solution explorer files</target>
+        <source>Show language symbols inside solution explorer files (requires restart)</source>
+        <target state="new">Show language symbols inside solution explorer files (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
