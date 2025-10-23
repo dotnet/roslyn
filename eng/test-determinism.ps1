@@ -275,12 +275,8 @@ try {
 
   # We need to make sure DOTNET_HOST_PATH points to that SDK as a workaround for older MSBuild
   # which will not set it correctly.  Removal is tracked by https://github.com/dotnet/roslyn/issues/80742
-  if (-not $env:DOTNET_HOST_PATH -and (Test-Path variable:global:_DotNetInstallDir)) {
-    $env:DOTNET_HOST_PATH = Join-Path $global:_DotNetInstallDir 'dotnet'
-    if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
-      $env:DOTNET_HOST_PATH = "$($env:DOTNET_HOST_PATH).exe"
-    }
-
+  if (-not $env:DOTNET_HOST_PATH) {
+    $env:DOTNET_HOST_PATH = Ensure-DotnetSdk
     Write-Host "Setting DOTNET_HOST_PATH to $env:DOTNET_HOST_PATH"
   }
 
