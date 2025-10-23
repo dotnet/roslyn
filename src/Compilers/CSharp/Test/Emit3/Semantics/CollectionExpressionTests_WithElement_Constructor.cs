@@ -1553,6 +1553,39 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
+    public void WithElement_IncorrectConstructorType()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(int capacity) : base(capacity) { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with("")];
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+            // (12,34): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //         MyList<int> list = [with("")];
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int").WithLocation(12, 34));
+
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees[0]);
+        var withExpression = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<WithElementSyntax>().Single();
+        var symbolInfo = semanticModel.GetSymbolInfo(withExpression);
+
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+    }
+
+    [Fact]
     public void WithElement_PrivateConstructor2()
     {
         var source = """
