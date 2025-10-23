@@ -108,14 +108,7 @@ internal static class SymbolCompletionItem
         => item.AddProperty("HasAccessibleNestedTypes", true.ToString());
 
     public static bool GetHasAccessibleNestedTypes(CompletionItem item)
-    {
-        if (item.TryGetProperty("HasAccessibleNestedTypes", out _))
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => item.TryGetProperty("HasAccessibleNestedTypes", out _);
 
     public static string EncodeSymbols(ImmutableArray<ISymbol> symbols)
     {

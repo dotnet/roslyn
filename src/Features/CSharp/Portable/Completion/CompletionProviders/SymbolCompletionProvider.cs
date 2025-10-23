@@ -276,6 +276,12 @@ internal sealed class SymbolCompletionProvider() : AbstractRecommendationService
 
         bool HasAccessibleNestedTypes(INamedTypeSymbol typeSymbol)
         {
+            // This is intended to be a heuristic to cover common cases.
+            // Because we might be passed a speculative member semantic model, we won't be able to get
+            // symbols for containing type/member symbol to check accessibility using `IsAccessibleWithin`.
+            // While this check is inaccurate in some cases (e.g. from within nested/derived types),
+            // it's likely fine because people typically don't access the nested types via the outer one
+            // when they are within the inner or derived type.
             foreach (var typeMember in typeSymbol.GetTypeMembers())
             {
                 if (typeMember.DeclaredAccessibility <= Accessibility.Protected)
@@ -284,8 +290,6 @@ internal sealed class SymbolCompletionProvider() : AbstractRecommendationService
                 if (typeMember.DeclaredAccessibility is Accessibility.Public)
                     return true;
 
-                // Don't check accessibility from within containing type/member symbol,
-                // we might be passed a speculative member semantic model so won't be able to get them
                 if (typeMember.IsAccessibleWithin(context.SemanticModel.Compilation.Assembly))
                     return true;
             }
