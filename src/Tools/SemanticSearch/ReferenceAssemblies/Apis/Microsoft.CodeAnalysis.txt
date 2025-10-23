@@ -1228,6 +1228,7 @@ Microsoft.CodeAnalysis.IMethodSymbol.Construct(System.Collections.Immutable.Immu
 Microsoft.CodeAnalysis.IMethodSymbol.GetDllImportData
 Microsoft.CodeAnalysis.IMethodSymbol.GetReturnTypeAttributes
 Microsoft.CodeAnalysis.IMethodSymbol.GetTypeInferredDuringReduction(Microsoft.CodeAnalysis.ITypeParameterSymbol)
+Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol)
 Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMethod(Microsoft.CodeAnalysis.ITypeSymbol)
 Microsoft.CodeAnalysis.IMethodSymbol.get_Arity
 Microsoft.CodeAnalysis.IMethodSymbol.get_AssociatedAnonymousDelegate
@@ -1379,6 +1380,7 @@ Microsoft.CodeAnalysis.IPointerTypeSymbol.get_CustomModifiers
 Microsoft.CodeAnalysis.IPointerTypeSymbol.get_PointedAtType
 Microsoft.CodeAnalysis.IPreprocessingSymbol
 Microsoft.CodeAnalysis.IPropertySymbol
+Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol)
 Microsoft.CodeAnalysis.IPropertySymbol.get_ExplicitInterfaceImplementations
 Microsoft.CodeAnalysis.IPropertySymbol.get_GetMethod
 Microsoft.CodeAnalysis.IPropertySymbol.get_IsIndexer

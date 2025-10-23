@@ -664,7 +664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         ' can be found by the name, just deterministically choose which one to use
                                         If symbolCommentId Is Nothing OrElse
                                                 Me._compilation.CompareSourceLocations(
-                                                    smallestSymbol.Locations(0), symbol.Locations(0)) > 0 Then
+                                                    smallestSymbol.GetFirstLocation(), symbol.GetFirstLocation()) > 0 Then
 
                                             symbolCommentId = id
                                             smallestSymbol = symbol
