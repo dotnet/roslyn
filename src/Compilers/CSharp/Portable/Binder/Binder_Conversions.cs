@@ -1560,13 +1560,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool isParamsModifierValidation = false)
         {
+            var hasWithElement = withElement is not null;
+
 #if DEBUG
             Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax);
-            if (withElement != null)
+            if (hasWithElement)
                 Debug.Assert(!isParamsModifierValidation);
 
             if (isParamsModifierValidation)
-                Debug.Assert(withElement is null);
+                Debug.Assert(!hasWithElement);
 #endif
 
             // This is what BindClassCreationExpression is doing in terms of reporting diagnostics
@@ -1602,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //    accessible at the location of the collection expression.
 
                 // This is the 'b' case above. 
-                if (withElement is not null)
+                if (hasWithElement)
                 {
                     var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     var candidateConstructors = GetAccessibleConstructorsForOverloadResolution(
@@ -1623,7 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
                 var binder = new ParamsCollectionTypeInProgressBinder(
-                    namedType, this, bindingCollectionExpressionWithArguments: withElement is not null);
+                    namedType, this, bindingCollectionExpressionWithArguments: hasWithElement);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                     namedType,
