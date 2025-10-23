@@ -8678,7 +8678,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (propertyResult != null)
                         {
-                            firstResult = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, analyzedArguments, ref actualMethodArguments, ref actualReceiverArguments, binder, diagnostics);
+                            Debug.Assert(actualReceiverArguments is not null);
+                            firstResult = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
                             methodResult.Free(keepArguments: true);
                             propertyResult.Free();
                         }
@@ -8704,7 +8705,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // ambiguous between methods and properties
-                    result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, analyzedArguments, ref actualMethodArguments, ref actualReceiverArguments, binder, diagnostics);
+                    Debug.Assert(actualReceiverArguments is not null);
+                    result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
                     methodResult.Free(keepArguments: true);
                     propertyResult?.Free();
                     return true;
@@ -8723,7 +8725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // ambiguous between multiple applicable properties
-                result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, analyzedArguments, ref actualMethodArguments, ref actualReceiverArguments, binder, diagnostics);
+                Debug.Assert(actualReceiverArguments is not null);
+                result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
                 methodResult.Free(keepArguments: true);
                 propertyResult.Free();
                 return true;
@@ -8860,9 +8863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string memberName,
                 int arity,
                 LookupResult lookupResult,
-                AnalyzedArguments? analyzedArguments,
-                ref AnalyzedArguments? actualMethodArguments,
-                ref AnalyzedArguments? actualReceiverArguments,
+                AnalyzedArguments actualReceiverArguments,
                 Binder binder,
                 BindingDiagnosticBag diagnostics)
             {
