@@ -128,6 +128,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal TMember PickRepresentativeMember()
+        {
+            Debug.Assert(HasAnyApplicableMember);
+
+            if (Succeeded)
+            {
+                return BestResult.Member;
+            }
+
+            // We prefer Worse over Worst candidates
+            return ResultsBuilder.First(r => r.Result.Kind == MemberResolutionKind.Worse).Member;
+        }
+
         /// <summary>
         /// Returns all methods in the group that are applicable, <see cref="HasAnyApplicableMember"/>.
         /// </summary>

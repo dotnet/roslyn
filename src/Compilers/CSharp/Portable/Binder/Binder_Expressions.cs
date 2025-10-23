@@ -8678,7 +8678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (propertyResult != null)
                         {
-                            firstResult = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, analyzedArguments, ref actualMethodArguments, binder, diagnostics);
+                            firstResult = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, analyzedArguments, ref actualMethodArguments, ref actualReceiverArguments, binder, diagnostics);
                             methodResult.Free(keepArguments: true);
                             propertyResult.Free();
                         }
@@ -8704,7 +8704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // ambiguous between methods and properties
-                    result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, analyzedArguments, ref actualMethodArguments, binder, diagnostics);
+                    result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, analyzedArguments, ref actualMethodArguments, ref actualReceiverArguments, binder, diagnostics);
                     methodResult.Free(keepArguments: true);
                     propertyResult?.Free();
                     return true;
@@ -8723,7 +8723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // ambiguous between multiple applicable properties
-                result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, analyzedArguments, ref actualMethodArguments, binder, diagnostics);
+                result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, analyzedArguments, ref actualMethodArguments, ref actualReceiverArguments, binder, diagnostics);
                 methodResult.Free(keepArguments: true);
                 propertyResult.Free();
                 return true;
@@ -8786,7 +8786,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return default;
                 }
 
-                initActualArguments(left, analyzedArguments, ref actualMethodArguments);
+                if (actualMethodArguments == null)
+                {
+                    // Create a set of arguments for overload resolution including the receiver.
+                    actualMethodArguments = AnalyzedArguments.GetInstance();
+                    CombineExtensionMethodArguments(left, analyzedArguments, actualMethodArguments);
+                }
 
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
@@ -8857,6 +8862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupResult lookupResult,
                 AnalyzedArguments? analyzedArguments,
                 ref AnalyzedArguments? actualMethodArguments,
+                ref AnalyzedArguments? actualReceiverArguments,
                 Binder binder,
                 BindingDiagnosticBag diagnostics)
             {
@@ -8867,10 +8873,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (methodResult.HasAnyApplicableMethod && propertyResult.HasAnyApplicableMember)
                 {
                     MethodSymbol representativeMethod = methodResult.OverloadResolutionResult is { } methodResolution
-                        ? pickRepresentative(methodResolution)
+                        ? methodResolution.PickRepresentativeMember()
                         : methodResult.MethodGroup.Methods[0];
 
-                    PropertySymbol representativeProperty = pickRepresentative(propertyResult);
+                    PropertySymbol representativeProperty = propertyResult.PickRepresentativeMember();
 
                     errorInfo = OverloadResolutionResult<Symbol>.CreateAmbiguousCallDiagnosticInfo(binder.Compilation, representativeMethod, representativeProperty, symbols, isExtension: true);
 
@@ -8878,9 +8884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    initActualArguments(left, analyzedArguments, ref actualMethodArguments);
-
-                    propertyResult.ReportDiagnostics(binder, expression.Location, expression, diagnostics, memberName, left, left.Syntax, actualMethodArguments, symbols,
+                    propertyResult.ReportDiagnostics(binder, expression.Location, expression, diagnostics, memberName, left, left.Syntax, actualReceiverArguments, symbols,
                         typeContainingConstructor: null, delegateTypeBeingInvoked: null, isMethodGroupConversion: false, isExtension: true);
 
                     errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_ExtensionResolutionFailed, left.Type, memberName);
@@ -8889,28 +8893,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExtendedErrorTypeSymbol resultSymbol = new ExtendedErrorTypeSymbol(containingSymbol: null, symbols, LookupResultKind.OverloadResolutionFailure, errorInfo, arity);
                 Debug.Assert(lookupResult.Kind == LookupResultKind.Viable);
                 return new MethodGroupResolution(resultSymbol, lookupResult.Kind, diagnostics.ToReadOnly());
-            }
-
-            static T pickRepresentative<T>(OverloadResolutionResult<T> result) where T : Symbol
-            {
-                Debug.Assert(result.HasAnyApplicableMember);
-
-                if (result.Succeeded)
-                {
-                    return result.BestResult.Member;
-                }
-
-                return result.ResultsBuilder.First(r => r.Result.Kind == MemberResolutionKind.Worse).Member;
-            }
-
-            static void initActualArguments(BoundExpression left, AnalyzedArguments? analyzedArguments, [NotNull] ref AnalyzedArguments? actualMethodArguments)
-            {
-                if (actualMethodArguments == null)
-                {
-                    // Create a set of arguments for overload resolution including the receiver.
-                    actualMethodArguments = AnalyzedArguments.GetInstance();
-                    CombineExtensionMethodArguments(left, analyzedArguments, actualMethodArguments);
-                }
             }
         }
 
