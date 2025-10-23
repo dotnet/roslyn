@@ -677,9 +677,8 @@ class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyEmitDiagnostics(
-                // (2,99): error CS0122: 'EmbeddedAttribute' is inaccessible due to its protection level
-                // [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))]
-                Diagnostic(ErrorCode.ERR_BadAccess, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(2, 99));
+                // error CS8006: Forwarded type 'EmbeddedAttribute' conflicts with type declared in primary module of this assembly.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(1, 1));
         }
 
         [Fact]

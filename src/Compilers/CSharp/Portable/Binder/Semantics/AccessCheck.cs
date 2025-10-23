@@ -245,17 +245,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Check if the type has the EmbeddedAttribute and is in a different assembly.
             // The EmbeddedAttribute marks a type as only visible within its own assembly.
-            // We check the assembly first to avoid binding attributes unnecessarily, which could cause
-            // infinite recursion when the attribute type itself (Microsoft.CodeAnalysis.EmbeddedAttribute)
-            // is being checked during attribute binding.
             var withinAssembly = within is AssemblySymbol assembly ? assembly : ((NamedTypeSymbol)within).ContainingAssembly;
-            if ((object)type.ContainingAssembly != (object)withinAssembly)
+            if ((object)type.ContainingAssembly != withinAssembly && type.IsHiddenByCodeAnalysisEmbeddedAttribute())
             {
-                // If the type itself is EmbeddedAttribute, assume it was correctly applied to itself and return false.
-                if (type.IsHiddenByCodeAnalysisEmbeddedAttribute())
-                {
-                    return false;
-                }
+                return false;
             }
 
             var containingType = type.ContainingType;
