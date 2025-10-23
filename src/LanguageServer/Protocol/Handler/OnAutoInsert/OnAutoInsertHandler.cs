@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.RawStringLiteral;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -110,6 +111,16 @@ internal sealed class OnAutoInsertHandler(
             if (braceCompletionAfterReturnResponse != null)
             {
                 return braceCompletionAfterReturnResponse;
+            }
+        }
+
+        // Handle raw string literal quote typing
+        if (character == "\"")
+        {
+            var rawStringResponse = GetRawStringLiteralResponse(document, linePosition, cancellationToken);
+            if (rawStringResponse != null)
+            {
+                return rawStringResponse;
             }
         }
 
@@ -260,5 +271,32 @@ internal sealed class OnAutoInsertHandler(
         }
 
         return null;
+    }
+
+    private static LSP.VSInternalDocumentOnAutoInsertResponseItem? GetRawStringLiteralResponse(
+        Document document,
+        LinePosition linePosition,
+        CancellationToken cancellationToken)
+    {
+        var service = document.GetLanguageService<IRawStringLiteralOnAutoInsertService>();
+        if (service == null)
+            return null;
+
+        var sourceText = document.GetTextSynchronously(cancellationToken);
+        var position = sourceText.Lines.GetPosition(linePosition);
+
+        var textChange = service.GetTextChangeForQuote(document, position, cancellationToken);
+        if (textChange == null)
+            return null;
+
+        return new LSP.VSInternalDocumentOnAutoInsertResponseItem
+        {
+            TextEditFormat = LSP.InsertTextFormat.Plaintext,
+            TextEdit = new LSP.TextEdit
+            {
+                NewText = textChange.Value.NewText ?? string.Empty,
+                Range = ProtocolConversions.TextSpanToRange(textChange.Value.Span, sourceText)
+            }
+        };
     }
 }
