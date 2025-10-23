@@ -34,27 +34,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static string? GetToolDotNetRoot()
         {
-            if (GetDotNetHostPath() is { } dotNetHostPath)
+            var directoryName = Path.GetDirectoryName(GetDotNetPathOrDefault());
+            if (string.IsNullOrEmpty(directoryName))
             {
-                return Path.GetDirectoryName(dotNetHostPath);
+                return null;
             }
 
-            return null;
-        }
-
-        private static string? GetDotNetHostPath()
-        {
-            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
-            {
-                return pathToDotNet;
-            }
-
-            if (Environment.GetEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
-            {
-                return pathToDotNetExperimental;
-            }
-
-            return null;
+            return directoryName;
         }
 
         /// <summary>
@@ -64,9 +50,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static string GetDotNetPathOrDefault()
         {
-            if (GetDotNetHostPath() is { } pathToDotNet)
+            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
             {
                 return pathToDotNet;
+            }
+
+            if (Environment.GetEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
+            {
+                return pathToDotNetExperimental;
             }
 
             var (fileName, sep) = PlatformInformation.IsWindows
