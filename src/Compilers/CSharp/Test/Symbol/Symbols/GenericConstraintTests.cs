@@ -7460,5 +7460,88 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
             Assert.Null(model.GetAliasInfo(nest));
             Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void TypeParameter_BaseType_ReturnsNull()
+        {
+            var source = """
+                abstract class Base
+                {
+                    public abstract void Method();
+                }
+
+                class Derived<T> where T : Base
+                {
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var typeParameter = (ITypeParameterSymbol)comp.GetTypeByMetadataName("Derived`1").TypeParameters[0].GetPublicSymbol();
+            Assert.Null(typeParameter.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void MethodTypeParameter_BaseType_ReturnsNull()
+        {
+            var source = """
+                class C
+                {
+                    void M<T>() where T : class
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var typeParameter = (ITypeParameterSymbol)comp.GetTypeByMetadataName("C").GetMethod("M").TypeParameters[0].GetPublicSymbol();
+            Assert.Null(typeParameter.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void ObjectType_BaseType_ReturnsNull()
+        {
+            var comp = CreateCompilation("");
+            comp.VerifyDiagnostics();
+
+            var objectType = (INamedTypeSymbol)comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+            Assert.Null(objectType.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void InterfaceType_BaseType_ReturnsNull()
+        {
+            var source = """
+                interface IMyInterface
+                {
+                    void Method();
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var interfaceType = (INamedTypeSymbol)comp.GetTypeByMetadataName("IMyInterface").GetPublicSymbol();
+            Assert.Null(interfaceType.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void PointerType_BaseType_ReturnsNull()
+        {
+            var source = """
+                unsafe class C
+                {
+                    int* ptr;
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (3,10): warning CS0169: The field 'C.ptr' is never used
+                //     int* ptr;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "ptr").WithArguments("C.ptr").WithLocation(3, 10));
+
+            var pointerType = (IPointerTypeSymbol)comp.GetTypeByMetadataName("C").GetField("ptr").Type.GetPublicSymbol();
+            Assert.Null(pointerType.BaseType);
+        }
     }
 }

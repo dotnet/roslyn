@@ -197,6 +197,12 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol? ReduceExtensionMethod(ITypeSymbol receiverType);
 
         /// <summary>
+        /// If this is a method of an extension block that can be applied to a receiver of the given type,
+        /// returns the method symbol in the substituted extension for that receiver type. Otherwise, returns null.
+        /// </summary>
+        IMethodSymbol? ReduceExtensionMember(ITypeSymbol receiverType);
+
+        /// <summary>
         /// Returns interface methods explicitly implemented by this method.
         /// </summary>
         /// <remarks>

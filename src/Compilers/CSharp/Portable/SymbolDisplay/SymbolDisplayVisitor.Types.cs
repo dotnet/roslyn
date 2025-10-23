@@ -402,12 +402,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes))
             {
-                // Only the compiler can set the internal option and the compiler doesn't use other implementations of INamedTypeSymbol.
-                if (underlyingTypeSymbol?.MangleName == true)
+                if (symbol.Arity > 0)
                 {
-                    Debug.Assert(symbol.Arity > 0);
-                    Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, null,
-                        MetadataHelpers.GetAritySuffix(symbol.Arity)));
+                    string suffix = MetadataHelpers.GetAritySuffix(symbol.Arity);
+
+                    if (underlyingTypeSymbol is not null ? underlyingTypeSymbol.MangleName : (symbol.MetadataName == symbol.Name + suffix))
+                    {
+                        Debug.Assert(symbol.Arity > 0);
+                        Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, null,
+                            suffix));
+                    }
                 }
             }
             else if (symbol.Arity > 0 && Format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))

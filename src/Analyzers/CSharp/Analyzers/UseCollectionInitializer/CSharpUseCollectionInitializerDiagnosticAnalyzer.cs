@@ -81,4 +81,33 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             }
         }
     }
+
+    protected override bool IsValidContainingStatement(StatementSyntax node)
+    {
+        // We don't want to offer this for using declarations because the way they are lifted means all
+        // initialization is done before entering try block. For example
+        // 
+        // using var c = new List<int>() { 1 };
+        //
+        // is lowered to:
+        //
+        // var __c = new List<int>();
+        // __c.Add(1);
+        // var c = __c;
+        // try
+        // {
+        // }
+        // finally
+        // {
+        //     if (c != null)
+        //     {
+        //         ((IDisposable)c).Dispose();
+        //     }
+        // }
+        //
+        // As can be seen, if initializing throws any kind of exception, the newly created instance will not
+        // be disposed properly.
+        return node is not LocalDeclarationStatementSyntax localDecl ||
+            localDecl.UsingKeyword == default;
+    }
 }

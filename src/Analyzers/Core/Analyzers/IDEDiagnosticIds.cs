@@ -213,6 +213,8 @@ internal static class IDEDiagnosticIds
 
     public const string RemoveUnnecessaryNullableWarningSuppression = "IDE0370";
 
+    public const string RemoveUnnecessaryUnsafeModifier = "IDE0380";
+
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
     public const string AnalyzerDependencyConflictId = "IDE1002";

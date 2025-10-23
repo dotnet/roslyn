@@ -6,7 +6,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -236,6 +238,125 @@ internal static class CompletionUtilities
 
             default:
                 throw ExceptionUtilities.Unreachable();
+        }
+    }
+
+    /// <summary>
+    /// Determines whether the specified position in the syntax tree is a valid context for speculatively typing
+    /// a type parameter (which might be undeclared yet). This handles cases where the user may be in the middle of typing a generic type, tuple
+    /// and ref type as well.
+    /// 
+    /// For example, when you typed `public TBuilder$$`, you might want to type `public TBuilder M&lt;TBuilder&gt;(){}`,
+    /// so TBuilder is a valid speculative type parameter context.
+    /// </summary>
+    public static bool IsSpeculativeTypeParameterContext(SyntaxTree syntaxTree, int position, SemanticModel? semanticModel, bool includeStatementContexts, CancellationToken cancellationToken)
+    {
+        var spanStart = position;
+
+        // We could be in the middle of a ref/generic/tuple type, instead of a simple T case.
+        // If we managed to walk out and get a different SpanStart, we treat it as a simple $$T case.
+        while (true)
+        {
+            var oldSpanStart = spanStart;
+
+            spanStart = WalkOutOfGenericType(syntaxTree, spanStart, semanticModel, cancellationToken);
+            spanStart = WalkOutOfTupleType(syntaxTree, spanStart, cancellationToken);
+            spanStart = WalkOutOfRefType(syntaxTree, spanStart, cancellationToken);
+
+            if (spanStart == oldSpanStart)
+            {
+                break;
+            }
+        }
+
+        var token = syntaxTree.FindTokenOnLeftOfPosition(spanStart, cancellationToken);
+
+        // Always want to allow in member declaration and delegate return type context, for example:
+        // class C
+        // {
+        //     public T$$
+        // }
+        //
+        // delegate T$$
+        if (syntaxTree.IsMemberDeclarationContext(spanStart, context: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken) ||
+            syntaxTree.IsGlobalMemberDeclarationContext(spanStart, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+            syntaxTree.IsDelegateReturnTypeContext(spanStart, token))
+        {
+            return true;
+        }
+
+        // Because it's less likely the user wants to type a (undeclared) type parameter when they are inside a method body, treating them so
+        // might intefere with user intention. For example, while it's fine to provide a speculative `T` item in a statement context,
+        // since typing 2 characters would filter it out, but for selection, we don't want to soft-select item `TypeBuilder`after `TB`
+        // is typed in the example below (as if user want to add `TBuilder` to method declaration later):
+        //
+        // class C
+        // {
+        //     void M()
+        //     {
+        //         TB$$
+        //     }
+        if (includeStatementContexts)
+        {
+            return syntaxTree.IsStatementContext(spanStart, token, cancellationToken) ||
+                syntaxTree.IsGlobalStatementContext(spanStart, cancellationToken);
+        }
+
+        return false;
+
+        static int WalkOutOfGenericType(SyntaxTree syntaxTree, int position, SemanticModel? semanticModel, CancellationToken cancellationToken)
+        {
+            var spanStart = position;
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+
+            if (syntaxTree.IsGenericTypeArgumentContext(position, token, cancellationToken, semanticModel))
+            {
+                if (syntaxTree.IsInPartiallyWrittenGeneric(spanStart, cancellationToken, out var nameToken))
+                {
+                    spanStart = nameToken.SpanStart;
+                }
+
+                // If the user types Goo<T, automatic brace completion will insert the close brace
+                // and the generic won't be "partially written".
+                if (spanStart == position)
+                {
+                    spanStart = token.GetAncestor<GenericNameSyntax>()?.SpanStart ?? spanStart;
+                }
+
+                var tokenLeftOfGenericName = syntaxTree.FindTokenOnLeftOfPosition(spanStart, cancellationToken);
+                if (tokenLeftOfGenericName.IsKind(SyntaxKind.DotToken) && tokenLeftOfGenericName.Parent.IsKind(SyntaxKind.QualifiedName))
+                {
+                    spanStart = tokenLeftOfGenericName.Parent.SpanStart;
+                }
+            }
+
+            return spanStart;
+        }
+
+        static int WalkOutOfRefType(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var prevToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                      .GetPreviousTokenIfTouchingWord(position);
+
+            if (prevToken.Kind() is SyntaxKind.RefKeyword or SyntaxKind.ReadOnlyKeyword && prevToken.Parent.IsKind(SyntaxKind.RefType))
+            {
+                return prevToken.SpanStart;
+            }
+
+            return position;
+        }
+
+        static int WalkOutOfTupleType(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var prevToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                      .GetPreviousTokenIfTouchingWord(position);
+
+            if (prevToken.IsPossibleTupleOpenParenOrComma())
+            {
+                return prevToken.Parent!.SpanStart;
+            }
+
+            return position;
         }
     }
 }

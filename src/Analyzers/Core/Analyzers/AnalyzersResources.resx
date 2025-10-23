@@ -412,4 +412,10 @@
   <data name="Accessibility_modifiers_unnecessary" xml:space="preserve">
     <value>Accessibility modifiers unnecessary</value>
   </data>
+  <data name="Remove_unnecessary_unsafe_modifier" xml:space="preserve">
+    <value>Remove unnecessary 'unsafe' modifier</value>
+  </data>
+  <data name="unsafe_modifier_is_unnecessary" xml:space="preserve">
+    <value>'unsafe' modifier is unnecessary</value>
+  </data>
 </root>

@@ -1087,6 +1087,11 @@
         <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
+        <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
+        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Argumenty s modifikátorem in se nedají použít v dynamicky volaných výrazech.</target>
@@ -12998,11 +13003,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="IDS_FeatureOutVar">
         <source>out variable declaration</source>
         <target state="translated">deklarace externí proměnné</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
-        <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">Odkaz na implicitně typovanou externí proměnnou {0} není povolený ve stejném seznamu argumentů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
