@@ -19520,12 +19520,12 @@ class Program
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
-                // (14,41): error CS0019: Operator '>>>' cannot be applied to operands of type 'void*' and 'S1'
-                //     unsafe void* Test(void* x, S1 y) => x >>> y;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> y").WithArguments(">>>", "void*", "S1").WithLocation(14, 41),
-                // (14,41): error CS0242: The operation in question is undefined on void pointers
-                //     unsafe void* Test(void* x, S1 y) => x >>> y;
-                Diagnostic(ErrorCode.ERR_VoidError, "x >>> y").WithLocation(14, 41)
+                // (13,41): error CS0019: Operator '*' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void* Test(void* x, S1 y) => x * y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, "void*", "S1").WithLocation(13, 41),
+                // (13,41): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x, S1 y) => x * y;
+                Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y").WithLocation(13, 41)
                 );
         }
 
@@ -19597,12 +19597,12 @@ class Program
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
-                // (14,41): error CS0019: Operator '&' cannot be applied to operands of type 'S1' and 'void*'
-                //     unsafe void* Test(void* x, S1 y) => y & x;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(14, 41),
-                // (14,41): error CS0242: The operation in question is undefined on void pointers
-                //     unsafe void* Test(void* x, S1 y) => y & x;
-                Diagnostic(ErrorCode.ERR_VoidError, $"y {op} x").WithLocation(14, 41)
+                // (13,41): error CS0019: Operator '^' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void* Test(void* x, S1 y) => y ^ x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op}  x").WithArguments(op, "S1", "void*").WithLocation(13, 41),
+                // (13,41): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x, S1 y) => y ^ x;
+                Diagnostic(ErrorCode.ERR_VoidError, $"y {op}  x").WithLocation(13, 41)
                 );
         }
 
