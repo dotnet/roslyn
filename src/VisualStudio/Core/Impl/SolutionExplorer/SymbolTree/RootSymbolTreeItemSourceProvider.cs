@@ -17,7 +17,9 @@ using Microsoft.CodeAnalysis.GoOrFind;
 using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -54,6 +56,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     /// </summary>
     private readonly AsyncBatchingWorkQueue<string> _updateSourcesQueue;
     private readonly Workspace _workspace;
+    private readonly IGlobalOptionService _globalOptionService;
 
     private readonly IGoOrFindNavigationService _goToBaseNavigationService;
     private readonly IGoOrFindNavigationService _goToImplementationNavigationService;
@@ -70,6 +73,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     public RootSymbolTreeItemSourceProvider(
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
+        IGlobalOptionService globalOptionService,
         GoToBaseNavigationService goToBaseNavigationService,
         GoToImplementationNavigationService goToImplementationNavigationService,
         FindReferencesNavigationService findReferencesNavigationService,
@@ -77,6 +81,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     {
         ThreadingContext = threadingContext;
         _workspace = workspace;
+        _globalOptionService = globalOptionService;
         _goToBaseNavigationService = goToBaseNavigationService;
         _goToImplementationNavigationService = goToImplementationNavigationService;
         _findReferencesNavigationService = findReferencesNavigationService;
@@ -179,6 +184,22 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
         }
 
+        // Important: currentFilePath is mutable state captured *AND UPDATED* in the local function  
+        // OnItemPropertyChanged below.  It allows us to know the file path of the item *prior* to
+        // it being changed *when* we hear the update about it having changed (since the event doesn't
+        // contain the old value).  
+        if (item.CanonicalName is not string currentFilePath)
+            return null;
+
+        // Check if the option to show symbols is enabled for this file's language
+        var language = DetermineLanguageFromFilePath(currentFilePath);
+        if (language != null)
+        {
+            var options = _globalOptionService.GetSolutionExplorerOptions(language);
+            if (!options.ShowSymbols)
+                return null;
+        }
+
         var hierarchy = item.HierarchyIdentity.NestedHierarchy;
         var itemId = item.HierarchyIdentity.NestedItemID;
 
@@ -193,13 +214,6 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         {
             return null;
         }
-
-        // Important: currentFilePath is mutable state captured *AND UPDATED* in the local function  
-        // OnItemPropertyChanged below.  It allows us to know the file path of the item *prior* to
-        // it being changed *when* we hear the update about it having changed (since hte event doesn't
-        // contain the old value).  
-        if (item.CanonicalName is not string currentFilePath)
-            return null;
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);
         lock (_filePathToCollectionSources)
@@ -250,5 +264,16 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                 }
             }
         }
+    }
+
+    private static string? DetermineLanguageFromFilePath(string filePath)
+    {
+        var extension = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
+        return extension switch
+        {
+            ".cs" => LanguageNames.CSharp,
+            ".vb" => LanguageNames.VisualBasic,
+            _ => null
+        };
     }
 }

@@ -323,6 +323,14 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
                 </StackPanel>
             </GroupBox>
+
+            <GroupBox x:Uid="SolutionExplorerGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Option_Solution_Explorer}">
+                <StackPanel>
+                    <CheckBox x:Uid="ShowLanguageSymbolsInsideSolutionExplorerFiles"
+                              x:Name="ShowLanguageSymbolsInsideSolutionExplorerFiles"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_language_symbols_inside_solution_explorer_files}" />
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>

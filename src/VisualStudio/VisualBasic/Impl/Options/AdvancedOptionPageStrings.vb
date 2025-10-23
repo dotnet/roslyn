@@ -335,5 +335,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
             ServicesVSResources.Balanced_Run_generators_after_saving_or_building
+
+        Public ReadOnly Property Option_Solution_Explorer As String =
+            ServicesVSResources.Solution_Explorer
+
+        Public ReadOnly Property Option_Show_language_symbols_inside_solution_explorer_files As String =
+            ServicesVSResources.Show_language_symbols_inside_solution_explorer_files
     End Module
 End Namespace

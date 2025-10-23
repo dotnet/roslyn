@@ -1437,6 +1437,11 @@
         <target state="translated">가져오지 않은 네임스페이스의 항목 표시</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_language_symbols_inside_solution_explorer_files">
+        <source>Show language symbols inside solution explorer files</source>
+        <target state="new">Show language symbols inside solution explorer files</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename _tracking</source>
         <target state="translated">이름 바꾸기 추적 미리 보기 표시(_T)</target>
@@ -1465,6 +1470,11 @@
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
         <target state="translated">코드 조각 동작</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Solution_Explorer">
+        <source>Solution Explorer</source>
+        <target state="new">Solution Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_Generators">

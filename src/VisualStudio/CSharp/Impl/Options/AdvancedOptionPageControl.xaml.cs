@@ -33,6 +33,7 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.StringCopyPaste;
 using Microsoft.CodeAnalysis.Structure;
@@ -162,6 +163,9 @@ internal sealed partial class AdvancedOptionPageControl : AbstractOptionPageCont
 
         // Stack Trace Explorer
         BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsStorage.OpenOnFocus);
+
+        // Solution Explorer
+        BindToOption(ShowLanguageSymbolsInsideSolutionExplorerFiles, SolutionExplorerOptionsStorage.ShowSymbols, LanguageNames.CSharp);
     }
 
     // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
