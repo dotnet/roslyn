@@ -25264,17 +25264,6 @@ class C { }
             // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E3.extension(C).M()' and 'E2.extension(C).M'
             // System.Console.Write(C.M());
             Diagnostic(ErrorCode.ERR_AmbigExtension, "C.M").WithArguments("E3.extension(C).M()", "E2.extension(C).M").WithLocation(1, 22));
-
-        string expected(int index)
-        {
-            return index switch
-            {
-                0 => "E1.extension(object).M()",
-                1 => expected(second),
-                2 => "E3.extension(C).M()",
-                _ => ""
-            };
-        }
     }
 
     [Fact]

@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //visit the enclosing type if the style requires it
             if (Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameAndContainingTypes ||
                 Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces ||
-                (Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameOnly && symbol.IsExtension))
+                symbol.IsExtension)
             {
                 if (IncludeNamedType(symbol.ContainingType))
                 {

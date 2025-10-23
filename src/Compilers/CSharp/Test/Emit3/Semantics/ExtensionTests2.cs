@@ -36057,5 +36057,219 @@ static class E
             //         public static int Property => 0;
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "Property").WithArguments("T").WithLocation(7, 27));
     }
+
+    [Fact]
+    public void ReportDiagnostics_23()
+    {
+        // method vs. two equivalent (ie worse) properties
+        var src = """
+_ = object.Member;
+
+static class E1
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static int Member() => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E3.extension(object).Member()' and 'E1.extension(object).Member'
+            // _ = object.Member;
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E3.extension(object).Member()", "E1.extension(object).Member").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_24()
+    {
+        // method vs. three properties, two equivalent (ie worse) and one that fails type constraints
+        var src = """
+_ = object.Member;
+
+static class E1
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E3
+{
+    extension<T>(T) where T : struct
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E4
+{
+    extension(object)
+    {
+        public static int Member() => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E4.extension(object).Member()' and 'E1.extension(object).Member'
+            // _ = object.Member;
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E4.extension(object).Member()", "E1.extension(object).Member").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_25()
+    {
+        // property vs. two methods
+        var src = """
+_ = object.Member;
+
+static class E1
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member() => 0;
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static int Member() => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).Member()' and 'E1.extension(object).Member'
+            // _ = object.Member;
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E2.extension(object).Member()", "E1.extension(object).Member").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_26()
+    {
+        // property vs. three methods, two are applicable but equivalent (ie worse), one fails type inference
+        var src = """
+_ = object.Member(42);
+
+static class E1
+{
+    extension(object)
+    {
+        public static System.Action<int> Member => null;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member(int i, params int[] j) => 0;
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static int Member(int i, params string[] j) => 0;
+    }
+}
+
+static class E4
+{
+    extension(object)
+    {
+        public static int Member<T>(int i) => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).Member(int, params int[])' and 'E1.extension(object).Member'
+            // _ = object.Member(42);
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E2.extension(object).Member(int, params int[])", "E1.extension(object).Member").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_27()
+    {
+        // property vs. three methods, two are applicable but equivalent (ie worse), one applicable and better
+        var src = """
+_ = object.Member(42);
+
+static class E1
+{
+    extension(object)
+    {
+        public static System.Action<int> Member => null;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member(int i, params int[] j) => 0;
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static int Member(int i, params string[] j) => 0;
+    }
+}
+
+static class E4
+{
+    extension(object)
+    {
+        public static int Member(int i) => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E4.extension(object).Member(int)' and 'E1.extension(object).Member'
+            // _ = object.Member(42);
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E4.extension(object).Member(int)", "E1.extension(object).Member").WithLocation(1, 5));
+    }
 }
 

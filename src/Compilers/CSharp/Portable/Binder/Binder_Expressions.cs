@@ -8876,9 +8876,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiagnosticInfo errorInfo;
                 if (methodResult.HasAnyApplicableMethod && propertyResult.HasAnyApplicableMember)
                 {
-                    var firstMethod = methodResult.OverloadResolutionResult?.BestResult.Member ?? methodResult.MethodGroup.Methods[0];
-                    var firstProperty = propertyResult.BestResult.Member;
-                    errorInfo = OverloadResolutionResult<Symbol>.CreateAmbiguousCallDiagnosticInfo(binder.Compilation, firstMethod, firstProperty, symbols, isExtension: true);
+                    MethodSymbol representativeMethod = methodResult.OverloadResolutionResult is { } methodResolution
+                        ? pickRepresentative(methodResolution)
+                        : methodResult.MethodGroup.Methods[0];
+
+                    PropertySymbol representativeProperty = pickRepresentative(propertyResult);
+
+                    errorInfo = OverloadResolutionResult<Symbol>.CreateAmbiguousCallDiagnosticInfo(binder.Compilation, representativeMethod, representativeProperty, symbols, isExtension: true);
 
                     diagnostics.Add(errorInfo, expression.Location);
                 }
@@ -8893,7 +8897,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 ExtendedErrorTypeSymbol resultSymbol = new ExtendedErrorTypeSymbol(containingSymbol: null, symbols, LookupResultKind.OverloadResolutionFailure, errorInfo, arity);
-                return new MethodGroupResolution(resultSymbol, LookupResultKind.Viable, diagnostics.ToReadOnly());
+                Debug.Assert(lookupResult.Kind == LookupResultKind.Viable);
+                return new MethodGroupResolution(resultSymbol, lookupResult.Kind, diagnostics.ToReadOnly());
+            }
+
+            static T pickRepresentative<T>(OverloadResolutionResult<T> result) where T : Symbol
+            {
+                Debug.Assert(result.HasAnyApplicableMember);
+
+                if (result.Succeeded)
+                {
+                    return result.BestResult.Member;
+                }
+
+                return result.ResultsBuilder.First(r => r.Result.Kind == MemberResolutionKind.Worse).Member;
             }
 
             static void initActualArguments(BoundExpression left, AnalyzedArguments? analyzedArguments, [NotNull] ref AnalyzedArguments? actualMethodArguments)
