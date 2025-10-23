@@ -137,8 +137,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BestResult.Member;
             }
 
-            // We prefer Worse over Worst candidates
-            return ResultsBuilder.First(r => r.Result.Kind == MemberResolutionKind.Worse).Member;
+            if (ResultsBuilder.FirstOrDefault(r => r.Result.Kind == MemberResolutionKind.Worse).Member is { } worse)
+            {
+                return worse;
+            }
+
+            return GetAllApplicableMembers()[0];
         }
 
         /// <summary>
