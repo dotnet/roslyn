@@ -1808,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadSourceCodeKind
                 or ErrorCode.ERR_BadDocumentationMode
                 or ErrorCode.ERR_BadLanguageVersion
-                or ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList
+                or ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone
                 or ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable
                 or ErrorCode.ERR_ExpressionTreeContainsOutVariable
                 or ErrorCode.ERR_VarInvocationLvalueReserved

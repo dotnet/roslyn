@@ -201,12 +201,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 GetPublicSymbol();
         }
 
-        IMethodSymbol IMethodSymbol.ReduceExtensionMethod(ITypeSymbol receiverType)
+#nullable enable
+        IMethodSymbol? IMethodSymbol.ReduceExtensionMethod(ITypeSymbol receiverType)
         {
             return _underlying.ReduceExtensionMethod(
                 receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType)), compilation: null).
                 GetPublicSymbol();
         }
+
+        IMethodSymbol? IMethodSymbol.ReduceExtensionMember(ITypeSymbol receiverType)
+        {
+            if (_underlying.GetIsNewExtensionMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying))
+            {
+                var csharpReceiver = receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType));
+                return (IMethodSymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation: null, _underlying, csharpReceiver, wasExtensionFullyInferred: out _).GetPublicSymbol();
+            }
+
+            return null;
+        }
+#nullable disable
 
         ImmutableArray<IMethodSymbol> IMethodSymbol.ExplicitInterfaceImplementations
         {

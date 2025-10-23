@@ -42,7 +42,7 @@ internal abstract class AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<
 
     protected abstract bool CanRemoveParentheses(
         TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel, CancellationToken cancellationToken,
-        out PrecedenceKind precedence, out bool clarifiesPrecedence);
+        out PrecedenceKind precedence, out bool clarifiesPrecedence, out bool innerExpressionHasPrimaryPrecedence);
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
@@ -50,7 +50,7 @@ internal abstract class AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<
         var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 
         if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel, cancellationToken,
-                out var precedence, out var clarifiesPrecedence))
+                out var precedence, out var clarifiesPrecedence, out var innerExpressionHasPrimaryPrecedence))
         {
             return;
         }
@@ -62,6 +62,10 @@ internal abstract class AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<
         // "1 + 2 << 3" as "1 + (2 << 3)", when it's actually "(1 + 2) << 3".  To avoid 
         // making code bases more confusing, we just do not touch parens for these constructs 
         // unless both the child and parent have the same kinds.
+        //
+        // However, if the inner expression has primary precedence (like a literal, identifier,
+        // member access, or invocation), we allow removal regardless of kind mismatch, as there's
+        // no precedence confusion. For example: "1 | (2)" can safely become "1 | 2".
         switch (precedence)
         {
             case PrecedenceKind.Shift:
@@ -72,13 +76,14 @@ internal abstract class AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<
 
                 var parentKind = parenthesizedExpression.Parent?.RawKind;
                 var childKind = child.RawKind;
-                if (parentKind != childKind)
+                if (parentKind != childKind && !innerExpressionHasPrimaryPrecedence)
                 {
                     return;
                 }
 
                 // Ok to remove if it was the exact same kind.  i.e. ```(a | b) | c```
                 // not ok to remove if kinds changed.  i.e. ```(a + b) << c```
+                // Ok to remove if inner expression has primary precedence. i.e. ```1 | (2)```
                 break;
         }
 

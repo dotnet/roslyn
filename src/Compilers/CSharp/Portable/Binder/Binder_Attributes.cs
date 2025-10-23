@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         memberResolutionResult.IsValid && !binder.IsConstructorAccessible(memberResolutionResult.Member, ref useSiteInfo) ?
                             LookupResultKind.Inaccessible :
                             LookupResultKind.OverloadResolutionFailure);
-                    boundConstructorArguments = binder.BuildArgumentsForErrorRecovery(analyzedArguments.ConstructorArguments, candidateConstructors);
+                    boundConstructorArguments = binder.BuildArgumentsForErrorRecovery(analyzedArguments.ConstructorArguments, candidateConstructors, BindingDiagnosticBag.Discarded);
                     diagnostics.Add(node, useSiteInfo);
                 }
                 else

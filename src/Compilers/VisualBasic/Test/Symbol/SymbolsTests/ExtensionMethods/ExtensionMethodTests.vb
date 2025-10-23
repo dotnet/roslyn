@@ -2563,6 +2563,30 @@ End Module
             Dim reducedMethodOnVoid = extensionMethod.ReduceExtensionMethod(compilation.GetSpecialType(SpecialType.System_Void))
             Assert.Null(reducedMethodOnVoid)
         End Sub
+
+        <Fact>
+        Public Sub ReduceExtensionMember_01()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class E
+    Public Sub Method()
+    End Sub
+    Public Property Prop As Integer
+End Class
+]]></file>
+</compilation>)
+
+            compilation.VerifyEmitDiagnostics()
+
+            Dim systemObject As NamedTypeSymbol = compilation.GetSpecialType(SpecialType.System_Object)
+            Dim method = DirectCast(compilation.GlobalNamespace.GetTypeMember("E").GetMember(Of MethodSymbol)("Method"), IMethodSymbol)
+            Assert.NotNull(method)
+            Assert.Null(method.ReduceExtensionMember(systemObject))
+
+            Dim prop = DirectCast(compilation.GlobalNamespace.GetTypeMember("E").GetMember(Of PropertySymbol)("Prop"), IPropertySymbol)
+            Assert.Null(prop.ReduceExtensionMember(systemObject))
+        End Sub
     End Class
 
 End Namespace

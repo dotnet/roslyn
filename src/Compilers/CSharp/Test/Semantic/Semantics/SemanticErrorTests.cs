@@ -6972,9 +6972,10 @@ class MyClass
         foreach (int i in (IEnumerable)null) { };   // CS0186
     }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_NullNotValid, Line = 9, Column = 27 } ,
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_NullNotValid, Line = 10, Column = 27 }});
+            CreateCompilation(text).VerifyDiagnostics(
+                // (9,27): error CS0186: Use of null is not valid in this context
+                //         foreach (int i in null) { }   // CS0186
+                Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(9, 27));
         }
 
         [Fact]
@@ -6989,8 +6990,7 @@ public class Test
     }
 }
 ";
-            CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NullNotValid, "default(int[])"));
+            CreateCompilation(text).VerifyEmitDiagnostics();
         }
 
         [WorkItem(540983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540983")]
