@@ -104,6 +104,11 @@
         <target state="translated">MSB3104: 未找到引用的程序集“{0}”。如果此程序集是由你的另一个项目生成的，请确保在生成该项目之后再生成此程序集。</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_ToolTask_DotNetHostPathNotSet">
+        <source>Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</source>
+        <target state="new">Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="General_UnableToReadFile">
         <source>File "{0}" could not be read: {1}</source>
         <target state="translated">无法读取文件 "{0}": {1}</target>

@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             else
             {
-                Log.LogWarning("Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild.",
+                Log.LogWarning(ErrorString.General_ToolTask_DotNetHostPathNotSet,
                     RuntimeHostInfo.DotNetRootEnvironmentName,
                     RuntimeHostInfo.DotNetHostPathEnvironmentName);
             }

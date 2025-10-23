@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             else
             {
                 logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
-                logger.LogWarning("Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild.",
+                logger.LogWarning("Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.",
                     RuntimeHostInfo.DotNetRootEnvironmentName,
                     RuntimeHostInfo.DotNetHostPathEnvironmentName);
             }

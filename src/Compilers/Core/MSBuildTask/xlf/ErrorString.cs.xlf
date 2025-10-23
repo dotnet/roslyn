@@ -104,6 +104,11 @@
         <target state="translated">MSB3104: Odkazované sestavení {0} se nenašlo. Pokud je toto sestavení vytvořené jiným projektem, je třeba daný projekt sestavit před sestavením tohoto projektu.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_ToolTask_DotNetHostPathNotSet">
+        <source>Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</source>
+        <target state="new">Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="General_UnableToReadFile">
         <source>File "{0}" could not be read: {1}</source>
         <target state="translated">Soubor {0} se nepovedlo přečíst: {1}</target>

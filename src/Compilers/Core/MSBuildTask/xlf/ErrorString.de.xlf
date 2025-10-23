@@ -104,6 +104,11 @@
         <target state="translated">MSB3104: Die referenzierte Assembly "{0}" wurde nicht gefunden. Falls diese Assembly von einem anderen Projekt erstellt wird, muss dieses Projekt vor diesem Projekt erstellt werden.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_ToolTask_DotNetHostPathNotSet">
+        <source>Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</source>
+        <target state="new">Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="General_UnableToReadFile">
         <source>File "{0}" could not be read: {1}</source>
         <target state="translated">Die Datei "{0}" konnte nicht gelesen werden: {1}</target>

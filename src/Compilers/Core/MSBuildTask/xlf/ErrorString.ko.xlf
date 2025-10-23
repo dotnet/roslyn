@@ -104,6 +104,11 @@
         <target state="translated">MSB3104: 참조된 어셈블리 "{0}"을(를) 찾을 수 없습니다. 다른 프로젝트에서 이 어셈블리를 생성한 경우 이 어셈블리를 빌드하기 전에 해당 프로젝트를 빌드해야 합니다.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_ToolTask_DotNetHostPathNotSet">
+        <source>Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</source>
+        <target state="new">Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="General_UnableToReadFile">
         <source>File "{0}" could not be read: {1}</source>
         <target state="translated">"{0}" 파일을 읽을 수 없습니다. {1}</target>

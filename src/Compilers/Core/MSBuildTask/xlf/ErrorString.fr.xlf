@@ -104,6 +104,11 @@
         <target state="translated">MSB3104: L'assembly référencé "{0}" est introuvable. Si cet assembly est produit par l'un de vos projets, assurez-vous de générer ce projet avant de générer celui-ci.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_ToolTask_DotNetHostPathNotSet">
+        <source>Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</source>
+        <target state="new">Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="General_UnableToReadFile">
         <source>File "{0}" could not be read: {1}</source>
         <target state="translated">Impossible de lire le fichier "{0}" : {1}</target>

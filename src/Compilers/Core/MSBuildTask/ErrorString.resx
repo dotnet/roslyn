@@ -223,4 +223,7 @@
   <data name="ImplicitlySkipAnalyzersMessage" xml:space="preserve">
     <value>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</value>
   </data>
+  <data name="General_ToolTask_DotNetHostPathNotSet" xml:space="preserve">
+    <value>Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</value>
+  </data>
 </root>
