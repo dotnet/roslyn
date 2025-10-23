@@ -474,12 +474,12 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public Task OnAutoInsert_RawString_GenerateInitialEmpty(bool mutatingLspWorkspace)
         => VerifyCSharpMarkupAndExpectedRawString("\"", @"var v = """"{|type:|}",
-            @"var v = """"""""""""", mutatingLspWorkspace);
+            @"var v = """"""""""", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_RawString_GenerateInitialEmpty_Interpolated(bool mutatingLspWorkspace)
         => VerifyCSharpMarkupAndExpectedRawString("\"", @"var v = $""""{|type:|}",
-            @"var v = $""""""""""""", mutatingLspWorkspace);
+            @"var v = $""""""""""", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_RawString_GrowInitialEmpty(bool mutatingLspWorkspace)
