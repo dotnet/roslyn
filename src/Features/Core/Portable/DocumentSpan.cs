@@ -13,7 +13,7 @@ internal readonly record struct DocumentSpan(
     Document Document, TextSpan SourceSpan, bool IsGeneratedCode)
 {
     public DocumentSpan(Document document, TextSpan sourceSpan)
-        : this(document, sourceSpan, false)
+        : this(document, sourceSpan, IsGeneratedCode: false)
     {
     }
 }
