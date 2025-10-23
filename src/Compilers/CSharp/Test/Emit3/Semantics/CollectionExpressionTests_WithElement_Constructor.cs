@@ -399,7 +399,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
-    public void WithElement_ControlFlowGraph()
+    public void WithElement_ControlFlowGraph1()
     {
         var source = """
             using System;
@@ -488,6 +488,69 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             Block[B5] - Exit
                 Predecessors: [B4]
+                Statements (0)
+            """, graph, symbol);
+    }
+
+    [Fact]
+    public void WithElement_ControlFlowGraph2()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public string Name { get; }
+                
+                public MyList(int capacity = 0, string name = "default") : base(capacity)
+                {
+                    Name = name;
+                }
+            }
+            
+            class C
+            {
+                static void Main(bool a)
+                {
+                    MyList<int> list2 = [with(capacity: a ? 10 : 20), 2];
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation(source);
+
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+        var root = semanticModel.SyntaxTree.GetRoot();
+
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().ToArray()[1], semanticModel);
+        ControlFlowGraphVerifier.VerifyGraph(compilation, """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [MyList<System.Int32> list2]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list2 = [wi ... 0 : 20), 2]')
+                          Left:
+                            ILocalReferenceOperation: list2 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list2 = [wi ... 0 : 20), 2]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: '[with(capac ... 0 : 20), 2]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capac ... 0 : 20), 2]')
+                                  Elements(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
                 Statements (0)
             """, graph, symbol);
     }
