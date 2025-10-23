@@ -1539,10 +1539,17 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics(
+        var comp = CreateCompilation(source).VerifyDiagnostics(
             // (12,29): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
             //         MyList<int> list = [with(10)];
             Diagnostic(ErrorCode.ERR_BadAccess, "with(10)").WithArguments("MyList<int>.MyList(int)").WithLocation(12, 29));
+
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees[0]);
+        var withExpression = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<WithElementSyntax>().Single();
+        var symbolInfo = semanticModel.GetSymbolInfo(withExpression);
+
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
     }
 
     [Fact]
