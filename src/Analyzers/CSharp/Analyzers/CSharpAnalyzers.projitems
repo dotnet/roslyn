@@ -55,7 +55,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileBasedPrograms\AppDirectiveDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FileBasedPrograms\AppDirectiveHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileBasedPrograms\ExternalHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationDiagnosticAnalyzer.cs" />
@@ -170,6 +170,9 @@
   </ItemGroup>
   <ItemGroup>
     <!-- TODO2: central package version. Use published version. -->
-    <PackageReference Include="Microsoft.DotNet.FileBasedPrograms" VersionOverride="10.0.100-dev" />
+    <PackageReference Include="Microsoft.DotNet.FileBasedPrograms" VersionOverride="10.0.200-dev" />
   </ItemGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);FILE_BASED_PROGRAMS_SOURCE_PACKAGE_GRACEFUL_EXCEPTION</DefineConstants>
+  </PropertyGroup>
 </Project>

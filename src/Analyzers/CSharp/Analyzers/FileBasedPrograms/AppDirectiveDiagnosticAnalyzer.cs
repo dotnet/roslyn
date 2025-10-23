@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.DotNet.FileBasedPrograms;
 
 namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
@@ -45,14 +46,12 @@ internal sealed class AppDirectiveDiagnosticAnalyzer : DiagnosticAnalyzer
 
             // App directives are only valid when they appear before the first C# token
             var rootLeadingTrivia = root.GetLeadingTrivia();
-#pragma warning disable IDE0002 // Name can be simplified
-            var diagnosticBag = FileBasedPrograms.DiagnosticBag.Collect(out var diagnosticsBuilder);
-#pragma warning restore IDE0002
-            AppDirectiveHelpers.FindDirectives(
+            var diagnosticBag = DiagnosticBag.Collect(out var diagnosticsBuilder);
+            AppDirectiveHelpers.FindLeadingDirectives(
                 new SourceFile(tree.FilePath, tree.GetText(context.CancellationToken)),
                 root.GetLeadingTrivia(),
                 diagnosticBag,
-                ImmutableArray.CreateBuilder<CSharpDirective>());
+                builder: null);
 
             foreach (var diag in diagnosticsBuilder)
             {
