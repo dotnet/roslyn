@@ -3943,12 +3943,12 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// Method used to construct the collection.
-        /// <para/>
+        /// <para />
         /// <list type="number">
         /// <item>If the collection type is an array, span, or type parameter, the method is null.</item>
         /// <item>If the collection type has a [CollectionBuilder] attribute, the method is the builder method.</item>
         /// <item>If the collection type is a mutable array interface and the collection was initialized with arguments,
-        /// the method is the constructor of <see cref="List{T}"/> that was used.  If this is read-only array interface,
+        /// the method is the constructor of <see cref="List{T}" /> that was used.  If this is read-only array interface,
         /// or no arguments were provided, the method is null</item>
         /// <item>Otherwise, the method is the collection type constructor.</item>
         /// </list>
