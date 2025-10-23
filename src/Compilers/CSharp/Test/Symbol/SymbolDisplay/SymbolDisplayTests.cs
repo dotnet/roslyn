@@ -9233,7 +9233,6 @@ End Class
             AssertEx.Equal("C`1.D`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+D`1"), format));
             AssertEx.Equal("C`1.E", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+E"), format));
         }
-            
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36654")]
         public void MinimalNameWithConflict()
         {
