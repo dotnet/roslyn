@@ -4,8 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.RawStringLiteral;
@@ -14,23 +12,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.RawStringLiteral;
 
-[ExportLanguageService(typeof(IRawStringLiteralOnAutoInsertService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpRawStringLiteralOnAutoInsertService : IRawStringLiteralOnAutoInsertService
+[ExportLanguageService(typeof(IRawStringLiteralAutoInsertService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpRawStringLiteralOnAutoInsertService() : IRawStringLiteralAutoInsertService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpRawStringLiteralOnAutoInsertService()
+    public TextChange? GetTextChangeForQuote(SyntaxNode root, SourceText text, int caretPosition)
     {
-    }
-    public TextChange? GetTextChangeForQuote(Document document, int caretPosition, CancellationToken cancellationToken)
-    {
-        var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-        var text = document.GetTextSynchronously(cancellationToken);
-
         return
-            TryGenerateInitialEmptyRawString(text, root, caretPosition, cancellationToken) ??
-            TryGrowInitialEmptyRawString(text, root, caretPosition, cancellationToken) ??
-            TryGrowRawStringDelimiters(text, root, caretPosition, cancellationToken);
+            TryGenerateInitialEmptyRawString(text, root, caretPosition) ??
+            TryGrowInitialEmptyRawString(text, root, caretPosition) ??
+            TryGrowRawStringDelimiters(text, root, caretPosition);
     }
 
     /// <summary>
@@ -40,8 +32,7 @@ internal sealed class CSharpRawStringLiteralOnAutoInsertService : IRawStringLite
     private static TextChange? TryGenerateInitialEmptyRawString(
         SourceText text,
         SyntaxNode root,
-        int position,
-        CancellationToken cancellationToken)
+        int position)
     {
         // if we have ""$$"   then typing `"` here should not be handled by this path but by TryGrowInitialEmptyRawString
         if (position + 1 < text.Length && text[position + 1] == '"')
@@ -86,8 +77,7 @@ internal sealed class CSharpRawStringLiteralOnAutoInsertService : IRawStringLite
     private static TextChange? TryGrowInitialEmptyRawString(
         SourceText text,
         SyntaxNode root,
-        int position,
-        CancellationToken cancellationToken)
+        int position)
     {
         var start = position;
         while (start - 1 >= 0 && text[start - 1] == '"')
@@ -136,8 +126,7 @@ internal sealed class CSharpRawStringLiteralOnAutoInsertService : IRawStringLite
     private static TextChange? TryGrowRawStringDelimiters(
         SourceText text,
         SyntaxNode root,
-        int position,
-        CancellationToken cancellationToken)
+        int position)
     {
         // if we have """$$"   then typing `"` here should not grow the start/end quotes.  we only want to grow them
         // if the user is at the end of the start delimiter.

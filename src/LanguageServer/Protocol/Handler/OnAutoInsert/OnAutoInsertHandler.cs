@@ -117,7 +117,7 @@ internal sealed class OnAutoInsertHandler(
         // Handle raw string literal quote typing
         if (character == "\"")
         {
-            var rawStringResponse = GetRawStringLiteralResponse(document, linePosition, cancellationToken);
+            var rawStringResponse = await GetRawStringLiteralResponseAsync(document, linePosition, cancellationToken).ConfigureAwait(false);
             if (rawStringResponse != null)
             {
                 return rawStringResponse;
@@ -273,44 +273,48 @@ internal sealed class OnAutoInsertHandler(
         return null;
     }
 
-    private static LSP.VSInternalDocumentOnAutoInsertResponseItem? GetRawStringLiteralResponse(
+    private static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetRawStringLiteralResponseAsync(
         Document document,
         LinePosition linePosition,
         CancellationToken cancellationToken)
     {
-        var service = document.GetLanguageService<IRawStringLiteralOnAutoInsertService>();
+        var service = document.GetLanguageService<IRawStringLiteralAutoInsertService>();
         if (service == null)
             return null;
 
-        var sourceText = document.GetTextSynchronously(cancellationToken);
-        var position = sourceText.Lines.GetPosition(linePosition);
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var originalPosition = sourceText.Lines.GetPosition(linePosition);
 
-        // Create a temporary document with the quote inserted at the position
-        // This matches what the VS handler does - it types the quote first, then applies the service logic
-        var textWithQuote = sourceText.WithChanges(new TextChange(new TextSpan(position, 0), "\""));
-        var documentWithQuote = document.WithText(textWithQuote);
+        // The service expects to receive a document without the typed quote and position where the quote would be typed.
+        // We were passed a document with the quote already inserted and position after the quote.  Hence we need to
+        // adjust the document backwards to remove the quote and move the position back by one.
+        var positionOfQuote = originalPosition - 1;
+        var sourceTextWithoutQuote = sourceText.WithChanges(new TextChange(new TextSpan(positionOfQuote, 1), string.Empty));
+        var documentWithoutQuote = document.WithText(sourceTextWithoutQuote);
 
-        // Call the service with the original position (which now points to the newly inserted quote in the temp document)
-        // The service expects to receive the position where the caret was BEFORE typing, but operate on a document
-        // where the quote HAS been typed
-        var textChange = service.GetTextChangeForQuote(documentWithQuote, position, cancellationToken);
+        var root = await documentWithoutQuote.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var textChange = service.GetTextChangeForQuote(root, sourceTextWithoutQuote, positionOfQuote);
         if (textChange == null)
             return null;
 
-        // The text change returned by the service is relative to the document with the quote inserted.
-        // The span starts after the quote we inserted. We need to return a text edit that:
-        // 1. Includes the quote character itself
-        // 2. Has a span that starts at the original position (before the quote)
-        // 3. Includes the additional text from the service
-        
+        // The server returns an edit to be applied after the quote has already been typed.
+        // The original request is based on the document with the quote already inserted, so we can just return the edit
+        // directly against the request document.
+        var edit = ProtocolConversions.TextChangeToTextEdit(textChange.Value, sourceText);
+        var format = LSP.InsertTextFormat.Plaintext;
+
+        if (textChange.Value.Span.Start == originalPosition)
+        {
+            // The raw string edit may start with the original position (i.e. the caret position).
+            // In such a case, we need to return a snippet edit to ensure the caret is not moved to the end.
+            edit.NewText = edit.NewText.Insert(0, "$0"); // Insert caret at the original position after the typed quote.
+            format = LSP.InsertTextFormat.Snippet;
+        }
+
         return new LSP.VSInternalDocumentOnAutoInsertResponseItem
         {
-            TextEditFormat = LSP.InsertTextFormat.Plaintext,
-            TextEdit = new LSP.TextEdit
-            {
-                NewText = "\"" + (textChange.Value.NewText ?? string.Empty), // Include the quote that will be typed plus additional text
-                Range = ProtocolConversions.TextSpanToRange(new TextSpan(position, 0), sourceText)
-            }
+            TextEditFormat = format,
+            TextEdit = edit
         };
     }
 }

@@ -51,12 +51,15 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         if (document == null)
             return false;
 
-        var service = document.Project.GetRequiredLanguageService<IRawStringLiteralOnAutoInsertService>();
+        // This command handler only runs for C#, which should always provide this service.
+        var service = document.Project.GetRequiredLanguageService<IRawStringLiteralAutoInsertService>();
 
         var cancellationToken = CancellationToken.None;
-        var textChangeOpt = service.GetTextChangeForQuote(document, caret.Value.Position, cancellationToken);
+        var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+        var text = document.GetTextSynchronously(cancellationToken);
+        var textChange = service.GetTextChangeForQuote(root, text, caret.Value.Position);
 
-        if (textChangeOpt is not TextChange textChange)
+        if (textChange is null)
             return false;
 
         // Looks good.  First, let the quote get added by the normal type char handlers.  Then make our text change.
@@ -67,7 +70,7 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
             CSharpEditorResources.Grow_raw_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
         var edit = subjectBuffer.CreateEdit();
-        edit.Insert(textChange.Span.Start, textChange.NewText);
+        edit.Insert(textChange.Value.Span.Start, textChange.Value.NewText);
         edit.Apply();
 
         // ensure the caret is placed after where the original quote got added.
