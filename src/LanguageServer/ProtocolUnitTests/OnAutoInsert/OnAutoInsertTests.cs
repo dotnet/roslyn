@@ -468,4 +468,56 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
                 TabSize = tabSize
             }
         };
+
+    #region Raw String Literal Tests
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_RawString_GenerateInitialEmpty(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpectedRawString("\"", @"var v = """"{|type:|}",
+            @"var v = """"""""""""", mutatingLspWorkspace);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_RawString_GenerateInitialEmpty_Interpolated(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpectedRawString("\"", @"var v = $""""{|type:|}",
+            @"var v = $""""""""""""", mutatingLspWorkspace);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_RawString_GrowInitialEmpty(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpectedRawString("\"", @"var v = """"""{|type:|}""""""",
+            @"var v = """"""""""""""""", mutatingLspWorkspace);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_RawString_GrowDelimiters(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpectedRawString("\"", @"var v = """"""{|type:|} test """"""",
+            @"var v = """""""" test """"""""", mutatingLspWorkspace);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_RawString_NoGrowWhenNotAtEnd(bool mutatingLspWorkspace)
+        => VerifyNoResult("\"", @"var v = """"{|type:|}""", mutatingLspWorkspace);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_RawString_NoGrowForVerbatim(bool mutatingLspWorkspace)
+        => VerifyNoResult("\"", @"var v = @""""{|type:|}", mutatingLspWorkspace);
+
+    private async Task VerifyCSharpMarkupAndExpectedRawString(
+        string characterTyped,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+
+        var document = await testLspServer.GetDocumentAsync(locationTyped.DocumentUri);
+        var documentText = await document.GetTextAsync();
+
+        var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces: true, tabSize: 4);
+
+        AssertEx.NotNull(result);
+        Assert.Equal(InsertTextFormat.Plaintext, result.TextEditFormat);
+        var actualText = ApplyTextEdits([result.TextEdit], documentText);
+        Assert.Equal(expected, actualText);
+    }
+
+    #endregion
 }

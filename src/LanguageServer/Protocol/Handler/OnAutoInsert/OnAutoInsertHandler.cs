@@ -285,17 +285,31 @@ internal sealed class OnAutoInsertHandler(
         var sourceText = document.GetTextSynchronously(cancellationToken);
         var position = sourceText.Lines.GetPosition(linePosition);
 
-        var textChange = service.GetTextChangeForQuote(document, position, cancellationToken);
+        // Create a temporary document with the quote inserted at the position
+        // This matches what the VS handler does - it types the quote first, then applies the service logic
+        var textWithQuote = sourceText.WithChanges(new TextChange(new TextSpan(position, 0), "\""));
+        var documentWithQuote = document.WithText(textWithQuote);
+
+        // Call the service with the original position (which now points to the newly inserted quote in the temp document)
+        // The service expects to receive the position where the caret was BEFORE typing, but operate on a document
+        // where the quote HAS been typed
+        var textChange = service.GetTextChangeForQuote(documentWithQuote, position, cancellationToken);
         if (textChange == null)
             return null;
 
+        // The text change returned by the service is relative to the document with the quote inserted.
+        // The span starts after the quote we inserted. We need to return a text edit that:
+        // 1. Includes the quote character itself
+        // 2. Has a span that starts at the original position (before the quote)
+        // 3. Includes the additional text from the service
+        
         return new LSP.VSInternalDocumentOnAutoInsertResponseItem
         {
             TextEditFormat = LSP.InsertTextFormat.Plaintext,
             TextEdit = new LSP.TextEdit
             {
-                NewText = textChange.Value.NewText ?? string.Empty,
-                Range = ProtocolConversions.TextSpanToRange(textChange.Value.Span, sourceText)
+                NewText = "\"" + (textChange.Value.NewText ?? string.Empty), // Include the quote that will be typed plus additional text
+                Range = ProtocolConversions.TextSpanToRange(new TextSpan(position, 0), sourceText)
             }
         };
     }
