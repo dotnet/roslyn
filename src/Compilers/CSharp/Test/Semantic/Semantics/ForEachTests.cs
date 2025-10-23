@@ -92,14 +92,21 @@ class C
                 {
                     static void Main()
                     {
-                        foreach (int x in default(int[]))
+                        try
                         {
+                            foreach (int x in default(int[]))
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
                         }
                     }
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -110,14 +117,21 @@ class C
                 {
                     static void Main()
                     {
-                        foreach (char c in default(string))
+                        try
                         {
+                            foreach (char c in default(string))
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
                         }
                     }
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -129,14 +143,21 @@ class C
                 {
                     static void Main()
                     {
-                        foreach (var x in default(IEnumerable<int>))
+                        try
                         {
+                            foreach (var x in default(IEnumerable<int>))
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
                         }
                     }
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -148,14 +169,21 @@ class C
                 {
                     static void Main()
                     {
-                        foreach (var x in (IEnumerable<int>)null)
+                        try
                         {
+                            foreach (var x in (IEnumerable<int>)null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
                         }
                     }
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -166,14 +194,21 @@ class C
                 {
                     static void Main()
                     {
-                        foreach (int x in (int[])null)
+                        try
                         {
+                            foreach (int x in (int[])null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
                         }
                     }
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -184,14 +219,21 @@ class C
                 {
                     static void Main()
                     {
-                        foreach (char c in (string)null)
+                        try
                         {
+                            foreach (char c in (string)null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
                         }
                     }
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -366,14 +408,21 @@ class C
                 {
                     static void Main()
                     {
-                        foreach (var x in (dynamic)null)
+                        try
                         {
+                            foreach (var x in (dynamic)null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
                         }
                     }
                 }
                 """;
 
-            CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp).VerifyEmitDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -384,14 +433,21 @@ class C
                 {
                     static void Main()
                     {
-                        foreach (int x in (int[,])null)
+                        try
                         {
+                            foreach (int x in (int[,])null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
                         }
                     }
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
@@ -451,6 +507,18 @@ class C
                 using System.Collections.Generic;
                 class C
                 {
+                    static void Main()
+                    {
+                        try
+                        {
+                            M<List<int>>();
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+
                     static void M<T>() where T : class, IEnumerable<int>
                     {
                         foreach (var x in (T)null)
@@ -460,7 +528,7 @@ class C
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
