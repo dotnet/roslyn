@@ -19599,10 +19599,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
                 // (13,41): error CS0019: Operator '^' cannot be applied to operands of type 'S1' and 'void*'
                 //     unsafe void* Test(void* x, S1 y) => y ^ x;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op}  x").WithArguments(op, "S1", "void*").WithLocation(13, 41),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(13, 41),
                 // (13,41): error CS0242: The operation in question is undefined on void pointers
                 //     unsafe void* Test(void* x, S1 y) => y ^ x;
-                Diagnostic(ErrorCode.ERR_VoidError, $"y {op}  x").WithLocation(13, 41)
+                Diagnostic(ErrorCode.ERR_VoidError, $"y {op} x").WithLocation(13, 41)
                 );
         }
 
