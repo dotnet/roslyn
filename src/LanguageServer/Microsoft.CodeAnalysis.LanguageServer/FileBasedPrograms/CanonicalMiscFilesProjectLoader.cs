@@ -235,7 +235,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         var virtualProjectXml = $"""
             <Project Sdk="Microsoft.NET.Sdk">
               <PropertyGroup>
-                <TargetFramework>net8.0</TargetFramework>
+                <TargetFramework>net$(BundledNETCoreAppTargetFrameworkVersion)</TargetFramework>
                 <ImplicitUsings>enable</ImplicitUsings>
                 <Nullable>enable</Nullable>
               </PropertyGroup>
