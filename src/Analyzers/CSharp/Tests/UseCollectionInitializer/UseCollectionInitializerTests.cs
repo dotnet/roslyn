@@ -1752,7 +1752,7 @@ public sealed partial class UseCollectionInitializerTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77365")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80862")]
     public Task TestDoNotOfferForUsingDeclaration()
         => TestMissingInRegularAndScriptAsync(
             """
