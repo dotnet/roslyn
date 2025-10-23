@@ -4431,7 +4431,7 @@ public static class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
-        public void TestMethodPointerExtensionParameterType()
+        public void TestFunctionPointerExtensionParameterType()
         {
             var source = """
                 unsafe

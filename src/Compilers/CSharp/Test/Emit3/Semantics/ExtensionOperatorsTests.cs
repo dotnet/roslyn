@@ -19496,7 +19496,42 @@ public struct S1;
 
         [Theory]
         [CombinatorialData]
-        public void Binary_144_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_144_ERR_VoidError_ArithmeticAndBitwise([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(void* x, S1 y) => x;
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe void* Test(void* x, S1 y) => x {{{op}}} y;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,41): error CS0019: Operator '>>>' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void* Test(void* x, S1 y) => x >>> y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> y").WithArguments(">>>", "void*", "S1").WithLocation(14, 41),
+                // (14,41): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x, S1 y) => x >>> y;
+                Diagnostic(ErrorCode.ERR_VoidError, "x >>> y").WithLocation(14, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_145_ERR_VoidError_Comparison([CombinatorialValues(">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19538,7 +19573,42 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_145_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_146_ERR_VoidError_ArithmeticAndBitwise([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(S1 x, void* y) => y;
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe void* Test(void* x, S1 y) => y {{{op}}} x;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,41): error CS0019: Operator '&' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void* Test(void* x, S1 y) => y & x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(14, 41),
+                // (14,41): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x, S1 y) => y & x;
+                Diagnostic(ErrorCode.ERR_VoidError, $"y {op} x").WithLocation(14, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_147_ERR_VoidError_Comparison([CombinatorialValues(">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19574,16 +19644,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
                 // (14,41): error CS0019: Operator '&' cannot be applied to operands of type 'S1' and 'void*'
                 //     unsafe void* Test(void* x, S1 y) => y & x;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(14, 41),
-                // (14,41): error CS0242: The operation in question is undefined on void pointers
-                //     unsafe void* Test(void* x, S1 y) => y & x;
-                Diagnostic(ErrorCode.ERR_VoidError, $"y {op} x").WithLocation(14, 41)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(14, 41)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void Binary_146_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_148_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19627,7 +19694,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_147_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_149_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19669,7 +19736,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_148_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_150_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19713,7 +19780,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_149_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_151_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19755,7 +19822,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_150_ERR_VoidError_Logical([CombinatorialValues("&&", "||")] string op)
+        public void Binary_152_ERR_VoidError_Logical([CombinatorialValues("&&", "||")] string op)
         {
             var src = $$$"""
 unsafe public static class Extensions1
@@ -19786,7 +19853,7 @@ class Program
         }
 
         [Fact]
-        public void Binary_151_Consumption_ErrorScenarioCandidates()
+        public void Binary_153_Consumption_ErrorScenarioCandidates()
         {
             var src = $$$"""
 public static class Extensions1
@@ -19834,7 +19901,7 @@ class Program
         }
 
         [Fact]
-        public void Binary_152_Consumption_ErrorScenarioCandidates()
+        public void Binary_154_Consumption_ErrorScenarioCandidates()
         {
             var src = $$$"""
 public static class Extensions1
