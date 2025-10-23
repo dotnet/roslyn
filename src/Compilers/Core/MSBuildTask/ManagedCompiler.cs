@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             AddAdditionalFilesToCommandLine(commandLine);
 
             // Append the sources.
-            commandLine.AppendFileNamesIfNotNull(Sources, " ");
+            commandLine.AppendFileNamesIfNotNull(GetSourcesForCommandLine(Sources), " ");
         }
 
         internal void AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(CommandLineBuilderExtension commandLine)
@@ -1087,6 +1087,86 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 item.ItemSpec = Utilities.GetFullPathNoThrow(item.ItemSpec);
             }
+        }
+
+        /// <summary>
+        /// Transforms source file paths to avoid misinterpretation as command-line switches.
+        /// On Unix, source files in the root directory (starting with '/') are transformed
+        /// to start with '/./' to prevent them from being interpreted as switches.
+        /// </summary>
+        /// <param name="sources">The source files to transform</param>
+        /// <returns>Transformed source files suitable for passing to the compiler command line</returns>
+        private ITaskItem[]? GetSourcesForCommandLine(ITaskItem[]? sources)
+        {
+            if (sources is null || sources.Length == 0)
+                return sources;
+
+            // On Windows, no transformation is needed
+            if (Path.DirectorySeparatorChar == '\\')
+                return sources;
+
+            // Check if any source file starts with '/' (Unix root directory)
+            bool needsTransformation = false;
+            foreach (var source in sources)
+            {
+                if (source.ItemSpec.StartsWith("/") && !source.ItemSpec.StartsWith("/./"))
+                {
+                    needsTransformation = true;
+                    break;
+                }
+            }
+
+            if (!needsTransformation)
+                return sources;
+
+            // Create a copy of the array with transformed paths
+            var transformedSources = new ITaskItem[sources.Length];
+            for (int i = 0; i < sources.Length; i++)
+            {
+                var source = sources[i];
+                if (source.ItemSpec.StartsWith("/") && !source.ItemSpec.StartsWith("/./"))
+                {
+                    // Create a simple wrapper that returns the transformed path
+                    transformedSources[i] = new TransformedTaskItem(source, "/." + source.ItemSpec);
+                }
+                else
+                {
+                    transformedSources[i] = source;
+                }
+            }
+
+            return transformedSources;
+        }
+
+        /// <summary>
+        /// A wrapper around ITaskItem that returns a transformed ItemSpec but delegates
+        /// all other operations to the underlying item.
+        /// </summary>
+        private class TransformedTaskItem : ITaskItem
+        {
+            private readonly ITaskItem _underlyingItem;
+            private readonly string _transformedItemSpec;
+
+            public TransformedTaskItem(ITaskItem underlyingItem, string transformedItemSpec)
+            {
+                _underlyingItem = underlyingItem;
+                _transformedItemSpec = transformedItemSpec;
+            }
+
+            public string ItemSpec
+            {
+                get => _transformedItemSpec;
+                set => throw new NotSupportedException();
+            }
+
+            public System.Collections.ICollection MetadataNames => _underlyingItem.MetadataNames;
+            public int MetadataCount => _underlyingItem.MetadataCount;
+
+            public string GetMetadata(string metadataName) => _underlyingItem.GetMetadata(metadataName);
+            public void SetMetadata(string metadataName, string metadataValue) => _underlyingItem.SetMetadata(metadataName, metadataValue);
+            public void RemoveMetadata(string metadataName) => _underlyingItem.RemoveMetadata(metadataName);
+            public void CopyMetadataTo(ITaskItem destinationItem) => _underlyingItem.CopyMetadataTo(destinationItem);
+            public System.Collections.IDictionary CloneCustomMetadata() => _underlyingItem.CloneCustomMetadata();
         }
 
         /// <summary>

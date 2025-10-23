@@ -565,5 +565,35 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
 
             AssertEx.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
+
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public void SourceFileInRootDirectoryOnUnix()
+        {
+            // On Unix, a source file path starting with "/" should be prefixed with "./" 
+            // to avoid being misinterpreted as a command-line switch
+            var vbc = new Vbc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.vb"),
+            };
+
+            var responseFileContents = vbc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.vb", responseFileContents);
+            Assert.DoesNotContain(" /Program.vb", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public void MultipleSourceFilesWithRootDirectoryOnUnix()
+        {
+            // Test multiple files where some are in root and some are not
+            var vbc = new Vbc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.vb", "src/Test.vb", "/App.vb"),
+            };
+
+            var responseFileContents = vbc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.vb", responseFileContents);
+            Assert.Contains("/./App.vb", responseFileContents);
+            Assert.Contains("src/Test.vb", responseFileContents);
+        }
     }
 }

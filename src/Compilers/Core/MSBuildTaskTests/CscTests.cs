@@ -659,5 +659,49 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             AssertEx.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
+
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public void SourceFileInRootDirectoryOnUnix()
+        {
+            // On Unix, a source file path starting with "/" should be prefixed with "./" 
+            // to avoid being misinterpreted as a command-line switch
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.cs"),
+            };
+
+            var responseFileContents = csc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.cs", responseFileContents);
+            Assert.DoesNotContain(" /Program.cs", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public void MultipleSourceFilesWithRootDirectoryOnUnix()
+        {
+            // Test multiple files where some are in root and some are not
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.cs", "src/Test.cs", "/App.cs"),
+            };
+
+            var responseFileContents = csc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.cs", responseFileContents);
+            Assert.Contains("/./App.cs", responseFileContents);
+            Assert.Contains("src/Test.cs", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void SourceFilePathsOnWindows()
+        {
+            // On Windows, paths don't need transformation even if they start with "/"
+            // (though this is unlikely on Windows)
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            var responseFileContents = csc.GenerateResponseFileContents();
+            Assert.Contains("test.cs", responseFileContents);
+        }
     }
 }
