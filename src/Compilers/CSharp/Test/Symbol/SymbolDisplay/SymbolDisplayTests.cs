@@ -9157,6 +9157,83 @@ class Program
                 actual: displayParts);
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80165")]
+        public void UseArityForGenericTypes_CSharpSymbol(bool useMetadata)
+        {
+            var text =
+@"
+class A
+{
+    class B<T1> { }
+}
+
+class C<T2>
+{
+    class D<T3> { }
+    class E { }
+}
+";
+            var format = SymbolDisplayFormat.CSharpErrorMessageFormat.
+                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes);
+
+            Compilation comp;
+            if (useMetadata)
+            {
+                var libComp = CreateCompilation(text);
+                comp = CreateCompilation("", references: [libComp.EmitToImageReference()]);
+            }
+            else
+            {
+                comp = CreateCompilation(text);
+            }
+
+            AssertEx.Equal("A", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A"), format));
+            AssertEx.Equal("A.B`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A+B`1"), format));
+            AssertEx.Equal("C`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1"), format));
+            AssertEx.Equal("C`1.D`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+D`1"), format));
+            AssertEx.Equal("C`1.E", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+E"), format));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80165")]
+        public void UseArityForGenericTypes_VBSymbol(bool useMetadata)
+        {
+            var text =
+@"
+Class A
+    Class B(Of T1)
+    End Class
+End Class
+
+Class C(Of T2) 
+    Class D(Of T3)
+    End Class
+    Class E
+    End Class
+End Class
+";
+            var format = SymbolDisplayFormat.CSharpErrorMessageFormat.
+                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes);
+
+            Compilation comp;
+            if (useMetadata)
+            {
+                var libComp = CreateVisualBasicCompilation(text);
+                comp = CreateVisualBasicCompilation("", referencedAssemblies: [libComp.EmitToImageReference()]);
+            }
+            else
+            {
+                comp = CreateVisualBasicCompilation("c", text);
+            }
+
+            AssertEx.Equal("A", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A"), format));
+            AssertEx.Equal("A.B`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A+B`1"), format));
+            AssertEx.Equal("C`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1"), format));
+            AssertEx.Equal("C`1.D`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+D`1"), format));
+            AssertEx.Equal("C`1.E", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+E"), format));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36654")]
         public void MinimalNameWithConflict()
         {
