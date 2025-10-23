@@ -1232,7 +1232,7 @@ public class Test
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
     }
 }
