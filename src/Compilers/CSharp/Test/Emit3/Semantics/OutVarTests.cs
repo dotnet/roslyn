@@ -3624,18 +3624,18 @@ public class Y
                 // (24,28): error CS0165: Use of unassigned local variable 'x6'
                 //         : base(out int x6, x6)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x6").WithArguments("x6").WithLocation(24, 28),
-                // (28,28): error CS8196: Reference to an implicitly-typed out variable 'x7' is not permitted in the same argument list.
+                // (28,28): error CS8196: Reference to an implicitly-typed out variable 'x7' is not permitted in this location.
                 //         : base(out var x7, x7)
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x7").WithArguments("x7").WithLocation(28, 28),
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x7").WithArguments("x7").WithLocation(28, 28),
                 // (28,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         : base(out var x7, x7)
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x7").WithArguments("1", "out").WithLocation(28, 20),
                 // (32,41): error CS0165: Use of unassigned local variable 'x8'
                 //         : base(TakeOutParam(out int x8, x8))
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x8").WithArguments("x8").WithLocation(32, 41),
-                // (36,41): error CS8196: Reference to an implicitly-typed out variable 'x9' is not permitted in the same argument list.
+                // (36,41): error CS8196: Reference to an implicitly-typed out variable 'x9' is not permitted in this location.
                 //         : base(TakeOutParam(out var x9, x9))
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x9").WithArguments("x9").WithLocation(36, 41)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x9").WithArguments("x9").WithLocation(36, 41)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -5487,9 +5487,9 @@ class Y
                 // (8,43): error CS0165: Use of unassigned local variable 'x3'
                 //     bool Test3 = TakeOutParam(out int x3, x3);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(8, 43),
-                // (10,43): error CS8196: Reference to an implicitly-typed out variable 'x4' is not permitted in the same argument list.
+                // (10,43): error CS8196: Reference to an implicitly-typed out variable 'x4' is not permitted in this location.
                 //     bool Test4 = TakeOutParam(out var x4, x4);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x4").WithArguments("x4").WithLocation(10, 43),
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x4").WithArguments("x4").WithLocation(10, 43),
                 // (15,12): error CS0103: The name 'x5' does not exist in the current context
                 //     : this(x5)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(15, 12),
@@ -12752,9 +12752,9 @@ public class X
                 // (33,50): error CS0165: Use of unassigned local variable 'y3'
                 //                   where TakeOutParam(out int y3, y3)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y3").WithArguments("y3").WithLocation(33, 50),
-                // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in the same argument list.
+                // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in this location.
                 //                   where TakeOutParam(out var y4, y4)
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "y4").WithArguments("y4").WithLocation(40, 50)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y4").WithArguments("y4").WithLocation(40, 50)
                 );
 
             compilation = CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
@@ -12768,9 +12768,9 @@ public class X
                 // (33,50): error CS0165: Use of unassigned local variable 'y3'
                 //                   where TakeOutParam(out int y3, y3)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y3").WithArguments("y3").WithLocation(33, 50),
-                // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in the same argument list.
+                // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in this location.
                 //                   where TakeOutParam(out var y4, y4)
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "y4").WithArguments("y4").WithLocation(40, 50)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y4").WithArguments("y4").WithLocation(40, 50)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -18131,9 +18131,9 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,23): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
+                // (7,23): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in this location.
                 //                   out x1);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 23)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x1").WithArguments("x1").WithLocation(7, 23)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -18172,9 +18172,9 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,25): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
+                // (7,25): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in this location.
                 //               Test1(out x1,
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x1").WithArguments("x1").WithLocation(7, 25)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

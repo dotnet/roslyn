@@ -313,7 +313,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             
             class MyList<T> : List<T>
             {
-                public int RequiredProp { get; init; }
+                public required int RequiredProp { get; init; }
 
                 public MyList(int capacity) { }
             }
@@ -327,7 +327,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CreateCompilation([source, IsExternalInitTypeDefinition]).VerifyDiagnostics();
+        CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+            // (14,29): error CS9035: Required member 'MyList<int>.RequiredProp' must be set in the object initializer or attribute constructor.
+            //         MyList<int> list = [with(capacity: 10)];
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "with(capacity: 10)").WithArguments("MyList<int>.RequiredProp").WithLocation(14, 29));
     }
 
     [Fact]
