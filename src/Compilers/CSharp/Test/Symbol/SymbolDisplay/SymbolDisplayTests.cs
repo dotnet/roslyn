@@ -9156,5 +9156,131 @@ class Program
                 ],
                 actual: displayParts);
         }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80165")]
+        public void UseArityForGenericTypes_CSharpSymbol(bool useMetadata)
+        {
+            var text =
+@"
+class A
+{
+    class B<T1> { }
+}
+
+class C<T2>
+{
+    class D<T3> { }
+    class E { }
+}
+";
+            var format = SymbolDisplayFormat.CSharpErrorMessageFormat.
+                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes);
+
+            Compilation comp;
+            if (useMetadata)
+            {
+                var libComp = CreateCompilation(text);
+                comp = CreateCompilation("", references: [libComp.EmitToImageReference()]);
+            }
+            else
+            {
+                comp = CreateCompilation(text);
+            }
+
+            AssertEx.Equal("A", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A"), format));
+            AssertEx.Equal("A.B`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A+B`1"), format));
+            AssertEx.Equal("C`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1"), format));
+            AssertEx.Equal("C`1.D`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+D`1"), format));
+            AssertEx.Equal("C`1.E", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+E"), format));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80165")]
+        public void UseArityForGenericTypes_VBSymbol(bool useMetadata)
+        {
+            var text =
+@"
+Class A
+    Class B(Of T1)
+    End Class
+End Class
+
+Class C(Of T2) 
+    Class D(Of T3)
+    End Class
+    Class E
+    End Class
+End Class
+";
+            var format = SymbolDisplayFormat.CSharpErrorMessageFormat.
+                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes);
+
+            Compilation comp;
+            if (useMetadata)
+            {
+                var libComp = CreateVisualBasicCompilation(text);
+                comp = CreateVisualBasicCompilation("", referencedAssemblies: [libComp.EmitToImageReference()]);
+            }
+            else
+            {
+                comp = CreateVisualBasicCompilation("c", text);
+            }
+
+            AssertEx.Equal("A", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A"), format));
+            AssertEx.Equal("A.B`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A+B`1"), format));
+            AssertEx.Equal("C`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1"), format));
+            AssertEx.Equal("C`1.D`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+D`1"), format));
+            AssertEx.Equal("C`1.E", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+E"), format));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36654")]
+        public void MinimalNameWithConflict()
+        {
+            var source =
+                """
+                using System;
+                namespace Abc.System {}
+                namespace Abc
+                {
+                    public class Test
+                    {
+                        public void fff()
+                        {
+                            Video vvv = null;
+                            foreach (var ooo in vvv.getlist()) {}
+                        }
+                    }
+                }
+
+                class Video
+                {
+                    public System.Collections.Generic.IEnumerable<int> getlist() { return null; }
+                }
+                """;
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var type = model.GetTypeInfo(invocation).Type;
+
+            // ToMinimalDisplayString does not include 'global::' by default even with a conflict due it
+            // explicitly having the flag SymbolDisplayGlobalNamespaceStyle.Omitted. 
+            Assert.Equal("System.Collections.Generic.IEnumerable<int>", type.ToMinimalDisplayString(model, invocation.SpanStart));
+
+            // Demonstrate that one can opt into getting 'global::' included.
+            Assert.Equal(
+                "global::System.Collections.Generic.IEnumerable<int>",
+                type.ToMinimalDisplayString(model, invocation.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)));
+
+            // However, opting into getting 'global::' included does not force it to be included when not needed.
+            Assert.Equal(
+                "System.Collections.Generic.IEnumerable<int>",
+                type.ToMinimalDisplayString(model, tree.GetRoot().Span.End,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)));
+        }
     }
 }

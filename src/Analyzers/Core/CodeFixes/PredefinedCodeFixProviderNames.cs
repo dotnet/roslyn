@@ -111,6 +111,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string RemoveUnnecessaryNullableWarningSuppressions = nameof(RemoveUnnecessaryNullableWarningSuppressions);
     public const string RemoveUnnecessaryParentheses = nameof(RemoveUnnecessaryParentheses);
     public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
+    public const string RemoveUnnecessaryUnsafeModifier = nameof(RemoveUnnecessaryUnsafeModifier);
     public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
     public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
     public const string RemoveUnusedMembers = nameof(RemoveUnusedMembers);

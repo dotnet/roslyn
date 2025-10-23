@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If _propertyOrEvent.IsWindowsRuntimeEvent Then
                         Dim tokenType = Me.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T)
-                        diagnostics.Add(Binder.GetUseSiteInfoForWellKnownType(tokenType), _propertyOrEvent.Locations(0))
+                        diagnostics.Add(Binder.GetUseSiteInfoForWellKnownType(tokenType), _propertyOrEvent.GetFirstLocation())
 
                         result = tokenType.Construct(result)
                     End If

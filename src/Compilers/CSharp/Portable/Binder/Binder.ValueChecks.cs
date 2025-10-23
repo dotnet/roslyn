@@ -4586,7 +4586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
                         return HasLocalScope((BoundCollectionExpression)conversion.Operand) ?
-                            SafeContext.CurrentMethod :
+                            localScopeDepth :
                             SafeContext.CallingMethod;
                     }
 
@@ -5328,7 +5328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && !SafeContext.CurrentMethod.IsConvertibleTo(escapeTo))
+                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && !escapeFrom.IsConvertibleTo(escapeTo))
                         {
                             Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
                             return false;
