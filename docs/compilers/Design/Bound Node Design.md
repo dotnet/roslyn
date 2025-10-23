@@ -9,7 +9,7 @@ Generally speaking, that means that there is an isomorphism between the syntax a
 1. Parenthesized expressions do not appear in the bound nodes because they have no semantic meaning.
 2. Query expressions are given a semantic meaning by correspondence to a translated form, so the bound nodes may model the translated form.
 
-Note: when syntax and bound nodes don't have the same shape, their traversal orders should still match.
+Default visit order for bound nodes should match order of evaluation, which usually matches lexical order.
 
 ### Bound nodes should capture all semantic information embedded in the syntax
 
