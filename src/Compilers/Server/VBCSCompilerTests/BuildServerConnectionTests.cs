@@ -242,11 +242,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 // Verify that a warning was logged only when both env vars are unset
                 if (shouldLogWarning)
                 {
-                    Assert.Contains(testLogger.CapturedLogs, log => log == "Warning: Unable to set DOTNET_ROOT environment variable. The DOTNET_HOST_PATH environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.");
+                    Assert.Contains(testLogger.CapturedLogs, log => log == "Unable to set DOTNET_ROOT environment variable. The DOTNET_HOST_PATH environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.");
                 }
                 else
                 {
-                    Assert.DoesNotContain(testLogger.CapturedLogs, log => log.Contains("Warning: Unable to set DOTNET_ROOT environment variable"));
+                    Assert.DoesNotContain(testLogger.CapturedLogs, log => log.Contains("Unable to set DOTNET_ROOT environment variable"));
                 }
             }
             finally
