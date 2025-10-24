@@ -6300,6 +6300,108 @@ End Class
             Return Function([namespace]) [namespace].GetMember(qualifiedName)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64632")>
+        Public Sub DelegateStyleWithParameterOptions()
+            Dim text =
+        <compilation>
+            <file name="a.vb">
+Namespace A
+    Public Delegate Function SyntaxReceiverCreator(a As Integer, b As Boolean) As Boolean
+End Namespace
+    </file>
+        </compilation>
+
+            Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetMember(Of NamespaceSymbol)("A").GetTypeMembers("SyntaxReceiverCreator", 0).Single()
+
+            ' Test NameAndSignature without SymbolDisplayParameterOptions - parameters are omitted
+            Dim formatWithoutParams = New SymbolDisplayFormat(
+                globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndSignature,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                formatWithoutParams,
+                "Function A.SyntaxReceiverCreator() As Boolean",
+                {SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Operator,
+                 SymbolDisplayPartKind.DelegateName,
+                 SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Punctuation,
+                 SymbolDisplayPartKind.Space, SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword})
+
+            ' Test NameAndSignature with SymbolDisplayParameterOptions - parameters are included
+            Dim formatWithParams = New SymbolDisplayFormat(
+                globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndSignature,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeType,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                formatWithParams,
+                "Function A.SyntaxReceiverCreator(a As Integer, b As Boolean) As Boolean",
+                {SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Operator,
+                 SymbolDisplayPartKind.DelegateName,
+                 SymbolDisplayPartKind.Punctuation,
+                 SymbolDisplayPartKind.ParameterName, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword,
+                 SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.ParameterName, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword,
+                 SymbolDisplayPartKind.Punctuation,
+                 SymbolDisplayPartKind.Space, SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword})
+
+            ' Test NameAndParameters without SymbolDisplayParameterOptions - parameters are omitted
+            Dim formatNameAndParamsWithoutParams = New SymbolDisplayFormat(
+                globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndParameters,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                formatNameAndParamsWithoutParams,
+                "A.SyntaxReceiverCreator()",
+                {SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Operator,
+                 SymbolDisplayPartKind.DelegateName,
+                 SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Punctuation})
+
+            ' Test NameAndParameters with SymbolDisplayParameterOptions - parameters are included
+            Dim formatNameAndParamsWithParams = New SymbolDisplayFormat(
+                globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndParameters,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeType,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                formatNameAndParamsWithParams,
+                "A.SyntaxReceiverCreator(a As Integer, b As Boolean)",
+                {SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Operator,
+                 SymbolDisplayPartKind.DelegateName,
+                 SymbolDisplayPartKind.Punctuation,
+                 SymbolDisplayPartKind.ParameterName, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword,
+                 SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.ParameterName, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.Keyword,
+                 SymbolDisplayPartKind.Punctuation})
+        End Sub
+
 #End Region
 
     End Class

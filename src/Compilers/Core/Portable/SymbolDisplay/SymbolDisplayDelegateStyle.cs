@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// This flag controls whether the parameter list (the <c>(...)</c> part) is displayed.
         /// The format of the parameters within the list is controlled by <see cref="SymbolDisplayParameterOptions"/>.
+        /// For example, to display parameter names and types, use <see cref="SymbolDisplayParameterOptions.IncludeName"/> 
+        /// and <see cref="SymbolDisplayParameterOptions.IncludeType"/>.
         /// </para>
         /// </summary>
         NameAndParameters = 1,

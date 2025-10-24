@@ -9282,5 +9282,94 @@ End Class
                 type.ToMinimalDisplayString(model, tree.GetRoot().Span.End,
                     SymbolDisplayFormat.MinimallyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64632")]
+        public void DelegateStyleWithParameterOptions()
+        {
+            var text = @"
+namespace A
+{
+    public delegate bool SyntaxReceiverCreator(int a, bool b);
+}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetMember<NamespaceSymbol>("A").GetTypeMembers("SyntaxReceiverCreator", 0).Single();
+
+            // Test NameAndSignature without SymbolDisplayParameterOptions - parameters are omitted
+            var formatWithoutParams = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                formatWithoutParams,
+                "bool A.SyntaxReceiverCreator()",
+                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Punctuation);
+
+            // Test NameAndSignature with SymbolDisplayParameterOptions - parameters are included
+            var formatWithParams = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                formatWithParams,
+                "bool A.SyntaxReceiverCreator(int a, bool b)",
+                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space, SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space, SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Test NameAndParameters without SymbolDisplayParameterOptions - parameters are omitted
+            var formatNameAndParamsWithoutParams = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                formatNameAndParamsWithoutParams,
+                "A.SyntaxReceiverCreator()",
+                SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Punctuation);
+
+            // Test NameAndParameters with SymbolDisplayParameterOptions - parameters are included
+            var formatNameAndParamsWithParams = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndParameters,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                formatNameAndParamsWithParams,
+                "A.SyntaxReceiverCreator(int a, bool b)",
+                SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space, SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space, SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+        }
     }
 }
