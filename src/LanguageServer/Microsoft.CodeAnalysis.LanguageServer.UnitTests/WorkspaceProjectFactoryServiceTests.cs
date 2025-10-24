@@ -78,18 +78,36 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
             workspaceProjectFactoryServiceInstance);
 
         var workspaceProjectFactoryService = await brokeredServiceFactory.GetServiceAsync();
+        
+        // Test with capabilities
         using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
             new WorkspaceProjectCreationInfo(
                 LanguageNames.CSharp,
                 "DisplayName",
                 FilePath: MakeAbsolutePath("TestProject.csproj"),
                 new Dictionary<string, string>(),
-                ProjectCapabilities: ["CSharp", "Test", "Managed"]),
+                ProjectCapabilities: ImmutableArray.Create("CSharp", "Test", "Managed")),
             CancellationToken.None);
 
         // Verify the project was created successfully
         var project = workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single();
         Assert.Equal("DisplayName", project.Name);
+        
+        // Dispose project so we can create another one
+        workspaceProject.Dispose();
+        
+        // Test without capabilities (backward compatibility)
+        using var workspaceProject2 = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
+            new WorkspaceProjectCreationInfo(
+                LanguageNames.CSharp,
+                "DisplayName2",
+                FilePath: MakeAbsolutePath("TestProject2.csproj"),
+                new Dictionary<string, string>()),
+            CancellationToken.None);
+
+        // Verify the second project was created successfully
+        var project2 = workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single();
+        Assert.Equal("DisplayName2", project2.Name);
     }
 
     private static string MakeAbsolutePath(string relativePath)
