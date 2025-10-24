@@ -1072,10 +1072,7 @@ endOfLine: "\n");
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64812")]
     public void TestMultiCaretPositionsAreAllSet()
     {
-        var workspaceXml = """
-            <Workspace>
-                <Project Language="C#">
-                    <Document>
+        var inputMarkup = """
             class C
             {
                 void M()
@@ -1083,28 +1080,8 @@ endOfLine: "\n");
                     var v = "now is [||]the ti[||]me";
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
             """;
 
-        using var workspace = EditorTestWorkspace.Create(workspaceXml);
-        var document = workspace.Documents.Single();
-        var view = document.GetTextView();
-        var textBuffer = view.TextBuffer;
-
-        var originalSnapshot = textBuffer.CurrentSnapshot;
-        var originalSelections = document.SelectedSpans;
-
-        // Set up multi-selection with primary caret at the last position
-        view.SetMultiSelection(originalSelections.Select(selection => selection.ToSnapshotSpan(originalSnapshot)));
-
-        var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitStringLiteralCommandHandler>(nameof(SplitStringLiteralCommandHandler));
-        var result = commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, textBuffer), TestCommandExecutionContext.Create());
-
-        Assert.True(result);
-
-        // Verify the expected markup with all caret positions
         var expectedMarkup = """
             class C
             {
@@ -1117,26 +1094,7 @@ endOfLine: "\n");
             }
             """;
 
-        MarkupTestFile.GetSpans(expectedMarkup, out var expectedOutput, out var expectedSpans);
-        var actualText = textBuffer.CurrentSnapshot.AsText().ToString();
-
-        // Verify text is correct
-        Assert.Equal(expectedOutput, actualText);
-
-        // Verify all caret positions are set correctly
-        var broker = view.GetMultiSelectionBroker();
-        var selections = broker.AllSelections.ToList();
-        Assert.Equal(expectedSpans.Length, selections.Count);
-
-        // Verify each selection position matches the expected position
-        for (int i = 0; i < expectedSpans.Length; i++)
-        {
-            Assert.Equal(expectedSpans[i].Start, selections[i].Start.Position.Position);
-            Assert.True(selections[i].IsEmpty); // All selections should be carets (zero-length)
-        }
-
-        // Verify the primary (last) caret is at the correct position
-        Assert.Equal(expectedSpans.Last().Start, view.Caret.Position.BufferPosition.Position);
+        TestHandled(inputMarkup, expectedMarkup);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]

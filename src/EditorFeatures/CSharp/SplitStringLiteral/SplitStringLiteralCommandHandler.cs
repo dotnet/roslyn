@@ -93,7 +93,7 @@ internal sealed partial class SplitStringLiteralCommandHandler(
         // However, we need to track the new caret positions in the original forward order
         // for setting the multi-selection at the end. We use tracking points to automatically
         // adjust positions as the buffer changes.
-        var trackingPoints = new ITrackingPoint[spans.Count];
+        using var _ = PooledObjects.ArrayBuilder<ITrackingPoint>.GetInstance(spans.Count, out var trackingPoints);
 
         var currentIndex = spans.Count - 1;
         foreach (var span in spans.Reverse())
@@ -124,7 +124,7 @@ internal sealed partial class SplitStringLiteralCommandHandler(
         // Now set all the caret positions using the multi-selection broker.
         // Get the position of each tracking point in the final snapshot.
         var finalSnapshot = subjectBuffer.CurrentSnapshot;
-        using var pooledSpans = TemporaryArray<SnapshotSpan>.Empty;
+        using var finalCaretSpans = TemporaryArray<SnapshotSpan>.Empty;
 
         foreach (var trackingPoint in trackingPoints)
         {
@@ -137,13 +137,13 @@ internal sealed partial class SplitStringLiteralCommandHandler(
 
             if (newCaretPoint != null)
             {
-                pooledSpans.AsRef().Add(new SnapshotSpan(newCaretPoint.Value, 0));
+                finalCaretSpans.AsRef().Add(new SnapshotSpan(newCaretPoint.Value, 0));
             }
         }
 
-        if (pooledSpans.Count > 0)
+        if (finalCaretSpans.Count > 0)
         {
-            textView.SetMultiSelection(pooledSpans.ToImmutableAndClear());
+            textView.SetMultiSelection(finalCaretSpans.ToImmutableAndClear());
         }
 
         return true;
