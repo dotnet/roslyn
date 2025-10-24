@@ -2374,10 +2374,124 @@ End Class
             Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(DirectCast(nestedPublicSymbol, ISymbol), DirectCast(assembly2Symbol, ISymbol)))
         End Sub
 
-        ' Note: The same accessibility behavior applies to Microsoft.VisualBasic.EmbeddedAttribute.
-        ' Tests for VB.Embedded are not included here due to conflicts with the VB runtime's own
-        ' embedded types, but the implementation in AccessCheck.vb checks for both
-        ' IsHiddenByCodeAnalysisEmbeddedAttribute() and IsHiddenByVisualBasicEmbeddedAttribute().
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
+        Public Sub VisualBasicEmbeddedAttribute_IsSymbolAccessibleWithin()
+            ' Test that types with Microsoft.VisualBasic.Embedded attribute are not accessible from other assemblies
+            ' We use IL to define the attribute to avoid conflicts with the VB runtime
+            Dim reference = CompileIL("
+.assembly extern mscorlib { }
+.assembly testRef
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.InternalsVisibleToAttribute::.ctor(string) = {string('Assembly2')}
+}
+
+.class private auto ansi sealed beforefieldinit Microsoft.VisualBasic.Embedded
+       extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+  {
+    ldarg.0
+    call instance void [mscorlib]System.Attribute::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit Sample
+       extends [mscorlib]System.Object
+{
+  .custom instance void Microsoft.VisualBasic.Embedded::.ctor() = ( 01 00 00 00 )
+  
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+  {
+    ldarg.0
+    call instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+", prependDefaultHeader:=False)
+
+            Dim comp = CreateCompilation("Class OtherClass : End Class", references:={reference}, assemblyName:="Assembly2")
+            comp.AssertNoDiagnostics()
+
+            ' Get the Sample type from the referenced assembly
+            Dim testRefAssembly = DirectCast(comp, VisualBasicCompilation).GetReferencedAssemblySymbol(reference)
+            Dim sampleSymbol = testRefAssembly.GetTypeByMetadataName("Sample")
+            Assert.NotNull(sampleSymbol)
+
+            Dim otherClassSymbol = comp.GetTypeByMetadataName("OtherClass")
+            Dim assembly2Symbol = comp.Assembly
+
+            ' Even though Sample is public and InternalsVisibleTo is set, symbols with VB.Embedded should not be accessible from another assembly
+            Assert.False(DirectCast(comp, Compilation).IsSymbolAccessibleWithin(DirectCast(sampleSymbol, ISymbol), DirectCast(otherClassSymbol, ISymbol)))
+            Assert.False(DirectCast(comp, Compilation).IsSymbolAccessibleWithin(DirectCast(sampleSymbol, ISymbol), DirectCast(assembly2Symbol, ISymbol)))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
+        Public Sub VisualBasicEmbeddedAttribute_NestedType_IsSymbolAccessibleWithin()
+            ' Test that nested types within a VB.Embedded-decorated type are also inaccessible
+            Dim reference = CompileIL("
+.assembly extern mscorlib { }
+.assembly testRef
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.InternalsVisibleToAttribute::.ctor(string) = {string('Assembly2')}
+}
+
+.class private auto ansi sealed beforefieldinit Microsoft.VisualBasic.Embedded
+       extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+  {
+    ldarg.0
+    call instance void [mscorlib]System.Attribute::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit OuterSample
+       extends [mscorlib]System.Object
+{
+  .custom instance void Microsoft.VisualBasic.Embedded::.ctor() = ( 01 00 00 00 )
+  
+  .class nested public auto ansi beforefieldinit NestedPublic
+         extends [mscorlib]System.Object
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+    {
+      ldarg.0
+      call instance void [mscorlib]System.Object::.ctor()
+      ret
+    }
+  }
+  
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+  {
+    ldarg.0
+    call instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+", prependDefaultHeader:=False)
+
+            Dim comp = CreateCompilation("Class OtherClass : End Class", references:={reference}, assemblyName:="Assembly2")
+
+            ' Get types from the referenced assembly
+            Dim testRefAssembly = DirectCast(comp, VisualBasicCompilation).GetReferencedAssemblySymbol(reference)
+            Dim outerSymbol = testRefAssembly.GetTypeByMetadataName("OuterSample")
+            Dim nestedPublicSymbol = testRefAssembly.GetTypeByMetadataName("OuterSample+NestedPublic")
+            Assert.NotNull(outerSymbol)
+            Assert.NotNull(nestedPublicSymbol)
+
+            Dim otherClassSymbol = comp.GetTypeByMetadataName("OtherClass")
+            Dim assembly2Symbol = comp.Assembly
+
+            ' The outer type with VB.Embedded should not be accessible
+            Assert.False(DirectCast(comp, Compilation).IsSymbolAccessibleWithin(DirectCast(outerSymbol, ISymbol), DirectCast(otherClassSymbol, ISymbol)))
+            Assert.False(DirectCast(comp, Compilation).IsSymbolAccessibleWithin(DirectCast(outerSymbol, ISymbol), DirectCast(assembly2Symbol, ISymbol)))
+
+            ' Even public nested types should not be accessible if the outer type has VB.Embedded
+            Assert.False(DirectCast(comp, Compilation).IsSymbolAccessibleWithin(DirectCast(nestedPublicSymbol, ISymbol), DirectCast(otherClassSymbol, ISymbol)))
+            Assert.False(DirectCast(comp, Compilation).IsSymbolAccessibleWithin(DirectCast(nestedPublicSymbol, ISymbol), DirectCast(assembly2Symbol, ISymbol)))
+        End Sub
 
     End Class
 End Namespace
