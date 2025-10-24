@@ -2784,6 +2784,7 @@ public sealed partial class UseNullPropagationTests
     public Task TestIfStatement_WithPreprocessorDirectiveInBlock()
         => TestMissingInRegularAndScriptAsync(
             """
+            #nullable enable
             using System.Diagnostics;
 
             class C
@@ -2876,6 +2877,7 @@ public sealed partial class UseNullPropagationTests
             }
             """,
             """
+            #nullable enable
             using System;
 
             class C

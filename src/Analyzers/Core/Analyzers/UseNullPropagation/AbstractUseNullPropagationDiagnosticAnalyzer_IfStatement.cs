@@ -54,7 +54,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
     }
 
-    public IfStatementAnalysisResult? AnalyzeIfStatement(
+    public virtual IfStatementAnalysisResult? AnalyzeIfStatement(
         SemanticModel semanticModel,
         IMethodSymbol? referenceEqualsMethod,
         TIfStatementSyntax ifStatement,
@@ -64,15 +64,6 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
         if (!TryGetPartsOfIfStatement(ifStatement, out var condition, out var trueStatement, out var nullAssignmentOpt))
-            return null;
-
-        // Check if any of the statements we would be transforming contain preprocessor directives.
-        // If so, we can't convert to null propagation because the directives (like #if DEBUG)
-        // would be lost or cause compilation issues.
-        if (trueStatement.ContainsDirectives)
-            return null;
-
-        if (nullAssignmentOpt?.ContainsDirectives == true)
             return null;
 
         if (trueStatement is not TExpressionStatementSyntax expressionStatement)
