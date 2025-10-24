@@ -3986,5 +3986,37 @@ partial ext X
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
+        public void AnonymousDelegateNoParameters_TopLevel()
+        {
+            var test = """
+                delegate { };
+                """;
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.AnonymousMethodExpression);
+                        {
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
