@@ -128,7 +128,7 @@ internal sealed class DateAndTimeLanguageDetector(
 
     private static bool IsMethodArgument(SyntaxToken token, ISyntaxFacts syntaxFacts)
         => syntaxFacts.IsLiteralExpression(token.Parent) &&
-           syntaxFacts.IsArgument(token.Parent!.Parent);
+           syntaxFacts.IsArgument(token.Parent.Parent);
 
     private (string? name, int? index) GetArgumentNameOrIndex(SyntaxNode argument)
     {

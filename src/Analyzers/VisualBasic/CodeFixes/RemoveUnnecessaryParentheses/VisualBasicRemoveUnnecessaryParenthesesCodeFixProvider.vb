@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
 
         Protected Overrides Function CanRemoveParentheses(current As ParenthesizedExpressionSyntax, semanticModel As SemanticModel, cancellationtoken As CancellationToken) As Boolean
             Return VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(
-                current, semanticModel, precedence:=Nothing, clarifiesPrecedence:=Nothing)
+                current, semanticModel, precedence:=Nothing, clarifiesPrecedence:=Nothing, innerExpressionHasPrimaryPrecedence:=Nothing)
         End Function
     End Class
 End Namespace

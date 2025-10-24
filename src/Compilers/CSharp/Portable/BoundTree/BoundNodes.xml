@@ -2529,7 +2529,7 @@
            Left.InputType is the InputType 
            Right.InputType is the Left.NarrowedType 
   -->
-  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true">
+  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true" SkipInNullabilityRewriter="true">
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>
