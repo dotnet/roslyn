@@ -48,6 +48,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal const int TimeOutMsNewProcess = 20_000;
 
+        /// <summary>
+        /// The time to wait after starting the server process to check if it exits immediately
+        /// with a FrameworkMissingFailure error code.
+        /// </summary>
+        internal const int ProcessCheckTimeoutMs = 2_000;
+
+        /// <summary>
+        /// Exit code indicating the .NET runtime is missing or incompatible (0x80008096).
+        /// See https://github.com/dotnet/runtime/blob/main/docs/design/features/host-error-codes.md
+        /// </summary>
+        internal const int FrameworkMissingFailure = unchecked((int)0x80008096);
+
         // To share a mutex between processes the name should have the Global prefix
         private const string GlobalMutexPrefix = "Global\\";
 
@@ -518,8 +530,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// This will attempt to start a compiler server process using the executable inside the 
         /// directory <paramref name="clientDirectory"/>. This returns "true" if starting the 
-        /// compiler server process was successful, it does not state whether the server successfully
-        /// started or not (it could crash on startup).
+        /// compiler server process was successful and the process did not immediately exit with
+        /// a framework missing error (0x80008096).
         /// </summary>
         internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger, out int processId)
         {
@@ -544,11 +556,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             else
             {
                 logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
-                // Note: A properly-visible MSBuild warning is already logged in ManagedToolTask.ValidateParameters when DOTNET_HOST_PATH is not set.
-                // This is just informational logging for diagnostic purposes.
-                logger.Log("Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.",
-                    RuntimeHostInfo.DotNetRootEnvironmentName,
-                    RuntimeHostInfo.DotNetHostPathEnvironmentName);
             }
 
             if (PlatformInformation.IsWindows)
@@ -594,9 +601,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     if (success)
                     {
                         logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                        processId = processInfo.dwProcessId;
+
+                        // Wait briefly to see if the process exits immediately with FrameworkMissingFailure
+                        // This indicates the .NET runtime on PATH doesn't support the compiler
+                        var processHandle = processInfo.hProcess;
+                        var waitResult = WaitForSingleObject(processHandle, ProcessCheckTimeoutMs);
+                        
+                        if (waitResult == WAIT_OBJECT_0)
+                        {
+                            // Process exited quickly, check the exit code
+                            if (GetExitCodeProcess(processHandle, out uint exitCode) && exitCode == unchecked((uint)FrameworkMissingFailure))
+                            {
+                                logger.LogWarning($"VBCS2023: Failed to start compiler server. The .NET runtime on PATH does not support this compiler. Ensure DOTNET_HOST_PATH is set correctly or update the .NET runtime on PATH. See https://aka.ms/dotnet-host-path for more information.");
+                                success = false;
+                            }
+                        }
+
                         CloseHandle(processInfo.hProcess);
                         CloseHandle(processInfo.hThread);
-                        processId = processInfo.dwProcessId;
                     }
                     else
                     {
@@ -641,6 +664,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         processId = process.Id;
                         logger.Log("Successfully created process with process id {0}", processId);
+
+                        // Wait briefly to see if the process exits immediately with FrameworkMissingFailure
+                        // This indicates the .NET runtime on PATH doesn't support the compiler
+                        if (process.WaitForExit(ProcessCheckTimeoutMs))
+                        {
+                            // Process exited quickly, check the exit code
+                            if (process.ExitCode == FrameworkMissingFailure)
+                            {
+                                logger.LogWarning($"VBCS2023: Failed to start compiler server. The .NET runtime on PATH does not support this compiler. Ensure DOTNET_HOST_PATH is set correctly or update the .NET runtime on PATH. See https://aka.ms/dotnet-host-path for more information.");
+                                return false;
+                            }
+                        }
+
                         return true;
                     }
                     else

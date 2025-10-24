@@ -205,56 +205,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        [Theory]
-        [InlineData(null, null, true)] // Both unset - should log warning
-        [InlineData("somepath", null, false)] // DOTNET_HOST_PATH set - no warning
-        [InlineData(null, "somepath", false)] // DOTNET_EXPERIMENTAL_HOST_PATH set - no warning
-        [InlineData("somepath", "somepath", false)] // Both set - no warning
-        public void TryCreateServer_LogsWarningWhenDotNetHostPathNotFound(string? dotnetHostPath, string? dotnetExperimentalHostPath, bool shouldLogWarning)
-        {
-            // This test verifies that TryCreateServer logs a warning when DOTNET_HOST_PATH and
-            // DOTNET_EXPERIMENTAL_HOST_PATH are both not set. We use a mock scenario since we
-            // cannot test MSBuild not setting the environment variable in a real build.
-
-            var testLogger = new XunitCompilerServerLogger(TestOutputHelper);
-
-            // Create a temporary directory with a fake server executable
-            var clientDirectory = TempRoot.CreateDirectory().Path;
-            var serverExePath = Path.Combine(clientDirectory, PlatformInformation.IsWindows ? "VBCSCompiler.exe" : "VBCSCompiler");
-
-            // Create an empty file to simulate the server executable
-            File.WriteAllText(serverExePath, string.Empty);
-
-            // Save the original environment variables
-            var originalDotNetHostPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
-            var originalDotNetExperimentalHostPath = Environment.GetEnvironmentVariable("DOTNET_EXPERIMENTAL_HOST_PATH");
-
-            try
-            {
-                // Set or clear the environment variables based on test parameters
-                Environment.SetEnvironmentVariable("DOTNET_HOST_PATH", dotnetHostPath);
-                Environment.SetEnvironmentVariable("DOTNET_EXPERIMENTAL_HOST_PATH", dotnetExperimentalHostPath);
-
-                // Try to create the server
-                var pipeName = ServerUtil.GetPipeName();
-                var result = BuildServerConnection.TryCreateServer(clientDirectory, pipeName, testLogger, out var processId);
-
-                // Verify that a warning was logged only when both env vars are unset
-                if (shouldLogWarning)
-                {
-                    Assert.Contains(testLogger.CapturedLogs, log => log == "Unable to set DOTNET_ROOT environment variable. The DOTNET_HOST_PATH environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.");
-                }
-                else
-                {
-                    Assert.DoesNotContain(testLogger.CapturedLogs, log => log.Contains("Unable to set DOTNET_ROOT environment variable"));
-                }
-            }
-            finally
-            {
-                // Restore original environment variables
-                Environment.SetEnvironmentVariable("DOTNET_HOST_PATH", originalDotNetHostPath);
-                Environment.SetEnvironmentVariable("DOTNET_EXPERIMENTAL_HOST_PATH", originalDotNetExperimentalHostPath);
-            }
-        }
+        // Note: We don't have a unit test for the VBCS2023 warning that is logged when the compiler
+        // server fails to start with FrameworkMissingFailure (0x80008096). This would require creating
+        // a mock executable that exits with that specific error code, which is difficult to do in a
+        // cross-platform manner. The warning is tested through integration testing.
     }
 }

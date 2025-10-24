@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../ErrorString.resx">
     <body>
+      <trans-unit id="Compiler_FrameworkNotFound_CouldNotStartServer">
+        <source>Failed to start compiler server. The .NET runtime on PATH does not support this compiler. Ensure DOTNET_HOST_PATH is set correctly or update the .NET runtime on PATH. See https://aka.ms/dotnet-host-path for more information.</source>
+        <target state="new">Failed to start compiler server. The .NET runtime on PATH does not support this compiler. Ensure DOTNET_HOST_PATH is set correctly or update the .NET runtime on PATH. See https://aka.ms/dotnet-host-path for more information.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Compiler_UnexpectedException">
         <source>MSB3883: Unexpected exception: </source>
         <target state="translated">MSB3883: Eccezione imprevista: </target>
@@ -103,11 +108,6 @@
         <source>MSB3104: The referenced assembly "{0}" was not found. If this assembly is produced by another one of your projects, please make sure to build that project before building this one.</source>
         <target state="translated">MSB3104: il modello "{0}" a cui si fa riferimento non è stato trovato. Se l'assembly è prodotto da un altro progetto, assicurarsi di compilare tale progetto prima di compilare quello corrente.</target>
         <note>{StrBegin="MSB3104: "}</note>
-      </trans-unit>
-      <trans-unit id="General_ToolTask_DotNetHostPathNotSet">
-        <source>Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</source>
-        <target state="new">Unable to set {0} environment variable. The {1} environment variable was not provided by MSBuild. See https://aka.ms/dotnet-host-path for more information.</target>
-        <note />
       </trans-unit>
       <trans-unit id="General_UnableToReadFile">
         <source>File "{0}" could not be read: {1}</source>
