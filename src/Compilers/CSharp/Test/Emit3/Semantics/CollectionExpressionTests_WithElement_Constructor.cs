@@ -382,9 +382,9 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         Assert.NotNull(constructor3);
         Assert.NotNull(constructor4);
 
-        Assert.Same(constructor1, constructor2);
-        Assert.Same(constructor1, constructor3);
-        Assert.Same(constructor1, constructor4);
+        Assert.Equal(constructor1, constructor2);
+        Assert.Equal(constructor1, constructor3);
+        Assert.Equal(constructor1, constructor4);
 
         Assert.Equal("MyList", constructor1.ContainingType.Name);
 

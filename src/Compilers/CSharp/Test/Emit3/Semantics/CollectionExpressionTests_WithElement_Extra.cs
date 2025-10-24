@@ -1530,8 +1530,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         Assert.Equal("MyBuilder", method1.ContainingType.Name);
 
-        Assert.True(method1.Parameters is [{ Name: "items", Type.Name: "ReadOnlySpan" }]);
-        Assert.True(method2.Parameters is [{ Name: "arg", Type.Name: "T" }, { Name: "items", Type.Name: "ReadOnlySpan" }]);
+        Assert.Equal("", method1.ToDisplayString());
+        Assert.Equal("", method2.ToDisplayString());
 
         var arrowExpressions = root.DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ToArray();
         var operation1 = semanticModel.GetOperation(arrowExpressions[0]);
