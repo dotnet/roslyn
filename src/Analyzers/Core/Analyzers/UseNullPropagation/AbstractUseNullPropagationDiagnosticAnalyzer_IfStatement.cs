@@ -54,7 +54,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
     }
 
-    public IfStatementAnalysisResult? AnalyzeIfStatement(
+    public virtual IfStatementAnalysisResult? AnalyzeIfStatement(
         SemanticModel semanticModel,
         IMethodSymbol? referenceEqualsMethod,
         TIfStatementSyntax ifStatement,
