@@ -288,8 +288,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (Kind == LookupResultKind.WrongArity && result.Kind == LookupResultKind.WrongArity)
             {
-                // When both results are WrongArity, prefer the generic type over the non-generic one
-                // if the user supplied type arguments
+                // When both results are WrongArity, prefer reporting errors about generic types
+                // over non-generic types to provide more helpful error messages
                 if (preferGenericOverNonGeneric(this.SingleSymbolOrDefault, result.Symbol))
                 {
                     this.SetFrom(result);
@@ -310,8 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _symbolList.Add(result.Symbol);
             }
 
-            static bool preferGenericOverNonGeneric(Symbol currentSymbol, Symbol newSymbol)
-                => currentSymbol is NamedTypeSymbol { Arity: 0 } && newSymbol is NamedTypeSymbol { Arity: > 0 };
+            static bool preferGenericOverNonGeneric(Symbol firstSymbol, Symbol secondSymbol)
+                => firstSymbol is NamedTypeSymbol { Arity: 0 } && secondSymbol is NamedTypeSymbol { Arity: > 0 };
         }
 
         // global pool
