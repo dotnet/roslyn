@@ -372,6 +372,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67640")]
     public async Task TestRename_NamedTypeAliasAsync(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync("""
@@ -396,6 +397,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67640")]
     public async Task TestRename_TupleAliasAsync(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync("""
@@ -421,6 +423,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67640")]
     public async Task TestRename_ArrayAliasAsync(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync("""
@@ -446,6 +449,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67640")]
     public async Task TestRename_TupleAliasFromUsageAsync(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync("""
@@ -471,6 +475,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67640")]
     public async Task TestRename_ArrayAliasFromUsageAsync(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync("""
