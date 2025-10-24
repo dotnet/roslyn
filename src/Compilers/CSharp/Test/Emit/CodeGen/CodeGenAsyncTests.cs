@@ -634,8 +634,8 @@ class Test
         {
             string retType = useGeneric ? (useValueTask ? "ValueTask<string>" : "Task<string>") : (useValueTask ? "ValueTask" : "Task");
             string expr = useValueTask ?
-                (useGeneric ? "default(ValueTask<string>)" : "default(ValueTask)") :
-                (useGeneric ? """default(Task<string>)""" : "default(Task)");
+                (useGeneric ? """new ValueTask<string>("42")""" : "default(ValueTask)") :
+                (useGeneric ? """Task.FromResult("42")""" : "default(Task)");
 
             var source = $$"""
                 using System;
@@ -676,7 +676,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xb, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x14, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0x17")}}
                     """,
                 (true, false) => $$"""
@@ -684,7 +684,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x13, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x14, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0x18")}}
                     """,
             };
@@ -709,12 +709,13 @@ class Test
                     """,
                 (false, true) => """
                     {
-                      // Code size       12 (0xc)
+                      // Code size       21 (0x15)
                       .maxstack  1
-                      IL_0000:  ldnull
-                      IL_0001:  call       "void Test.NoOp()"
-                      IL_0006:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
-                      IL_000b:  ret
+                      IL_0000:  ldstr      "42"
+                      IL_0005:  call       "System.Threading.Tasks.Task<string> System.Threading.Tasks.Task.FromResult<string>(string)"
+                      IL_000a:  call       "void Test.NoOp()"
+                      IL_000f:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                      IL_0014:  ret
                     }
                     """,
                 (true, false) => """
@@ -732,15 +733,13 @@ class Test
                     """,
                 (true, true) => """
                     {
-                      // Code size       20 (0x14)
+                      // Code size       21 (0x15)
                       .maxstack  1
-                      .locals init (System.Threading.Tasks.ValueTask<string> V_0)
-                      IL_0000:  ldloca.s   V_0
-                      IL_0002:  initobj    "System.Threading.Tasks.ValueTask<string>"
-                      IL_0008:  ldloc.0
-                      IL_0009:  call       "void Test.NoOp()"
-                      IL_000e:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
-                      IL_0013:  ret
+                      IL_0000:  ldstr      "42"
+                      IL_0005:  newobj     "System.Threading.Tasks.ValueTask<string>..ctor(string)"
+                      IL_000a:  call       "void Test.NoOp()"
+                      IL_000f:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                      IL_0014:  ret
                     }
                     """,
             };
@@ -787,7 +786,7 @@ class Test
                         catch (System.NullReferenceException)
                         {
                         }
-                        Console.WriteLine({{(useValueTask && useGeneric ? "result" : "42")}});
+                        Console.WriteLine({{(useValueTask && useGeneric ? "result is null" : "true")}});
                     }
                 }
                 """;
@@ -797,23 +796,23 @@ class Test
             {
                 (false, false) => $$"""
                     {{ReturnValueMissing("F", "0x6")}}
-                    {{ReturnValueMissing("Main", "0x16")}}
+                    {{ReturnValueMissing("Main", "0x15")}}
                     """,
                 (false, true) => $$"""
                     [F]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
-                    {{ReturnValueMissing("Main", "0x17")}}
+                    {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (true, false) => $$"""
                     {{ReturnValueMissing("F", "0xe")}}
-                    {{ReturnValueMissing("Main", "0x16")}}
+                    {{ReturnValueMissing("Main", "0x15")}}
                     """,
                 (true, true) => $$"""
                     [F]: Unexpected type on the stack. { Offset = 0xe, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
-                    {{ReturnValueMissing("Main", "0x18")}}
+                    {{ReturnValueMissing("Main", "0x1b")}}
                     """,
             };
 
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("True"), verify: Verification.Fails with
             {
                 ILVerifyMessage = ilVerifyMessage,
             }, symbolValidator: verify);
@@ -9795,7 +9794,14 @@ static class Test1
                 using System;
                 using System.Threading.Tasks;
 
-                System.Console.WriteLine(await C.Handler());
+                try
+                {
+                    await C.Handler();
+                }
+                catch (IntegerException ex)
+                {
+                    System.Console.WriteLine(ex.Value);
+                }
 
                 class C
                 {
@@ -9824,7 +9830,7 @@ static class Test1
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
-                    {{ReturnValueMissing("<Main>$", "0xf")}}
+                    {{ReturnValueMissing("<Main>$", "0x19")}}
                     """
             });
             verifier.VerifyIL("C.Handler()", """
@@ -9855,7 +9861,7 @@ static class Test1
             verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
-                    {{ReturnValueMissing("<Main>$", "0x12")}}
+                    {{ReturnValueMissing("<Main>$", "0x20")}}
                     """
             });
             verifier.VerifyIL("C.Handler()", """
@@ -9984,9 +9990,14 @@ static class Test1
                 using System;
                 using System.Threading.Tasks;
 
-                await M<string>("1");
+                Console.WriteLine(await M<string>("1"));
 
-                DerivedTask<T> M<T>(T t) => new DerivedTask<T>(t);
+                DerivedTask<T> M<T>(T t)
+                {
+                    var d = new DerivedTask<T>(t);
+                    d.Start();
+                    return d;
+                }
 
                 class DerivedTask<T> : Task<T>
                 {
@@ -9998,18 +10009,18 @@ static class Test1
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("1"), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
-                    [<Main>$]: Return value missing on the stack. { Offset = 0x10 }
+                    [<Main>$]: Return value missing on the stack. { Offset = 0x14 }
                     """
             });
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
-                  // Code size       17 (0x11)
+                  // Code size       21 (0x15)
                   .maxstack  1
                   IL_0000:  ldstr      "1"
                   IL_0005:  call       "DerivedTask<string> Program.<<Main>$>g__M|0_0<string>(string)"
                   IL_000a:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
-                  IL_000f:  pop
-                  IL_0010:  ret
+                  IL_000f:  call       "void System.Console.WriteLine(string)"
+                  IL_0014:  ret
                 }
                 """);
         }
