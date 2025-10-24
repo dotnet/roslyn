@@ -47163,7 +47163,7 @@ class Program
         }
 
         [Fact]
-        public void RequiredProperties()
+        public void RequiredProperties1()
         {
             var source = """
                 using System.Collections.Generic;
@@ -47186,6 +47186,96 @@ class Program
                 // (12,28): error CS9035: Required member 'MyList<int>.RequiredProp' must be set in the object initializer or attribute constructor.
                 //         MyList<int> list = [];
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "[]").WithArguments("MyList<int>.RequiredProp").WithLocation(12, 28));
+        }
+
+        [Fact]
+        public void RequiredProperties2()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
+
+                class MyList<T> : List<T>
+                {
+                    public required int RequiredProp { get; init; }
+
+                    [SetsRequiredMembers]
+                    public MyList()
+                    {
+                    }
+                }
+            
+                class C
+                {
+                    void M()
+                    {
+                        MyList<int> list = [];
+                    }
+                }
+                """;
+
+            CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RequiredProperties3()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
+            
+                class MyList<T> : List<T>
+                {
+                    public required int RequiredProp { get; init; }
+
+                    public MyList() { RequiredProp = 0; }
+
+                    [SetsRequiredMembers]
+                    public MyList(int i) { RequiredProp = 0; }
+                }
+            
+                class C
+                {
+                    void M()
+                    {
+                        MyList<int> list = [];
+                    }
+                }
+                """;
+
+            CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]).VerifyEmitDiagnostics(
+                // (18,28): error CS9035: Required member 'MyList<int>.RequiredProp' must be set in the object initializer or attribute constructor.
+                //         MyList<int> list = [];
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "[]").WithArguments("MyList<int>.RequiredProp").WithLocation(18, 28));
+        }
+
+        [Fact]
+        public void RequiredProperties4()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
+            
+                class MyList<T> : List<T>
+                {
+                    public required int RequiredProp { get; init; }
+
+                    public MyList() { RequiredProp = 0; }
+
+                    [SetsRequiredMembers]
+                    public MyList(int i) { RequiredProp = 0; }
+                }
+            
+                class C
+                {
+                    void M()
+                    {
+                        MyList<int> list = [with(0)];
+                    }
+                }
+                """;
+
+            CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]).VerifyEmitDiagnostics();
         }
     }
 }
