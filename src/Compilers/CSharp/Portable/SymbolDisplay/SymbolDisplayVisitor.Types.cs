@@ -498,9 +498,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var method = symbol.DelegateInvokeMethod;
                     AddPunctuation(SyntaxKind.OpenParenToken);
-                    AddParametersIfNeeded(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
+                    
+                    // For delegates with NameAndParameters or NameAndSignature, we should always show
+                    // at least the parameter types, even if ParameterOptions is None.
+                    if (Format.ParameterOptions == SymbolDisplayParameterOptions.None)
+                    {
+                        AddDelegateParametersMinimal(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
+                    }
+                    else
+                    {
+                        AddParametersIfNeeded(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
+                    }
+                    
                     AddPunctuation(SyntaxKind.CloseParenToken);
                 }
+            }
+        }
+
+        private void AddDelegateParametersMinimal(bool hasThisParameter, bool isVarargs, ImmutableArray<IParameterSymbol> parameters)
+        {
+            // Display delegate parameters with at minimum the parameter type
+            var first = true;
+
+            if (!parameters.IsDefault)
+            {
+                foreach (var param in parameters)
+                {
+                    if (!first)
+                    {
+                        AddPunctuation(SyntaxKind.CommaToken);
+                        AddSpace();
+                    }
+
+                    first = false;
+                    param.Type.Accept(this.NotFirstVisitor);
+                }
+            }
+
+            if (isVarargs)
+            {
+                if (!first)
+                {
+                    AddPunctuation(SyntaxKind.CommaToken);
+                    AddSpace();
+                }
+
+                AddKeyword(SyntaxKind.ArgListKeyword);
             }
         }
 

@@ -4109,6 +4109,60 @@ End Namespace
                                                                 GetMembers("MyDel").Single().ToDisplayString(m_DelegateSignatureFormat))
         End Sub
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73641")>
+        <Fact>
+        Public Sub DelegateParameters_NameAndSignature_NoParameterOptions()
+            Dim text =
+        <compilation>
+            <file name="a.vb">
+Namespace A
+    Public Delegate Function SyntaxReceiverCreator(a As Integer, b As Boolean) As Boolean
+End Namespace
+    </file>
+        </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
+            
+            ' Test NameAndSignature without ParameterOptions - should show parameter types at minimum
+            Dim format = New SymbolDisplayFormat(
+                globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndSignature,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+            
+            Dim symbol = DirectCast(comp.SourceModule.GlobalNamespace.GetMembers("A").Single(), NamespaceSymbol).
+                GetTypeMembers("SyntaxReceiverCreator").Single()
+            
+            Assert.Equal("Function A.SyntaxReceiverCreator(Integer, Boolean) As Boolean", symbol.ToDisplayString(format))
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73641")>
+        <Fact>
+        Public Sub DelegateParameters_NameAndParameters_NoParameterOptions()
+            Dim text =
+        <compilation>
+            <file name="a.vb">
+Namespace A
+    Public Delegate Function SyntaxReceiverCreator(a As Integer, b As Boolean) As Boolean
+End Namespace
+    </file>
+        </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
+            
+            ' Test NameAndParameters without ParameterOptions - should show parameter types at minimum
+            Dim format = New SymbolDisplayFormat(
+                globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndParameters,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+            
+            Dim symbol = DirectCast(comp.SourceModule.GlobalNamespace.GetMembers("A").Single(), NamespaceSymbol).
+                GetTypeMembers("SyntaxReceiverCreator").Single()
+            
+            Assert.Equal("A.SyntaxReceiverCreator(Integer, Boolean)", symbol.ToDisplayString(format))
+        End Sub
+
         <WorkItem(542619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542619")>
         <Fact>
         Public Sub Bug9913()

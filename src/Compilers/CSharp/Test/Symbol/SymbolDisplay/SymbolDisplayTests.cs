@@ -3788,6 +3788,80 @@ class C1 {
                 SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.DelegateName, SymbolDisplayPartKind.Space, SymbolDisplayPartKind.ParameterName, SymbolDisplayPartKind.Punctuation);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73641")]
+        public void DelegateParameters_NameAndSignature_NoParameterOptions()
+        {
+            var text = """
+                namespace A
+                {
+                    public delegate bool SyntaxReceiverCreator(int a, bool b);
+                }
+                """;
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetMember<NamespaceSymbol>("A").GetTypeMembers("SyntaxReceiverCreator", 0).Single();
+
+            // Test NameAndSignature without ParameterOptions - should show parameter types at minimum
+            var format = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "bool A.SyntaxReceiverCreator(int, bool)",
+                SymbolDisplayPartKind.Keyword, // bool
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName, // A
+                SymbolDisplayPartKind.Punctuation, // .
+                SymbolDisplayPartKind.DelegateName, // SyntaxReceiverCreator
+                SymbolDisplayPartKind.Punctuation, // (
+                SymbolDisplayPartKind.Keyword, // int
+                SymbolDisplayPartKind.Punctuation, // ,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // bool
+                SymbolDisplayPartKind.Punctuation); // )
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73641")]
+        public void DelegateParameters_NameAndParameters_NoParameterOptions()
+        {
+            var text = """
+                namespace A
+                {
+                    public delegate bool SyntaxReceiverCreator(int a, bool b);
+                }
+                """;
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetMember<NamespaceSymbol>("A").GetTypeMembers("SyntaxReceiverCreator", 0).Single();
+
+            // Test NameAndParameters without ParameterOptions - should show parameter types at minimum
+            var format = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "A.SyntaxReceiverCreator(int, bool)",
+                SymbolDisplayPartKind.NamespaceName, // A
+                SymbolDisplayPartKind.Punctuation, // .
+                SymbolDisplayPartKind.DelegateName, // SyntaxReceiverCreator
+                SymbolDisplayPartKind.Punctuation, // (
+                SymbolDisplayPartKind.Keyword, // int
+                SymbolDisplayPartKind.Punctuation, // ,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // bool
+                SymbolDisplayPartKind.Punctuation); // )
+        }
+
         [Fact]
         public void GlobalNamespace1()
         {

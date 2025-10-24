@@ -173,7 +173,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim method = symbol.DelegateInvokeMethod
                     AddPunctuation(SyntaxKind.OpenParenToken)
-                    AddParametersIfRequired(isExtensionMethod:=False, parameters:=method.Parameters)
+                    
+                    ' For delegates with NameAndParameters or NameAndSignature, we should always show
+                    ' at least the parameter types, even if ParameterOptions is None.
+                    If Format.ParameterOptions = SymbolDisplayParameterOptions.None Then
+                        AddDelegateParametersMinimal(isExtensionMethod:=False, parameters:=method.Parameters)
+                    Else
+                        AddParametersIfRequired(isExtensionMethod:=False, parameters:=method.Parameters)
+                    End If
+                    
                     AddPunctuation(SyntaxKind.CloseParenToken)
                 End If
 
@@ -187,6 +195,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
             End If
+        End Sub
+
+        Private Sub AddDelegateParametersMinimal(isExtensionMethod As Boolean, parameters As ImmutableArray(Of IParameterSymbol))
+            ' Display delegate parameters with at minimum the parameter type
+            Dim first As Boolean = True
+            For Each param In parameters
+                If Not first Then
+                    AddPunctuation(SyntaxKind.CommaToken)
+                    AddSpace()
+                End If
+
+                first = False
+                param.Type.Accept(Me.NotFirstVisitor())
+            Next
         End Sub
 
         Private Sub AddNestedTypeSeparator()
