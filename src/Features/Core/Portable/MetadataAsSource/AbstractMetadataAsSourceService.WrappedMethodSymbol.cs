@@ -116,10 +116,10 @@ internal abstract partial class AbstractMetadataAsSourceService
             => _symbol.GetDllImportData();
 
         public IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
-        {
-            // This implementation feels incorrect!
-            return _symbol.ReduceExtensionMethod(receiverType);
-        }
+            => throw new System.NotImplementedException();
+
+        public IMethodSymbol ReduceExtensionMember(ITypeSymbol receiverType)
+            => throw new System.NotImplementedException();
 
         public IMethodSymbol AssociatedExtensionImplementation => null;
 

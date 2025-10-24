@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         var shippedSourceText = await shippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                         SourceText newShippedSourceText = AddNullableEnable(shippedSourceText);
-                        updatedSurfaceAreaText.Add((shippedDocument!.Id, newShippedSourceText));
+                        updatedSurfaceAreaText.Add((shippedDocument.Id, newShippedSourceText));
                     }
                 }
 

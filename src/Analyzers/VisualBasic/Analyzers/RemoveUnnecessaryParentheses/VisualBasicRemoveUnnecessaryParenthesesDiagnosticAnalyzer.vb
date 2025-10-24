@@ -27,26 +27,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
         Protected Overrides Function CanRemoveParentheses(
                 parenthesizedExpression As ParenthesizedExpressionSyntax,
                 semanticModel As SemanticModel, cancellationToken As CancellationToken,
-                ByRef precedence As PrecedenceKind, ByRef clarifiesPrecedence As Boolean) As Boolean
+                ByRef precedence As PrecedenceKind, ByRef clarifiesPrecedence As Boolean, ByRef innerExpressionHasPrimaryPrecedence As Boolean) As Boolean
 
             Return CanRemoveParenthesesHelper(
                 parenthesizedExpression, semanticModel,
-                precedence, clarifiesPrecedence)
+                precedence, clarifiesPrecedence, innerExpressionHasPrimaryPrecedence)
         End Function
 
         Public Shared Function CanRemoveParenthesesHelper(
                 parenthesizedExpression As ParenthesizedExpressionSyntax, semanticModel As SemanticModel,
-                ByRef precedence As PrecedenceKind, ByRef clarifiesPrecedence As Boolean) As Boolean
+                ByRef precedence As PrecedenceKind, ByRef clarifiesPrecedence As Boolean, ByRef innerExpressionHasPrimaryPrecedence As Boolean) As Boolean
             Dim result = parenthesizedExpression.CanRemoveParentheses(semanticModel)
             If Not result Then
                 precedence = Nothing
                 clarifiesPrecedence = False
+                innerExpressionHasPrimaryPrecedence = False
                 Return False
             End If
 
             Dim innerExpression = parenthesizedExpression.Expression
             Dim innerExpressionPrecedence = innerExpression.GetOperatorPrecedence()
             Dim innerExpressionIsSimple = innerExpressionPrecedence = OperatorPrecedence.PrecedenceNone
+            innerExpressionHasPrimaryPrecedence = innerExpressionIsSimple
 
             Dim parentBinary = TryCast(parenthesizedExpression.Parent, BinaryExpressionSyntax)
 
