@@ -194,7 +194,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
         }
 
-        // We only support this for real files that we'll then have roslyn Documents for.  All the other
+        // We only support this for real files that we'll then have Roslyn Documents for.  All the other
         // things in a project (like folders, nested projects, etc) are not supported.
         if (guid != VSConstants.ItemTypeGuid.PhysicalFile_guid)
             return null;
