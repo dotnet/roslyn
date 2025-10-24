@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.InheritanceMargin;
@@ -30,7 +29,7 @@ internal static class InheritanceMarginHelpers
         if (string.IsNullOrEmpty(text))
             return text;
 
-        var builder = new StringBuilder(text.Length);
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
         foreach (var c in text)
         {
             if (!char.IsPunctuation(c))
