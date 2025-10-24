@@ -26,9 +26,6 @@ internal static class InheritanceMarginHelpers
     /// </summary>
     private static string StripPunctuation(string text)
     {
-        if (string.IsNullOrEmpty(text))
-            return text;
-
         using var _ = PooledStringBuilder.GetInstance(out var builder);
         var hasPunctuation = false;
         foreach (var c in text)
