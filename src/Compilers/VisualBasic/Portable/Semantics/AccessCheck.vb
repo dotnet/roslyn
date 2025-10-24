@@ -163,7 +163,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Check if the type has the EmbeddedAttribute and is in a different assembly.
             ' The EmbeddedAttribute marks a type as only visible within its own assembly.
             Dim withinAssembly As AssemblySymbol = If(TryCast(within, AssemblySymbol), DirectCast(within, NamedTypeSymbol).ContainingAssembly)
-            If typeSym.ContainingAssembly IsNot withinAssembly AndAlso typeSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+            If typeSym.ContainingAssembly IsNot withinAssembly AndAlso
+               (typeSym.IsHiddenByCodeAnalysisEmbeddedAttribute() OrElse typeSym.IsHiddenByVisualBasicEmbeddedAttribute()) Then
                 Return AccessCheckResult.Inaccessible
             End If
 
