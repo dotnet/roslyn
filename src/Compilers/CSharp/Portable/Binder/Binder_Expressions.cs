@@ -8678,9 +8678,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (propertyResult != null)
                         {
+                            Debug.Assert(actualReceiverArguments is not null);
+                            firstResult = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
                             methodResult.Free(keepArguments: true);
                             propertyResult.Free();
-                            firstResult = makeErrorResult(left.Type, memberName, arity, lookupResult, expression, diagnostics);
                         }
                         else
                         {
@@ -8704,28 +8705,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // ambiguous between methods and properties
+                    Debug.Assert(actualReceiverArguments is not null);
+                    result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
                     methodResult.Free(keepArguments: true);
                     propertyResult?.Free();
-                    result = makeErrorResult(left.Type, memberName, arity, lookupResult, expression, diagnostics);
                     return true;
                 }
 
                 // If the search in the current scope resulted in any applicable property (regardless of whether a best
                 // applicable property could be determined) then our search is complete.
                 Debug.Assert(propertyResult?.HasAnyApplicableMember == true);
-                methodResult.Free(keepArguments: true);
                 if (propertyResult.Succeeded && propertyResult.BestResult.Member is { } bestProperty)
                 {
                     // property wins
+                    methodResult.Free(keepArguments: true);
                     propertyResult.Free();
                     result = new MethodGroupResolution(bestProperty, LookupResultKind.Viable, diagnostics.ToReadOnly());
                     return true;
                 }
 
                 // ambiguous between multiple applicable properties
+                Debug.Assert(actualReceiverArguments is not null);
+                result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
+                methodResult.Free(keepArguments: true);
                 propertyResult.Free();
-                // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider using the property overload resolution result in the result to improve reported diagnostics
-                result = makeErrorResult(left.Type, memberName, arity, lookupResult, expression, diagnostics);
                 return true;
             }
 
@@ -8852,13 +8855,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return overloadResolutionResult;
             }
 
-            static MethodGroupResolution makeErrorResult(TypeSymbol receiverType, string memberName, int arity, LookupResult lookupResult, SyntaxNode expression, BindingDiagnosticBag diagnostics)
+            static MethodGroupResolution makeErrorResult(
+                MethodGroupResolution methodResult,
+                OverloadResolutionResult<PropertySymbol> propertyResult,
+                SyntaxNode expression,
+                BoundExpression left,
+                string memberName,
+                int arity,
+                LookupResult lookupResult,
+                AnalyzedArguments actualReceiverArguments,
+                Binder binder,
+                BindingDiagnosticBag diagnostics)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we'll want to describe what went wrong in a useful way (see OverloadResolutionResult.ReportDiagnostics)
-                var errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_ExtensionResolutionFailed, receiverType, memberName);
-                diagnostics.Add(errorInfo, expression.Location);
-                var resultSymbol = new ExtendedErrorTypeSymbol(containingSymbol: null, lookupResult.Symbols.ToImmutable(), LookupResultKind.OverloadResolutionFailure, errorInfo, arity);
-                return new MethodGroupResolution(resultSymbol, LookupResultKind.Viable, diagnostics.ToReadOnly());
+                Debug.Assert(propertyResult is not null);
+                ImmutableArray<Symbol> symbols = lookupResult.Symbols.ToImmutable();
+
+                DiagnosticInfo errorInfo;
+                if (methodResult.HasAnyApplicableMethod && propertyResult.HasAnyApplicableMember)
+                {
+                    MethodSymbol representativeMethod = methodResult.OverloadResolutionResult is { } methodResolution
+                        ? methodResolution.PickRepresentativeMember()
+                        : methodResult.MethodGroup.Methods[0];
+
+                    PropertySymbol representativeProperty = propertyResult.PickRepresentativeMember();
+
+                    errorInfo = OverloadResolutionResult<Symbol>.CreateAmbiguousCallDiagnosticInfo(binder.Compilation, representativeMethod, representativeProperty, symbols, isExtension: true);
+
+                    diagnostics.Add(errorInfo, expression.Location);
+                }
+                else
+                {
+                    propertyResult.ReportDiagnostics(binder, expression.Location, expression, diagnostics, memberName, left, left.Syntax, actualReceiverArguments, symbols,
+                        typeContainingConstructor: null, delegateTypeBeingInvoked: null, isMethodGroupConversion: false, isExtension: true);
+
+                    errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_ExtensionResolutionFailed, left.Type, memberName);
+                }
+
+                ExtendedErrorTypeSymbol resultSymbol = new ExtendedErrorTypeSymbol(containingSymbol: null, symbols, LookupResultKind.OverloadResolutionFailure, errorInfo, arity);
+                Debug.Assert(lookupResult.Kind == LookupResultKind.Viable);
+                return new MethodGroupResolution(resultSymbol, lookupResult.Kind, diagnostics.ToReadOnly());
             }
         }
 

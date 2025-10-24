@@ -67,6 +67,11 @@
         <target state="translated">Nie można zastosować operatora „{0}” do elementu „default” i operandu typu „{1}”, ponieważ jest to parametr typu, który nie jest znany jako typ referencyjny</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">Identyfikator '{0}' jest niejednoznaczny między typem '{1}' i parametrem '{2}' w tym kontekście.</target>

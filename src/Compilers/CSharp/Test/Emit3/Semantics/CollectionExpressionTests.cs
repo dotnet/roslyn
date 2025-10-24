@@ -43728,9 +43728,9 @@ partial class Program
                 // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(19, 32),
-                // (20,40): error CS1061: 'MyCollection<int?>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int?>' could be found (are you missing a using directive or an assembly reference?)
+                // (20,40): error CS0411: The type arguments for method 'Extensions.Add<T>(IEnumerable<T>, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         MyCollection<int?> w = new() { x };
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("MyCollection<int?>", "Add").WithLocation(20, 40)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "x").WithArguments("Extensions.Add<T>(System.Collections.Generic.IEnumerable<T>, int)").WithLocation(20, 40)
                 );
         }
 
