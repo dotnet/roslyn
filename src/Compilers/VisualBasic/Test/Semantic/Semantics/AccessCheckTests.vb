@@ -2374,5 +2374,10 @@ End Class
             Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(DirectCast(nestedPublicSymbol, ISymbol), DirectCast(assembly2Symbol, ISymbol)))
         End Sub
 
+        ' Note: The same accessibility behavior applies to Microsoft.VisualBasic.EmbeddedAttribute.
+        ' Tests for VB.Embedded are not included here due to conflicts with the VB runtime's own
+        ' embedded types, but the implementation in AccessCheck.vb checks for both
+        ' IsHiddenByCodeAnalysisEmbeddedAttribute() and IsHiddenByVisualBasicEmbeddedAttribute().
+
     End Class
 End Namespace
