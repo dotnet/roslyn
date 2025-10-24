@@ -3866,5 +3866,83 @@ partial ext X
             }
             EOF();
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
+        public void AnonymousDelegateWithRefParameter_TopLevel()
+        {
+            var test = """
+                var f = delegate (ref int i) { i = 42; };
+                """;
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "f");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Parameter);
+                                            {
+                                                N(SyntaxKind.RefKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.IdentifierToken, "i");
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.ExpressionStatement);
+                                            {
+                                                N(SyntaxKind.SimpleAssignmentExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "i");
+                                                    }
+                                                    N(SyntaxKind.EqualsToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "42");
+                                                    }
+                                                }
+                                                N(SyntaxKind.SemicolonToken);
+                                            }
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

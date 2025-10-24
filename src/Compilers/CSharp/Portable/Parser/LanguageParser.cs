@@ -8697,7 +8697,15 @@ done:
                 return false;
             }
             
-            // Check if what follows is an open brace (anonymous delegate body)
+            // If we didn't scan a valid tuple type, assume it's an anonymous delegate expression
+            // since delegate declarations must have a valid return type.
+            // This handles cases like: delegate (ref int i) { }
+            if (scanResult != ScanTypeFlags.TupleType)
+            {
+                return true;
+            }
+            
+            // We have a tuple type but no identifier following - check for open brace
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
                 return true;
