@@ -22920,14 +22920,16 @@ using @scoped = System.Int32;
                     r = d(ref x);
                 }
                 """;
-            // Should the delegate invocation be an error as well? https://github.com/dotnet/roslyn/issues/76087
             CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (4,9): error CS8347: Cannot use a result of 'C.M(ref int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     r = C.M(ref x);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "C.M(ref x)").WithArguments("C.M(ref int)", "x").WithLocation(4, 9),
                 // (4,17): error CS8168: Cannot return local 'x' by reference because it is not a ref local
                 //     r = C.M(ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(4, 17));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(4, 17),
+                // (6,13): error CS8986: The 'scoped' modifier of parameter 'C.M(ref int)' doesn't match target '<anonymous delegate>'.
+                //     var d = C.M;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("C.M(ref int)", "<anonymous delegate>").WithLocation(6, 13));
         }
 
         [Theory]
