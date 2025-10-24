@@ -60,7 +60,7 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
     }
 
     [Fact]
-    public async Task CreateProjectWithCapabilities()
+    public async Task LogProjectLoadWithCapabilities()
     {
         var capturingLogger = new CapturingLoggerProvider();
         var loggerFactory = new LoggerFactory([capturingLogger]);
