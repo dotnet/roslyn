@@ -188,9 +188,17 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         if (item.CanonicalName is not string currentFilePath)
             return null;
 
+        if (item.HierarchyIdentity.NestedHierarchy.GetGuidProperty(
+                item.HierarchyIdentity.ItemID,
+                (int)__VSHPROPID.VSHPROPID_TypeGuid,
+                out var guid) != VSConstants.S_OK)
+        {
+            return null;
+        }
+
         // We only support this for real files that we'll then have roslyn Documents for.  All the other
         // things in a project (like folders, nested projects, etc) are not supported.
-        if (!IsFileOnDisk(currentFilePath))
+        if (guid != VSConstants.ItemTypeGuid.PhysicalFile_guid)
             return null;
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);
@@ -203,25 +211,6 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         item.PropertyChanged += OnItemPropertyChanged;
 
         return source;
-
-        bool IsFileOnDisk(string filePath)
-        {
-            var hierarchy = item.HierarchyIdentity.NestedHierarchy;
-            var itemId = item.HierarchyIdentity.NestedItemID;
-
-            // Try to determine this through the hierarchy first, if it supports directly telling us this.
-            // Otherwise, fall back to checking the file system directly.
-            if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) == VSConstants.S_OK)
-            {
-                return capabilitiesObj is string capabilities &&
-                    (capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.SourceFile)) ||
-                     capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.FileOnDisk)));
-            }
-            else
-            {
-                return IOUtilities.PerformIO(() => File.Exists(filePath));
-            }
-        }
 
         void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
