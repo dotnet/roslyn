@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If DirectCast(symbol, NamedTypeSymbol).MangleName Then
                     Debug.Assert(symbol.Arity > 0)
                     Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, Nothing,
-                                           MetadataHelpers.GenericTypeNameManglingChar & symbol.Arity.ToString(), False))
+                                           MetadataHelpers.GenericTypeNameManglingChar & symbol.Arity.ToString(Globalization.CultureInfo.InvariantCulture), False))
                 End If
             ElseIf symbol.Arity > 0 AndAlso Format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters) AndAlso Not skipTypeArguments Then
                 If isMissingMetadataType OrElse symbol.IsUnboundGenericType Then
