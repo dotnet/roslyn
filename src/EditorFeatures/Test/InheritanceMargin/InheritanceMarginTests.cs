@@ -2431,6 +2431,77 @@ public sealed class InheritanceMarginTests
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67364")]
+    public Task TestMembersWithPunctuationDifferencesShowLanguageGlyph(TestHost testHost)
+    {
+        // Simulates the scenario described in the issue where members like
+        // "AliasSymbol.IAliasSymbol.Target" (VB) and "AliasSymbol.IAliasSymbolTarget" (C#)
+        // differ only in punctuation and should show language glyphs to disambiguate.
+        var itemForTarget = new TestInheritanceMemberItem(
+            lineNumber: 4,
+            memberName: "ReadOnly Property Target As ISymbol",
+            targets:
+            [
+                new TargetInfo(
+                    targetSymbolDisplayName: "AliasSymbol.IAliasSymbolTarget",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementingMember,
+                    languageGlyph: Glyph.CSharpFile),
+                new TargetInfo(
+                    targetSymbolDisplayName: "AliasSymbol.IAliasSymbol.Target",
+                    locationTag: "target3",
+                    relationship: InheritanceRelationship.ImplementingMember,
+                    languageGlyph: Glyph.BasicFile),
+            ]);
+
+        return VerifyInDifferentProjectsAsync(
+            ("""
+
+                    using MyNamespace;
+                    namespace CSharpNs
+                    {
+                        public class AliasSymbol : IAliasSymbol
+                        {
+                            public ISymbol {|target2:IAliasSymbolTarget|} { get; }
+                        }
+                    }
+
+                    namespace MyNamespace
+                    {
+                        public interface ISymbol { }
+                        public interface IAliasSymbol
+                        {
+                            ISymbol Target { get; }
+                        }
+                    }
+            """, LanguageNames.CSharp),
+            ("""
+
+                    Namespace MyNamespace
+                        Public Interface ISymbol
+                        End Interface
+
+                        Public Interface IAliasSymbol
+                            ReadOnly Property {|target1:Target|} As ISymbol
+                        End Interface
+
+                        Public Class AliasSymbol
+                            Implements IAliasSymbol
+
+                            Public ReadOnly Property {|target3:Target|} As ISymbol Implements IAliasSymbol.Target
+                                Get
+                                    Throw New System.NotImplementedException()
+                                End Get
+                            End Property
+                        End Class
+                    End Namespace
+            """, LanguageNames.VisualBasic),
+            [],
+            [itemForTarget],
+            testHost);
+    }
+
+    [Theory, CombinatorialData]
     public Task TestHiddenLocationSymbol(TestHost testHost)
         => VerifyNoItemForDocumentAsync("""
 
