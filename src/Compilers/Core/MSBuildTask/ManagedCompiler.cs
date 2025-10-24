@@ -1122,7 +1122,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             for (int i = 0; i < sources.Length; i++)
             {
                 var itemSpec = sources[i].ItemSpec;
-                
                 // Check if this path needs transformation using the compiler's heuristic:
                 // A path starting with '/' is treated as an option unless it contains 
                 // another '/' after the first character (e.g., "/dir/file.cs" is safe)
@@ -1138,7 +1137,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             transformedSources[j] = sources[j].ItemSpec;
                         }
                     }
-                    
                     // Transform this path to prevent misinterpretation as an option
                     transformedSources[i] = "/." + itemSpec;
                 }
