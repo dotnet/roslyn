@@ -3,14 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -86,6 +89,12 @@ internal sealed partial class SplitStringLiteralCommandHandler(
         // The list of spans is traversed in reverse order so we do not have to
         // deal with updating later caret positions to account for the added space
         // from splitting at earlier caret positions.
+        // 
+        // However, we need to track the new caret positions in the original forward order
+        // for setting the multi-selection at the end.
+        var caretPositions = new int[spans.Count];
+
+        var currentIndex = spans.Count - 1;
         foreach (var span in spans.Reverse())
         {
             using var transaction = CaretPreservingEditTransaction.TryCreate(
@@ -103,21 +112,35 @@ internal sealed partial class SplitStringLiteralCommandHandler(
             var newSnapshot = subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
             parsedDocument = newDocument;
 
-            // The buffer edit may have adjusted to position of the current caret but we might need a different location.
-            // Only adjust caret if it is the only one (no multi-caret support: https://github.com/dotnet/roslyn/issues/64812).
-            if (spans.Count == 1)
-            {
-                var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                    new SnapshotPoint(newSnapshot, newPosition),
-                    PointTrackingMode.Negative,
-                    PositionAffinity.Predecessor,
-                    textView.TextBuffer);
-
-                if (newCaretPoint != null)
-                    textView.Caret.MoveTo(newCaretPoint.Value);
-            }
+            // Store the new caret position for this split.
+            caretPositions[currentIndex] = newPosition;
 
             transaction?.Complete();
+            currentIndex--;
+        }
+
+        // Now set all the caret positions using the multi-selection broker.
+        // Map all positions to the final snapshot and set them as a multi-selection.
+        var finalSnapshot = subjectBuffer.CurrentSnapshot;
+        using var pooledSpans = TemporaryArray<SnapshotSpan>.Empty;
+        
+        foreach (var position in caretPositions)
+        {
+            var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                new SnapshotPoint(finalSnapshot, position),
+                PointTrackingMode.Negative,
+                PositionAffinity.Predecessor,
+                textView.TextBuffer);
+
+            if (newCaretPoint != null)
+            {
+                pooledSpans.AsRef().Add(new SnapshotSpan(newCaretPoint.Value, 0));
+            }
+        }
+
+        if (pooledSpans.Count > 0)
+        {
+            textView.SetMultiSelection(pooledSpans.ToImmutableAndClear());
         }
 
         return true;
