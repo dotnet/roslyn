@@ -19533,22 +19533,13 @@ class Program
         [CombinatorialData]
         public void Binary_145_ERR_VoidError_Comparison([CombinatorialValues(">", "<", ">=", "<=", "==", "!=")] string op)
         {
-            string pairedOp = "";
-
-            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
-            {
-                pairedOp = $$$"""
-        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(void* x, S1 y) => throw null;
-""";
-            }
-
             var src = $$$"""
 unsafe public static class Extensions1
 {
     extension(void*)
     {
         public static void* operator {{{op}}}(void* x, S1 y) => x;
-{{{pairedOp}}}
+        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(void* x, S1 y) => throw null;
     }
 }
 
@@ -19610,22 +19601,13 @@ class Program
         [CombinatorialData]
         public void Binary_147_ERR_VoidError_Comparison([CombinatorialValues(">", "<", ">=", "<=", "==", "!=")] string op)
         {
-            string pairedOp = "";
-
-            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
-            {
-                pairedOp = $$$"""
-        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, void* y) => throw null;
-""";
-            }
-
             var src = $$$"""
 unsafe public static class Extensions1
 {
     extension(void*)
     {
         public static void* operator {{{op}}}(S1 x, void* y) => y;
-{{{pairedOp}}}
+        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, void* y) => throw null;
     }
 }
 
