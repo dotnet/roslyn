@@ -7168,5 +7168,55 @@ namespace ConsoleApp
                 </Workspace>, host:=host, renameTo:="RenamedArrayExample")
             End Using
         End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67640")>
+        Public Sub RenamePointerAlias(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using [|$$IntPtr|] = int*;
+
+namespace ConsoleApp
+{
+    internal class Class1
+    {
+        public unsafe void F([|IntPtr|] x)
+        {
+            [|IntPtr|] p = null;
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="RenamedIntPtr")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67640")>
+        Public Sub RenameDynamicAlias(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using [|$$DynType|] = dynamic;
+
+namespace ConsoleApp
+{
+    internal class Class1
+    {
+        public void F([|DynType|] x)
+        {
+            [|DynType|] d = 42;
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="RenamedDynType")
+            End Using
+        End Sub
     End Class
 End Namespace
