@@ -1069,6 +1069,77 @@ endOfLine: "\n");
             }
             """);
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64812")]
+    public void TestMultiCaretPositionsAreAllSet()
+    {
+        var workspaceXml = """
+            <Workspace>
+                <Project Language="C#">
+                    <Document>
+            class C
+            {
+                void M()
+                {
+                    var v = "now is [||]the ti[||]me";
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+
+        using var workspace = EditorTestWorkspace.Create(workspaceXml);
+        var document = workspace.Documents.Single();
+        var view = document.GetTextView();
+        var textBuffer = view.TextBuffer;
+
+        var originalSnapshot = textBuffer.CurrentSnapshot;
+        var originalSelections = document.SelectedSpans;
+
+        // Set up multi-selection with primary caret at the last position
+        view.SetMultiSelection(originalSelections.Select(selection => selection.ToSnapshotSpan(originalSnapshot)));
+
+        var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitStringLiteralCommandHandler>(nameof(SplitStringLiteralCommandHandler));
+        var result = commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, textBuffer), TestCommandExecutionContext.Create());
+
+        Assert.True(result);
+
+        // Verify all caret positions are set correctly
+        var selections = view.Selection.SelectedSpans;
+        Assert.Equal(2, selections.Count);
+
+        // The expected output should have carets at these positions
+        var expectedOutput = """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is " +
+                        "the ti" +
+                        "me";
+                }
+            }
+            """;
+
+        var actualText = textBuffer.CurrentSnapshot.AsText().ToString();
+        Assert.Equal(expectedOutput, actualText);
+
+        // Find the expected caret positions in the output
+        var firstCaretPosition = actualText.IndexOf("\"the ti\"");
+        var secondCaretPosition = actualText.IndexOf("\"me\"");
+
+        Assert.True(firstCaretPosition > 0);
+        Assert.True(secondCaretPosition > 0);
+
+        // Verify selections are at the start of the continuation strings
+        var firstSelection = selections[0];
+        var secondSelection = selections[1];
+
+        // The carets should be right after the opening quotes of the continuation strings
+        Assert.True(firstSelection.Start.Position >= firstCaretPosition && firstSelection.Start.Position <= firstCaretPosition + 10);
+        Assert.True(secondSelection.Start.Position >= secondCaretPosition && secondSelection.Start.Position <= secondCaretPosition + 10);
+    }
+
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
     public void TestInStringWithKeepTabsEnabled1()
         => TestHandled(

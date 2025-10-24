@@ -125,7 +125,7 @@ internal sealed partial class SplitStringLiteralCommandHandler(
         // Get the position of each tracking point in the final snapshot.
         var finalSnapshot = subjectBuffer.CurrentSnapshot;
         using var pooledSpans = TemporaryArray<SnapshotSpan>.Empty;
-        
+
         foreach (var trackingPoint in trackingPoints)
         {
             var position = trackingPoint.GetPosition(finalSnapshot);
