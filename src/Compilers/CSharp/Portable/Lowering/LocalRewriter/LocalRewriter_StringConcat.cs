@@ -317,9 +317,9 @@ fallbackStrings:
                     // See if we can merge this argument with the next one
                     if (followingArgument is { ConstantValueOpt: { IsString: true } or { IsChar: true } })
                     {
-                        var constantValue = followingArgument.ConstantValueOpt!;
+                        var constantValue = followingArgument.ConstantValueOpt;
                         var next = getRope(constantValue);
-                        var current = getRope(argument.ConstantValueOpt!);
+                        var current = getRope(argument.ConstantValueOpt);
                         followingArgument = _factory.StringLiteral(ConstantValue.CreateFromRope(Rope.Concat(current, next)));
                         return (null, default);
                     }
