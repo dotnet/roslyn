@@ -188,6 +188,11 @@ namespace Microsoft.CodeAnalysis
             return ExtractShortCommitHash(hash);
         }
 
+        internal static string GetAssemblyLocation(Type type)
+        {
+            return type.Assembly.Location;
+        }
+
         /// <summary>
         /// Tool name used, along with assembly version, for error logging.
         /// </summary>
