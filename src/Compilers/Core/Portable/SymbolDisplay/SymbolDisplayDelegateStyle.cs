@@ -15,17 +15,20 @@ namespace Microsoft.CodeAnalysis
         NameOnly = 0,
 
         /// <summary>
-        /// Shows the name and the parameters of the delegate (e.g. "SomeDelegate(int x)").  
+        /// Shows the name and the parameters of the delegate (e.g. "SomeDelegate(int, int)").  
         /// <para>
-        /// The format of the parameters will be determined by the other flags passed.
+        /// The content of the parameters (such as parameter types, names, modifiers, etc.) 
+        /// is controlled by <see cref="SymbolDisplayParameterOptions"/>.
         /// </para>
         /// </summary>
         NameAndParameters = 1,
 
         /// <summary>
-        /// Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").
+        /// Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int, int)").
         /// <para>
-        /// The format of the signature will be determined by the other flags passed.
+        /// This option controls whether the signature (including return type and parameters) is displayed.
+        /// The content of the signature (such as parameter types, names, modifiers, etc.) 
+        /// is controlled by <see cref="SymbolDisplayParameterOptions"/>.
         /// </para>
         /// </summary>
         NameAndSignature = 2,
