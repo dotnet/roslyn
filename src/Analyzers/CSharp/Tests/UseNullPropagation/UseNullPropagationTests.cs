@@ -2810,6 +2810,7 @@ public sealed partial class UseNullPropagationTests
     public Task TestIfStatement_WithPreprocessorDirective_DEBUG()
         => TestMissingInRegularAndScriptAsync(
             """
+            #nullable enable
             using System.Diagnostics;
 
             class C
@@ -2834,6 +2835,7 @@ public sealed partial class UseNullPropagationTests
     public Task TestIfStatement_WithPreprocessorDirective_BeforeStatement()
         => TestMissingInRegularAndScriptAsync(
             """
+            #nullable enable
             using System.Diagnostics;
 
             class C
@@ -2857,6 +2859,7 @@ public sealed partial class UseNullPropagationTests
     public Task TestIfStatement_WithoutPreprocessorDirective_StillWorks()
         => TestInRegularAndScriptAsync(
             """
+            #nullable enable
             using System;
 
             class C
@@ -2890,6 +2893,7 @@ public sealed partial class UseNullPropagationTests
     public Task TestIfStatement_SingleStatement_WithPreprocessorDirective()
         => TestMissingInRegularAndScriptAsync(
             """
+            #nullable enable
             using System.Diagnostics;
 
             class C
