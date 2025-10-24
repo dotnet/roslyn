@@ -22767,7 +22767,6 @@ using @scoped = System.Int32;
                 var d = C.M;
                 d(ref x, ref r);
                 """;
-            // Should the delegate invocation be an error as well? https://github.com/dotnet/roslyn/issues/76087
             CreateCompilation([source2, UnscopedRefAttributeDefinition], [ref1],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (3,1): error CS8350: This combination of arguments to 'C.M(ref int, ref R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
@@ -22775,7 +22774,10 @@ using @scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "C.M(ref x, ref r)").WithArguments("C.M(ref int, ref R)", "x").WithLocation(3, 1),
                 // (3,9): error CS8168: Cannot return local 'x' by reference because it is not a ref local
                 // C.M(ref x, ref r);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(3, 9),
+                // (4,9): error CS8986: The 'scoped' modifier of parameter 'C.M(ref int, ref R)' doesn't match target '<anonymous delegate>'.
+                // var d = C.M;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("C.M(ref int, ref R)", "<anonymous delegate>").WithLocation(4, 9));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
