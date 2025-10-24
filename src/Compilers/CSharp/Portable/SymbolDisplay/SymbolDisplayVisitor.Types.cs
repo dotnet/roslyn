@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // at least the parameter types, even if ParameterOptions is None.
                     if (Format.ParameterOptions == SymbolDisplayParameterOptions.None)
                     {
-                        AddDelegateParametersMinimal(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
+                        AddDelegateParametersMinimal(isVarargs: method.IsVararg, parameters: method.Parameters);
                     }
                     else
                     {
@@ -515,12 +515,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddDelegateParametersMinimal(bool hasThisParameter, bool isVarargs, ImmutableArray<IParameterSymbol> parameters)
+        private void AddDelegateParametersMinimal(bool isVarargs, ImmutableArray<IParameterSymbol> parameters)
         {
             // Display delegate parameters with at minimum the parameter type
             var first = true;
 
-            if (!parameters.IsDefault)
+            if (!parameters.IsDefaultOrEmpty)
             {
                 foreach (var param in parameters)
                 {

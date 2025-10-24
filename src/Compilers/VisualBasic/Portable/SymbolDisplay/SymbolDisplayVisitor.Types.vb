@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' For delegates with NameAndParameters or NameAndSignature, we should always show
                     ' at least the parameter types, even if ParameterOptions is None.
                     If Format.ParameterOptions = SymbolDisplayParameterOptions.None Then
-                        AddDelegateParametersMinimal(isExtensionMethod:=False, parameters:=method.Parameters)
+                        AddDelegateParametersMinimal(parameters:=method.Parameters)
                     Else
                         AddParametersIfRequired(isExtensionMethod:=False, parameters:=method.Parameters)
                     End If
@@ -197,18 +197,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub AddDelegateParametersMinimal(isExtensionMethod As Boolean, parameters As ImmutableArray(Of IParameterSymbol))
+        Private Sub AddDelegateParametersMinimal(parameters As ImmutableArray(Of IParameterSymbol))
             ' Display delegate parameters with at minimum the parameter type
             Dim first As Boolean = True
-            For Each param In parameters
-                If Not first Then
-                    AddPunctuation(SyntaxKind.CommaToken)
-                    AddSpace()
-                End If
+            If Not parameters.IsDefaultOrEmpty Then
+                For Each param In parameters
+                    If Not first Then
+                        AddPunctuation(SyntaxKind.CommaToken)
+                        AddSpace()
+                    End If
 
-                first = False
-                param.Type.Accept(Me.NotFirstVisitor())
-            Next
+                    first = False
+                    param.Type.Accept(Me.NotFirstVisitor())
+                Next
+            End If
         End Sub
 
         Private Sub AddNestedTypeSeparator()
