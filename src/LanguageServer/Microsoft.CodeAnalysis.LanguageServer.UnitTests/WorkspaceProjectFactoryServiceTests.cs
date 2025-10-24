@@ -79,7 +79,7 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
             workspaceProjectFactoryServiceInstance);
 
         var workspaceProjectFactoryService = await brokeredServiceFactory.GetServiceAsync();
-        
+
         // Test with capabilities
         var projectPath = MakeAbsolutePath("TestProject.csproj");
         using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
@@ -94,11 +94,11 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
         // Verify the log message includes capabilities
         var logMessage = Assert.Single(capturingLogger.LogMessages, m => m.Contains(projectPath));
         Assert.Contains("with capabilities: CSharp, Test, Managed", logMessage);
-        
+
         // Dispose project so we can create another one
         workspaceProject.Dispose();
         capturingLogger.LogMessages.Clear();
-        
+
         // Test without capabilities (backward compatibility)
         var projectPath2 = MakeAbsolutePath("TestProject2.csproj");
         using var workspaceProject2 = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
