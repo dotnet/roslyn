@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (errorText.Equals("version", StringComparison.Ordinal))
                     {
-                        string version = CommonCompiler.GetProductVersionWithFullHash(typeof(CSharpCompiler));
+                        string version = CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
                         string assemblyPath = CommonCompiler.GetAssemblyLocation(typeof(CSharpCompiler));
                         var specified = this.Options.SpecifiedLanguageVersion;
                         var effective = specified.MapSpecifiedToEffectiveVersion();

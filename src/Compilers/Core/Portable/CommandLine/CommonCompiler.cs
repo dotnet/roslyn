@@ -159,20 +159,8 @@ namespace Microsoft.CodeAnalysis
         internal static string GetProductVersion(Type type)
         {
             string? assemblyVersion = GetInformationalVersionWithoutHash(type);
-            string? hash = GetShortCommitHash(type);
+            string? hash = type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
             return $"{assemblyVersion} ({hash})";
-        }
-
-        [return: NotNullIfNotNull(nameof(hash))]
-        internal static string? ExtractShortCommitHash(string? hash)
-        {
-            // leave "<developer build>" alone, but truncate SHA to 8 characters
-            if (hash != null && hash.Length >= 8 && hash[0] != '<')
-            {
-                return hash.Substring(0, 8);
-            }
-
-            return hash;
         }
 
         private static string? GetInformationalVersionWithoutHash(Type type)
@@ -180,24 +168,6 @@ namespace Microsoft.CodeAnalysis
             // The attribute stores a SemVer2-formatted string: `A.B.C(-...)?(+...)?`
             // We remove the section after the + (if any is present)
             return type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0];
-        }
-
-        private static string? GetShortCommitHash(Type type)
-        {
-            var hash = type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
-            return ExtractShortCommitHash(hash);
-        }
-
-        private static string? GetFullCommitHash(Type type)
-        {
-            return type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
-        }
-
-        internal static string GetProductVersionWithFullHash(Type type)
-        {
-            string? assemblyVersion = GetInformationalVersionWithoutHash(type);
-            string? hash = GetFullCommitHash(type);
-            return $"{assemblyVersion} ({hash})";
         }
 
         internal static string GetAssemblyLocation(Type type)
