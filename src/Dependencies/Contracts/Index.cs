@@ -142,9 +142,9 @@ namespace System
         public override string ToString()
         {
             if (IsFromEnd)
-                return $"^{((uint)Value).ToString()}";
+                return $"^{((uint)Value).ToString(System.Globalization.CultureInfo.InvariantCulture)}";
 
-            return ((uint)Value).ToString();
+            return ((uint)Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
     }
 }
