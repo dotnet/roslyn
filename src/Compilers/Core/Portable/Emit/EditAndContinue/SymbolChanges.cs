@@ -146,7 +146,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         // The container of the synthesized symbol doesn't exist, we need to add the symbol.
                         // This may happen e.g. for members of a state machine type when a non-iterator method is changed to an iterator.
-                        if (!DefinitionExistsInPreviousGeneration(synthesizedSymbol.ContainingType))
+                        var containingType = synthesizedSymbol.ContainingType;
+                        if (containingType is null || !DefinitionExistsInPreviousGeneration(containingType))
                         {
                             return SymbolChange.Added;
                         }
@@ -428,11 +429,18 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (edit.Kind == SemanticEditKind.Update)
                     {
                         var oldMethod = (IMethodSymbolInternal)GetRequiredInternalSymbol(edit.OldSymbol);
+                        var containingType = newMember.ContainingType;
 
-                        if (!updatedMethodsBuilder.TryGetValue(newMember.ContainingType, out var updatedMethodsPerType))
+                        // Containing type should not be null for normal members
+                        if (containingType is null)
+                        {
+                            continue;
+                        }
+
+                        if (!updatedMethodsBuilder.TryGetValue(containingType, out var updatedMethodsPerType))
                         {
                             updatedMethodsPerType = ArrayBuilder<(IMethodSymbolInternal, IMethodSymbolInternal)>.GetInstance();
-                            updatedMethodsBuilder.Add(newMember.ContainingType, updatedMethodsPerType);
+                            updatedMethodsBuilder.Add(containingType, updatedMethodsPerType);
                         }
 
                         updatedMethodsPerType.Add((oldMethod.PartialDefinitionPart ?? oldMethod, (IMethodSymbolInternal)newMember));
@@ -510,10 +518,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 return associated;
             }
 
-            symbol = symbol.ContainingSymbol;
-            if (symbol != null)
+            ISymbolInternal? containingSymbol = symbol.ContainingSymbol;
+            if (containingSymbol != null)
             {
-                switch (symbol.Kind)
+                switch (containingSymbol.Kind)
                 {
                     case SymbolKind.NetModule:
                     case SymbolKind.Assembly:
@@ -522,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            return symbol;
+            return containingSymbol;
         }
 
         private static ISymbolInternal? GetAssociatedSymbol(ISymbolInternal symbol)
