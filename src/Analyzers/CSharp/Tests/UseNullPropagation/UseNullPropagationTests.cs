@@ -2780,7 +2780,7 @@ public sealed partial class UseNullPropagationTests
             """,
             languageVersion: LanguageVersion.CSharp14);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77777")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65880")]
     public Task TestIfStatement_WithPreprocessorDirectiveInBlock()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -2806,7 +2806,7 @@ public sealed partial class UseNullPropagationTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77777")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65880")]
     public Task TestIfStatement_WithPreprocessorDirective_DEBUG()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -2830,7 +2830,7 @@ public sealed partial class UseNullPropagationTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77777")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65880")]
     public Task TestIfStatement_WithPreprocessorDirective_BeforeStatement()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -2853,7 +2853,7 @@ public sealed partial class UseNullPropagationTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77777")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65880")]
     public Task TestIfStatement_WithoutPreprocessorDirective_StillWorks()
         => TestInRegularAndScriptAsync(
             """
