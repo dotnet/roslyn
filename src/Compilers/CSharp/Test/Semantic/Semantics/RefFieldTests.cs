@@ -22932,6 +22932,104 @@ using @scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("C.M(ref int)", "<anonymous delegate>").WithLocation(6, 13));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_SynthesizedDelegate_OutParameter()
+        {
+            var source1 = """
+                public static class C
+                {
+                    public static void M(out R r) { r = default; }
+                }
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                var d = C.M;
+                """;
+            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (1,9): error CS8986: The 'scoped' modifier of parameter 'C.M(out R)' doesn't match target '<anonymous delegate>'.
+                // var d = C.M;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("C.M(out R)", "<anonymous delegate>").WithLocation(1, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_SynthesizedDelegate_BothNewRules_NoError()
+        {
+            // When both the method and the delegate use new rules, no error should be reported
+            var source = """
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                public static class C
+                {
+                    public static R M(ref int x) => new R { F = ref x };
+                }
+                class Test
+                {
+                    void M()
+                    {
+                        var d = C.M;  // No error - both use new rules
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_SynthesizedDelegate_BothOldRules_NoError()
+        {
+            // When both the method and the delegate use old rules, no error should be reported
+            var source1 = """
+                public static class C
+                {
+                    public static R M(ref int x) => new R { F = ref x };
+                }
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                class Test
+                {
+                    void M()
+                    {
+                        var d = C.M;  // No error - both use old rules
+                    }
+                }
+                """;
+            CreateCompilation(source2, [ref1], targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_SynthesizedDelegate_NoRefStructInvolved()
+        {
+            // When there are no ref structs involved, no error should be reported
+            var source1 = """
+                public static class C
+                {
+                    public static int M(ref int x) => x;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                var d = C.M;  // No error - no ref struct involved
+                """;
+            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics();
+        }
+
+
         [Theory]
         [InlineData("struct")]
         [InlineData("ref struct")]
