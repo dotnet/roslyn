@@ -188,6 +188,18 @@ namespace Microsoft.CodeAnalysis
             return ExtractShortCommitHash(hash);
         }
 
+        private static string? GetFullCommitHash(Type type)
+        {
+            return type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
+        }
+
+        internal static string GetProductVersionWithFullHash(Type type)
+        {
+            string? assemblyVersion = GetInformationalVersionWithoutHash(type);
+            string? hash = GetFullCommitHash(type);
+            return $"{assemblyVersion} ({hash})";
+        }
+
         internal static string GetAssemblyLocation(Type type)
         {
             var location = type.Assembly.Location;

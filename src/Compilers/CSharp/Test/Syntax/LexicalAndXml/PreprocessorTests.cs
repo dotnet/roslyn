@@ -4657,7 +4657,7 @@ class enable
 
         private static string GetExpectedVersion()
         {
-            return CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
+            return CommonCompiler.GetProductVersionWithFullHash(typeof(CSharpCompiler));
         }
 
         private static string GetExpectedAssemblyPath()
