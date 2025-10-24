@@ -1588,8 +1588,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var method1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
         var method2 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[1]).Symbol;
 
-        Assert.True(method1 is { MethodKind: MethodKind.Constructor, ContainingType.Name: "List", Parameters: [] });
-        Assert.True(method2 is { MethodKind: MethodKind.Constructor, ContainingType.Name: "List", Parameters: [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }] });
+        AssertEx.Equal("System.Collections.Generic.List<System.Int32>..ctor()", method1.ToTestDisplayString());
+        AssertEx.Equal("System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)", method2.ToTestDisplayString());
 
         var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<BlockSyntax>().Single());
         VerifyOperationTree(compilation, operation, """
