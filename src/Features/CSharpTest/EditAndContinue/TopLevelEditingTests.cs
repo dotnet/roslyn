@@ -7448,7 +7448,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             Diagnostic(RudeEditKind.Delete, "static class Ext1", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "void M()", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "object o", GetResource("extension block")),
-            Diagnostic(RudeEditKind.Delete, "static class Ext1", "extension block 'extension(object)'"),
+            Diagnostic(RudeEditKind.Delete, "static class Ext1", "extension block 'Ext1.extension(object)'"),
             Diagnostic(RudeEditKind.Update, "static class Ext1", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "static class Ext1", GetResource("extension block"))
         );
@@ -7498,7 +7498,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, "static class Ext", GetResource("extension block")),
-            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "extension(string)")),
+            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "Ext.extension(string)")),
             Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block"))
         );
@@ -7562,7 +7562,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         );
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, "static class Ext", GetResource("extension block")),
-            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "extension(object)")),
+            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "Ext.extension(object)")),
             Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block"))
         );

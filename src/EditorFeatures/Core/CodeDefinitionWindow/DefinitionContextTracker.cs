@@ -171,7 +171,8 @@ internal sealed class DefinitionContextTracker : ITextViewConnectionListener
             if (symbol != null)
             {
                 var symbolNavigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
-                var definitionItem = symbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: false);
+                var definitionItem = await symbol.ToNonClassifiedDefinitionItemAsync(
+                    document.Project.Solution, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
                 var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
                 if (result != null)
@@ -185,7 +186,7 @@ internal sealed class DefinitionContextTracker : ITextViewConnectionListener
                     var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     locations.Add(new CodeDefinitionWindowLocation(
-                        symbol.ToDisplayString(), declarationFile.FilePath!, identifierSpan.Start));
+                        symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
                 }
             }
         }

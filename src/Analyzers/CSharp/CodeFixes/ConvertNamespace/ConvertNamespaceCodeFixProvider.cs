@@ -40,10 +40,7 @@ internal sealed class ConvertNamespaceCodeFixProvider() : SyntaxEditorBasedCodeF
                 _ => throw ExceptionUtilities.UnexpectedValue(diagnostic.Id),
             });
 
-        context.RegisterCodeFix(
-            CodeAction.Create(title, GetDocumentUpdater(context), equivalenceKey),
-            context.Diagnostics);
-
+        RegisterCodeFix(context, title, equivalenceKey);
         return Task.CompletedTask;
     }
 

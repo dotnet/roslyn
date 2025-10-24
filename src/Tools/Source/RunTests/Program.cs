@@ -309,7 +309,7 @@ namespace RunTests
 
                 foreach (var targetFrameworkDirectory in Directory.EnumerateDirectories(configDirectory))
                 {
-                    var tfm = Path.GetFileName(targetFrameworkDirectory)!;
+                    var tfm = Path.GetFileName(targetFrameworkDirectory);
                     if (!IsMatch(options.TestRuntime, tfm))
                     {
                         Console.WriteLine($"Skipping {name} {tfm} does not match the target framework");

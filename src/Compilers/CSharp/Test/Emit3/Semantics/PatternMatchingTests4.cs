@@ -565,28 +565,28 @@ public class C : ITuple
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (13,32): error CS1061: 'T' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+                // 0.cs(13,32): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Console.WriteLine(t is (3, 4)); // false
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4)").WithArguments("T", "Deconstruct").WithLocation(13, 32),
-                // (13,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 4)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(13, 32),
+                // 0.cs(13,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 2 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4)); // false
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4)").WithArguments("T", "2").WithLocation(13, 32),
-                // (14,32): error CS1061: 'T' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+                // 0.cs(14,32): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2, T3>(Tuple<T1, T2, T3>, out T1, out T2, out T3)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Console.WriteLine(t is (3, 4, 5)); // TRUE
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("T", "Deconstruct").WithLocation(14, 32),
-                // (14,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 4, 5)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2, T3>(System.Tuple<T1, T2, T3>, out T1, out T2, out T3)").WithLocation(14, 32),
+                // 0.cs(14,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 3 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4, 5)); // TRUE
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5)").WithArguments("T", "3").WithLocation(14, 32),
-                // (15,32): error CS1061: 'T' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+                // 0.cs(15,32): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2, T3>(Tuple<T1, T2, T3>, out T1, out T2, out T3)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Console.WriteLine(t is (3, 0, 5)); // false
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 0, 5)").WithArguments("T", "Deconstruct").WithLocation(15, 32),
-                // (15,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 3 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 0, 5)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2, T3>(System.Tuple<T1, T2, T3>, out T1, out T2, out T3)").WithLocation(15, 32),
+                // 0.cs(15,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 3 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 0, 5)); // false
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 0, 5)").WithArguments("T", "3").WithLocation(15, 32),
-                // (16,32): error CS1061: 'T' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+                // 0.cs(16,32): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2, T3, T4>(Tuple<T1, T2, T3, T4>, out T1, out T2, out T3, out T4)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5, 6)").WithArguments("T", "Deconstruct").WithLocation(16, 32),
-                // (16,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'T', with 4 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 4, 5, 6)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2, T3, T4>(System.Tuple<T1, T2, T3, T4>, out T1, out T2, out T3, out T4)").WithLocation(16, 32),
+                // 0.cs(16,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 4 out parameters and a void return type.
                 //         Console.WriteLine(t is (3, 4, 5, 6)); // false
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(3, 4, 5, 6)").WithArguments("T", "4").WithLocation(16, 32)
                 );
