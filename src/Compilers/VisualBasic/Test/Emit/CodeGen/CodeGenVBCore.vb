@@ -2333,6 +2333,9 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(c,
 <error>
+BC36666: 'Public Shared SourceLibrary.U As Microsoft.VisualBasic.CompilerServices.Utils' is not accessible in this context because the return type is not accessible.
+        SourceLibrary.U.CopyArray(Nothing, Nothing)
+        ~~~~~~~~~~~~~~~
 BC30456: 'CopyArray' is not a member of 'Utils'.
         SourceLibrary.U.CopyArray(Nothing, Nothing)
         ~~~~~~~~~~~~~~~~~~~~~~~~~
