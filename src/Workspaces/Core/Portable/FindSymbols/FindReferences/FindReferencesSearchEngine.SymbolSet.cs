@@ -110,7 +110,7 @@ internal sealed partial class FindReferencesSearchEngine
             if (searchSymbol is IAliasSymbol aliasSymbol)
             {
                 // We currently only support searching for aliases to normal named types or namespaces.
-                if (aliasSymbol.Target is INamedTypeSymbol or INamespaceSymbol)
+                if (aliasSymbol.Target is INamedTypeSymbol { IsTupleType: false } or INamespaceSymbol)
                     searchSymbol = aliasSymbol.Target;
             }
 
