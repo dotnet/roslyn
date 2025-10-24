@@ -2431,7 +2431,7 @@ public sealed class InheritanceMarginTests
     }
 
     [Theory, CombinatorialData]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/67364")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67397")]
     public Task TestMembersWithPunctuationDifferencesShowLanguageGlyph(TestHost testHost)
     {
         // Simulates the scenario described in the issue where members like
