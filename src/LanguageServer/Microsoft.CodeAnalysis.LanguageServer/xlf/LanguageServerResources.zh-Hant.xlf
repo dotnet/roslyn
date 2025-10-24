@@ -117,6 +117,11 @@
         <target state="translated">由 C# 開發人員套件載入的專案 {0}</target>
         <note>The placeholder is a name of a file</note>
       </trans-unit>
+      <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit_1">
+        <source>Project {0} loaded by C# Dev Kit{1}</source>
+        <target state="new">Project {0} loaded by C# Dev Kit{1}</target>
+        <note>The first placeholder is a name of a file, the second placeholder is optional capabilities information</note>
+      </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
         <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
         <target state="translated">無法載入專案，因為找不到.NET Framework 建置工具。請嘗試安裝 Visual Studio 或 Visual Studio Build Tools 套件，或查看記錄以尋求詳細資料。</target>

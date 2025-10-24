@@ -37,7 +37,10 @@ internal sealed class WorkspaceProjectFactoryService(
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
     {
-        _logger.LogInformation(string.Format(LanguageServerResources.Project_0_loaded_by_CSharp_Dev_Kit, creationInfo.FilePath));
+        var capabilitiesString = creationInfo.ProjectCapabilities.IsDefaultOrEmpty
+            ? string.Empty
+            : $" with capabilities: {string.Join(", ", creationInfo.ProjectCapabilities)}";
+        _logger.LogInformation(string.Format(LanguageServerResources.Project_0_loaded_by_CSharp_Dev_Kit_1, creationInfo.FilePath, capabilitiesString));
         VSCodeRequestTelemetryLogger.ReportProjectLoadStarted();
         try
         {

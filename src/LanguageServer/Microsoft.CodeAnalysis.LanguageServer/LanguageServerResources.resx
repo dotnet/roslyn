@@ -201,6 +201,10 @@
     <value>Project {0} loaded by C# Dev Kit</value>
     <comment>The placeholder is a name of a file</comment>
   </data>
+  <data name="Project_0_loaded_by_CSharp_Dev_Kit_1" xml:space="preserve">
+    <value>Project {0} loaded by C# Dev Kit{1}</value>
+    <comment>The first placeholder is a name of a file, the second placeholder is optional capabilities information</comment>
+  </data>
   <data name="Running_tests" xml:space="preserve">
     <value>Running tests...</value>
   </data>

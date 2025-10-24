@@ -117,6 +117,11 @@
         <target state="translated">C# Dev Kit에서 로드한 프로젝트 {0}</target>
         <note>The placeholder is a name of a file</note>
       </trans-unit>
+      <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit_1">
+        <source>Project {0} loaded by C# Dev Kit{1}</source>
+        <target state="new">Project {0} loaded by C# Dev Kit{1}</target>
+        <note>The first placeholder is a name of a file, the second placeholder is optional capabilities information</note>
+      </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
         <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
         <target state="translated">.NET Framework 빌드 도구를 찾을 수 없으므로 프로젝트를 로드하지 못했습니다. Visual Studio 또는 Visual Studio Build Tools 패키지를 설치하거나 로그에서 자세한 내용을 확인하세요.</target>

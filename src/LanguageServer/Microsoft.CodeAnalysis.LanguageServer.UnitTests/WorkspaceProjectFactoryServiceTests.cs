@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
@@ -56,6 +57,39 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
         var additionalDocument = Assert.Single(project.AdditionalDocuments);
         Assert.Equal(additionalFilePath, additionalDocument.FilePath);
         Assert.Equal("Folder", Assert.Single(additionalDocument.Folders));
+    }
+
+    [Fact]
+    public async Task CreateProjectWithCapabilities()
+    {
+        var loggerFactory = new LoggerFactory();
+        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
+            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
+        using var _ = exportProvider;
+
+        await exportProvider.GetExportedValue<ServiceBrokerFactory>().CreateAsync();
+
+        var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
+        var workspaceProjectFactoryServiceInstance = (WorkspaceProjectFactoryService)exportProvider
+            .GetExportedValues<IExportedBrokeredService>()
+            .Single(service => service.Descriptor == WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor);
+
+        await using var brokeredServiceFactory = new BrokeredServiceProxy<IWorkspaceProjectFactoryService>(
+            workspaceProjectFactoryServiceInstance);
+
+        var workspaceProjectFactoryService = await brokeredServiceFactory.GetServiceAsync();
+        using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
+            new WorkspaceProjectCreationInfo(
+                LanguageNames.CSharp,
+                "DisplayName",
+                FilePath: MakeAbsolutePath("TestProject.csproj"),
+                new Dictionary<string, string>(),
+                ProjectCapabilities: ["CSharp", "Test", "Managed"]),
+            CancellationToken.None);
+
+        // Verify the project was created successfully
+        var project = workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single();
+        Assert.Equal("DisplayName", project.Name);
     }
 
     private static string MakeAbsolutePath(string relativePath)
