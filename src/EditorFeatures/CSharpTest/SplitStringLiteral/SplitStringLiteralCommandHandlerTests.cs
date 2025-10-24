@@ -1104,40 +1104,39 @@ endOfLine: "\n");
 
         Assert.True(result);
 
-        // Verify all caret positions are set correctly
-        var selections = view.Selection.SelectedSpans;
-        Assert.Equal(2, selections.Count);
-
-        // The expected output should have carets at these positions
-        var expectedOutput = """
+        // Verify the expected markup with all caret positions
+        var expectedMarkup = """
             class C
             {
                 void M()
                 {
                     var v = "now is " +
-                        "the ti" +
-                        "me";
+                        "[||]the ti" +
+                        "[||]me";
                 }
             }
             """;
 
+        MarkupTestFile.GetSpans(expectedMarkup, out var expectedOutput, out var expectedSpans);
         var actualText = textBuffer.CurrentSnapshot.AsText().ToString();
+
+        // Verify text is correct
         Assert.Equal(expectedOutput, actualText);
 
-        // Find the expected caret positions in the output
-        var firstCaretPosition = actualText.IndexOf("\"the ti\"");
-        var secondCaretPosition = actualText.IndexOf("\"me\"");
+        // Verify all caret positions are set correctly
+        var broker = view.GetMultiSelectionBroker();
+        var selections = broker.AllSelections.ToList();
+        Assert.Equal(expectedSpans.Length, selections.Count);
 
-        Assert.True(firstCaretPosition > 0);
-        Assert.True(secondCaretPosition > 0);
+        // Verify each selection position matches the expected position
+        for (int i = 0; i < expectedSpans.Length; i++)
+        {
+            Assert.Equal(expectedSpans[i].Start, selections[i].Start.Position.Position);
+            Assert.True(selections[i].IsEmpty); // All selections should be carets (zero-length)
+        }
 
-        // Verify selections are at the start of the continuation strings
-        var firstSelection = selections[0];
-        var secondSelection = selections[1];
-
-        // The carets should be right after the opening quotes of the continuation strings
-        Assert.True(firstSelection.Start.Position >= firstCaretPosition && firstSelection.Start.Position <= firstCaretPosition + 10);
-        Assert.True(secondSelection.Start.Position >= secondCaretPosition && secondSelection.Start.Position <= secondCaretPosition + 10);
+        // Verify the primary (last) caret is at the correct position
+        Assert.Equal(expectedSpans.Last().Start, view.Caret.Position.BufferPosition.Position);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
