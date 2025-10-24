@@ -27,6 +27,11 @@
 - When running `dotnet format whitespace` use the `--folder .` option followed by `--include <relative path to file>` to avoid a design-time build.
 - `dotnet format whitespace --folder . --include <relative path to file>` - Applies formatting preferences to a particular .cs or .vb file
 
+## Pull Request Management
+
+**Labels**:
+- When opening a PR that touches code in `src/Compilers/`, add the `area-compilers` label to the PR
+
 ## Code Patterns
 
 **Service Architecture** (use MEF consistently):
