@@ -646,7 +646,25 @@ internal static partial class ConflictResolver
             // When using (not declaring) an alias, the alias symbol and the target symbol are returned
             // by GetSymbolsTouchingPosition
             if (newReferencedSymbols.Length >= 2)
-                newReferencedSymbols = newReferencedSymbols.WhereAsArray(a => a.Kind != SymbolKind.Alias);
+            {
+                var aliasSymbol = newReferencedSymbols.FirstOrDefault(s => s.Kind == SymbolKind.Alias);
+                var nonAliasSymbols = newReferencedSymbols.WhereAsArray(a => a.Kind != SymbolKind.Alias);
+
+                // For aliases to types that cannot be renamed (like tuples, arrays, pointers, function pointers),
+                // we should use the alias itself, not the target type.
+                if (aliasSymbol != null &&
+                    nonAliasSymbols.Length == 1 &&
+                    nonAliasSymbols[0] is ITypeSymbol targetType &&
+                    RenameUtilities.IsUnrenamableAliasTarget(targetType))
+                {
+                    // Keep the alias symbol
+                    newReferencedSymbols = [aliasSymbol];
+                }
+                else
+                {
+                    newReferencedSymbols = nonAliasSymbols;
+                }
+            }
 
             return newReferencedSymbols;
         }

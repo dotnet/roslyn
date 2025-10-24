@@ -46,7 +46,7 @@ internal static class RenameUtilities
     /// Such types include arrays, tuples, pointers, and function pointers, which cannot be renamed
     /// themselves but can be aliased with the "using alias = type" feature.
     /// </summary>
-    private static bool IsUnrenamableAliasTarget(ITypeSymbol typeSymbol)
+    internal static bool IsUnrenamableAliasTarget(ITypeSymbol typeSymbol)
     {
         return typeSymbol.TypeKind == TypeKind.Array ||
                typeSymbol.IsTupleType ||

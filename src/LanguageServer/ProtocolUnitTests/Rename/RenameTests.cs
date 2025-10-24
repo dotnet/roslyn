@@ -372,6 +372,30 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     }
 
     [Theory, CombinatorialData]
+    public async Task TestRename_NamedTypeAliasAsync(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            using {|caret:|}{|renamed:S1|} = System.String;
+
+            namespace Test
+            {
+                class Program
+                {
+                    void M({|renamed:S1|} s)
+                    {
+                    }
+                }
+            }
+            """, mutatingLspWorkspace);
+        var renameLocation = testLspServer.GetLocations("caret").First();
+        var renameValue = "RenamedString";
+        var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+
+        var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
+        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestRename_TupleAliasAsync(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync("""
