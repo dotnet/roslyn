@@ -3572,7 +3572,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RefKind = refKind;
             this.ExpressionOpt = expressionOpt;
             this.Checked = @checked;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public RefKind RefKind { get; }
         public BoundExpression? ExpressionOpt { get; }

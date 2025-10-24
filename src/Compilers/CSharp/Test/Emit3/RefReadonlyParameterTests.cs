@@ -531,6 +531,30 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Method_NonVirtual()
+    {
+        var source = """
+            class C
+            {
+                public void M(ref readonly int p) { }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+        CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify).VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p);
+        }
+    }
+
+    [Fact]
     public void Method_Virtual()
     {
         var source = """
@@ -855,10 +879,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             void local(ref readonly int p) { }
             System.Console.WriteLine(((object)local).GetType());
             """;
-        var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+        comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+
+        CompileAndVerify(comp,
             sourceSymbolValidator: verify, symbolValidator: verify,
-            expectedOutput: "<>A{00000004}`1[System.Int32]");
-        verifier.VerifyDiagnostics();
+            expectedOutput: "<>A{00000004}`1[System.Int32]").VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
         {

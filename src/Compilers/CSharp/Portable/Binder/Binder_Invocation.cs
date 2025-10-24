@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // But if the lambda is explicitly typed, we can bind only once.
                             // https://github.com/dotnet/roslyn/issues/69093
                             if (unboundArgument.HasExplicitlyTypedParameterList &&
-                                unboundArgument.HasExplicitReturnType(out _, out _) &&
+                                unboundArgument.HasExplicitReturnType(out _, out _, out _) &&
                                 unboundArgument.FunctionType is { } functionType &&
                                 functionType.GetInternalDelegateType() is { } delegateType)
                             {

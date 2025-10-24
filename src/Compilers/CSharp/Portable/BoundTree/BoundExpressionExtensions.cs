@@ -138,6 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var delegateType = expr.GetFunctionType()?.GetInternalDelegateType();
             delegateType?.AddUseSiteInfo(ref useSiteInfo);
+
+            if (expr is BoundMethodGroup { Methods: not [{ MethodKind: MethodKind.LocalFunction }] } &&
+                delegateType is { DelegateInvokeMethod.OriginalDefinition: SynthesizedDelegateInvokeMethod { RefKind: RefKind.RefReadOnly } })
+            {
+                delegateType.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute).AddUseSiteInfo(ref useSiteInfo);
+            }
+
             return delegateType;
         }
 
