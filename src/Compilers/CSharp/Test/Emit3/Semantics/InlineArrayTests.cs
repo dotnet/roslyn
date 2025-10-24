@@ -19496,7 +19496,6 @@ public struct Buffer4<T>
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
-            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.FailsILVerify with
             {
                 ILVerifyMessage = """
@@ -20392,7 +20391,6 @@ class Program
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateRuntimeAsyncCompilation(src + Buffer4Definition, options: TestOptions.ReleaseExe);
-            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
             verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
