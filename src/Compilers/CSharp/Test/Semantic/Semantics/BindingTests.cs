@@ -4201,5 +4201,29 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (a) .
                 //         MyExpression<int, string, bool> x;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(9, 41));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericTypeWithNoTypeArguments()
+        {
+            var text = """
+                class MyExpression { }
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression x;
+                    }
+                }
+                """;
+
+            // When both generic and non-generic versions exist and no type arguments are provided,
+            // the non-generic version is successfully used (no error expected)
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,22): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 22));
+        }
     }
 }
