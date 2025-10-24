@@ -10513,11 +10513,6 @@ done:
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
-                else if (list.Any(mod.RawKind))
-                {
-                    // check for duplicates, can only be const
-                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected);
-                }
 
                 list.Add(mod);
             }

@@ -425,15 +425,6 @@ public class C
 }
 ";
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (7,15): error CS1031: Type expected
-                //         const const double d = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(7, 15),
-                // (8,15): error CS1031: Type expected
-                //         const const const long l = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 15),
-                // (8,21): error CS1031: Type expected
-                //         const const const long l = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 21),
                 // (9,15): error CS0106: The modifier 'readonly' is not valid for this item
                 //         const readonly readonly readonly const double r = 0;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 15),
@@ -442,11 +433,38 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 24),
                 // (9,33): error CS0106: The modifier 'readonly' is not valid for this item
                 //         const readonly readonly readonly const double r = 0;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 33),
-                // (9,42): error CS1031: Type expected
-                //         const readonly readonly readonly const double r = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(9, 42)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 33)
             );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateModifiers_NotReportedDuringParsing()
+        {
+            // Duplicate modifiers for local declarations and local functions should not produce
+            // parsing errors. They will be reported during binding.
+            var localDeclaration = @"
+class C
+{
+    void M()
+    {
+        const const int a = 0;
+    }
+}";
+            ParserErrorMessageTests.ParseAndValidate(localDeclaration);
+
+            var localFunction = @"
+class C
+{
+    void M()
+    {
+        static static void F() {}
+    }
+}";
+            ParserErrorMessageTests.ParseAndValidate(localFunction);
+
+            var typeDeclaration = @"public public class C {}";
+            ParserErrorMessageTests.ParseAndValidate(typeDeclaration);
         }
 
         [WorkItem(553293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553293")]
