@@ -2438,17 +2438,17 @@ public sealed class InheritanceMarginTests
         // "AliasSymbol.IAliasSymbol.Target" (VB) and "AliasSymbol.IAliasSymbolTarget" (C#)
         // differ only in punctuation and should show language glyphs to disambiguate.
         var itemForTarget = new TestInheritanceMemberItem(
-            lineNumber: 4,
-            memberName: "ReadOnly Property Target As ISymbol",
+            lineNumber: 6,
+            memberName: "ReadOnly Property IAliasSymbol.Target As ISymbol",
             targets:
             [
                 new TargetInfo(
-                    targetSymbolDisplayName: "AliasSymbol.IAliasSymbolTarget",
+                    targetSymbolDisplayName: "AliasSymbol.IAliasSymbol.Target",
                     locationTag: "target2",
                     relationship: InheritanceRelationship.ImplementingMember,
                     languageGlyph: Glyph.CSharpFile),
                 new TargetInfo(
-                    targetSymbolDisplayName: "AliasSymbol.IAliasSymbol.Target",
+                    targetSymbolDisplayName: "AliasSymbol.IAliasSymbol_Target",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.ImplementingMember,
                     languageGlyph: Glyph.BasicFile),
@@ -2456,43 +2456,35 @@ public sealed class InheritanceMarginTests
 
         return VerifyInDifferentProjectsAsync(
             ("""
-                    using MyNamespace;
-                    namespace CSharpNs
-                    {
-                        public class AliasSymbol : IAliasSymbol
-                        {
-                            public ISymbol {|target2:IAliasSymbolTarget|} { get; }
-                        }
-                    }
-
-                    namespace MyNamespace
-                    {
-                        public interface ISymbol { }
-                        public interface IAliasSymbol
-                        {
-                            ISymbol Target { get; }
-                        }
-                    }
+            {|SearchAreaTag:|}
+            using MyNamespace;
+            namespace CSharpNs
+            {
+                public class AliasSymbol : IAliasSymbol
+                {
+                    ISymbol IAliasSymbol.{|target2:Target|} { get; }
+                }
+            }
             """, LanguageNames.CSharp),
             ("""
-                    Namespace MyNamespace
-                        Public Interface ISymbol
-                        End Interface
+            Namespace MyNamespace
+                Public Interface ISymbol
+                End Interface
 
-                        Public Interface IAliasSymbol
-                            ReadOnly Property {|target1:Target|} As ISymbol
-                        End Interface
+                Public Interface IAliasSymbol
+                    {|SearchAreaTag:ReadOnly Property {|target1:Target|} As ISymbol|}
+                End Interface
 
-                        Public Class AliasSymbol
-                            Implements IAliasSymbol
+                Public Class AliasSymbol
+                    Implements IAliasSymbol
 
-                            Public ReadOnly Property {|target3:Target|} As ISymbol Implements IAliasSymbol.Target
-                                Get
-                                    Throw New System.NotImplementedException()
-                                End Get
-                            End Property
-                        End Class
-                    End Namespace
+                    Public ReadOnly Property {|target3:IAliasSymbol_Target|} As ISymbol Implements IAliasSymbol.Target
+                        Get
+                            Throw New System.NotImplementedException()
+                        End Get
+                    End Property
+                End Class
+            End Namespace
             """, LanguageNames.VisualBasic),
             [],
             [itemForTarget],
