@@ -1530,8 +1530,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         Assert.Equal("MyBuilder", method1.ContainingType.Name);
 
-        Assert.Equal("", method1.ToDisplayString());
-        Assert.Equal("", method2.ToDisplayString());
+        AssertEx.Equal("MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)", method1.ToTestDisplayString());
+        AssertEx.Equal("MyCollection<T> MyBuilder.Create<T>(T arg, System.ReadOnlySpan<T> items)", method2.ToTestDisplayString());
 
         var arrowExpressions = root.DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ToArray();
         var operation1 = semanticModel.GetOperation(arrowExpressions[0]);
