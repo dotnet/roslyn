@@ -8658,7 +8658,7 @@ done:
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DelegateKeyword);
 
             var nextToken = this.PeekToken(1);
-            
+
             // delegate { } is definitely an anonymous delegate
             if (nextToken.Kind == SyntaxKind.OpenBraceToken)
             {
@@ -8677,26 +8677,26 @@ done:
             //
             // Try to parse what's in the parentheses as a tuple type, and check if
             // it's followed by an identifier (which would indicate a delegate declaration).
-            
+
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-            
+
             // Skip 'delegate'
             this.EatToken();
-            
+
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken);
             // Skip '('
             this.EatToken();
-            
+
             // Try to scan as a tuple type
             var scanResult = this.ScanTupleType(out _);
-            
+
             // If it successfully scanned as a tuple type and is followed by an identifier,
             // it's a delegate type declaration with a tuple return type.
             if (scanResult == ScanTypeFlags.TupleType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
                 return false;
             }
-            
+
             // Otherwise, assume it's an anonymous delegate expression.
             return true;
         }
