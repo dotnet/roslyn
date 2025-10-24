@@ -29,27 +29,21 @@ internal static class InheritanceMarginHelpers
         if (string.IsNullOrEmpty(text))
             return text;
 
-        // Check if there's any punctuation first to avoid unnecessary allocations
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
         var hasPunctuation = false;
         foreach (var c in text)
         {
             if (char.IsPunctuation(c))
             {
                 hasPunctuation = true;
-                break;
+            }
+            else
+            {
+                builder.Append(c);
             }
         }
 
-        if (!hasPunctuation)
-            return text;
-
-        using var _ = PooledStringBuilder.GetInstance(out var builder);
-        foreach (var c in text)
-        {
-            if (!char.IsPunctuation(c))
-                builder.Append(c);
-        }
-        return builder.ToString();
+        return hasPunctuation ? builder.ToString() : text;
     }
 
     private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
