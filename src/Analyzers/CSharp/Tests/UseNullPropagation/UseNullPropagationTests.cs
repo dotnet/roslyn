@@ -2779,4 +2779,87 @@ public sealed partial class UseNullPropagationTests
             }
             """,
             languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77777")]
+    public Task TestIfStatement_WithPreprocessorDirectiveInBlock()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System.Diagnostics;
+
+            class C
+            {
+                private object? _controlToLayout;
+                private bool _resumeLayout;
+                private int _layoutSuspendCount;
+
+                public void Dispose()
+                {
+                    if (_controlToLayout is not null)
+                    {
+                        _controlToLayout.ToString();
+
+            #if DEBUG
+                        Debug.Assert(_layoutSuspendCount == 0, "Suspend/Resume layout mismatch!");
+            #endif
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77777")]
+    public Task TestIfStatement_WithPreprocessorDirective_DEBUG()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System.Diagnostics;
+
+            class C
+            {
+                private object? _controlToLayout;
+
+                public void Dispose()
+                {
+                    if (_controlToLayout != null)
+                    {
+                        _controlToLayout.ToString();
+
+            #if DEBUG
+                        Debug.WriteLine("Debug mode");
+            #endif
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77777")]
+    public Task TestIfStatement_WithoutPreprocessorDirective_StillWorks()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                private object? _controlToLayout;
+
+                public void Dispose()
+                {
+                    [|if|] (_controlToLayout != null)
+                    {
+                        _controlToLayout.ToString();
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                private object? _controlToLayout;
+
+                public void Dispose()
+                {
+                    _controlToLayout?.ToString();
+                }
+            }
+            """);
 }
