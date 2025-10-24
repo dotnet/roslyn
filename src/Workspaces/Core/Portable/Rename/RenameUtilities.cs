@@ -48,11 +48,8 @@ internal static class RenameUtilities
     /// </summary>
     internal static bool IsUnrenamableAliasTarget(ITypeSymbol typeSymbol)
     {
-        return typeSymbol.TypeKind == TypeKind.Array ||
-               typeSymbol.IsTupleType ||
-               typeSymbol.TypeKind == TypeKind.Pointer ||
-               typeSymbol.TypeKind == TypeKind.FunctionPointer ||
-               typeSymbol.TypeKind == TypeKind.Dynamic;
+        return typeSymbol.IsTupleType ||
+            typeSymbol.TypeKind is TypeKind.Array or TypeKind.Pointer or TypeKind.FunctionPointer or TypeKind.Dynamic;
     }
 
     /// <summary>
