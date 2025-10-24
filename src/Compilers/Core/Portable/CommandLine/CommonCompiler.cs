@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static string GetAssemblyLocation(Type type)
         {
-            return type.Assembly.Location;
+            var location = type.Assembly.Location;
+            return string.IsNullOrEmpty(location) ? "<unknown>" : location;
         }
 
         /// <summary>
