@@ -72,12 +72,13 @@ internal sealed class CSharpUseNullPropagationDiagnosticAnalyzer :
         IfStatementSyntax ifStatement,
         CancellationToken cancellationToken)
     {
-        // Check if the if-statement has a block statement with directives on the close brace.
+        // Check if the if-statement has a block statement with preprocessor directives.
         // If so, we can't convert to null propagation because the directives (like #if DEBUG)
-        // would be lost or cause compilation issues.
+        // would be lost or cause compilation issues. We check the entire block rather than
+        // just the close brace to handle cases where directives appear anywhere in the block.
         if (ifStatement.Statement is BlockSyntax block)
         {
-            if (block.CloseBraceToken.ContainsDirectives)
+            if (block.ContainsDirectives)
                 return null;
         }
 

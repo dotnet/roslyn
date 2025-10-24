@@ -2831,6 +2831,29 @@ public sealed partial class UseNullPropagationTests
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77777")]
+    public Task TestIfStatement_WithPreprocessorDirective_BeforeStatement()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System.Diagnostics;
+
+            class C
+            {
+                private object? _controlToLayout;
+
+                public void Dispose()
+                {
+                    if (_controlToLayout != null)
+                    {
+            #if DEBUG
+                        Debug.WriteLine("Debug mode");
+            #endif
+                        _controlToLayout.ToString();
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77777")]
     public Task TestIfStatement_WithoutPreprocessorDirective_StillWorks()
         => TestInRegularAndScriptAsync(
             """
