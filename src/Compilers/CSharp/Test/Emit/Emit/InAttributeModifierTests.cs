@@ -1775,6 +1775,8 @@ class C1
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 Assert.Null(module.GlobalNamespace.GetMember("<>F{00000003}.EndInvoke"));
             };
@@ -1817,6 +1819,8 @@ class C1
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 Assert.Null(module.GlobalNamespace.GetMember("<>F{00000001}.EndInvoke"));
             };
@@ -1875,12 +1879,16 @@ class Test
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000003}.Invoke"); // Synthesized delegate method
 
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 Assert.Null(module.GlobalNamespace.GetMember("<>F{00000003}.EndInvoke"));
             };
@@ -1928,12 +1936,16 @@ class Test
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000001}.Invoke"); // Synthesized delegate method
 
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 Assert.Null(module.GlobalNamespace.GetMember("<>F{00000001}.EndInvoke"));
             };
@@ -1974,6 +1986,8 @@ class Test
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.None, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2017,12 +2031,16 @@ static class Test
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000003}.Invoke"); // Synthesized delegate method
 
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 Assert.Null(module.GlobalNamespace.GetMember("<>F{00000003}.EndInvoke"));
             };
@@ -2064,6 +2082,8 @@ delegate ref readonly int D();
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2111,6 +2131,8 @@ delegate ref int D();
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2151,6 +2173,8 @@ delegate int D();
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.None, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2190,12 +2214,16 @@ class Test
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000003}.Invoke"); // Synthesized delegate method
 
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 Assert.Null(module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000003}.EndInvoke"));
             };
@@ -2244,12 +2272,16 @@ class Test
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 method = module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000001}.Invoke"); // Synthesized delegate method
 
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
 
                 Assert.Null(module.GlobalNamespace.GetMember<MethodSymbol>("<>F{00000001}.EndInvoke"));
             };
@@ -2291,6 +2323,8 @@ class Test
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.None, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2371,6 +2405,8 @@ delegate ref readonly int D();
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2475,6 +2511,8 @@ class Test
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2517,6 +2555,8 @@ class C2 : C1
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2549,6 +2589,8 @@ class C2 : C1
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.Ref, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2581,6 +2623,8 @@ class C2 : C1
                 Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.Empty(method.RefCustomModifiers);
                 Assert.Equal(RefKind.None, method.RefKind);
+                Assert.False(method.HasUnsupportedMetadata);
+                Assert.False(method.HasUseSiteError);
             };
 
             var comp = CreateCompilation(code, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
