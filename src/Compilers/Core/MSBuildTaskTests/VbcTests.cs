@@ -566,11 +566,11 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             AssertEx.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
 
-        [ConditionalFact(typeof(UnixLikeOnly))]
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
         public void SourceFileInRootDirectoryOnUnix()
         {
-            // On Unix, a source file path starting with "/" should be prefixed with "./" 
-            // to avoid being misinterpreted as a command-line switch
+            // On Unix, a source file path starting with "/" without another "/" 
+            // should be prefixed with "./" to avoid being misinterpreted as a command-line switch
             var vbc = new Vbc
             {
                 Sources = MSBuildUtil.CreateTaskItems("/Program.vb"),
@@ -581,19 +581,23 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             Assert.DoesNotContain(" /Program.vb", responseFileContents);
         }
 
-        [ConditionalFact(typeof(UnixLikeOnly))]
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
         public void MultipleSourceFilesWithRootDirectoryOnUnix()
         {
             // Test multiple files where some are in root and some are not
+            // Also test that /dir/file.vb is NOT transformed (has second '/')
             var vbc = new Vbc
             {
-                Sources = MSBuildUtil.CreateTaskItems("/Program.vb", "src/Test.vb", "/App.vb"),
+                Sources = MSBuildUtil.CreateTaskItems("/Program.vb", "src/Test.vb", "/App.vb", "/dir/File.vb"),
             };
 
             var responseFileContents = vbc.GenerateResponseFileContents();
             Assert.Contains("/./Program.vb", responseFileContents);
             Assert.Contains("/./App.vb", responseFileContents);
             Assert.Contains("src/Test.vb", responseFileContents);
+            // /dir/File.vb should NOT be transformed (contains second '/')
+            Assert.Contains("/dir/File.vb", responseFileContents);
+            Assert.DoesNotContain("/./dir/File.vb", responseFileContents);
         }
     }
 }

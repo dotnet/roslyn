@@ -913,7 +913,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             AddAdditionalFilesToCommandLine(commandLine);
 
             // Append the sources.
-            commandLine.AppendFileNamesIfNotNull(GetSourcesForCommandLine(Sources), " ");
+            // If transformation is needed (on Unix for paths that look like options),
+            // use the string[] overload. Otherwise use the ITaskItem[] overload to avoid allocation.
+            var transformedSources = GetTransformedSourcesForCommandLine(Sources);
+            if (transformedSources != null)
+            {
+                commandLine.AppendFileNamesIfNotNull(transformedSources, " ");
+            }
+            else
+            {
+                commandLine.AppendFileNamesIfNotNull(Sources, " ");
+            }
         }
 
         internal void AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(CommandLineBuilderExtension commandLine)
@@ -1091,82 +1101,55 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         /// <summary>
         /// Transforms source file paths to avoid misinterpretation as command-line switches.
-        /// On Unix, source files in the root directory (starting with '/') are transformed
-        /// to start with '/./' to prevent them from being interpreted as switches.
+        /// On Unix, source files that would be misinterpreted as options (e.g., those starting 
+        /// with '/' without another '/' after the first character) are transformed to start 
+        /// with '/./' to prevent them from being interpreted as switches.
+        /// This uses the same heuristic as the compiler's CommandLineParser.TryParseOption.
         /// </summary>
         /// <param name="sources">The source files to transform</param>
-        /// <returns>Transformed source files suitable for passing to the compiler command line</returns>
-        private ITaskItem[]? GetSourcesForCommandLine(ITaskItem[]? sources)
+        /// <returns>Array of source file paths as strings, or null if no transformation needed</returns>
+        private string[]? GetTransformedSourcesForCommandLine(ITaskItem[]? sources)
         {
             if (sources is null || sources.Length == 0)
-                return sources;
+                return null;
 
             // On Windows, no transformation is needed
             if (Path.DirectorySeparatorChar == '\\')
-                return sources;
+                return null;
 
-            // Check if any source file starts with '/' (Unix root directory)
-            bool needsTransformation = false;
-            foreach (var source in sources)
-            {
-                if (source.ItemSpec.StartsWith("/") && !source.ItemSpec.StartsWith("/./"))
-                {
-                    needsTransformation = true;
-                    break;
-                }
-            }
-
-            if (!needsTransformation)
-                return sources;
-
-            // Create a copy of the array with transformed paths
-            var transformedSources = new ITaskItem[sources.Length];
+            // Go over sources once and lazily initialize transformedSources if needed
+            string[]? transformedSources = null;
             for (int i = 0; i < sources.Length; i++)
             {
-                var source = sources[i];
-                if (source.ItemSpec.StartsWith("/") && !source.ItemSpec.StartsWith("/./"))
+                var itemSpec = sources[i].ItemSpec;
+                
+                // Check if this path needs transformation using the compiler's heuristic:
+                // A path starting with '/' is treated as an option unless it contains 
+                // another '/' after the first character (e.g., "/dir/file.cs" is safe)
+                if (itemSpec.Length > 1 && itemSpec[0] == '/' && itemSpec.IndexOf('/', 1) < 0)
                 {
-                    // Create a simple wrapper that returns the transformed path
-                    transformedSources[i] = new TransformedTaskItem(source, "/." + source.ItemSpec);
+                    // Lazy initialization: create the array on first transformation
+                    if (transformedSources == null)
+                    {
+                        transformedSources = new string[sources.Length];
+                        // Copy all items processed so far
+                        for (int j = 0; j < i; j++)
+                        {
+                            transformedSources[j] = sources[j].ItemSpec;
+                        }
+                    }
+                    
+                    // Transform this path to prevent misinterpretation as an option
+                    transformedSources[i] = "/." + itemSpec;
                 }
-                else
+                else if (transformedSources != null)
                 {
-                    transformedSources[i] = source;
+                    // If we've already started transforming, copy this item as-is
+                    transformedSources[i] = itemSpec;
                 }
             }
 
             return transformedSources;
-        }
-
-        /// <summary>
-        /// A wrapper around ITaskItem that returns a transformed ItemSpec but delegates
-        /// all other operations to the underlying item.
-        /// </summary>
-        private class TransformedTaskItem : ITaskItem
-        {
-            private readonly ITaskItem _underlyingItem;
-            private readonly string _transformedItemSpec;
-
-            public TransformedTaskItem(ITaskItem underlyingItem, string transformedItemSpec)
-            {
-                _underlyingItem = underlyingItem;
-                _transformedItemSpec = transformedItemSpec;
-            }
-
-            public string ItemSpec
-            {
-                get => _transformedItemSpec;
-                set => throw new NotSupportedException();
-            }
-
-            public System.Collections.ICollection MetadataNames => _underlyingItem.MetadataNames;
-            public int MetadataCount => _underlyingItem.MetadataCount;
-
-            public string GetMetadata(string metadataName) => _underlyingItem.GetMetadata(metadataName);
-            public void SetMetadata(string metadataName, string metadataValue) => _underlyingItem.SetMetadata(metadataName, metadataValue);
-            public void RemoveMetadata(string metadataName) => _underlyingItem.RemoveMetadata(metadataName);
-            public void CopyMetadataTo(ITaskItem destinationItem) => _underlyingItem.CopyMetadataTo(destinationItem);
-            public System.Collections.IDictionary CloneCustomMetadata() => _underlyingItem.CloneCustomMetadata();
         }
 
         /// <summary>
