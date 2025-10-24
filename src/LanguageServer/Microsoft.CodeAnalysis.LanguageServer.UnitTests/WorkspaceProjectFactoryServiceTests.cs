@@ -62,7 +62,8 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
     [Fact]
     public async Task CreateProjectWithCapabilities()
     {
-        var loggerFactory = new LoggerFactory();
+        var capturingLogger = new CapturingLoggerProvider();
+        var loggerFactory = new LoggerFactory([capturingLogger]);
         var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
             loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
         using var _ = exportProvider;
@@ -80,34 +81,38 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
         var workspaceProjectFactoryService = await brokeredServiceFactory.GetServiceAsync();
         
         // Test with capabilities
+        var projectPath = MakeAbsolutePath("TestProject.csproj");
         using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
             new WorkspaceProjectCreationInfo(
                 LanguageNames.CSharp,
                 "DisplayName",
-                FilePath: MakeAbsolutePath("TestProject.csproj"),
+                FilePath: projectPath,
                 new Dictionary<string, string>(),
                 ProjectCapabilities: ImmutableArray.Create("CSharp", "Test", "Managed")),
             CancellationToken.None);
 
-        // Verify the project was created successfully
-        var project = workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single();
-        Assert.Equal("DisplayName", project.Name);
+        // Verify the log message includes capabilities
+        var logMessage = Assert.Single(capturingLogger.LogMessages, m => m.Contains(projectPath));
+        Assert.Contains("with capabilities: CSharp, Test, Managed", logMessage);
         
         // Dispose project so we can create another one
         workspaceProject.Dispose();
+        capturingLogger.LogMessages.Clear();
         
         // Test without capabilities (backward compatibility)
+        var projectPath2 = MakeAbsolutePath("TestProject2.csproj");
         using var workspaceProject2 = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
             new WorkspaceProjectCreationInfo(
                 LanguageNames.CSharp,
                 "DisplayName2",
-                FilePath: MakeAbsolutePath("TestProject2.csproj"),
+                FilePath: projectPath2,
                 new Dictionary<string, string>()),
             CancellationToken.None);
 
-        // Verify the second project was created successfully
-        var project2 = workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single();
-        Assert.Equal("DisplayName2", project2.Name);
+        // Verify the log message does NOT include capabilities
+        var logMessage2 = Assert.Single(capturingLogger.LogMessages, m => m.Contains(projectPath2));
+        Assert.DoesNotContain("with capabilities:", logMessage2);
+        Assert.Contains("loaded by C# Dev Kit", logMessage2);
     }
 
     private static string MakeAbsolutePath(string relativePath)
@@ -116,5 +121,44 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
             return Path.Combine("Z:\\", relativePath);
         else
             return Path.Combine("//", relativePath);
+    }
+
+    private sealed class CapturingLoggerProvider : ILoggerProvider
+    {
+        public List<string> LogMessages { get; } = new();
+
+        public ILogger CreateLogger(string categoryName)
+        {
+            return new CapturingLogger(this);
+        }
+
+        public void Dispose()
+        {
+        }
+
+        private sealed class CapturingLogger(CapturingLoggerProvider provider) : ILogger
+        {
+            public IDisposable BeginScope<TState>(TState state) where TState : notnull
+            {
+                return new NoOpDisposable();
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return true;
+            }
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            {
+                provider.LogMessages.Add(formatter(state, exception));
+            }
+
+            private sealed class NoOpDisposable : IDisposable
+            {
+                public void Dispose()
+                {
+                }
+            }
+        }
     }
 }
