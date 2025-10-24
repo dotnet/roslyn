@@ -200,12 +200,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return true;
                     }
 
-                    namespaceSymbol = namespaceSymbol.ContainingNamespace;
-                    if (namespaceSymbol is null)
+                    var next = namespaceSymbol.ContainingNamespace;
+                    if (next is null)
                     {
                         return false;
                     }
 
+                    namespaceSymbol = next;
                     inImmediatelyContainingSymbol = false;
                 }
             }

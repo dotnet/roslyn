@@ -1746,7 +1746,7 @@ namespace Microsoft.CodeAnalysis
                             // a containing assembly, we treat them as in the current assembly for access purposes
                             return assemblyIsInReferences(s.ContainingAssembly ?? this.Assembly);
                         default:
-                            return s.ContainingAssembly is { } containingAssembly && assemblyIsInReferences(containingAssembly);
+                            return assemblyIsInReferences(s.ContainingAssembly!);
                     }
                 }
             }

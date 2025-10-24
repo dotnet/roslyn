@@ -733,8 +733,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // If a method has been added or updated then all synthesized members it produced are stored on the baseline.
                 // This includes all lambdas regardless of whether they were mapped to previous generation or not.
                 if (!addedOrChangedMethod.LambdaDebugInfo.IsDefaultOrEmpty &&
-                    oldMethod.ContainingType is { } oldMethodContainingType &&
-                    Baseline.SynthesizedMembers.TryGetValue(oldMethodContainingType, out var synthesizedSiblingSymbols))
+                    Baseline.SynthesizedMembers.TryGetValue(oldMethod.ContainingType!, out var synthesizedSiblingSymbols))
                 {
                     return getDeletedLambdas(
                         CreateLambdaAndClosureMap(synthesizedSiblingSymbols, Baseline.SynthesizedMembers, addedOrChangedMethod.MethodId),
