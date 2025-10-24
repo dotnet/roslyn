@@ -2456,7 +2456,6 @@ public sealed class InheritanceMarginTests
 
         return VerifyInDifferentProjectsAsync(
             ("""
-
                     using MyNamespace;
                     namespace CSharpNs
                     {
@@ -2476,7 +2475,6 @@ public sealed class InheritanceMarginTests
                     }
             """, LanguageNames.CSharp),
             ("""
-
                     Namespace MyNamespace
                         Public Interface ISymbol
                         End Interface
