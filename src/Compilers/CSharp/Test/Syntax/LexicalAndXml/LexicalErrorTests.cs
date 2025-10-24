@@ -442,27 +442,29 @@ public class C
         {
             // Duplicate modifiers for local declarations and local functions should not produce
             // parsing errors. They will be reported during binding.
-            var localDeclaration = @"
-class C
-{
-    void M()
-    {
-        const const int a = 0;
-    }
-}";
+            var localDeclaration = """
+                class C
+                {
+                    void M()
+                    {
+                        const const int a = 0;
+                    }
+                }
+                """;
             ParserErrorMessageTests.ParseAndValidate(localDeclaration);
 
-            var localFunction = @"
-class C
-{
-    void M()
-    {
-        static static void F() {}
-    }
-}";
+            var localFunction = """
+                class C
+                {
+                    void M()
+                    {
+                        static static void F() {}
+                    }
+                }
+                """;
             ParserErrorMessageTests.ParseAndValidate(localFunction);
 
-            var typeDeclaration = @"public public class C {}";
+            var typeDeclaration = """public public class C {}""";
             ParserErrorMessageTests.ParseAndValidate(typeDeclaration);
         }
 
