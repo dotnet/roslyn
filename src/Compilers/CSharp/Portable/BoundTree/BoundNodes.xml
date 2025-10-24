@@ -1921,7 +1921,7 @@
     <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
 
-  <AbstractNode Name="BoundCollectionExpressionBase" Base="BoundExpression">
+  <AbstractNode Name="BoundCollectionExpressionBase" Base="BoundExpression" HasValidate="true">
     <!-- Collection expression elements. -->
     <Field Name="Elements" Type="ImmutableArray&lt;BoundNode&gt;"/>
   </AbstractNode>
