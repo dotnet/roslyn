@@ -91,8 +91,9 @@ internal sealed partial class SplitStringLiteralCommandHandler(
         // from splitting at earlier caret positions.
         // 
         // However, we need to track the new caret positions in the original forward order
-        // for setting the multi-selection at the end.
-        var caretPositions = new int[spans.Count];
+        // for setting the multi-selection at the end. We use tracking points to automatically
+        // adjust positions as the buffer changes.
+        var trackingPoints = new ITrackingPoint[spans.Count];
 
         var currentIndex = spans.Count - 1;
         foreach (var span in spans.Reverse())
@@ -112,20 +113,22 @@ internal sealed partial class SplitStringLiteralCommandHandler(
             var newSnapshot = subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
             parsedDocument = newDocument;
 
-            // Store the new caret position for this split.
-            caretPositions[currentIndex] = newPosition;
+            // Create a tracking point for the new caret position.
+            // Use Negative tracking mode so the caret stays before any text inserted at this position.
+            trackingPoints[currentIndex] = newSnapshot.CreateTrackingPoint(newPosition, PointTrackingMode.Negative);
 
             transaction?.Complete();
             currentIndex--;
         }
 
         // Now set all the caret positions using the multi-selection broker.
-        // Map all positions to the final snapshot and set them as a multi-selection.
+        // Get the position of each tracking point in the final snapshot.
         var finalSnapshot = subjectBuffer.CurrentSnapshot;
         using var pooledSpans = TemporaryArray<SnapshotSpan>.Empty;
         
-        foreach (var position in caretPositions)
+        foreach (var trackingPoint in trackingPoints)
         {
+            var position = trackingPoint.GetPosition(finalSnapshot);
             var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
                 new SnapshotPoint(finalSnapshot, position),
                 PointTrackingMode.Negative,
