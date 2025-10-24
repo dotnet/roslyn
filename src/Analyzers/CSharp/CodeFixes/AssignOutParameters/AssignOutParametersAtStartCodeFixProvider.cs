@@ -44,12 +44,7 @@ internal sealed class AssignOutParametersAtStartCodeFixProvider() : AbstractAssi
             return;
         }
 
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                CSharpCodeFixesResources.Assign_out_parameters_at_start,
-                GetDocumentUpdater(context),
-                nameof(CSharpCodeFixesResources.Assign_out_parameters_at_start)),
-            context.Diagnostics);
+        RegisterCodeFix(context, CSharpCodeFixesResources.Assign_out_parameters_at_start, nameof(CSharpCodeFixesResources.Assign_out_parameters_at_start));
     }
 
     protected override void AssignOutParameters(

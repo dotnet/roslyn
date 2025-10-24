@@ -13942,5 +13942,437 @@ unsafe class C
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ExplicitImplementation_01()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    void Method();
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    unsafe void ITest<void*[]>.Method()
+    {
+
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ExplicitImplementation_02()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    int P1 {get;}
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    unsafe int ITest<void*[]>.P1
+    {
+        get;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_03()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    int this[int i] {get;}
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    unsafe int ITest<void*[]>.this[int i]
+    {
+        get => 0;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_04()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    event System.Action E1;
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    unsafe event System.Action ITest<void*[]>.E1
+    {
+        add{}
+        remove{}    
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ExplicitImplementation_05()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    abstract static ITest<T> operator-(ITest<T> x);
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    static unsafe ITest<void*[]> ITest<void*[]>.operator-(ITest<void*[]> x)
+    {
+        return null;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ExplicitImplementation_06()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    abstract static implicit operator int(ITest<T> x);
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    static unsafe implicit ITest<void*[]>.operator int(ITest<void*[]> x)
+    {
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(
+                // (4,39): error CS0552: 'ITest<T>.implicit operator int(ITest<T>)': user-defined conversions to or from an interface are not allowed
+                //     abstract static implicit operator int(ITest<T> x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("ITest<T>.implicit operator int(ITest<T>)").WithLocation(4, 39)
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_07()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    void Method();
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    void ITest<void*[]>.Method()
+    {
+
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (14,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void ITest<void*[]>.Method()
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 16)
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_08()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    int P1 {get;}
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    int ITest<void*[]>.P1
+    {
+        get;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (14,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     int ITest<void*[]>.P1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 15)
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_09()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    int this[int i] {get;}
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    int ITest<void*[]>.this[int i]
+    {
+        get => 0;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (14,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     int ITest<void*[]>.this[int i]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 15)
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_10()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    event System.Action E1;
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    event System.Action ITest<void*[]>.E1
+    {
+        add{}
+        remove{}    
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (14,31): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     event System.Action ITest<void*[]>.E1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 31)
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_11()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    abstract static ITest<T> operator-(ITest<T> x);
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    static ITest<void*[]> ITest<void*[]>.operator-(ITest<void*[]> x)
+    {
+        return null;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(
+                // (14,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static ITest<void*[]> ITest<void*[]>.operator-(ITest<void*[]> x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 18),
+                // (14,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static ITest<void*[]> ITest<void*[]>.operator-(ITest<void*[]> x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 33),
+                // (14,58): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static ITest<void*[]> ITest<void*[]>.operator-(ITest<void*[]> x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 58)
+                );
+        }
+
+        [Fact]
+        public void ExplicitImplementation_12()
+        {
+            var csharp = @"
+interface ITest<T>
+{
+    abstract static implicit operator int(ITest<T> x);
+}
+
+unsafe interface IPointerTest : ITest<void*[]>
+{
+
+}
+
+class PointerImpl : IPointerTest
+{
+    static implicit ITest<void*[]>.operator int(ITest<void*[]> x)
+    {
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(
+                // (4,39): error CS0552: 'ITest<T>.implicit operator int(ITest<T>)': user-defined conversions to or from an interface are not allowed
+                //     abstract static implicit operator int(ITest<T> x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("ITest<T>.implicit operator int(ITest<T>)").WithLocation(4, 39),
+                // (14,27): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static implicit ITest<void*[]>.operator int(ITest<void*[]> x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 27),
+                // (14,55): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static implicit ITest<void*[]>.operator int(ITest<void*[]> x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 55)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Field_RequiresUnsafeContext()
+        {
+            var code = """
+                class C<T>
+                {
+                    C<int*[]> field;
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     C<int*[]> field;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 7),
+                // (3,15): warning CS0169: The field 'C<T>.field' is never used
+                //     C<int*[]> field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(3, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Field_UnsafeModifierRemovesUnsafeNeededError()
+        {
+            var code = """
+                unsafe class C<T>
+                {
+                    C<int*[]> field;
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,15): warning CS0169: The field 'C<T>.field' is never used
+                //     C<int*[]> field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(3, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Variable_RequiresUnsafeContext()
+        {
+            var code = """
+                class C<T>
+                {
+                    void M()
+                    {
+                        C<int*[]> c = null;
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         C<int*[]> c = null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 11),
+                // (5,19): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         C<int*[]> c = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(5, 19));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Variable_UnsafeModifierRemovesUnsafeNeededError()
+        {
+            var code = """
+                unsafe class C<T>
+                {
+                    void M()
+                    {
+                        C<int*[]> c = null;
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,19): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         C<int*[]> c = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(5, 19));
+        }
     }
 }

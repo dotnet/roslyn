@@ -280,11 +280,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isMissingMetadataType As Boolean = TypeOf symbol Is MissingMetadataTypeSymbol
 
             If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes) Then
-                ' Only the compiler can set the internal option and the compiler doesn't use other implementations of INamedTypeSymbol.
-                If DirectCast(symbol, NamedTypeSymbol).MangleName Then
-                    Debug.Assert(symbol.Arity > 0)
-                    Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, Nothing,
-                                           MetadataHelpers.GenericTypeNameManglingChar & symbol.Arity.ToString(), False))
+                If symbol.Arity > 0 Then
+                    Dim suffix As String = MetadataHelpers.GetAritySuffix(symbol.Arity)
+                    Dim vbNamedType = TryCast(symbol, NamedTypeSymbol)
+
+                    If If(vbNamedType IsNot Nothing, vbNamedType.MangleName, symbol.MetadataName.Equals(symbol.Name + suffix)) Then
+                        Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, Nothing,
+                                           suffix, False))
+                    End If
                 End If
             ElseIf symbol.Arity > 0 AndAlso Format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters) AndAlso Not skipTypeArguments Then
                 If isMissingMetadataType OrElse symbol.IsUnboundGenericType Then

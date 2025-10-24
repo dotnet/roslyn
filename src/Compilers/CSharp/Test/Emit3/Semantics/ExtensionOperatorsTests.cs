@@ -3194,9 +3194,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (23,14): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator -(C1 x)'.
+                // (23,14): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator -(C1 x)'.
                 //         _ = -x;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 extension(C1).operator -(C1 x)").WithLocation(23, 14)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 Extensions1.extension(C1).operator -(C1 x)").WithLocation(23, 14)
                 );
         }
 
@@ -3542,9 +3542,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (20,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool extension(C1).operator true(C1 x)'.
+                // (20,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool Extensions1.extension(C1).operator true(C1 x)'.
                 //         if (x)
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "bool extension(C1).operator true(C1 x)").WithLocation(20, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "bool Extensions1.extension(C1).operator true(C1 x)").WithLocation(20, 13)
                 );
         }
 
@@ -8904,9 +8904,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (23,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator --(C1 x)'.
+                // (23,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator --(C1 x)'.
                 //         _ = --x;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 extension(C1).operator --(C1 x)").WithLocation(23, 15)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 Extensions1.extension(C1).operator --(C1 x)").WithLocation(23, 15)
                 );
         }
 
@@ -9364,9 +9364,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1)'.
+                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'Extensions1.extension(C1)'.
                 //         var x1 = --x;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "extension(C1)").WithLocation(27, 20),
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "Extensions1.extension(C1)").WithLocation(27, 20),
                 // (38,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(38, 9),
@@ -9566,9 +9566,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1Base)'.
+                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'Extensions1.extension(C1Base)'.
                 //         var x1 = --x;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "extension(C1Base)").WithLocation(27, 20),
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "Extensions1.extension(C1Base)").WithLocation(27, 20),
                 // (38,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(38, 9),
@@ -9610,9 +9610,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (19,20): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'extension(C2Base<string>)' due to differences in the nullability of reference types.
+                // (19,20): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'Extensions1.extension(C2Base<string>)' due to differences in the nullability of reference types.
                 //         var z1 = --z;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "extension(C2Base<string>)").WithLocation(19, 20)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "Extensions1.extension(C2Base<string>)").WithLocation(19, 20)
                 );
         }
 
@@ -17147,12 +17147,12 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator -(C1 x, C1 y)'.
                 //         _ = x1 - y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
-                // (26,17): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 Extensions1.extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
+                // (26,17): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 Extensions1.extension(C1).operator -(C1 x, C1 y)'.
                 //         y = y - x2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 17)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 Extensions1.extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 17)
                 );
         }
 
@@ -17708,15 +17708,15 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool extension(C1).operator false(C1 x)'.
+                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator &(C1 x, C1 y)'.
                 //         _ = x1 && y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool extension(C1).operator false(C1 x)").WithLocation(28, 13),
-                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator &(C1 x, C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 Extensions1.extension(C1).operator &(C1 x, C1 y)").WithLocation(28, 13),
+                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool Extensions1.extension(C1).operator false(C1 x)'.
                 //         _ = x1 && y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 extension(C1).operator &(C1 x, C1 y)").WithLocation(28, 13),
-                // (29,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 extension(C1).operator &(C1 x, C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool Extensions1.extension(C1).operator false(C1 x)").WithLocation(28, 13),
+                // (29,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 Extensions1.extension(C1).operator &(C1 x, C1 y)'.
                 //         y = y && x2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 extension(C1).operator &(C1 x, C1 y)").WithLocation(29, 18)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 Extensions1.extension(C1).operator &(C1 x, C1 y)").WithLocation(29, 18)
                 );
         }
 
@@ -25695,12 +25695,12 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator -(C1 x, C1 y)'.
                 //         _ = x1 -= y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
-                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 Extensions1.extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
+                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 Extensions1.extension(C1).operator -(C1 x, C1 y)'.
                 //         y = y -= x2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 18)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 Extensions1.extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 18)
                 );
         }
 
@@ -26053,12 +26053,12 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1)'.
+                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'Extensions1.extension(C1)'.
                 //         _ = x1 -= y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "extension(C1)").WithLocation(25, 13),
-                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'void extension(C1).operator -=(C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "Extensions1.extension(C1)").WithLocation(25, 13),
+                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'void Extensions1.extension(C1).operator -=(C1 y)'.
                 //         y = y -= x2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "void extension(C1).operator -=(C1 y)").WithLocation(26, 18)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "void Extensions1.extension(C1).operator -=(C1 y)").WithLocation(26, 18)
                 );
         }
 
@@ -26252,9 +26252,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,18): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1Base)'.
+                // (27,18): warning CS8604: Possible null reference argument for parameter 'x' in 'Extensions1.extension(C1Base)'.
                 //         var x1 = x -= 1;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "extension(C1Base)").WithLocation(27, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "Extensions1.extension(C1Base)").WithLocation(27, 18),
                 // (38,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(38, 9),
@@ -26296,9 +26296,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (19,18): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'extension(C2Base<string>)' due to differences in the nullability of reference types.
+                // (19,18): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'Extensions1.extension(C2Base<string>)' due to differences in the nullability of reference types.
                 //         var z1 = z -= 1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "extension(C2Base<string>)").WithLocation(19, 18)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "Extensions1.extension(C2Base<string>)").WithLocation(19, 18)
                 );
         }
 

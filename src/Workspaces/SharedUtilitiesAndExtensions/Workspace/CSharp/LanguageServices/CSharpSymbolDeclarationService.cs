@@ -11,14 +11,10 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [ExportLanguageService(typeof(ISymbolDeclarationService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpSymbolDeclarationService : ISymbolDeclarationService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSymbolDeclarationService() : ISymbolDeclarationService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpSymbolDeclarationService()
-    {
-    }
-
     public ImmutableArray<SyntaxReference> GetDeclarations(ISymbol symbol)
         => symbol != null
             ? symbol.DeclaringSyntaxReferences

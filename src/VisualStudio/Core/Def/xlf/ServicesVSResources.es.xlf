@@ -482,6 +482,16 @@
         <target state="translated">Generar archivo .editorconfig a partir de la configuración</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_only_summary_tag">
+        <source>Generate only &lt;summary&gt; tag</source>
+        <target state="new">Generate only &lt;summary&gt; tag</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_summary_on_single_line">
+        <source>Generate &lt;summary&gt; on single line</source>
+        <target state="new">Generate &lt;summary&gt; on single line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generator_running">
         <source>Generator running...</source>
         <target state="translated">Generador en ejecución...</target>

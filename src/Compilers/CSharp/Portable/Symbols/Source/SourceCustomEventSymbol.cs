@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExplicitInterfaceImplementation = interfaceSpecifier != null;
 
             string? aliasQualifierOpt;
-            _name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, interfaceSpecifier, nameToken.ValueText, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
+            _name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, syntax.Modifiers, interfaceSpecifier, nameToken.ValueText, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
 
             _type = BindEventType(binder, syntax.Type, diagnostics);
 

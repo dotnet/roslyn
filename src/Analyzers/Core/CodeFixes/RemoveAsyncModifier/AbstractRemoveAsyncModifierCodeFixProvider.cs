@@ -7,14 +7,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveAsyncModifier;
 
@@ -37,27 +35,18 @@ internal abstract class AbstractRemoveAsyncModifierCodeFixProvider<TReturnStatem
         var token = diagnostic.Location.FindToken(cancellationToken);
         var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
         if (node == null)
-        {
             return;
-        }
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var methodSymbol = GetMethodSymbol(node, semanticModel, cancellationToken);
 
         if (methodSymbol == null)
-        {
             return;
-        }
 
-        if (ShouldOfferFix(methodSymbol.ReturnType, knownTypes))
-        {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    CodeFixesResources.Remove_async_modifier,
-                    GetDocumentUpdater(context),
-                    nameof(CodeFixesResources.Remove_async_modifier)),
-                context.Diagnostics);
-        }
+        if (!ShouldOfferFix(methodSymbol.ReturnType, knownTypes))
+            return;
+
+        RegisterCodeFix(context, CodeFixesResources.Remove_async_modifier, nameof(CodeFixesResources.Remove_async_modifier));
     }
 
     protected sealed override async Task FixAllAsync(

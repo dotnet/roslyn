@@ -27,8 +27,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
         public IMethodSymbol? DelegatedConstructor { get; private set; }
         [NotNull]
         public INamedTypeSymbol? ContainingType { get; private set; }
-        public ImmutableArray<ISymbol> SelectedMembers { get; private set; }
-        public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
+        public ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrProperty)> Parameters { get; private set; }
         public bool IsContainedInUnsafeType { get; private set; }
 
         public Accessibility Accessibility { get; private set; }
@@ -62,8 +61,6 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             if (mappedMembers.Any(m => m is null))
                 return false;
 
-            SelectedMembers = mappedMembers!;
-
             ContainingType = containingType;
             Accessibility = desiredAccessibility ?? (ContainingType.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public);
             TextSpan = textSpan;
@@ -73,7 +70,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(containingType);
 
             var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
-            Parameters = DetermineParameters(SelectedMembers, rules);
+            Parameters = DetermineParameters(mappedMembers!, rules);
             MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
             // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor, so
             // parameters should be compared based on types since we don't want get a type mismatch error after the
@@ -98,7 +95,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
 
         private static IMethodSymbol? GetDelegatedConstructorBasedOnParameterTypes(
             INamedTypeSymbol containingType,
-            ImmutableArray<IParameterSymbol> parameters)
+            ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrProperty)> parameters)
         {
             var q =
                 from c in containingType.InstanceConstructors
@@ -106,17 +103,17 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
                 where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Length
                 where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(static p => p.IsParams)
                 let constructorTypes = c.Parameters.Select(p => p.Type)
-                let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.Type)
+                let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.parameter.Type)
                 where constructorTypes.SequenceEqual(symbolTypes, SymbolEqualityComparer.Default)
                 select c;
 
             return q.FirstOrDefault();
         }
 
-        private static IMethodSymbol? GetMatchingConstructorBasedOnParameterTypes(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
+        private static IMethodSymbol? GetMatchingConstructorBasedOnParameterTypes(INamedTypeSymbol containingType, ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrProperty)> parameters)
             => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructorBasedOnParameterTypes(c, parameters));
 
-        private static bool MatchesConstructorBasedOnParameterTypes(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
-            => parameters.Select(p => p.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
+        private static bool MatchesConstructorBasedOnParameterTypes(IMethodSymbol constructor, ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrProperty)> parameters)
+            => parameters.Select(p => p.parameter.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
     }
 }

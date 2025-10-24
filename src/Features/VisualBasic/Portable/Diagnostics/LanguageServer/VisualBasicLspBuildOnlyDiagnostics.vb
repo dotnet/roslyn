@@ -14,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServer
         "BC31091", ' ERRID.ERR_TypeRefResolutionError3,
         "BC35000", ' ERRID.ERR_MissingRuntimeHelper,
         "BC36597", ' ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
-        "BC37327"  ' ERRID.ERR_SymbolDefinedInAssembly
+        "BC37327", ' ERRID.ERR_SymbolDefinedInAssembly
+        "BC36934"  ' ERRID.ERR_AsyncSubMain
     )>
     <[Shared]>
     Friend NotInheritable Class VisualBasicLspBuildOnlyDiagnostics

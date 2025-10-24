@@ -2197,5 +2197,90 @@ class Test
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80254")]
+        public void CompoundAssignment_Property()
+        {
+            var source = """
+                var c = new C();
+                c.P += "a" + c.P;
+                System.Console.WriteLine(c.P);
+
+                class C
+                {
+                    public string P { get; set; } = "x";
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "xax").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80254")]
+        public void CompoundAssignment_RefReturningProperty()
+        {
+            var source = """
+                var c = new C();
+                c.P += "a" + c.P;
+                System.Console.WriteLine(c.P);
+
+                class C
+                {
+                    private string p = "x";
+                    public ref string P => ref p;
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "xax").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80254")]
+        public void CompoundAssignment_ExtensionProperty()
+        {
+            var source = """
+                var c = new C();
+                c.P += "a" + c.P;
+                System.Console.WriteLine(c.P);
+
+                class C
+                {
+                }
+
+                static class Ext
+                {
+                    private static string p = "x";
+                    extension(C c)
+                    {
+                        public string P
+                        {
+                            get => p;
+                            set => p = value;
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "xax").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80254")]
+        public void CompoundAssignment_ExtensionRefReturningProperty()
+        {
+            var source = """
+                var c = new C();
+                c.P += "a" + c.P;
+                System.Console.WriteLine(c.P);
+
+                class C
+                {
+                }
+
+                static class Ext
+                {
+                    private static string p = "x";
+                    extension(C c)
+                    {
+                        public ref string P => ref p;
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "xax").VerifyDiagnostics();
+        }
     }
 }

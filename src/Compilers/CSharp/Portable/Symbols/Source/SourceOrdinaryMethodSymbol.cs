@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var nameToken = syntax.Identifier;
 
             TypeSymbol explicitInterfaceType;
-            var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+            var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, syntax.Modifiers, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
             var location = new SourceLocation(nameToken);
 
             var methodKind = interfaceSpecifier == null
@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     hasAnyBody: syntax.HasAnyBody(), isExpressionBodied: syntax.IsExpressionBodied(),
                                     isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
                                                        !firstParam.IsArgList &&
-                                                       firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
+                                                       firstParam.Modifiers.Any(SyntaxKind.ThisKeyword) &&
+                                                       !containingType.IsExtension,
                                     isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                     isVararg: syntax.IsVarArg(),
                                     isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation,
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, syntax.ParameterList, out _,
                 allowRefOrOut: true,
-                allowThis: true,
+                allowThis: !this.GetIsNewExtensionMember(),
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 

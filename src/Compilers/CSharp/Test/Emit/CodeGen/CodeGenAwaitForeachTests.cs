@@ -9929,11 +9929,7 @@ public class C
     }
 }";
             CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics(
-                    // (9,33): error CS0186: Use of null is not valid in this context
-                    //         await foreach (var i in (IAsyncEnumerable<int>)null)
-                    Diagnostic(ErrorCode.ERR_NullNotValid, "(IAsyncEnumerable<int>)null").WithLocation(9, 33)
-                    );
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -9956,11 +9952,7 @@ public class C
     public IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
 }";
             CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics(
-                    // (9,33): error CS0186: Use of null is not valid in this context
-                    //         await foreach (var i in (C)null)
-                    Diagnostic(ErrorCode.ERR_NullNotValid, "(C)null").WithLocation(9, 33)
-                    );
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]

@@ -50,5 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 ByRef changesSemantics As Boolean) As Boolean
             Throw ExceptionUtilities.Unreachable()
         End Function
+
+        Protected Overrides Function IsValidContainingStatement(node As StatementSyntax) As Boolean
+            Return True
+        End Function
     End Class
 End Namespace
