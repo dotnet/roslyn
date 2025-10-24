@@ -468,6 +468,51 @@ public class C
             ParserErrorMessageTests.ParseAndValidate(typeDeclaration);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateModifiers_StillFailDuringBinding()
+        {
+            // Verify that duplicate modifiers still produce errors during binding/compilation
+            var localDeclaration = """
+                class C
+                {
+                    void M()
+                    {
+                        const const int a = 0;
+                    }
+                }
+                """;
+            CreateCompilation(localDeclaration).VerifyDiagnostics(
+                // (5,15): error CS1004: Duplicate 'const' modifier
+                //         const const int a = 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "const").WithArguments("const").WithLocation(5, 15),
+                // (5,25): warning CS0219: The variable 'a' is assigned but its value is never used
+                //         const const int a = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(5, 25));
+
+            var localFunction = """
+                class C
+                {
+                    void M()
+                    {
+                        static static void F() {}
+                    }
+                }
+                """;
+            CreateCompilation(localFunction).VerifyDiagnostics(
+                // (5,16): error CS1004: Duplicate 'static' modifier
+                //         static static void F() {}
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,28): warning CS8321: The local function 'F' is declared but never used
+                //         static static void F() {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 28));
+
+            var typeDeclaration = """public public class C {}""";
+            CreateCompilation(typeDeclaration).VerifyDiagnostics(
+                // (1,8): error CS1004: Duplicate 'public' modifier
+                // public public class C {}
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(1, 8));
+        }
+
         [WorkItem(553293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553293")]
         [Fact]
         public void CS1021ERR_IntOverflow()
