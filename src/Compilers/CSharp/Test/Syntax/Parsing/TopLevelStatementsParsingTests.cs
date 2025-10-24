@@ -3598,8 +3598,7 @@ partial ext X
             EOF();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
         public void DelegateWithTupleReturnType_TopLevel()
         {
             var test = """
@@ -3748,8 +3747,7 @@ partial ext X
             EOF();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
         public void AnonymousDelegateAtTopLevel()
         {
             var test = """
@@ -3867,8 +3865,7 @@ partial ext X
             EOF();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
         public void AnonymousDelegateWithRefParameter_TopLevel()
         {
             var test = """
