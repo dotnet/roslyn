@@ -290,11 +290,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // When both results are WrongArity, prefer the generic type over the non-generic one
                 // if the user supplied type arguments
-                if (PreferGenericOverNonGeneric(this.SingleSymbolOrDefault, result.Symbol))
+                if (preferGenericOverNonGeneric(this.SingleSymbolOrDefault, result.Symbol))
                 {
                     this.SetFrom(result);
                 }
-                else if (!PreferGenericOverNonGeneric(result.Symbol, this.SingleSymbolOrDefault))
+                else if (!preferGenericOverNonGeneric(result.Symbol, this.SingleSymbolOrDefault))
                 {
                     // Neither is preferred, add both symbols
                     if ((object)result.Symbol != null)
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _symbolList.Add(result.Symbol);
             }
 
-            static bool PreferGenericOverNonGeneric(Symbol currentSymbol, Symbol newSymbol)
+            static bool preferGenericOverNonGeneric(Symbol currentSymbol, Symbol newSymbol)
                 => currentSymbol is NamedTypeSymbol { Arity: 0 } && newSymbol is NamedTypeSymbol { Arity: > 0 };
         }
 
