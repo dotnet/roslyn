@@ -292,8 +292,7 @@ internal sealed class OnAutoInsertHandler(
         var sourceTextWithoutQuote = sourceText.WithChanges(new TextChange(new TextSpan(positionOfQuote, 1), string.Empty));
         var documentWithoutQuote = document.WithText(sourceTextWithoutQuote);
 
-        var root = await documentWithoutQuote.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var textChange = service.GetTextChangeForQuote(root, sourceTextWithoutQuote, positionOfQuote);
+        var textChange = service.GetTextChangeForQuote(documentWithoutQuote, sourceTextWithoutQuote, positionOfQuote, cancellationToken);
         if (textChange == null)
             return null;
 

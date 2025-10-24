@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.RawStringLiteral;
@@ -17,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RawStringLiteral;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpRawStringLiteralOnAutoInsertService() : IRawStringLiteralAutoInsertService
 {
-    public TextChange? GetTextChangeForQuote(SyntaxNode root, SourceText text, int caretPosition)
+    public TextChange? GetTextChangeForQuote(Document document, SourceText text, int caretPosition, CancellationToken cancellationToken)
     {
         return
-            TryGenerateInitialEmptyRawString(text, root, caretPosition) ??
-            TryGrowInitialEmptyRawString(text, root, caretPosition) ??
-            TryGrowRawStringDelimiters(text, root, caretPosition);
+            TryGenerateInitialEmptyRawString(text, document, caretPosition, cancellationToken) ??
+            TryGrowInitialEmptyRawString(text, document, caretPosition, cancellationToken) ??
+            TryGrowRawStringDelimiters(text, document, caretPosition, cancellationToken);
     }
 
     /// <summary>
@@ -31,8 +32,9 @@ internal sealed class CSharpRawStringLiteralOnAutoInsertService() : IRawStringLi
     /// </summary>
     private static TextChange? TryGenerateInitialEmptyRawString(
         SourceText text,
-        SyntaxNode root,
-        int position)
+        Document document,
+        int position,
+        CancellationToken cancellationToken)
     {
         // if we have ""$$"   then typing `"` here should not be handled by this path but by TryGrowInitialEmptyRawString
         if (position + 1 < text.Length && text[position + 1] == '"')
@@ -53,6 +55,7 @@ internal sealed class CSharpRawStringLiteralOnAutoInsertService() : IRawStringLi
         if (start - 1 >= 0 && text[start - 1] == '@')
             return null;
 
+        var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
         var token = root.FindToken(start);
         if (token.SpanStart != start)
             return null;
@@ -76,8 +79,9 @@ internal sealed class CSharpRawStringLiteralOnAutoInsertService() : IRawStringLi
     /// </summary>
     private static TextChange? TryGrowInitialEmptyRawString(
         SourceText text,
-        SyntaxNode root,
-        int position)
+        Document document,
+        int position,
+        CancellationToken cancellationToken)
     {
         var start = position;
         while (start - 1 >= 0 && text[start - 1] == '"')
@@ -103,6 +107,7 @@ internal sealed class CSharpRawStringLiteralOnAutoInsertService() : IRawStringLi
         while (start - 1 >= 0 && text[start - 1] == '$')
             start--;
 
+        var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
         var token = root.FindToken(start);
         if (token.SpanStart != start)
             return null;
@@ -125,8 +130,9 @@ internal sealed class CSharpRawStringLiteralOnAutoInsertService() : IRawStringLi
     /// </summary>
     private static TextChange? TryGrowRawStringDelimiters(
         SourceText text,
-        SyntaxNode root,
-        int position)
+        Document document,
+        int position,
+        CancellationToken cancellationToken)
     {
         // if we have """$$"   then typing `"` here should not grow the start/end quotes.  we only want to grow them
         // if the user is at the end of the start delimiter.
@@ -145,6 +151,7 @@ internal sealed class CSharpRawStringLiteralOnAutoInsertService() : IRawStringLi
         while (start - 1 >= 0 && text[start - 1] == '$')
             start--;
 
+        var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
         var token = root.FindToken(start);
         if (token.SpanStart != start)
             return null;

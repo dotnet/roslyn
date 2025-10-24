@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,9 +18,9 @@ internal interface IRawStringLiteralAutoInsertService : ILanguageService
     /// Gets the text change to apply when if a quote character is typed at the given position,
     /// or null if no special handling is needed.
     /// </summary>
-    /// <param name="root">The syntax root of the document without the typed quote inserted.</param>
+    /// <param name="document">The document where the quote is being typed.</param>
     /// <param name="text">The source text of the document without the typed quote inserted.</param>
     /// <param name="caretPosition">The position where the quote character would be typed.</param>
     /// <returns>A text change to apply *after* the quote has been typed</returns>
-    TextChange? GetTextChangeForQuote(SyntaxNode root, SourceText text, int caretPosition);
+    TextChange? GetTextChangeForQuote(Document document, SourceText text, int caretPosition, CancellationToken cancellationToken);
 }
