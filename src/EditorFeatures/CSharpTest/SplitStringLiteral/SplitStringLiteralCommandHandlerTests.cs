@@ -27,10 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral;
 public sealed class SplitStringLiteralCommandHandlerTests
 {
     /// <summary>
-    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
-    /// Most tests will continue to verifyUndo, but select tests will skip it due to
-    /// this known test infrastructure issure. This bug does not represent a product
-    /// failure.
+    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033 Most tests will continue to
+    /// verifyUndo, but select tests will skip it due to this known test infrastructure issue. This bug does not
+    /// represent a product failure.
     /// </summary>
     private static void TestWorker(
         string inputMarkup,
@@ -113,10 +112,9 @@ public sealed class SplitStringLiteralCommandHandlerTests
     }
 
     /// <summary>
-    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
-    /// Most tests will continue to verifyUndo, but select tests will skip it due to
-    /// this known test infrastructure issure. This bug does not represent a product
-    /// failure.
+    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033 Most tests will continue to
+    /// verifyUndo, but select tests will skip it due to this known test infrastructure issue. This bug does not
+    /// represent a product failure.
     /// </summary>
     private static void TestHandled(
         string inputMarkup,
@@ -1075,15 +1073,13 @@ endOfLine: "\n");
         var workspaceXml = """
             <Workspace>
                 <Project Language="C#">
-                    <Document>
-            class C
+                    <Document>class C
             {
                 void M()
                 {
                     var v = "now is [||]the ti[||]me";
                 }
-            }
-                    </Document>
+            }</Document>
                 </Project>
             </Workspace>
             """;
@@ -1129,7 +1125,7 @@ endOfLine: "\n");
         Assert.Equal(expectedSpans.Length, selections.Count);
 
         // Verify each selection position matches the expected position
-        for (int i = 0; i < expectedSpans.Length; i++)
+        for (var i = 0; i < expectedSpans.Length; i++)
         {
             Assert.Equal(expectedSpans[i].Start, selections[i].Start.Position.Position);
             Assert.True(selections[i].IsEmpty); // All selections should be carets (zero-length)
