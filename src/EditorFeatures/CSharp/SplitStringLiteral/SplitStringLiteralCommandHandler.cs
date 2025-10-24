@@ -61,19 +61,21 @@ internal sealed partial class SplitStringLiteralCommandHandler(
         if (spans.IsEmpty() || !spans.All(s => s.IsEmpty))
             return false;
 
+        // Don't split strings if there are multiple carets.
+        // We don't properly support multi-caret scenarios.
+        if (spans.Count > 1)
+            return false;
+
         var caret = textView.GetCaretPoint(subjectBuffer);
         if (caret == null)
             return false;
 
-        // First, we need to verify that we are only working with string literals.
-        // Otherwise, let the editor handle all carets.
-        foreach (var span in spans)
-        {
-            var spanStart = span.Start;
-            var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(span.Start);
-            if (!LineContainsQuote(line, span.Start))
-                return false;
-        }
+        // Verify that we are working with a string literal.
+        // Otherwise, let the editor handle the caret.
+        var span = spans[0];
+        var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(span.Start);
+        if (!LineContainsQuote(line, span.Start))
+            return false;
 
         var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
@@ -82,43 +84,31 @@ internal sealed partial class SplitStringLiteralCommandHandler(
         var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
         var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: false);
 
-        // We now go through the verified string literals and split each of them.
-        // The list of spans is traversed in reverse order so we do not have to
-        // deal with updating later caret positions to account for the added space
-        // from splitting at earlier caret positions.
-        foreach (var span in spans.Reverse())
+        using var transaction = CaretPreservingEditTransaction.TryCreate(
+            CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+        var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, indentationOptions, cancellationToken);
+        if (splitter is null ||
+            !splitter.TrySplit(out var newRoot, out var newPosition))
         {
-            using var transaction = CaretPreservingEditTransaction.TryCreate(
-                CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
-
-            var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, indentationOptions, cancellationToken);
-            if (splitter is null ||
-                !splitter.TrySplit(out var newRoot, out var newPosition))
-            {
-                return false;
-            }
-
-            // apply the change:
-            var newDocument = parsedDocument.WithChangedRoot(newRoot, cancellationToken);
-            var newSnapshot = subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
-            parsedDocument = newDocument;
-
-            // The buffer edit may have adjusted to position of the current caret but we might need a different location.
-            // Only adjust caret if it is the only one (no multi-caret support: https://github.com/dotnet/roslyn/issues/64812).
-            if (spans.Count == 1)
-            {
-                var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                    new SnapshotPoint(newSnapshot, newPosition),
-                    PointTrackingMode.Negative,
-                    PositionAffinity.Predecessor,
-                    textView.TextBuffer);
-
-                if (newCaretPoint != null)
-                    textView.Caret.MoveTo(newCaretPoint.Value);
-            }
-
-            transaction?.Complete();
+            return false;
         }
+
+        // apply the change:
+        var newDocument = parsedDocument.WithChangedRoot(newRoot, cancellationToken);
+        var newSnapshot = subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
+
+        // Adjust the caret position.
+        var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+            new SnapshotPoint(newSnapshot, newPosition),
+            PointTrackingMode.Negative,
+            PositionAffinity.Predecessor,
+            textView.TextBuffer);
+
+        if (newCaretPoint != null)
+            textView.Caret.MoveTo(newCaretPoint.Value);
+
+        transaction?.Complete();
 
         return true;
 

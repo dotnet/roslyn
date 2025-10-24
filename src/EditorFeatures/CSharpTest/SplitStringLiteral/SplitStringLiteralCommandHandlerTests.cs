@@ -988,7 +988,7 @@ endOfLine: "\n");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
     public void TestMultiCaretSingleLine()
-        => TestHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -997,22 +997,11 @@ endOfLine: "\n");
                     var v = "now is [||]the ti[||]me";
                 }
             }
-            """,
-            """
-            class C
-            {
-                void M()
-                {
-                    var v = "now is " +
-                        "[||]the ti" +
-                        "[||]me";
-                }
-            }
             """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
     public void TestMultiCaretMultiLines()
-        => TestHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -1023,25 +1012,11 @@ endOfLine: "\n");
                     var v = "now is [||]the ti[||]me";
                 }
             }
-            """,
-            """
-            class C
-            {
-                string s = "hello w" +
-                    "[||]orld";
-
-                void M()
-                {
-                    var v = "now is " +
-                        "[||]the ti" +
-                        "[||]me";
-                }
-            }
             """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
     public void TestMultiCaretInterpolatedString()
-        => TestHandled(
+        => TestNotHandled(
             """
             class C
             {
@@ -1051,20 +1026,6 @@ endOfLine: "\n");
                 {
                     var location = "world";
                     var s = $"H[||]ello {location}!";
-                }
-            }
-            """,
-            """
-            class C
-            {
-                string s = "hello w" +
-                    "[||]orld";
-
-                void M()
-                {
-                    var location = "world";
-                    var s = $"H" +
-                        $"[||]ello {location}!";
                 }
             }
             """);
