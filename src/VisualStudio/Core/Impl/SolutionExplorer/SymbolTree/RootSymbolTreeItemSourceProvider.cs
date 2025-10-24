@@ -181,7 +181,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
         // Important: currentFilePath is mutable state captured *AND UPDATED* in the local function  
         // OnItemPropertyChanged below.  It allows us to know the file path of the item *prior* to
-        // it being changed *when* we hear the update about it having changed (since hte event doesn't
+        // it being changed *when* we hear the update about it having changed (since the event doesn't
         // contain the old value).  
         if (item.CanonicalName is not string currentFilePath)
             return null;
