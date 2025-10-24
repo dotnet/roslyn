@@ -41,6 +41,19 @@ internal static class RenameUtilities
         return token;
     }
 
+    /// <summary>
+    /// Determines if a type symbol is an unrenamable target for an alias.
+    /// Such types include arrays, tuples, pointers, and function pointers, which cannot be renamed
+    /// themselves but can be aliased with the "using alias = type" feature.
+    /// </summary>
+    private static bool IsUnrenamableAliasTarget(ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.TypeKind == TypeKind.Array ||
+               typeSymbol.IsTupleType ||
+               typeSymbol.TypeKind == TypeKind.Pointer ||
+               typeSymbol.TypeKind == TypeKind.FunctionPointer;
+    }
+
     internal static ImmutableArray<ISymbol> GetSymbolsTouchingPosition(
         int position, SemanticModel semanticModel, SolutionServices services, CancellationToken cancellationToken)
     {
@@ -55,7 +68,24 @@ internal static class RenameUtilities
         // by GetSymbols
         if (symbols.Length > 1)
         {
-            symbols = symbols.WhereAsArray(s => s.Kind != SymbolKind.Alias);
+            var aliasSymbol = symbols.FirstOrDefault(s => s.Kind == SymbolKind.Alias);
+            var nonAliasSymbols = symbols.WhereAsArray(s => s.Kind != SymbolKind.Alias);
+            
+            // For aliases to types that cannot be renamed (like tuples, arrays, pointers, function pointers),
+            // we should rename the alias itself, not the target type.
+            if (aliasSymbol != null && 
+                nonAliasSymbols.Length == 1 && 
+                nonAliasSymbols[0] is ITypeSymbol targetType &&
+                IsUnrenamableAliasTarget(targetType))
+            {
+                // Keep the alias symbol for renaming
+                symbols = [aliasSymbol];
+            }
+            else
+            {
+                // Original behavior: use the non-alias symbols
+                symbols = nonAliasSymbols;
+            }
         }
 
         if (symbols.Length == 0)
