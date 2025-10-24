@@ -4225,5 +4225,31 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (a) .
                 //         MyExpression x;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 22));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericTypeOnlyWithNoTypeArguments()
+        {
+            var text = """
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression x;
+                    }
+                }
+                """;
+
+            // When only a generic type exists and no type arguments are provided,
+            // an error is reported about the required type arguments
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,9): error CS0305: Using the generic type 'MyExpression<T>' requires 1 type arguments
+                //         MyExpression x;
+                Diagnostic(ErrorCode.ERR_BadArity, "MyExpression").WithArguments("MyExpression<T>", "type", "1").WithLocation(7, 9),
+                // (7,22): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 22));
+        }
     }
 }
