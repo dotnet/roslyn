@@ -3599,11 +3599,10 @@ partial ext X
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
         public void DelegateWithTupleReturnType_TopLevel()
         {
             var test = """
-                System.Console.WriteLine("Hello");
-                
                 delegate int F(int x);
                 delegate int G((int, int) x);
                 delegate System.ValueTuple<int, int> H();
@@ -3614,48 +3613,6 @@ partial ext X
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.SimpleMemberAccessExpression);
-                            {
-                                N(SyntaxKind.SimpleMemberAccessExpression);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "System");
-                                    }
-                                    N(SyntaxKind.DotToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Console");
-                                    }
-                                }
-                                N(SyntaxKind.DotToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "WriteLine");
-                                }
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.StringLiteralExpression);
-                                    {
-                                        N(SyntaxKind.StringLiteralToken, "\"Hello\"");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
                 N(SyntaxKind.DelegateDeclaration);
                 {
                     N(SyntaxKind.DelegateKeyword);
@@ -3785,6 +3742,125 @@ partial ext X
                         N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67311")]
+        public void AnonymousDelegateAtTopLevel()
+        {
+            var test = """
+                var f1 = delegate { return 42; };
+                var f2 = delegate (int x) { return x * 2; };
+                """;
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "f1");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.ReturnStatement);
+                                            {
+                                                N(SyntaxKind.ReturnKeyword);
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "42");
+                                                }
+                                                N(SyntaxKind.SemicolonToken);
+                                            }
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "f2");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Parameter);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.IdentifierToken, "x");
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.ReturnStatement);
+                                            {
+                                                N(SyntaxKind.ReturnKeyword);
+                                                N(SyntaxKind.MultiplyExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "x");
+                                                    }
+                                                    N(SyntaxKind.AsteriskToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                                    }
+                                                }
+                                                N(SyntaxKind.SemicolonToken);
+                                            }
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
