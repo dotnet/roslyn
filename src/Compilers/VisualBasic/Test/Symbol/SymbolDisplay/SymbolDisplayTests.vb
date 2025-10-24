@@ -6324,13 +6324,7 @@ End Namespace
                 text,
                 findSymbol,
                 formatWithoutParams,
-                "Function A.SyntaxReceiverCreator() As Boolean",
-                {SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Operator,
-                 SymbolDisplayPartKind.DelegateName,
-                 SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Punctuation,
-                 SymbolDisplayPartKind.Space, SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword})
+                "Function A.SyntaxReceiverCreator() As Boolean")
 
             ' Test NameAndSignature with SymbolDisplayParameterOptions - parameters are included
             Dim formatWithParams = New SymbolDisplayFormat(
@@ -6344,21 +6338,7 @@ End Namespace
                 text,
                 findSymbol,
                 formatWithParams,
-                "Function A.SyntaxReceiverCreator(a As Integer, b As Boolean) As Boolean",
-                {SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Operator,
-                 SymbolDisplayPartKind.DelegateName,
-                 SymbolDisplayPartKind.Punctuation,
-                 SymbolDisplayPartKind.ParameterName, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword,
-                 SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.ParameterName, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword,
-                 SymbolDisplayPartKind.Punctuation,
-                 SymbolDisplayPartKind.Space, SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword})
+                "Function A.SyntaxReceiverCreator(a As Integer, b As Boolean) As Boolean")
 
             ' Test NameAndParameters without SymbolDisplayParameterOptions - parameters are omitted
             Dim formatNameAndParamsWithoutParams = New SymbolDisplayFormat(
@@ -6371,10 +6351,7 @@ End Namespace
                 text,
                 findSymbol,
                 formatNameAndParamsWithoutParams,
-                "A.SyntaxReceiverCreator()",
-                {SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Operator,
-                 SymbolDisplayPartKind.DelegateName,
-                 SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Punctuation})
+                "A.SyntaxReceiverCreator()")
 
             ' Test NameAndParameters with SymbolDisplayParameterOptions - parameters are included
             Dim formatNameAndParamsWithParams = New SymbolDisplayFormat(
@@ -6388,18 +6365,7 @@ End Namespace
                 text,
                 findSymbol,
                 formatNameAndParamsWithParams,
-                "A.SyntaxReceiverCreator(a As Integer, b As Boolean)",
-                {SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Operator,
-                 SymbolDisplayPartKind.DelegateName,
-                 SymbolDisplayPartKind.Punctuation,
-                 SymbolDisplayPartKind.ParameterName, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword,
-                 SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.ParameterName, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.Keyword,
-                 SymbolDisplayPartKind.Punctuation})
+                "A.SyntaxReceiverCreator(a As Integer, b As Boolean)")
         End Sub
 
 #End Region

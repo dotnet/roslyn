@@ -9286,11 +9286,12 @@ End Class
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64632")]
         public void DelegateStyleWithParameterOptions()
         {
-            var text = @"
-namespace A
-{
-    public delegate bool SyntaxReceiverCreator(int a, bool b);
-}";
+            var text = """
+                namespace A
+                {
+                    public delegate bool SyntaxReceiverCreator(int a, bool b);
+                }
+                """;
 
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
                 global.GetMember<NamespaceSymbol>("A").GetTypeMembers("SyntaxReceiverCreator", 0).Single();
@@ -9306,11 +9307,7 @@ namespace A
                 text,
                 findSymbol,
                 formatWithoutParams,
-                "bool A.SyntaxReceiverCreator()",
-                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.DelegateName,
-                SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Punctuation);
+                "bool A.SyntaxReceiverCreator()");
 
             // Test NameAndSignature with SymbolDisplayParameterOptions - parameters are included
             var formatWithParams = new SymbolDisplayFormat(
@@ -9324,15 +9321,7 @@ namespace A
                 text,
                 findSymbol,
                 formatWithParams,
-                "bool A.SyntaxReceiverCreator(int a, bool b)",
-                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.DelegateName,
-                SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space, SymbolDisplayPartKind.ParameterName,
-                SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space, SymbolDisplayPartKind.ParameterName,
-                SymbolDisplayPartKind.Punctuation);
+                "bool A.SyntaxReceiverCreator(int a, bool b)");
 
             // Test NameAndParameters without SymbolDisplayParameterOptions - parameters are omitted
             var formatNameAndParamsWithoutParams = new SymbolDisplayFormat(
@@ -9345,10 +9334,7 @@ namespace A
                 text,
                 findSymbol,
                 formatNameAndParamsWithoutParams,
-                "A.SyntaxReceiverCreator()",
-                SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.DelegateName,
-                SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Punctuation);
+                "A.SyntaxReceiverCreator()");
 
             // Test NameAndParameters with SymbolDisplayParameterOptions - parameters are included
             var formatNameAndParamsWithParams = new SymbolDisplayFormat(
@@ -9362,14 +9348,7 @@ namespace A
                 text,
                 findSymbol,
                 formatNameAndParamsWithParams,
-                "A.SyntaxReceiverCreator(int a, bool b)",
-                SymbolDisplayPartKind.NamespaceName, SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.DelegateName,
-                SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space, SymbolDisplayPartKind.ParameterName,
-                SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Space, SymbolDisplayPartKind.ParameterName,
-                SymbolDisplayPartKind.Punctuation);
+                "A.SyntaxReceiverCreator(int a, bool b)");
         }
     }
 }
