@@ -2062,17 +2062,11 @@ class c
                 """;
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,15): error CS1031: Type expected
-                //         async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
                 // (6,15): error CS1004: Duplicate 'async' modifier
                 //         async async void F() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
 
-            UsingDeclaration(text, options: TestOptions.Regular9,
-                // (6,15): error CS1031: Type expected
-                //         async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15));
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -2139,23 +2133,11 @@ class c
                 """;
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,15): error CS1031: Type expected
-                //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
                 // (6,15): error CS1004: Duplicate 'async' modifier
                 //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
 
-            UsingDeclaration(text, options: TestOptions.Regular9,
-                // (6,15): error CS1031: Type expected
-                //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21));
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -2223,29 +2205,11 @@ class c
                 """;
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,15): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
                 // (6,15): error CS1004: Duplicate 'async' modifier
                 //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (6,27): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
 
-            UsingDeclaration(text, options: TestOptions.Regular9,
-                // (6,15): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (6,27): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27));
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -2314,35 +2278,11 @@ class c
                 """;
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,15): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
                 // (6,15): error CS1004: Duplicate 'async' modifier
                 //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (6,27): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27),
-                // (6,33): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 33));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
 
-            UsingDeclaration(text, options: TestOptions.Regular9,
-                // (6,15): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (6,27): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27),
-                // (6,33): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 33));
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
