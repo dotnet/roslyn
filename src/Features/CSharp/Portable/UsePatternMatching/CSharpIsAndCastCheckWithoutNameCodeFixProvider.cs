@@ -29,13 +29,7 @@ internal sealed partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider()
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                CSharpAnalyzersResources.Use_pattern_matching,
-                GetDocumentUpdater(context),
-                nameof(CSharpAnalyzersResources.Use_pattern_matching),
-                CodeActionPriority.Low),
-            context.Diagnostics);
+        RegisterCodeFix(context, CSharpAnalyzersResources.Use_pattern_matching, nameof(CSharpAnalyzersResources.Use_pattern_matching), CodeActionPriority.Low);
         return Task.CompletedTask;
     }
 

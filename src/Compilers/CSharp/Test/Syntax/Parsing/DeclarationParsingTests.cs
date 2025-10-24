@@ -11132,5 +11132,28 @@ I1(x);";
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23877")]
+        public void TestParseAttributeArgumentListWithInvalidString()
+        {
+            // Regression test for issue where ParseAttributeArgumentList would throw NullReferenceException
+            // when given an invalid string without parentheses
+            var result = SyntaxFactory.ParseAttributeArgumentList("somethingWithoutBrackets");
+
+            Assert.NotNull(result);
+            result.GetDiagnostics().Verify(
+                // (1,1): error CS1073: Unexpected token 'somethingWithoutBrackets'
+                // somethingWithoutBrackets
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("somethingWithoutBrackets").WithLocation(1, 1));
+
+            UsingNode(result);
+
+            M(SyntaxKind.AttributeArgumentList);
+            {
+                M(SyntaxKind.OpenParenToken);
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
     }
 }

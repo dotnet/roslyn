@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -47,6 +48,60 @@ public sealed class ProjectAppDirectiveCompletionProviderTests : AbstractAppDire
 
     internal override Type GetCompletionProviderType()
         => typeof(ProjectAppDirectiveCompletionProvider);
+
+    [Fact]
+    public async Task PathRecommendation_01()
+    {
+        using var tempRoot = new TempRoot();
+        var tempDirectory = tempRoot.CreateDirectory();
+        var nestedDirectory = tempDirectory.CreateDirectory("SubDirectory");
+        var scriptFilePath = Path.Combine(tempDirectory.Path, "App.cs");
+        var code = """
+            #:project $$
+            """;
+        var markup = $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
+                    <Document FilePath="{scriptFilePath}"><![CDATA[{code}]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await VerifyItemExistsAsync(markup, expectedItem: "SubDirectory");
+    }
+
+    [Fact]
+    public async Task PathRecommendation_02()
+    {
+        using var tempRoot = new TempRoot();
+        var tempDirectory = tempRoot.CreateDirectory();
+        var nestedDirectory = tempDirectory.CreateDirectory("SubDirectory");
+        var csprojFile = nestedDirectory.CreateFile("Project.csproj");
+        csprojFile.WriteAllText("""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <OutputType>Exe</OutputType>
+                <TargetFramework>net8.0</TargetFramework>
+              </PropertyGroup>
+            </Project>
+            """);
+
+        var scriptFilePath = Path.Combine(tempDirectory.Path, "App.cs");
+        var code = """
+            #:project SubDirectory/$$
+            """;
+        var markup = $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
+                    <Document FilePath="{scriptFilePath}"><![CDATA[{code}]]></Document>
+                </Project>
+            </Workspace>
+            """;
+        await VerifyItemExistsAsync(markup, expectedItem: "Project.csproj");
+    }
+
+    // Note: The editor uses a shared mechanism to filter out completion items which don't match the prefix of what the user is typing.
+    // Therefore we do not have "negative tests" here for file names.
 }
 
 public abstract class AbstractAppDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests

@@ -114,6 +114,48 @@ public sealed class XmlDocumentationCommentCompletionProviderTests : AbstractCSh
             """, "c", "code", "list", "para", "paramref", "typeparamref");
 
     [Fact]
+    public Task CodeStyleElements_InsideSummary()
+        => VerifyItemsExistAsync("""
+            public class goo
+            {
+                /// <summary> $$ </summary>
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task CodeStyleElements_NotAtTopLevel()
+        => VerifyItemsAbsentAsync("""
+            public class goo
+            {
+                /// $$ 
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task CodeStyleElements_InsidePara()
+        => VerifyItemsExistAsync("""
+            public class goo
+            {
+                /// <summary>
+                /// <para> $$ </para>
+                /// </summary>
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task CodeStyleElements_InsideRemarks()
+        => VerifyItemsExistAsync("""
+            public class goo
+            {
+                /// <remarks> $$ </remarks>
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
     public Task AlwaysVisibleTopLevelOnlyItems1()
         => VerifyItemsExistAsync("""
             public class goo

@@ -767,6 +767,73 @@ public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharp
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80788")]
+    public Task TestCollectionExpressionArgument_WithNamedParameter()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Test()
+                {
+                    [|M("{0}", args: ["a"])|];
+                }
+
+                void M(string format, params object[] args)
+                {
+                }
+
+                void M(string format, string category)
+                {
+                }
+
+                void M(string format, string category, string sender)
+                {
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80788")]
+    public Task TestCollectionExpressionArgument_WithNamedParameter2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Test()
+                {
+                    [|M("{0} {1}", args: ["a", "b"])|];
+                }
+
+                void M(string format, params object[] args)
+                {
+                }
+
+                void M(string format, string category)
+                {
+                }
+
+                void M(string format, string category, string sender)
+                {
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80788")]
+    public Task TestImplicitArrayCreationArgument()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Test()
+                {
+                    [|M("{0}", new[] { "a" })|];
+                }
+
+                void M(string format, params object[] args)
+                {
+                }
+            }
+            """);
+
     [Fact]
     public Task TestInvalidInteger()
         => TestInRegularAndScriptAsync(

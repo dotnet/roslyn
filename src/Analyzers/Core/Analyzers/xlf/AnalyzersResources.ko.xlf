@@ -331,6 +331,11 @@
         <target state="translated">불필요한 비표시 오류(Suppression) 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_unsafe_modifier">
+        <source>Remove unnecessary 'unsafe' modifier</source>
+        <target state="new">Remove unnecessary 'unsafe' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">읽지 않은 private 멤버 제거</target>
@@ -411,6 +416,11 @@
         <target state="translated">개체 초기화 단순화</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppression_is_unnecessary">
+        <source>Suppression is unnecessary</source>
+        <target state="new">Suppression is unnecessary</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_file_header_does_not_match_the_required_text">
         <source>The file header does not match the required text</source>
         <target state="translated">파일 헤더가 필요한 텍스트와 일치하지 않습니다.</target>
@@ -484,6 +494,11 @@
       <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
         <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
         <target state="translated">'{0}' 문은 '{1}'을(를) '{2}'으로 암시적으로 변환합니다. 런타임에 실패할 수 있으므로 의도를 더 명확하게 하기 위해 명시적 캐스트를 추가합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="unsafe_modifier_is_unnecessary">
+        <source>'unsafe' modifier is unnecessary</source>
+        <target state="new">'unsafe' modifier is unnecessary</target>
         <note />
       </trans-unit>
     </body>

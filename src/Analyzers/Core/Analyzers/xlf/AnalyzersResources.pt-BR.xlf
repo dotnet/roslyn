@@ -331,6 +331,11 @@
         <target state="translated">Remover a supressão desnecessária</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_unsafe_modifier">
+        <source>Remove unnecessary 'unsafe' modifier</source>
+        <target state="new">Remove unnecessary 'unsafe' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">Remover membros particulares não lidos</target>
@@ -411,6 +416,11 @@
         <target state="translated">Simplificar a inicialização de objeto</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppression_is_unnecessary">
+        <source>Suppression is unnecessary</source>
+        <target state="new">Suppression is unnecessary</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_file_header_does_not_match_the_required_text">
         <source>The file header does not match the required text</source>
         <target state="translated">O cabeçalho do arquivo não corresponde ao texto necessário</target>
@@ -484,6 +494,11 @@
       <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
         <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
         <target state="translated">A instrução '{0}' converte implicitamente '{1}' para '{2}'. Adicione uma conversão explícita para tornar a intenção mais clara, pois ela pode falhar no runtime</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="unsafe_modifier_is_unnecessary">
+        <source>'unsafe' modifier is unnecessary</source>
+        <target state="new">'unsafe' modifier is unnecessary</target>
         <note />
       </trans-unit>
     </body>

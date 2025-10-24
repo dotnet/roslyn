@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.RawStringLiteral;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -110,6 +111,16 @@ internal sealed class OnAutoInsertHandler(
             if (braceCompletionAfterReturnResponse != null)
             {
                 return braceCompletionAfterReturnResponse;
+            }
+        }
+
+        // Handle raw string literal quote typing
+        if (character == "\"")
+        {
+            var rawStringResponse = await GetRawStringLiteralResponseAsync(document, linePosition, cancellationToken).ConfigureAwait(false);
+            if (rawStringResponse != null)
+            {
+                return rawStringResponse;
             }
         }
 
@@ -260,5 +271,49 @@ internal sealed class OnAutoInsertHandler(
         }
 
         return null;
+    }
+
+    private static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetRawStringLiteralResponseAsync(
+        Document document,
+        LinePosition linePosition,
+        CancellationToken cancellationToken)
+    {
+        var service = document.GetLanguageService<IRawStringLiteralAutoInsertService>();
+        if (service == null)
+            return null;
+
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var originalPosition = sourceText.Lines.GetPosition(linePosition);
+
+        // The service expects to receive a document without the typed quote and position where the quote would be typed.
+        // We were passed a document with the quote already inserted and position after the quote.  Hence we need to
+        // adjust the document backwards to remove the quote and move the position back by one.
+        var positionOfQuote = originalPosition - 1;
+        var sourceTextWithoutQuote = sourceText.WithChanges(new TextChange(new TextSpan(positionOfQuote, 1), string.Empty));
+        var documentWithoutQuote = document.WithText(sourceTextWithoutQuote);
+
+        var textChange = service.GetTextChangeForQuote(documentWithoutQuote, sourceTextWithoutQuote, positionOfQuote, cancellationToken);
+        if (textChange == null)
+            return null;
+
+        // The server returns an edit to be applied after the quote has already been typed.
+        // The original request is based on the document with the quote already inserted, so we can just return the edit
+        // directly against the request document.
+        var edit = ProtocolConversions.TextChangeToTextEdit(textChange.Value, sourceText);
+        var format = LSP.InsertTextFormat.Plaintext;
+
+        if (textChange.Value.Span.Start == originalPosition)
+        {
+            // The raw string edit may start with the original position (i.e. the caret position).
+            // In such a case, we need to return a snippet edit to ensure the caret is not moved to the end.
+            edit.NewText = edit.NewText.Insert(0, "$0"); // Insert caret at the original position after the typed quote.
+            format = LSP.InsertTextFormat.Snippet;
+        }
+
+        return new LSP.VSInternalDocumentOnAutoInsertResponseItem
+        {
+            TextEditFormat = format,
+            TextEdit = edit
+        };
     }
 }

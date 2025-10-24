@@ -2366,4 +2366,70 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
             }
             """,
             languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80640")]
+    public Task TestWhenBooleanOperatorsAreUsed()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                void M(int i)
+                {
+                    [|if|] (this)
+                    {
+                        i = 1;
+                    }
+                    else
+                    {
+                        i = 0;
+                    }
+                }
+
+                public static bool operator true(C v) => true;
+
+                public static bool operator false(C v) => false;
+            }
+            """, """
+            class C
+            {
+                void M(int i)
+                {
+                    i = this ? 1 : 0;
+                }
+
+                public static bool operator true(C v) => true;
+
+                public static bool operator false(C v) => false;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80640")]
+    public Task TestWithImplicitBoolConversion()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                void M(int i)
+                {
+                    [|if|] (this)
+                    {
+                        i = 1;
+                    }
+                    else
+                    {
+                        i = 0;
+                    }
+                }
+
+                public static implicit operator bool(C v) => true;
+            }
+            """, """
+            class C
+            {
+                void M(int i)
+                {
+                    i = this ? 1 : 0;
+                }
+
+                public static implicit operator bool(C v) => true;
+            }
+            """);
 }

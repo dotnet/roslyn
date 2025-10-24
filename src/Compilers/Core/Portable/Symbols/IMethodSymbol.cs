@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         MethodKind MethodKind { get; }
 
         /// <summary>
-        /// Returns the arity of this method, or the number of type parameters it takes.
+        /// Returns the arity of this method. Arity is the number of type parameters a method declares.
         /// A non-generic method has zero arity.
         /// </summary>
         int Arity { get; }
@@ -195,6 +195,12 @@ namespace Microsoft.CodeAnalysis
         /// returns a reduced extension method symbol thus formed. Otherwise, returns null.
         /// </summary>
         IMethodSymbol? ReduceExtensionMethod(ITypeSymbol receiverType);
+
+        /// <summary>
+        /// If this is a method of an extension block that can be applied to a receiver of the given type,
+        /// returns the method symbol in the substituted extension for that receiver type. Otherwise, returns null.
+        /// </summary>
+        IMethodSymbol? ReduceExtensionMember(ITypeSymbol receiverType);
 
         /// <summary>
         /// Returns interface methods explicitly implemented by this method.
