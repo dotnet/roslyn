@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, parameterTypeSyntax);
                     }
                     else if (parameterRefKind is RefKind.In or RefKind.RefReadOnlyParameter
-                        && !parameterType.IsValidRefReadonlyExtensionParameterType())
+                        && !parameterType.IsValidInOrRefReadonlyExtensionParameterType())
                     {
                         diagnostics.Add(ErrorCode.ERR_InExtensionParameterMustBeValueType, parameterTypeSyntax);
                     }

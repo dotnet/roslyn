@@ -4352,6 +4352,10 @@ public static class C
                 }
                 """;
 
+            // Equivalent to:
+            // public static class Extensions {
+            //     public static void M(this int* ptr) { }
+            // }
             var ilSource = """
                 .class public auto ansi abstract sealed beforefieldinit Extensions
                     extends [mscorlib]System.Object
@@ -4393,6 +4397,10 @@ public static class C
                 obj.M();
                 """;
 
+            // Equivalent to:
+            // public static class Extensions {
+            //     public static void M(this dynamic obj) { }
+            // }
             var ilSource = """
                 .class public auto ansi abstract sealed beforefieldinit Extensions
                     extends [mscorlib]System.Object
@@ -4441,6 +4449,10 @@ public static class C
                 }
                 """;
 
+            // Equivalent to:
+            // public static class Extensions {
+            //     public static unsafe void M(this delegate*<void> ptr) { }
+            // }
             var ilSource = """
                 .class public auto ansi abstract sealed beforefieldinit Extensions
                     extends [mscorlib]System.Object
