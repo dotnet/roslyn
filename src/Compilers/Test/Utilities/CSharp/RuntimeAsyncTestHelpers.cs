@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Roslyn.Test.Utilities;
 
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// The expected output string if the test should execute and validate output, 
         /// or null if the test should not execute the assembly.
         /// </returns>
-        public static string ExpectedOutput(string output) => ExecutionConditionUtil.IsCoreClr && IsRuntimeAsyncEnabled ? output : null;
+        public static string? ExpectedOutput(string output) => ExecutionConditionUtil.IsCoreClr && IsRuntimeAsyncEnabled ? output : null;
 
         extension(CSharpCompilationOptions options)
         {
