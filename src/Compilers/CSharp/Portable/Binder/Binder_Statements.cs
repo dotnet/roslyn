@@ -709,7 +709,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for duplicate modifiers in local declarations.
             // We call ToDeclarationModifiers here only to report duplicate modifier errors.
             // The actual modifier (const) is determined by node.IsConst below.
-            _ = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag());
+            if (diagnostics.DiagnosticBag is { } bag)
+            {
+                _ = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, bag);
+            }
 
             var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
