@@ -2260,11 +2260,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void CheckParameterModifierMismatchMethodConversion(SyntaxNode syntax, MethodSymbol lambdaOrMethod, TypeSymbol targetType, bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
         {
             MethodSymbol? delegateMethod;
-            bool isSynthesizedDelegate = false;
             if (targetType.GetDelegateType() is { } delegateType)
             {
                 delegateMethod = delegateType.DelegateInvokeMethod;
-                isSynthesizedDelegate = delegateMethod?.OriginalDefinition is SynthesizedDelegateInvokeMethod;
             }
             else if (targetType is FunctionPointerTypeSymbol functionPointerType)
             {
@@ -2275,22 +2273,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // For synthesized delegates with mismatched escape rules, report an error to prevent
+            var thisParameter = lambdaOrMethod.TryGetThisParameter(out var thisParam) ? thisParam : null;
+
+            // For delegates with mismatched escape rules, report an error to prevent
             // ref-safety holes across old and new rule boundaries.
-            // See https://github.com/dotnet/roslyn/issues/76087
-            if (isSynthesizedDelegate &&
-                delegateMethod is not null &&
+            if (delegateMethod?.OriginalDefinition is SynthesizedDelegateInvokeMethod &&
                 delegateMethod.UseUpdatedEscapeRules != lambdaOrMethod.UseUpdatedEscapeRules &&
-                SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, lambdaOrMethod.TryGetThisParameter(out var methodThisParam) ? methodThisParam : null))
+                SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, thisParameter))
             {
                 // Report error when the method returns a ref struct or has ref/out parameters,
                 // as this can create ref-safety violations
-                diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, syntax.Location,
-                    lambdaOrMethod,
+                diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, syntax.Location,
+                    lambdaOrMethod.Name,
                     targetType);
             }
 
-            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, lambdaOrMethod.TryGetThisParameter(out var thisParameter) ? thisParameter : null))
+            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, thisParameter))
             {
                 SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                     delegateMethod,

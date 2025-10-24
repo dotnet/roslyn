@@ -22775,9 +22775,9 @@ using @scoped = System.Int32;
                 // (3,9): error CS8168: Cannot return local 'x' by reference because it is not a ref local
                 // C.M(ref x, ref r);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(3, 9),
-                // (4,9): error CS8986: The 'scoped' modifier of parameter 'C.M(ref int, ref R)' doesn't match target '<anonymous delegate>'.
+                // (4,9): error CS0123: No overload for 'M' matches delegate '<anonymous delegate>'
                 // var d = C.M;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("C.M(ref int, ref R)", "<anonymous delegate>").WithLocation(4, 9));
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "C.M").WithArguments("M", "<anonymous delegate>").WithLocation(4, 9));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22929,9 +22929,9 @@ using @scoped = System.Int32;
                 // (4,17): error CS8168: Cannot return local 'x' by reference because it is not a ref local
                 //     r = C.M(ref x);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(4, 17),
-                // (6,13): error CS8986: The 'scoped' modifier of parameter 'C.M(ref int)' doesn't match target '<anonymous delegate>'.
+                // (6,13): error CS0123: No overload for 'M' matches delegate '<anonymous delegate>'
                 //     var d = C.M;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("C.M(ref int)", "<anonymous delegate>").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "C.M").WithArguments("M", "<anonymous delegate>").WithLocation(6, 13));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
@@ -22954,9 +22954,9 @@ using @scoped = System.Int32;
                 var d = C.M;
                 """;
             CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (1,9): error CS8986: The 'scoped' modifier of parameter 'C.M(out R)' doesn't match target '<anonymous delegate>'.
+                // (1,9): error CS0123: No overload for 'M' matches delegate '<anonymous delegate>'
                 // var d = C.M;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("C.M(out R)", "<anonymous delegate>").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "C.M").WithArguments("M", "<anonymous delegate>").WithLocation(1, 9));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
@@ -23030,7 +23030,6 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics();
         }
-
 
         [Theory]
         [InlineData("struct")]

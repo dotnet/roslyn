@@ -14446,9 +14446,9 @@ class Program
                 // (6,17): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.UnscopedRefAttribute..ctor'
                 //         var d = A.F;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "A.F").WithArguments("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", ".ctor").WithLocation(6, 17),
-                // (6,17): error CS8986: The 'scoped' modifier of parameter 'A.F(int, ref int)' doesn't match target '<anonymous delegate>'.
+                // (6,17): error CS0123: No overload for 'F' matches delegate '<anonymous delegate>'
                 //         var d = A.F;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "A.F").WithArguments("A.F(int, ref int)", "<anonymous delegate>").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "A.F").WithArguments("F", "<anonymous delegate>").WithLocation(6, 17));
         }
 
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
