@@ -8689,8 +8689,10 @@ done:
             this.EatToken();
             
             // Try to scan what looks like inside the parentheses
-            // For anonymous delegate: we'd have parameter declarations
-            // For delegate type declaration with tuple return: we'd have a tuple type
+            // This could be either:
+            // - A tuple return type for a delegate declaration: delegate (int, int) Name(...)
+            // - Parameter list for an anonymous delegate: delegate (int x) { ... }
+            // We scan to the matching ')' to determine what follows.
             
             // Scan to the matching ')'
             int depth = 1;
@@ -8728,14 +8730,13 @@ done:
                 return true;
             }
             
-            // If we see an identifier, it's likely the delegate name in a declaration
+            // If we see an identifier, it's the delegate name in a declaration
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
                 return false;
             }
             
-            // For other cases, default to delegate type declaration
-            // This handles cases like 'delegate (int, int) I()' where after ')' we have an identifier 'I'
+            // Default to delegate type declaration for other cases
             return false;
         }
 
