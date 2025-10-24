@@ -437,8 +437,7 @@ public class C
             );
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32106")]
         public void DuplicateModifiers_NotReportedDuringParsing()
         {
             // Duplicate modifiers for local declarations and local functions should not produce
