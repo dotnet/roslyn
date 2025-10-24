@@ -54,13 +54,19 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
     }
 
-    public virtual IfStatementAnalysisResult? AnalyzeIfStatement(
+    public IfStatementAnalysisResult? AnalyzeIfStatement(
         SemanticModel semanticModel,
         IMethodSymbol? referenceEqualsMethod,
         TIfStatementSyntax ifStatement,
         CancellationToken cancellationToken)
     {
         var syntaxFacts = this.SyntaxFacts;
+
+        // Check if the if-statement contains any preprocessor directives.
+        // If so, we can't convert to null propagation because the directives (like #if DEBUG)
+        // would be lost or cause compilation issues.
+        if (ifStatement.ContainsDirectives)
+            return null;
 
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
         if (!TryGetPartsOfIfStatement(ifStatement, out var condition, out var trueStatement, out var nullAssignmentOpt))

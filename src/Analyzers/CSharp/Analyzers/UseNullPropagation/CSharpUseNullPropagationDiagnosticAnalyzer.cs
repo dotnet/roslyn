@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -64,25 +63,6 @@ internal sealed class CSharpUseNullPropagationDiagnosticAnalyzer :
 
         conditionPartToCheck = patternExpression.Expression;
         return true;
-    }
-
-    public override IfStatementAnalysisResult? AnalyzeIfStatement(
-        SemanticModel semanticModel,
-        IMethodSymbol? referenceEqualsMethod,
-        IfStatementSyntax ifStatement,
-        CancellationToken cancellationToken)
-    {
-        // Check if the if-statement has a block statement with preprocessor directives.
-        // If so, we can't convert to null propagation because the directives (like #if DEBUG)
-        // would be lost or cause compilation issues. We check the entire block rather than
-        // just the close brace to handle cases where directives appear anywhere in the block.
-        if (ifStatement.Statement is BlockSyntax block)
-        {
-            if (block.ContainsDirectives)
-                return null;
-        }
-
-        return base.AnalyzeIfStatement(semanticModel, referenceEqualsMethod, ifStatement, cancellationToken);
     }
 
     protected override bool TryGetPartsOfIfStatement(
