@@ -1241,10 +1241,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     case CollectionExpressionTypeKind.None:
                     case CollectionExpressionTypeKind.Array:
-                    case CollectionExpressionTypeKind.ArrayInterface:
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                     case CollectionExpressionTypeKind.Span:
                         return null;
+                    case CollectionExpressionTypeKind.ArrayInterface:
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:

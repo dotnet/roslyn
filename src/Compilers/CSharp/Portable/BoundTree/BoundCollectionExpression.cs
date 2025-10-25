@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundCollectionExpressionBase
     {
+        private partial void Validate()
+        {
+            foreach (var element in Elements)
+                Debug.Assert(element is not BoundUnconvertedWithElement);
+        }
+
         /// <summary>
         /// Returns true if the collection expression contains any spreads.
         /// </summary>
