@@ -148,5 +148,198 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79489")]
+        public void RegionInIsPattern06()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression("""
+                C.Use(doLogic: true);
+
+                class C
+                {
+                    public static (bool, string? errorMessage) M() => (false, "Something went wrong");
+
+                    public static void Use(bool doLogic)
+                    {
+                        if (doLogic)
+                        {
+                            if (/*<bind>*/M() is (false, var errorMessage)/*</bind>*/)
+                            {
+                                Console.Error.WriteLine(errorMessage);
+                            }
+                        }
+                    }
+                }
+                """);
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: errorMessage
+                AlwaysAssigned: 
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: 
+                DataFlowsOut: errorMessage
+                DefinitelyAssignedOnEntry: doLogic
+                DefinitelyAssignedOnExit: doLogic
+                ReadInside: 
+                ReadOutside: doLogic, errorMessage
+                WrittenInside: errorMessage
+                WrittenOutside: doLogic
+                """, dataFlowAnalysisResults);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79489")]
+        public void RegionInSwitch01()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression("""
+                static void PatternMatchingUsage()
+                {
+                  var t = (1, 2);
+                  // selection start
+                  switch (t)
+                  {
+                    case /*<bind>*/(var x, 2)/*</bind>*/:
+                      Console.WriteLine(x);
+                      break;
+                  }
+                  // selection end
+                }
+                """);
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: 
+                AlwaysAssigned: 
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: 
+                DataFlowsOut: 
+                DefinitelyAssignedOnEntry: t, x, args
+                DefinitelyAssignedOnExit: t, x, args
+                ReadInside: 
+                ReadOutside: t, x
+                WrittenInside: 
+                WrittenOutside: t, x, args
+                """, dataFlowAnalysisResults);
+        }
+
+        [Fact]
+        public void RegionInIsPattern07()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression("""
+                C.Use(doLogic: true);
+
+                class C
+                {
+                    public static (bool, (string result, string? errorMessage)) M() => (false, "Something went wrong");
+
+                    public static void Use(bool doLogic)
+                    {
+                        if (doLogic)
+                        {
+                            if (/*<bind>*/M() is (false, (var inner, var errorMessage))/*</bind>*/)
+                            {
+                                Console.Error.WriteLine(errorMessage);
+                            }
+                        }
+                    }
+                }
+
+                """);
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: inner, errorMessage
+                AlwaysAssigned: 
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: 
+                DataFlowsOut: errorMessage
+                DefinitelyAssignedOnEntry: doLogic
+                DefinitelyAssignedOnExit: doLogic
+                ReadInside: 
+                ReadOutside: doLogic, errorMessage
+                WrittenInside: inner, errorMessage
+                WrittenOutside: doLogic
+                """, dataFlowAnalysisResults);
+        }
+
+        [Fact]
+        public void RegionInIsPattern08()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression("""
+                C.Use(doLogic: true);
+
+                class C
+                {
+                    public static (string result, (bool, string? errorMessage)) M() => (false, "Something went wrong");
+
+                    public static void Use(bool doLogic)
+                    {
+                        if (doLogic)
+                        {
+                            if (/*<bind>*/M() is (var outer, (true, var errorMessage))/*</bind>*/)
+                            {
+                                Console.Error.WriteLine(errorMessage);
+                            }
+                        }
+                    }
+                }
+
+                """);
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: outer, errorMessage
+                AlwaysAssigned: 
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: 
+                DataFlowsOut: errorMessage
+                DefinitelyAssignedOnEntry: doLogic
+                DefinitelyAssignedOnExit: doLogic
+                ReadInside: 
+                ReadOutside: doLogic, errorMessage
+                WrittenInside: outer, errorMessage
+                WrittenOutside: doLogic
+                """, dataFlowAnalysisResults);
+        }
+
+        [Fact]
+        public void RegionInIsPattern09()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression("""
+                C.Use(doLogic: true);
+
+                class C
+                {
+                    public static (string result, (bool, string? errorMessage)) M() => (false, "Something went wrong");
+
+                    public static void Use(bool doLogic)
+                    {
+                        if (doLogic)
+                        {
+                            if (/*<bind>*/M() is { result: var outer, Item2: { errorMessage: var errorMessage } })/*</bind>*/)
+                            {
+                                Console.Error.WriteLine(errorMessage);
+                            }
+                        }
+                    }
+                }
+
+                """);
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: outer, errorMessage
+                AlwaysAssigned: outer, errorMessage
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: 
+                DataFlowsOut: errorMessage
+                DefinitelyAssignedOnEntry: doLogic
+                DefinitelyAssignedOnExit: doLogic, outer, errorMessage
+                ReadInside: 
+                ReadOutside: doLogic, errorMessage
+                WrittenInside: outer, errorMessage
+                WrittenOutside: doLogic
+                """, dataFlowAnalysisResults);
+        }
     }
 }

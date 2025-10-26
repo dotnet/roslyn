@@ -73,6 +73,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (pattern)
                 {
+                    case BoundRecursivePattern r:
+                        foreach (var subpattern in r.Deconstruction.NullToEmpty())
+                        {
+                            NoteDeclaredPatternVariables(subpattern.Pattern);
+                        }
+
+                        foreach (var subpattern in r.Properties.NullToEmpty())
+                        {
+                            NoteDeclaredPatternVariables(subpattern.Pattern);
+                        }
+                        break;
                     case BoundObjectPattern p:
                         {
                             // The variable may be null if it is a discard designation `_`.
