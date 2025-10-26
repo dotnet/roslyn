@@ -162,5 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return GetSemanticInfoForTest<ExpressionSyntax>(testSrc);
         }
+
+        protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest(CSharpCompilation compilation)
+        {
+            return GetSemanticInfoForTest<ExpressionSyntax>(compilation);
+        }
     }
 }
