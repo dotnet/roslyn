@@ -1927,5 +1927,79 @@ class C
 
             this.CompileAndVerify(compilation).VerifyIL("C.Main", expectedIL);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80752")]
+        public void ElementNameInference_FromLocal_NullSuppression()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    string M()
+                    {
+                        string? str = null;
+                        C? c = null;
+                        var a = new { str!, c! };
+                        return a.str ?? "";
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var a = new { str!, c! };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "str!").WithLocation(9, 23),
+                // (9,29): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var a = new { str!, c! };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "c!").WithLocation(9, 29));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Equal("<anonymous type: System.String str, C c>", tupleTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("<anonymous type: System.String str, C c>", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80752")]
+        public void ElementNameInference_FromPropertyName_NullSuppression()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string? Prop1 { get; set; }
+
+                    public string? Prop2 { get; set; }
+
+                    string M(C c)
+                    {
+                        var a = new { c.Prop1!, c.Prop2! };
+                        return a.Prop1 ?? "";
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var a = new { c.Prop1!, c.Prop2! };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "c.Prop1!").WithLocation(11, 23),
+                // (11,33): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var a = new { c.Prop1!, c.Prop2! };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "c.Prop2!").WithLocation(11, 33));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Equal("<anonymous type: System.String Prop1, System.String Prop2>", tupleTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("<anonymous type: System.String Prop1, System.String Prop2>", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+        }
     }
 }

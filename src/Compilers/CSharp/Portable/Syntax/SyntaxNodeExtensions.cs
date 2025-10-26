@@ -213,6 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         continue;
 
+                    case SyntaxKind.SuppressNullableWarningExpression:
+                        input = ((PostfixUnaryExpressionSyntax)input).Operand;
+                        continue;
+
                     default:
                         return default(SyntaxToken);
                 }
