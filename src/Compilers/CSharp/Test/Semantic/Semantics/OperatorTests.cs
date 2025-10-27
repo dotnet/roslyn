@@ -9637,16 +9637,10 @@ struct S1 // nullable operators come first
 {
     public static S1 operator &(S1 x, S1 y) => x;
     public static S1 operator |(S1 x, S1 y) => x;
-    public static bool operator true(S1? x)
-    {
-        System.Console.Write(1);
-        return false;
-    }
-    public static bool operator false(S1? x)
-    {
-        System.Console.Write(2);
-        return false;
-    }
+
+    public static bool operator true(S1? x) => throw null;
+    public static bool operator false(S1? x) => throw null;
+
     public static bool operator true(S1 x)
     {
         System.Console.Write(3);
@@ -9673,16 +9667,9 @@ struct S2 // non-nullable operators come first
         System.Console.Write(4);
         return false;
     }
-    public static bool operator true(S2? x)
-    {
-        System.Console.Write(1);
-        return false;
-    }
-    public static bool operator false(S2? x)
-    {
-        System.Console.Write(2);
-        return false;
-    }
+
+    public static bool operator true(S2? x) => throw null;
+    public static bool operator false(S2? x) => throw null;
 }
 """;
 
@@ -9720,16 +9707,8 @@ static class Extensions
 {
     extension(S1?) // nullable operators come first
     {
-        public static bool operator true(S1? x)
-        {
-            System.Console.Write(1);
-            return false;
-        }
-        public static bool operator false(S1? x)
-        {
-            System.Console.Write(2);
-            return false;
-        }
+        public static bool operator true(S1? x) => throw null;
+        public static bool operator false(S1? x) => throw null;
     }
 
     extension(S1)
@@ -9766,16 +9745,8 @@ static class Extensions
 
     extension(S2?)
     {
-        public static bool operator true(S2? x)
-        {
-            System.Console.Write(1);
-            return false;
-        }
-        public static bool operator false(S2? x)
-        {
-            System.Console.Write(2);
-            return false;
-        }
+        public static bool operator true(S2? x) => throw null;
+        public static bool operator false(S2? x) => throw null;
     }
 }
 """;
