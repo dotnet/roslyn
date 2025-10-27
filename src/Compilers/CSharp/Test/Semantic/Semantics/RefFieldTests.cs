@@ -22937,9 +22937,8 @@ using @scoped = System.Int32;
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
         public void RefSafetyRules_CustomDelegate()
         {
-            // Custom delegates (non-synthesized) currently do not get errors when crossing
-            // old/new rule boundaries. The existing scoped override check mechanism should catch
-            // this, but there may be scenarios where it doesn't. This test documents the current behavior.
+            // Custom delegates have the same ref-safety issue as synthesized delegates when crossing
+            // old/new rule boundaries.
             var source1 = """
                 public static class C
                 {
@@ -22963,9 +22962,10 @@ using @scoped = System.Int32;
 
                 delegate R D(ref int x);
                 """;
-            // TODO: This should ideally produce a warning or error, but currently doesn't.
-            // The ref-safety hole exists for custom delegates just like synthesized delegates.
-            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics();
+            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (4,11): error CS9340: Cannot convert method group 'M' to delegate type 'D' due to mismatched ref safety requirements between the method and delegate.
+                //     D c = C.M;
+                Diagnostic(ErrorCode.ERR_RefSafetyInDelegateConversion, "C.M").WithArguments("M", "D").WithLocation(4, 11));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]

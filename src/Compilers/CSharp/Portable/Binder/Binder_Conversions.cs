@@ -2276,12 +2276,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var thisParameter = lambdaOrMethod.TryGetThisParameter(out var thisParam) ? thisParam : null;
 
             // Check for ref-safety violations when converting methods to delegates across old/new rule boundaries.
-            // When the delegate uses new rules but the target method uses old rules (or vice versa), and there's
-            // a synthesized delegate involved, the delegate invocation could bypass ref-safety checks that would
-            // otherwise prevent escaping references. For synthesized delegates specifically, we report an error
-            // instead of a warning because they're implicitly created in the calling context and users don't have
-            // explicit control over their definition.
-            if (delegateMethod?.OriginalDefinition is SynthesizedDelegateInvokeMethod &&
+            // When the delegate uses new rules but the target method uses old rules (or vice versa), the delegate
+            // invocation could bypass ref-safety checks that would otherwise prevent escaping references.
+            if (delegateMethod is not null &&
                 delegateMethod.UseUpdatedEscapeRules != lambdaOrMethod.UseUpdatedEscapeRules &&
                 // Only check methods that could cause ref-safety violations: those that return ref structs,
                 // have ref/out parameters of ref struct type, or similar complex signatures.
@@ -2291,8 +2288,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lambdaOrMethod.Name,
                     targetType);
             }
-
-            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, thisParameter))
             {
                 SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                     delegateMethod,
