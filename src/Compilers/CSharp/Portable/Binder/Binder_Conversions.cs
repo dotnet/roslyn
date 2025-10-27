@@ -2275,8 +2275,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var thisParameter = lambdaOrMethod.TryGetThisParameter(out var thisParam) ? thisParam : null;
 
-            // For delegates with mismatched escape rules, report an error to prevent
-            // ref-safety holes across old and new rule boundaries.
+            // Check for ref-safety violations when converting methods to delegates across old/new rule boundaries.
+            // When the delegate uses new rules but the target method uses old rules (or vice versa), and there's
+            // a synthesized delegate involved, the delegate invocation could bypass ref-safety checks that would
+            // otherwise prevent escaping references. For synthesized delegates specifically, we report an error
+            // instead of a warning because they're implicitly created in the calling context and users don't have
+            // explicit control over their definition.
             if (delegateMethod?.OriginalDefinition is SynthesizedDelegateInvokeMethod &&
                 delegateMethod.UseUpdatedEscapeRules != lambdaOrMethod.UseUpdatedEscapeRules &&
                 // Only check methods that could cause ref-safety violations: those that return ref structs,

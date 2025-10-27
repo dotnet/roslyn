@@ -22935,6 +22935,40 @@ using @scoped = System.Int32;
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_CustomDelegate()
+        {
+            // Custom delegates (non-synthesized) currently do not get errors when crossing
+            // old/new rule boundaries. The existing scoped override check mechanism should catch
+            // this, but there may be scenarios where it doesn't. This test documents the current behavior.
+            var source1 = """
+                public static class C
+                {
+                    public static R M(ref int x) => new R { F = ref x };
+                }
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                R r;
+                {
+                    int x = 1;
+                    D c = C.M;
+                    r = c(ref x);
+                }
+
+                delegate R D(ref int x);
+                """;
+            // TODO: This should ideally produce a warning or error, but currently doesn't.
+            // The ref-safety hole exists for custom delegates just like synthesized delegates.
+            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
         public void RefSafetyRules_SynthesizedDelegate_OutParameter()
         {
             var source1 = """
