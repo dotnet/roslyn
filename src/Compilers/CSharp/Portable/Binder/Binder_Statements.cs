@@ -3536,7 +3536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
                     expression = BindToTypeForErrorRecovery(expression);
-                    statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, refKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -3548,7 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
                     }
-                    statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, refKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
             }
             else if (expression.Type?.SpecialType == SpecialType.System_Void)

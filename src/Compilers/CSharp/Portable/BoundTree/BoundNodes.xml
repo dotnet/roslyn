@@ -1149,7 +1149,7 @@
     <Field Name="Flavor" Type="NoOpStatementFlavor"/>
   </Node>
 
-  <Node Name="BoundReturnStatement" Base="BoundStatement">
+  <Node Name="BoundReturnStatement" Base="BoundStatement" HasValidate="true">
     <Field Name="RefKind" Type="RefKind"/>
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
     <!--

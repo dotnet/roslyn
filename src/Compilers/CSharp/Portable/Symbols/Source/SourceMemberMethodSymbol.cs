@@ -815,14 +815,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
-
         public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get

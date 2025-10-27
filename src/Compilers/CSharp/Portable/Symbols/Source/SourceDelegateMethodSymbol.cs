@@ -245,6 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             protected override bool HasSetsRequiredMembersImpl => false;
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => [];
         }
 
         // Note that `in`/`ref readonly` parameters currently don't have `modreq(In)`
@@ -381,6 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // It has a special return type: SpecialType.System.IAsyncResult.
                 return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
             }
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => [];
         }
 
         private sealed class EndInvokeMethod : SourceDelegateMethodSymbol
