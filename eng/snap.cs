@@ -19,6 +19,7 @@
 
 using System.Collections.Concurrent;
 using System.CommandLine;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -806,6 +807,7 @@ file sealed record BranchInfo(
     public string Summarize() => VsBranch + (InsertionCreateDraftPR ? " (as draft)" : null);
 }
 
+[TypeConverter(typeof(ParsableTypeConverter<VersionsProps>))]
 file sealed record VersionsProps(
     int MajorVersion,
     int MinorVersion,
@@ -918,7 +920,7 @@ file sealed record VersionsProps(
             return;
         }
 
-        if (this.Equals(original))
+        if (this.Equals(original?.Data))
         {
             console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{branchName}[/] {FileName} already up to date");
             return;
@@ -1365,5 +1367,23 @@ file sealed class ActionList(IAnsiConsole console)
                 console.MarkupLine("[yellow]Aborted[/]: No changes made");
             }
         }
+    }
+}
+
+file sealed class ParsableTypeConverter<T> : TypeConverter where T : IParsable<T>
+{
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+    {
+        return sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+    }
+
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    {
+        if (value is string s && T.TryParse(s, culture, out var result))
+        {
+            return result;
+        }
+
+        return base.ConvertFrom(context, culture, value);
     }
 }
