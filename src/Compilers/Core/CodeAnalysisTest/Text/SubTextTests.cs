@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
     public class SubTextTests
     {
         [Fact]
-        public void SubTextCarriageReturnNewLineLSplit()
+        public void SubTextCarriageReturnLineFeedSplit()
         {
             var fullStringText = SourceText.From("\r\n");
-            var subText = new SubText(fullStringText, TextSpan.FromBounds(1, 2));
+            var subText = new SubText(fullStringText, new TextSpan(start: 1, length: 1));
 
             Assert.Equal(1, subText.Lines.IndexOf(1));
         }
