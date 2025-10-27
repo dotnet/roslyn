@@ -377,6 +377,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // of the try block. But when there are catch blocks, we must
                 // place it after the entire try-catch-finally structure to avoid invalid IL
                 // (leaving from a catch block into a try block).
+                //
+                //  try
+                //  {
+                //      ...
+                //      finallyEntry:
+                //  }
                 if (!hasCatchBlocks)
                 {
                     node = node.Update(
