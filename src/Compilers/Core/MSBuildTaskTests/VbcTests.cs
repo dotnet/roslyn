@@ -594,10 +594,26 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             var responseFileContents = vbc.GenerateResponseFileContents();
             Assert.Contains("/./Program.vb", responseFileContents);
             Assert.Contains("/./App.vb", responseFileContents);
-            Assert.Contains("src/Test.vb", responseFileContents);
+            Assert.Contains(" src/Test.vb", responseFileContents);
             // /dir/File.vb should NOT be transformed (contains second '/')
-            Assert.Contains("/dir/File.vb", responseFileContents);
+            Assert.Contains(" /dir/File.vb", responseFileContents);
             Assert.DoesNotContain("/./dir/File.vb", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void SourceFilePathsOnWindows()
+        {
+            // On Windows, paths should not be transformed even if they start with "/"
+            var vbc = new Vbc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.vb", "/test.vb"),
+            };
+
+            var responseFileContents = vbc.GenerateResponseFileContents();
+            Assert.Contains(" test.vb", responseFileContents);
+            // On Windows, /test.vb should NOT be transformed
+            Assert.Contains(" /test.vb", responseFileContents);
+            Assert.DoesNotContain("/./test.vb", responseFileContents);
         }
     }
 }

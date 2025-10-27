@@ -688,9 +688,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var responseFileContents = csc.GenerateResponseFileContents();
             Assert.Contains("/./Program.cs", responseFileContents);
             Assert.Contains("/./App.cs", responseFileContents);
-            Assert.Contains("src/Test.cs", responseFileContents);
+            Assert.Contains(" src/Test.cs", responseFileContents);
             // /dir/File.cs should NOT be transformed (contains second '/')
-            Assert.Contains("/dir/File.cs", responseFileContents);
+            Assert.Contains(" /dir/File.cs", responseFileContents);
             Assert.DoesNotContain("/./dir/File.cs", responseFileContents);
         }
 
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             };
 
             var responseFileContents = csc.GenerateResponseFileContents();
-            Assert.Contains("test.cs", responseFileContents);
+            Assert.Contains(" test.cs", responseFileContents);
             // On Windows, /test.cs should NOT be transformed
             Assert.Contains(" /test.cs", responseFileContents);
             Assert.DoesNotContain("/./test.cs", responseFileContents);

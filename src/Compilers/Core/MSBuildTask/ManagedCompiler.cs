@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.Build.Framework;
@@ -1114,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return null;
 
             // On Windows, no transformation is needed
-            if (Path.DirectorySeparatorChar == '\\')
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return null;
 
             // Go over sources once and lazily initialize transformedSources if needed
@@ -1122,6 +1123,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             for (int i = 0; i < sources.Length; i++)
             {
                 var itemSpec = sources[i].ItemSpec;
+
                 // Check if this path needs transformation using the compiler's heuristic:
                 // A path starting with '/' is treated as an option unless it contains 
                 // another '/' after the first character (e.g., "/dir/file.cs" is safe)
@@ -1137,6 +1139,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             transformedSources[j] = sources[j].ItemSpec;
                         }
                     }
+
                     // Transform this path to prevent misinterpretation as an option
                     transformedSources[i] = "/." + itemSpec;
                 }
