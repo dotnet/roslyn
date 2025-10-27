@@ -259,7 +259,7 @@ internal sealed class HelixTestRunner
             {
                 if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string { Length: > 0 } value)
                 {
-                    command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}=\"{value}\"");
+                    command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}={value}");
                 }
             }
 
