@@ -43,6 +43,7 @@
         "NETCOREAPP",
         "renderable",
         "renderables",
+        "sarif",
         "Unregistration",
         "Unregistrations",
         "Xunit"
