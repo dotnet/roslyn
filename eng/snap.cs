@@ -96,6 +96,27 @@ var httpClient = new HttpClient();
 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("dotnet-roslyn-snap-script");
 var actions = new ActionList(console);
 
+// Check that the `gh` CLI is available.
+bool ghExists;
+try
+{
+    ghExists = 0 == (await Cli.Wrap("gh")
+        .WithArguments(["--version"])
+        .WithValidation(CommandResultValidation.None)
+        .ExecuteBufferedAsync(logger))
+        .ExitCode;
+}
+catch (Exception ex)
+{
+    logger.Log(ex.ToString());
+    ghExists = false;
+}
+if (!ghExists)
+{
+    console.MarkupLine("[red]Error:[/] GitHub CLI 'gh' is not installed or not available in PATH. Please install it from https://cli.github.com/.");
+    return 1;
+}
+
 console.WriteLine();
 console.MarkupLine("[purple]Configuration[/]");
 console.WriteLine();
