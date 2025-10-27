@@ -148,7 +148,7 @@ var sourceRepoShort = console.Prompt(TextPrompt<string>.Create("Source repo in t
     }));
 
 var sourceRepoUrl = $"https://github.com/{sourceRepoShort}";
-var gitHub = new GitHubUtil(logger, sourceRepoShort);
+var gitHub = new GitHubUtil(httpClient, logger, sourceRepoShort);
 
 // Ask for source and target branches.
 
@@ -615,6 +615,7 @@ file sealed record Milestone(int Number, string Title)
 }
 
 file sealed class GitHubUtil(
+    HttpClient httpClient,
     Logger logger,
     string repoOwnerAndName)
 {
@@ -622,6 +623,11 @@ file sealed class GitHubUtil(
 
     public Logger Logger => logger;
     public string RepoOwnerAndName => repoOwnerAndName;
+
+    public async Task<string> FetchFileAsStringAsync(string branchName, string path)
+    {
+        return await httpClient.GetStringAsync($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/{path}");
+    }
 
     public async Task<bool> DoesBranchExistAsync(string branchName)
     {
@@ -656,7 +662,7 @@ file sealed class GitHubUtil(
         return new Commit(sha);
     }
 
-    public void PushOrOpenPrToUpdateFile(ActionList actions, string branchName, string filePath, string fileName, string updateBranchName, byte[] bytes, string prTitle)
+    public void PushOrOpenPrToUpdateFile(ActionList actions, string branchName, string filePath, string fileName, string updateBranchName, Func<Task<byte[]>> bytes, string prTitle)
     {
         var console = actions.Console;
         var title = $"Update [teal]{branchName}[/] {fileName}";
@@ -683,14 +689,30 @@ file sealed class GitHubUtil(
                 .GetString()
                 ?? throw new InvalidOperationException("Null file SHA");
 
-            // Apply changes.
-            await Cli.Wrap("gh")
-                .WithArguments(["api", "-X", "PUT", $"repos/{RepoOwnerAndName}/contents/{filePath}",
-                    "--field", $"message=Update {fileName}",
-                    "--field", $"branch={updateBranchName}",
-                    "--field", $"sha={fileSha}",
-                    "--field", $"content={Convert.ToBase64String(bytes)}"])
-                .ExecuteBufferedAsync(logger);
+            // Apply changes. Write to temp file to avoid issues with large content on command line.
+            var tempFilePath = Path.GetTempFileName();
+            try
+            {
+                await File.WriteAllTextAsync(tempFilePath, Convert.ToBase64String(await bytes()));
+                await Cli.Wrap("gh")
+                    .WithArguments(["api", "-X", "PUT", $"repos/{RepoOwnerAndName}/contents/{filePath}",
+                        "--field", $"message=Update {fileName}",
+                        "--field", $"branch={updateBranchName}",
+                        "--field", $"sha={fileSha}",
+                        "--field", $"content=@{tempFilePath}"])
+                    .ExecuteBufferedAsync(logger);
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(tempFilePath);
+                }
+                catch (Exception ex)
+                {
+                    logger.Log($"Failed to delete temp file '{tempFilePath}': {ex}");
+                }
+            }
 
             // Open the PR (unless the branch already exists - then this is part of already-opened PR).
             if (!updateBranchExists)
@@ -771,14 +793,13 @@ file sealed class PublishData(
         Debug.Assert(data != null);
         Debug.Assert(!data.Equals(original?.Data));
 
-        var serialized = data.ToJson();
         gitHub.PushOrOpenPrToUpdateFile(
             actions,
             branchName: branchName,
             filePath: FilePath,
             fileName: FileName,
             updateBranchName: updateBranchName,
-            bytes: Encoding.UTF8.GetBytes(serialized),
+            bytes: () => Task.FromResult(Encoding.UTF8.GetBytes(data.ToJson())),
             prTitle: GitHubUtil.UpdateConfigsPrTitle);
     }
 }
@@ -899,6 +920,8 @@ file sealed record VersionsProps(
 
     public override string ToString() => $"{MajorVersion}.{MinorVersion}.{PatchVersion}-{PreReleaseVersionLabel}";
 
+    public string ToShortString() => $"{MajorVersion}.{MinorVersion}.{PatchVersion}";
+
     public VersionsProps WithIncrementedMinor() => this with { MinorVersion = MinorVersion + 1 };
 
     public void SaveTo(XmlDocument xml)
@@ -920,21 +943,60 @@ file sealed record VersionsProps(
             return;
         }
 
-        if (this.Equals(original?.Data))
+        Debug.Assert(original != null);
+
+        if (this.Equals(original.Value.Data))
         {
             console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{branchName}[/] {FileName} already up to date");
             return;
         }
 
-        this.SaveTo(xml);
         gitHub.PushOrOpenPrToUpdateFile(
             actions,
             branchName: branchName,
             filePath: FilePath,
             fileName: FileName,
             updateBranchName: updateBranchName,
-            bytes: Encoding.UTF8.GetBytes(xml.OuterXml),
+            bytes: () =>
+            {
+                this.SaveTo(xml);
+                return Task.FromResult(Encoding.UTF8.GetBytes(xml.OuterXml));
+            },
             prTitle: GitHubUtil.UpdateConfigsPrTitle);
+
+        // Update sarif files too.
+        var previousVersion = original.Value.Data.ToShortString();
+        var newVersion = this.ToShortString();
+        if (previousVersion == newVersion)
+        {
+            console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{branchName}[/] SARIF files already reference version [teal]{newVersion}[/]");
+            return;
+        }
+        ReadOnlySpan<string> files =
+        [
+            "src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/Microsoft.CodeAnalysis.Analyzers.sarif",
+            "src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers.sarif",
+            "src/RoslynAnalyzers/PerformanceSensitiveAnalyzers/Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.sarif",
+            "src/RoslynAnalyzers/PublicApiAnalyzers/Microsoft.CodeAnalysis.PublicApiAnalyzers.sarif",
+            "src/RoslynAnalyzers/Roslyn.Diagnostics.Analyzers/Roslyn.Diagnostics.Analyzers.sarif",
+            "src/RoslynAnalyzers/Text.Analyzers/Text.Analyzers.sarif",
+        ];
+        foreach (var filePath in files)
+        {
+            gitHub.PushOrOpenPrToUpdateFile(
+                actions,
+                branchName: branchName,
+                filePath: filePath,
+                fileName: Path.GetFileName(filePath),
+                updateBranchName: updateBranchName,
+                bytes: async () =>
+                {
+                    var originalContent = await gitHub.FetchFileAsStringAsync(branchName, filePath);
+                    var updatedContent = originalContent.Replace(previousVersion, newVersion, StringComparison.Ordinal);
+                    return Encoding.Utf8WithBom.GetBytes(updatedContent);
+                },
+                prTitle: GitHubUtil.UpdateConfigsPrTitle);
+        }
     }
 }
 
@@ -967,6 +1029,8 @@ static partial class Patterns
 
 file static class Extensions
 {
+    private static readonly Encoding s_utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+
     extension(Command command)
     {
         public async Task<BufferedCommandResult> ExecuteBufferedAsync(Logger logger)
@@ -985,6 +1049,11 @@ file static class Extensions
 
             return result;
         }
+    }
+
+    extension(Encoding)
+    {
+        public static Encoding Utf8WithBom => s_utf8WithBom;
     }
 
     extension(IAnsiConsole console)
