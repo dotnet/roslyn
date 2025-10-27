@@ -122,7 +122,7 @@ internal abstract class ExportProviderBuilder(
             // .NET version and the user's selected SDK runtime version (which may be newer), the MEF cache is kept isolated.
             // This can be important when the MEF catalog records full assembly names such as "System.Runtime, 8.0.0.0" yet
             // we might be running on .NET 7 or .NET 8, depending on the particular session and user settings.
-            hashContents.Append(Environment.Version.Major);
+            hashContents.Append(Environment.Version.Major.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             foreach (var assemblyPath in assemblyPaths)
             {

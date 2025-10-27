@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If symbol.Arity <> 0 Then
                     builder.Append("``")
-                    builder.Append(symbol.Arity)
+                    builder.Append(symbol.Arity.ToString(Globalization.CultureInfo.InvariantCulture))
                 End If
 
                 If symbol.Parameters.Any() Then
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(containingSymbol.Kind)
                 End If
 
-                builder.Append(symbol.Ordinal + ordinalOffset)
+                builder.Append((symbol.Ordinal + ordinalOffset).ToString(Globalization.CultureInfo.InvariantCulture))
 
                 Return Nothing
             End Function
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' (And return type, for conversions) as constructed with its own type parameters.
                     If Not _inParameterOrReturnType AndAlso TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.ConsiderEverything) Then
                         builder.Append(MetadataHelpers.GenericTypeNameManglingChar)
-                        builder.Append(symbol.Arity)
+                        builder.Append(symbol.Arity.ToString(Globalization.CultureInfo.InvariantCulture))
                     Else
                         builder.Append("{"c)
 

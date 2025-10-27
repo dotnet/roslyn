@@ -3194,9 +3194,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (23,14): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator -(C1 x)'.
+                // (23,14): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator -(C1 x)'.
                 //         _ = -x;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 extension(C1).operator -(C1 x)").WithLocation(23, 14)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 Extensions1.extension(C1).operator -(C1 x)").WithLocation(23, 14)
                 );
         }
 
@@ -3542,9 +3542,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (20,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool extension(C1).operator true(C1 x)'.
+                // (20,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool Extensions1.extension(C1).operator true(C1 x)'.
                 //         if (x)
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "bool extension(C1).operator true(C1 x)").WithLocation(20, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "bool Extensions1.extension(C1).operator true(C1 x)").WithLocation(20, 13)
                 );
         }
 
@@ -4181,7 +4181,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (11,35): error CS0023: Operator '!' cannot be applied to operand of type 'void*'
+                //     unsafe void* Test(void* x) => !x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}x").WithArguments(op, "void*").WithLocation(11, 35)
                 );
         }
 
@@ -4212,7 +4215,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,13): error CS0029: Cannot implicitly convert type 'void*' to 'bool'
+                //         if (x)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("void*", "bool").WithLocation(14, 13)
                 );
         }
 
@@ -6772,7 +6778,10 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
                 //     extension(dynamic x)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15),
+                // (20,14): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         c1 = ++c1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++c1").WithArguments("++", "C1").WithLocation(20, 14)
                 );
         }
 
@@ -8904,9 +8913,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (23,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator --(C1 x)'.
+                // (23,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator --(C1 x)'.
                 //         _ = --x;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 extension(C1).operator --(C1 x)").WithLocation(23, 15)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 Extensions1.extension(C1).operator --(C1 x)").WithLocation(23, 15)
                 );
         }
 
@@ -9364,9 +9373,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1)'.
+                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'Extensions1.extension(C1)'.
                 //         var x1 = --x;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "extension(C1)").WithLocation(27, 20),
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "Extensions1.extension(C1)").WithLocation(27, 20),
                 // (38,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(38, 9),
@@ -9566,9 +9575,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1Base)'.
+                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'Extensions1.extension(C1Base)'.
                 //         var x1 = --x;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "extension(C1Base)").WithLocation(27, 20),
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "Extensions1.extension(C1Base)").WithLocation(27, 20),
                 // (38,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(38, 9),
@@ -9610,9 +9619,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (19,20): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'extension(C2Base<string>)' due to differences in the nullability of reference types.
+                // (19,20): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'Extensions1.extension(C2Base<string>)' due to differences in the nullability of reference types.
                 //         var z1 = --z;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "extension(C2Base<string>)").WithLocation(19, 20)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "Extensions1.extension(C2Base<string>)").WithLocation(19, 20)
                 );
         }
 
@@ -17147,12 +17156,12 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator -(C1 x, C1 y)'.
                 //         _ = x1 - y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
-                // (26,17): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 Extensions1.extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
+                // (26,17): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 Extensions1.extension(C1).operator -(C1 x, C1 y)'.
                 //         y = y - x2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 17)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 Extensions1.extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 17)
                 );
         }
 
@@ -17708,15 +17717,15 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool extension(C1).operator false(C1 x)'.
+                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator &(C1 x, C1 y)'.
                 //         _ = x1 && y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool extension(C1).operator false(C1 x)").WithLocation(28, 13),
-                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator &(C1 x, C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 Extensions1.extension(C1).operator &(C1 x, C1 y)").WithLocation(28, 13),
+                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool Extensions1.extension(C1).operator false(C1 x)'.
                 //         _ = x1 && y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 extension(C1).operator &(C1 x, C1 y)").WithLocation(28, 13),
-                // (29,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 extension(C1).operator &(C1 x, C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool Extensions1.extension(C1).operator false(C1 x)").WithLocation(28, 13),
+                // (29,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 Extensions1.extension(C1).operator &(C1 x, C1 y)'.
                 //         y = y && x2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 extension(C1).operator &(C1 x, C1 y)").WithLocation(29, 18)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 Extensions1.extension(C1).operator &(C1 x, C1 y)").WithLocation(29, 18)
                 );
         }
 
@@ -19487,24 +19496,14 @@ public struct S1;
 
         [Theory]
         [CombinatorialData]
-        public void Binary_144_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_144_ERR_VoidError_ArithmeticAndBitwise([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
         {
-            string pairedOp = "";
-
-            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
-            {
-                pairedOp = $$$"""
-        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(void* x, S1 y) => throw null;
-""";
-            }
-
             var src = $$$"""
 unsafe public static class Extensions1
 {
     extension(void*)
     {
         public static void* operator {{{op}}}(void* x, S1 y) => x;
-{{{pairedOp}}}
     }
 }
 
@@ -19520,30 +19519,59 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,41): error CS0019: Operator '*' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void* Test(void* x, S1 y) => x * y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, "void*", "S1").WithLocation(13, 41),
+                // (13,41): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x, S1 y) => x * y;
+                Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y").WithLocation(13, 41)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void Binary_145_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_145_ERR_VoidError_Comparison([CombinatorialValues(">", "<", ">=", "<=", "==", "!=")] string op)
         {
-            string pairedOp = "";
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(void* x, S1 y) => x;
+        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(void* x, S1 y) => throw null;
+    }
+}
 
-            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
-            {
-                pairedOp = $$$"""
-        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, void* y) => throw null;
+public struct S1;
+
+class Program
+{
+    unsafe void* Test(void* x, S1 y) => x {{{op}}} y;
+}
 """;
-            }
 
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,41): error CS0019: Operator '>' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void* Test(void* x, S1 y) => x > y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, "void*", "S1").WithLocation(14, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_146_ERR_VoidError_ArithmeticAndBitwise([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
+        {
             var src = $$$"""
 unsafe public static class Extensions1
 {
     extension(void*)
     {
         public static void* operator {{{op}}}(S1 x, void* y) => y;
-{{{pairedOp}}}
     }
 }
 
@@ -19559,13 +19587,52 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,41): error CS0019: Operator '^' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void* Test(void* x, S1 y) => y ^ x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(13, 41),
+                // (13,41): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x, S1 y) => y ^ x;
+                Diagnostic(ErrorCode.ERR_VoidError, $"y {op} x").WithLocation(13, 41)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void Binary_146_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_147_ERR_VoidError_Comparison([CombinatorialValues(">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(S1 x, void* y) => y;
+        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, void* y) => throw null;
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe void* Test(void* x, S1 y) => y {{{op}}} x;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,41): error CS0019: Operator '&' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void* Test(void* x, S1 y) => y & x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(14, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_148_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19609,7 +19676,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_147_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_149_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19651,7 +19718,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_148_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_150_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19695,7 +19762,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_149_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_151_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19737,7 +19804,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_150_ERR_VoidError_Logical([CombinatorialValues("&&", "||")] string op)
+        public void Binary_152_ERR_VoidError_Logical([CombinatorialValues("&&", "||")] string op)
         {
             var src = $$$"""
 unsafe public static class Extensions1
@@ -19760,12 +19827,15 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,44): error CS0019: Operator '&&' cannot be applied to operands of type 'void*' and 'void*'
+                //     unsafe void* Test(void* x, void* y) => x && y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, "void*", "void*").WithLocation(13, 44)
                 );
         }
 
         [Fact]
-        public void Binary_151_Consumption_ErrorScenarioCandidates()
+        public void Binary_153_Consumption_ErrorScenarioCandidates()
         {
             var src = $$$"""
 public static class Extensions1
@@ -19813,7 +19883,7 @@ class Program
         }
 
         [Fact]
-        public void Binary_152_Consumption_ErrorScenarioCandidates()
+        public void Binary_154_Consumption_ErrorScenarioCandidates()
         {
             var src = $$$"""
 public static class Extensions1
@@ -22671,7 +22741,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
                 //     extension(dynamic x)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15),
+                // (20,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         c1 += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += 1").WithArguments("+=", "C1", "int").WithLocation(20, 9),
+                // (21,14): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         c1 = c1 += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += 1").WithArguments("+=", "C1", "int").WithLocation(21, 14)
                 );
         }
 
@@ -25695,12 +25771,12 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 Extensions1.extension(C1).operator -(C1 x, C1 y)'.
                 //         _ = x1 -= y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
-                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 Extensions1.extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
+                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 Extensions1.extension(C1).operator -(C1 x, C1 y)'.
                 //         y = y -= x2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 18)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 Extensions1.extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 18)
                 );
         }
 
@@ -26053,12 +26129,12 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1)'.
+                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'Extensions1.extension(C1)'.
                 //         _ = x1 -= y;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "extension(C1)").WithLocation(25, 13),
-                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'void extension(C1).operator -=(C1 y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "Extensions1.extension(C1)").WithLocation(25, 13),
+                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'void Extensions1.extension(C1).operator -=(C1 y)'.
                 //         y = y -= x2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "void extension(C1).operator -=(C1 y)").WithLocation(26, 18)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "void Extensions1.extension(C1).operator -=(C1 y)").WithLocation(26, 18)
                 );
         }
 
@@ -26252,9 +26328,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,18): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1Base)'.
+                // (27,18): warning CS8604: Possible null reference argument for parameter 'x' in 'Extensions1.extension(C1Base)'.
                 //         var x1 = x -= 1;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "extension(C1Base)").WithLocation(27, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "Extensions1.extension(C1Base)").WithLocation(27, 18),
                 // (38,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(38, 9),
@@ -26296,9 +26372,9 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (19,18): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'extension(C2Base<string>)' due to differences in the nullability of reference types.
+                // (19,18): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'Extensions1.extension(C2Base<string>)' due to differences in the nullability of reference types.
                 //         var z1 = z -= 1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "extension(C2Base<string>)").WithLocation(19, 18)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "Extensions1.extension(C2Base<string>)").WithLocation(19, 18)
                 );
         }
 
@@ -26997,7 +27073,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,40): error CS0019: Operator '>>=' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void Test(void* x, S1 y) => x >>= y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op}= y").WithArguments($"{op}=", "void*", "S1").WithLocation(13, 40)
                 );
         }
 
@@ -27026,7 +27105,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,40): error CS0019: Operator '^=' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void Test(void* x, S1 y) => y ^= x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op}= x").WithArguments($"{op}=", "S1", "void*").WithLocation(13, 40)
                 );
         }
 
@@ -27184,7 +27266,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,19): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(ref void* x)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 19)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 19),
+                // (13,40): error CS0019: Operator '<<=' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void Test(void* x, S1 y) => x <<= y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op}= y").WithArguments($"{op}=", "void*", "S1").WithLocation(13, 40)
                 );
         }
 

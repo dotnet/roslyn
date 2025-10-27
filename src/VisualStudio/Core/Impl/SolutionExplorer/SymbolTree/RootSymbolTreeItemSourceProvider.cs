@@ -179,26 +179,24 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
         }
 
-        var hierarchy = item.HierarchyIdentity.NestedHierarchy;
-        var itemId = item.HierarchyIdentity.NestedItemID;
-
-        if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) != VSConstants.S_OK ||
-            capabilitiesObj is not string capabilities)
-        {
-            return null;
-        }
-
-        if (!capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.SourceFile)) ||
-            !capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.FileOnDisk)))
-        {
-            return null;
-        }
-
         // Important: currentFilePath is mutable state captured *AND UPDATED* in the local function  
         // OnItemPropertyChanged below.  It allows us to know the file path of the item *prior* to
-        // it being changed *when* we hear the update about it having changed (since hte event doesn't
+        // it being changed *when* we hear the update about it having changed (since the event doesn't
         // contain the old value).  
         if (item.CanonicalName is not string currentFilePath)
+            return null;
+
+        if (item.HierarchyIdentity.NestedHierarchy.GetGuidProperty(
+                item.HierarchyIdentity.ItemID,
+                (int)__VSHPROPID.VSHPROPID_TypeGuid,
+                out var guid) != VSConstants.S_OK)
+        {
+            return null;
+        }
+
+        // We only support this for real files that we'll then have Roslyn Documents for.  All the other
+        // things in a project (like folders, nested projects, etc) are not supported.
+        if (guid != VSConstants.ItemTypeGuid.PhysicalFile_guid)
             return null;
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);

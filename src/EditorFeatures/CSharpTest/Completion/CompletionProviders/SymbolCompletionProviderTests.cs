@@ -13621,4 +13621,47 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
     public static IEnumerable<object[]> ValidEnumUnderlyingTypeNames()
         => [["Byte"], ["SByte"], ["Int16"], ["UInt16"], ["Int32"], ["UInt32"], ["Int64"], ["UInt64"]];
+
+    [Theory, CombinatorialData]
+    public Task CompletionInObjectCreationContextForTypeWithNestedTypes(
+        [CombinatorialValues(".", ";")] char commitChar,
+        [CombinatorialValues("public", "private", "internal", "")] string modifier)
+    {
+        // always add "()" if committed via ";", or when nested types are inaccessible if via "."
+        var parens = commitChar is ';'
+            ? "()"
+            : modifier is "private" or ""
+                ? "()"
+                : "";
+
+        return VerifyProviderCommitAsync($$"""
+            class Program
+            {
+                void M()
+                {
+                    var a = new Ba$$
+                }
+            }
+
+            class Bar
+            {
+                {{modifier}} class Foo1 { }
+                class Foo2 { }
+            }
+            """, "Bar", $$"""
+            class Program
+            {
+                void M()
+                {
+                    var a = new Bar{{parens}}{{commitChar}}
+                }
+            }
+
+            class Bar
+            {
+                {{modifier}} class Foo1 { }
+                class Foo2 { }
+            }
+            """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+    }
 }

@@ -11327,7 +11327,7 @@ enum D : sbyte {3}",
             for (int i = 0; i < count; i++)
             {
                 builder.Append(prefix);
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 if ((i == 0) && (initialValue != null))
                 {
                     builder.AppendFormat(" = {0}", initialValue.Value);
@@ -13782,9 +13782,9 @@ class Test
 }
 ")
                 .VerifyDiagnostics(
-                    // (7,17): error CS1061: 'int' does not contain a definition for 'Select' and no extension method 'Select' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                    // (7,19): error CS0411: The type arguments for method 'Queryable.Select<TSource, TResult>(IQueryable<TSource>, Expression<Func<TSource, TResult>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                     //         var q = 1.Select(z => z);
-                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Select").WithArguments("int", "Select").WithLocation(7, 19));
+                    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Select").WithArguments("System.Linq.Queryable.Select<TSource, TResult>(System.Linq.IQueryable<TSource>, System.Linq.Expressions.Expression<System.Func<TSource, TResult>>)").WithLocation(7, 19));
         }
 
         [Fact]
@@ -13803,10 +13803,12 @@ static class C
     static void M2<T>(this I<T> o, params object[] args) { }
 }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (6,9): error CS1501: No overload for method 'M1' takes 2 arguments
+                // (6,11): error CS1501: No overload for method 'M1' takes 2 arguments
+                //         o.M1(o, o);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "2").WithLocation(6, 11),
-                // (7,9): error CS1061: 'object' does not contain a definition for 'M2' and no extension method 'M2' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("object", "M2").WithLocation(7, 11));
+                // (7,11): error CS0411: The type arguments for method 'C.M2<T>(I<T>, params object[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         o.M2(o, o);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("C.M2<T>(I<T>, params object[])").WithLocation(7, 11));
         }
 
         [Fact]

@@ -483,7 +483,7 @@ public class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
-            Assert.Equal("C C.op_Implicit(System.Func<System.Int32> intDelegate)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());  // Unexpected: Should be null
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
             var conversion = model.GetConversion(memberAccess);
             Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind); // Unexpected: Should be NoConversion or possibly Identity for error case
             Assert.Equal(ConversionKind.MethodGroup, conversion.UserDefinedFromConversion.Kind);
@@ -554,7 +554,7 @@ public class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
-            Assert.Equal("C C.op_Implicit(System.Func<System.Int32> intDelegate)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());  // Unexpected: Should be null
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
             var conversion = model.GetConversion(memberAccess);
             Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind); // Unexpected: Should be NoConversion or possibly Identity for error case
             Assert.Equal(ConversionKind.MethodGroup, conversion.UserDefinedFromConversion.Kind);

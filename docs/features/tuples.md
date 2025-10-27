@@ -75,7 +75,7 @@ var t1 = new (int sum, int count) (0, 1);
 var t2 = new (int sum, int count) { sum = 0, count = 0 };
 var t3 = new (int, int) (0, 1);     // field names are optional    
 ```
-Note that specifying field names is optional, however when names are provided, all fields must be named. Duplicate names are disallowed.
+Note that specifying field names is optional; however, when names are provided, all fields must be named. Duplicate names are disallowed.
 
 Tuple literals
 --------------
@@ -99,7 +99,7 @@ Note that specifying field names is optional, however when names are provided, a
 
 
 ```C#
-var t1 = (sum: 0, 1);		// error! some fields are named some are not.
+var t1 = (sum: 0, 1);		// error! Some fields are named, some are not.
 var t2 = (sum: 0, sum: 1);	// error! duplicate names.
 ```
 

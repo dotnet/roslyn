@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
             }
 
             Debug.Assert(number >= 0);
-            return (number < numerals.Length) ? numerals[number] : number.ToString();
+            return (number < numerals.Length) ? numerals[number] : number.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
         public static string Join(this IEnumerable<string?> source, string separator)

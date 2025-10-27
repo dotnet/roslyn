@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 if (submissionSlotIndex >= 0)
                 {
-                    name += submissionSlotIndex.ToString();
+                    name += submissionSlotIndex.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 }
 
                 if (moduleBuilder.CurrentGenerationOrdinal > 0)
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal sealed class InstrumentationPayloadRootField : SynthesizedStaticField
     {
         internal InstrumentationPayloadRootField(Cci.INamedTypeDefinition containingType, int analysisIndex, Cci.ITypeReference payloadType)
-            : base("PayloadRoot" + analysisIndex.ToString(), containingType, payloadType)
+            : base("PayloadRoot" + analysisIndex.ToString(System.Globalization.CultureInfo.InvariantCulture), containingType, payloadType)
         {
         }
 

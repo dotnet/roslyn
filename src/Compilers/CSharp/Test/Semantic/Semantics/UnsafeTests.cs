@@ -14298,5 +14298,81 @@ class PointerImpl : IPointerTest
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 55)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Field_RequiresUnsafeContext()
+        {
+            var code = """
+                class C<T>
+                {
+                    C<int*[]> field;
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     C<int*[]> field;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 7),
+                // (3,15): warning CS0169: The field 'C<T>.field' is never used
+                //     C<int*[]> field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(3, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Field_UnsafeModifierRemovesUnsafeNeededError()
+        {
+            var code = """
+                unsafe class C<T>
+                {
+                    C<int*[]> field;
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,15): warning CS0169: The field 'C<T>.field' is never used
+                //     C<int*[]> field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(3, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Variable_RequiresUnsafeContext()
+        {
+            var code = """
+                class C<T>
+                {
+                    void M()
+                    {
+                        C<int*[]> c = null;
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         C<int*[]> c = null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 11),
+                // (5,19): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         C<int*[]> c = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(5, 19));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Variable_UnsafeModifierRemovesUnsafeNeededError()
+        {
+            var code = """
+                unsafe class C<T>
+                {
+                    void M()
+                    {
+                        C<int*[]> c = null;
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,19): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         C<int*[]> c = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(5, 19));
+        }
     }
 }
