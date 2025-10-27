@@ -47,7 +47,7 @@ internal sealed class AppDirectiveDiagnosticAnalyzer : DiagnosticAnalyzer
             // App directives are only valid when they appear before the first C# token
             var rootLeadingTrivia = root.GetLeadingTrivia();
             var diagnosticBag = DiagnosticBag.Collect(out var diagnosticsBuilder);
-            AppDirectiveHelpers.FindLeadingDirectives(
+            FileLevelDirectiveHelpers.FindLeadingDirectives(
                 new SourceFile(tree.FilePath, tree.GetText(context.CancellationToken)),
                 root.GetLeadingTrivia(),
                 diagnosticBag,
