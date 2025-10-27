@@ -2288,6 +2288,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lambdaOrMethod.Name,
                     targetType);
             }
+
+            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, thisParameter))
             {
                 SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                     delegateMethod,
