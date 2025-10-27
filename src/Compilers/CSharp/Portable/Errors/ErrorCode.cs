@@ -2436,6 +2436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_BadVisBaseType = 9338,
         ERR_AmbigExtension = 9339,
+        ERR_RefSafetyInDelegateConversion = 9340,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

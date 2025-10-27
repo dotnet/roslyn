@@ -8171,4 +8171,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AmbigExtension" xml:space="preserve">
     <value>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
+  <data name="ERR_RefSafetyInDelegateConversion" xml:space="preserve">
+    <value>Cannot convert method group '{0}' to delegate type '{1}' due to mismatched ref safety requirements between the method and delegate.</value>
+  </data>
 </root>

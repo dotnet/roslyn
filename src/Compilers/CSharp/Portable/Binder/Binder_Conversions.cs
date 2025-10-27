@@ -2279,11 +2279,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ref-safety holes across old and new rule boundaries.
             if (delegateMethod?.OriginalDefinition is SynthesizedDelegateInvokeMethod &&
                 delegateMethod.UseUpdatedEscapeRules != lambdaOrMethod.UseUpdatedEscapeRules &&
+                // Only check methods that could cause ref-safety violations: those that return ref structs,
+                // have ref/out parameters of ref struct type, or similar complex signatures.
                 SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, thisParameter))
             {
-                // Report error when the method returns a ref struct or has ref/out parameters,
-                // as this can create ref-safety violations
-                diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, syntax.Location,
+                diagnostics.Add(ErrorCode.ERR_RefSafetyInDelegateConversion, syntax.Location,
                     lambdaOrMethod.Name,
                     targetType);
             }
