@@ -2530,6 +2530,7 @@
            Right.InputType is the Left.NarrowedType 
   -->
   <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true" SkipInNullabilityRewriter="true">
+    <!-- When true, denotes an 'or' pattern. When false, denotes an 'and' pattern. -->
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>
