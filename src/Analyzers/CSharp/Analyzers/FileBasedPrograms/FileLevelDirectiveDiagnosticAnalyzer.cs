@@ -1,34 +1,42 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeQuality;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.DotNet.FileBasedPrograms;
 
 namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class FileLevelDirectiveDiagnosticAnalyzer : DiagnosticAnalyzer
+internal sealed class FileLevelDirectiveDiagnosticAnalyzer()
+    : AbstractCodeQualityDiagnosticAnalyzer(
+        descriptors: [Rule],
+        generatedCodeAnalysisFlags: GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)
 {
     public const string DiagnosticId = "FileBasedPrograms";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-        DiagnosticId,
-        title: DiagnosticId,
-        // TODO: we probably want to have a different diagnostic for each kind that the SDK package can produce
-        messageFormat: "{0}",
-        category: "Usage",
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+#pragma warning disable RS0030 // Do not use banned APIs
+    // We would use 'AbstractCodeQualityDiagnosticAnalyzer.CreateDescriptor()', but, we want these diagnostics to have error severity.
+    private static readonly DiagnosticDescriptor Rule = new(
+                id: DiagnosticId,
+                title: DiagnosticId,
+                messageFormat: "{0}",
+                category: "Usage",
+                defaultSeverity: DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                helpLinkUri: "https://learn.microsoft.com/dotnet/csharp/language-reference/preprocessor-directives#file-based-apps",
+                // Note that this is an "editor-only" analyzer.
+                // When building or running file-based apps, the dotnet cli uses its own process to report errors on file-level directives.
+                customTags: DiagnosticCustomTags.Create(isUnnecessary: false, isConfigurable: false, isCustomConfigurable: false, enforceOnBuild: EnforceOnBuild.Never));
+#pragma warning restore RS0030 // Do not use banned APIs
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-    public override void Initialize(AnalysisContext context)
+    protected override void InitializeWorker(AnalysisContext context)
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-
         context.RegisterCompilationStartAction(context =>
         {
             context.RegisterSyntaxTreeAction(visitSyntaxTree);
@@ -59,13 +67,11 @@ internal sealed class FileLevelDirectiveDiagnosticAnalyzer : DiagnosticAnalyzer
             }
 
             // The compiler already reports an error on all the directives past the first token in the file.
+            // Therefore, the analyzer only deals with the directives on the first token.
             //     Console.WriteLine("Hello World!");
             //     #:property foo=bar // error CS9297: '#:' directives cannot be after first token in file
         }
 
-        // TODO: should SimpleDiagnostics have IDs? message args? TextSpan?
-        // It feels unreasonable for users to suppress these.
-        // When these are present, the user cannot build/run, period.
         Diagnostic createDiagnostic(SyntaxTree syntaxTree, SimpleDiagnostic simpleDiagnostic)
         {
             return Diagnostic.Create(
