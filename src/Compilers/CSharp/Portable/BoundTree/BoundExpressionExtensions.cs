@@ -139,6 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var delegateType = expr.GetFunctionType()?.GetInternalDelegateType();
             delegateType?.AddUseSiteInfo(ref useSiteInfo);
 
+            // Report bad or missing System.Runtime.InteropServices.InAttribute for a 'ref readonly' returning delegate
+            // unless the delegate type is inferred from a lambda or a local fuction. In those cases the check is performed
+            // while binding the lambda or local function declaration.
             if (expr is BoundMethodGroup { Methods: not [{ MethodKind: MethodKind.LocalFunction }] } &&
                 delegateType is { DelegateInvokeMethod.OriginalDefinition: SynthesizedDelegateInvokeMethod { RefKind: RefKind.RefReadOnly } })
             {
