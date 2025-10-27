@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _currentDisposalLabel = finallyEntry;
 
                 // When there are no catch blocks, we can place the finallyEntry label at the end
-                // of the try block (original behavior). But when there are catch blocks, we must
+                // of the try block. But when there are catch blocks, we must
                 // place it after the entire try-catch-finally structure to avoid invalid IL
                 // (leaving from a catch block into a try block).
                 if (!hasCatchBlocks)
