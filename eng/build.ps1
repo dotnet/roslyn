@@ -397,7 +397,7 @@ function TestUsingRunTests() {
   }
 
   if ($testRuntimeAsync) {
-    $env:DOTNET_RuntimeAsync = "1"
+    $env:DOTNET_RuntimeAsync = 1
   }
 
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net9.0"
