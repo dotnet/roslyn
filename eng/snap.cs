@@ -20,6 +20,8 @@
 using System.Collections.Concurrent;
 using System.CommandLine;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
@@ -154,16 +156,16 @@ var sourceBranchName = console.Prompt(TextPrompt<string>.Create("Source branch",
 
 // Find Roslyn version number.
 var sourceVersionsProps = await VersionsProps.LoadAsync(httpClient, sourceRepoShort, sourceBranchName);
-console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] has version [teal]{sourceVersionsProps?.ToString() ?? "N/A"}[/]");
+console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] has version [teal]{sourceVersionsProps?.Data.ToString() ?? "N/A"}[/]");
 
 string? suggestedTargetBranchName = null;
 
 // From the version number, infer the VS version it inserts to.
-if (sourceVersionsProps != null)
+if (sourceVersionsProps is { Data: { } data })
 {
     // Roslyn 4.x corresponds to VS 17.x and so on.
-    var vsMajorVersion = sourceVersionsProps.MajorVersion + 13;
-    suggestedTargetBranchName = $"release/dev{vsMajorVersion}.{sourceVersionsProps.MinorVersion}";
+    var vsMajorVersion = data.MajorVersion + 13;
+    suggestedTargetBranchName = $"release/dev{vsMajorVersion}.{data.MinorVersion}";
 }
 
 var targetBranchName = console.Prompt(TextPrompt<string>.Create("Target branch",
@@ -171,7 +173,7 @@ var targetBranchName = console.Prompt(TextPrompt<string>.Create("Target branch",
 
 // Find Roslyn version number.
 var targetVersionsProps = await VersionsProps.LoadAsync(httpClient, sourceRepoShort, targetBranchName);
-console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] has version [teal]{targetVersionsProps?.ToString() ?? "N/A"}[/]");
+console.MarkupLineInterpolated($"Branch [teal]{targetBranchName}[/] has version [teal]{targetVersionsProps?.Data.ToString() ?? "N/A"}[/]");
 
 // Find which VS the branches insert to.
 var sourcePublishDataTask = PublishData.LoadAsync(httpClient, gitHub, sourceBranchName);
@@ -194,6 +196,8 @@ var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After s
 var sourceVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
 var sourceVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{sourceBranchName}[/]?",
     defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData.Data?.BranchInfo.InsertionTitlePrefix));
+var sourceVersionAfterSnap = console.Prompt(TextPrompt<VersionsProps>.CreateExt($"After snap, [teal]{sourceBranchName}[/] should have version",
+    defaultValueIfNotNull: sourceVersionsProps?.Data.WithIncrementedMinor()));
 var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to",
     defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
 var targetVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
@@ -548,7 +552,7 @@ actions.Add($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBra
     }
 });
 
-// Change PublishData.json.
+// Change PublishData.json, Versions.props.
 // Needs to be done after the merge which would create the target branch if it doesn't exist yet.
 var sourcePublishDataAfterSnap = sourcePublishData.WithBranchInfo(new(
     VsBranch: sourceVsBranchAfterSnap,
@@ -560,6 +564,7 @@ var targetPublishDataAfterSnap = targetPublishData.WithBranchInfo(new(
     InsertionTitlePrefix: targetVsPrefixAfterSnap,
     InsertionCreateDraftPR: targetVsAsDraftAfterSnap));
 targetPublishDataAfterSnap.PushOrOpenPrIfNeeded(actions, targetPublishData, snapBranchName);
+sourceVersionAfterSnap.PushOrOpenPrIfNeeded(gitHub, actions, sourceBranchName, sourceVersionsProps);
 
 // Perform actions.
 console.WriteLine();
@@ -653,6 +658,9 @@ file sealed class PublishData(
     string branchName,
     PublishDataJson? data)
 {
+    private const string FileName = "PublishData.json";
+    private const string FilePath = $"eng/config/{FileName}";
+
     public string RepoOwnerAndName => gitHub.RepoOwnerAndName;
     public string BranchName => branchName;
     public PublishDataJson? Data => data;
@@ -669,8 +677,8 @@ file sealed class PublishData(
     {
         try
         {
-            var data = await httpClient.GetFromJsonAsync<PublishDataJson>($"https://raw.githubusercontent.com/{gitHub.RepoOwnerAndName}/{branchName}/eng/config/PublishData.json")
-                ?? throw new InvalidOperationException("Null PublishData.json");
+            var data = await httpClient.GetFromJsonAsync<PublishDataJson>($"https://raw.githubusercontent.com/{gitHub.RepoOwnerAndName}/{branchName}/{FilePath}")
+                ?? throw new InvalidOperationException($"Null {FileName}");
             return new PublishData(gitHub, branchName, data);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -679,7 +687,7 @@ file sealed class PublishData(
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Cannot load PublishData.json from '{gitHub.RepoOwnerAndName}' branch '{branchName}'", ex);
+            throw new InvalidOperationException($"Cannot load {FileName} from '{gitHub.RepoOwnerAndName}' branch '{branchName}'", ex);
         }
     }
 
@@ -697,17 +705,17 @@ file sealed class PublishData(
 
         if (this.Equals(original))
         {
-            console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{BranchName}[/] PublishData.json already up to date");
+            console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{BranchName}[/] {FileName} already up to date");
             return;
         }
 
         Debug.Assert(data != null);
         Debug.Assert(!data.Equals(original?.Data));
 
-        var title = $"Update [teal]{BranchName}[/] PublishData.json";
+        var title = $"Update [teal]{BranchName}[/] {FileName}";
         actions.Add(title, async () =>
         {
-            var prTitle = "Update PublishData.json";
+            var prTitle = $"Update {FileName}";
             updateBranchName ??= $"snap-publish-data-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
 
             var updateBranchExists = await gitHub.DoesBranchExistAsync(updateBranchName);
@@ -721,7 +729,7 @@ file sealed class PublishData(
 
             // Obtain SHA of the file (needed for the update API call).
             var fileSha = (await Cli.Wrap("gh")
-                .WithArguments(["api", "-X", "GET", $"repos/{RepoOwnerAndName}/contents/eng/config/PublishData.json",
+                .WithArguments(["api", "-X", "GET", $"repos/{RepoOwnerAndName}/contents/{FilePath}",
                     "--field", $"ref=refs/heads/{updateBranchName}"])
                 .ExecuteBufferedAsync(logger))
                 .StandardOutput
@@ -734,7 +742,7 @@ file sealed class PublishData(
             // Apply changes.
             var serialized = data.ToJson();
             await Cli.Wrap("gh")
-                .WithArguments(["api", "-X", "PUT", $"repos/{RepoOwnerAndName}/contents/eng/config/PublishData.json",
+                .WithArguments(["api", "-X", "PUT", $"repos/{RepoOwnerAndName}/contents/{FilePath}",
                     "--field", $"message={prTitle}",
                     "--field", $"branch={updateBranchName}",
                     "--field", $"sha={fileSha}",
@@ -791,15 +799,21 @@ file sealed record VersionsProps(
     int MinorVersion,
     int PatchVersion,
     string PreReleaseVersionLabel)
+    : IParsable<VersionsProps>
 {
+    private const string FileName = "Versions.props";
+    private const string FilePath = $"eng/{FileName}";
+
+    public XmlDocument? Document { get; init; }
+
     /// <returns>
     /// <see langword="null"/> if the repo or branch does not exist.
     /// </returns>
-    public static async Task<VersionsProps?> LoadAsync(HttpClient httpClient, string repoOwnerAndName, string branchName)
+    public static async Task<(VersionsProps Data, XmlDocument Document)?> LoadAsync(HttpClient httpClient, string repoOwnerAndName, string branchName)
     {
         try
         {
-            var xml = await httpClient.GetAsXmlDocumentAsync($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/eng/Versions.props");
+            var xml = await httpClient.GetAsXmlDocumentAsync($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/{FilePath}");
 
             var majorVersion = int.Parse(xml.SelectSingleNode("//MajorVersion")?.InnerText
                 ?? throw new InvalidOperationException("MajorVersion not found"));
@@ -810,7 +824,7 @@ file sealed record VersionsProps(
             var preReleaseVersionLabel = xml.SelectSingleNode("//PreReleaseVersionLabel")?.InnerText
                 ?? throw new InvalidOperationException("PreReleaseVersionLabel not found");
 
-            return new VersionsProps(majorVersion, minorVersion, patchVersion, preReleaseVersionLabel);
+            return (new VersionsProps(majorVersion, minorVersion, patchVersion, preReleaseVersionLabel), xml);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -818,11 +832,143 @@ file sealed record VersionsProps(
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Cannot load Versions.props from '{repoOwnerAndName}' branch '{branchName}'", ex);
+            throw new InvalidOperationException($"Cannot load {FileName} from '{repoOwnerAndName}' branch '{branchName}'", ex);
         }
     }
 
+    public static VersionsProps Parse(string s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var versionsProps))
+        {
+            return versionsProps;
+        }
+
+        throw new FormatException($"Cannot parse {nameof(VersionsProps)} from '{s}'");
+    }
+
+    public static bool TryParse([NotNullWhen(returnValue: true)] string? s, IFormatProvider? provider, [MaybeNullWhen(returnValue: false)] out VersionsProps versionsProps)
+    {
+        versionsProps = null;
+
+        if (s is null)
+        {
+            return false;
+        }
+
+        var parts = s.Split('-', 2);
+        var versionParts = parts[0].Split('.', 3);
+        if (versionParts.Length != 3)
+        {
+            return false;
+        }
+
+        if (!int.TryParse(versionParts[0], out var majorVersion))
+        {
+            return false;
+        }
+
+        if (!int.TryParse(versionParts[1], out var minorVersion))
+        {
+            return false;
+        }
+
+        if (!int.TryParse(versionParts[2], out var patchVersion))
+        {
+            return false;
+        }
+
+        var preReleaseVersionLabel = parts.Length == 2 ? parts[1] : string.Empty;
+
+        versionsProps = new VersionsProps(majorVersion, minorVersion, patchVersion, preReleaseVersionLabel);
+        return true;
+    }
+
     public override string ToString() => $"{MajorVersion}.{MinorVersion}.{PatchVersion}-{PreReleaseVersionLabel}";
+
+    public VersionsProps WithIncrementedMinor() => this with { MinorVersion = MinorVersion + 1 };
+
+    public void SaveTo(XmlDocument xml)
+    {
+        xml.SelectSingleNode("//MajorVersion")!.InnerText = MajorVersion.ToString(CultureInfo.InvariantCulture);
+        xml.SelectSingleNode("//MinorVersion")!.InnerText = MinorVersion.ToString(CultureInfo.InvariantCulture);
+        xml.SelectSingleNode("//PatchVersion")!.InnerText = PatchVersion.ToString(CultureInfo.InvariantCulture);
+        xml.SelectSingleNode("//PreReleaseVersionLabel")!.InnerText = PreReleaseVersionLabel;
+    }
+
+    public void PushOrOpenPrIfNeeded(GitHubUtil gitHub, ActionList actions, string branchName, (VersionsProps Data, XmlDocument Document)? original, string? updateBranchName = null)
+    {
+        var logger = gitHub.Logger;
+        var console = actions.Console;
+
+        var xml = (XmlDocument?)original?.Document.CloneNode(deep: true);
+        if (xml is null)
+        {
+            console.MarkupLineInterpolated($"[yellow]Warning:[/] Cannot update [teal]{branchName}[/] {FileName} as original XML document is missing");
+            return;
+        }
+
+        if (this.Equals(original))
+        {
+            console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{branchName}[/] {FileName} already up to date");
+            return;
+        }
+
+        var title = $"Update [teal]{branchName}[/] {FileName}";
+        actions.Add(title, async () =>
+        {
+            var prTitle = $"Update {FileName}";
+            updateBranchName ??= $"snap-versions-props-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+
+            var updateBranchExists = await gitHub.DoesBranchExistAsync(updateBranchName);
+
+            // Create a branch for the PR.
+            if (!updateBranchExists)
+            {
+                var baseBranchHead = await gitHub.GetBranchHeadAsync(branchName);
+                await gitHub.CreateBranchAsync(updateBranchName, baseBranchHead);
+            }
+
+            // Obtain SHA of the file (needed for the update API call).
+            var fileSha = (await Cli.Wrap("gh")
+                .WithArguments(["api", "-X", "GET", $"repos/{gitHub.RepoOwnerAndName}/contents/{FilePath}",
+                    "--field", $"ref=refs/heads/{updateBranchName}"])
+                .ExecuteBufferedAsync(logger))
+                .StandardOutput
+                .Trim()
+                .ParseJson<JsonElement>()
+                .GetProperty("sha")
+                .GetString()
+                ?? throw new InvalidOperationException("Null file SHA");
+
+            // Apply changes.
+            this.SaveTo(xml);
+            await Cli.Wrap("gh")
+                .WithArguments(["api", "-X", "PUT", $"repos/{gitHub.RepoOwnerAndName}/contents/{FilePath}",
+                    "--field", $"message={prTitle}",
+                    "--field", $"branch={updateBranchName}",
+                    "--field", $"sha={fileSha}",
+                    "--field", $"content={Convert.ToBase64String(Encoding.UTF8.GetBytes(xml.OuterXml))}"])
+                .ExecuteBufferedAsync(logger);
+
+            // Open the PR (unless the branch already exists - then this is part of already-opened snap PR).
+            if (!updateBranchExists)
+            {
+                var createPrResult = await Cli.Wrap("gh")
+                    .WithArguments(["pr", "create",
+                        "--title", prTitle,
+                        "--body", "Auto-generated by snap script.",
+                        "--head", updateBranchName,
+                        "--base", branchName,
+                        "--repo", gitHub.RepoOwnerAndName])
+                    .ExecuteBufferedAsync(logger);
+                console.WriteLine(createPrResult.StandardOutput.Trim());
+            }
+            else
+            {
+                console.MarkupLineInterpolated($"[green]Note:[/] Pushed to [teal]{updateBranchName}[/].");
+            }
+        });
+    }
 }
 
 file sealed record VsVersion(int Major, int Minor)
@@ -919,7 +1065,7 @@ file static class Extensions
         public async Task<XmlDocument> GetAsXmlDocumentAsync(string requestUri)
         {
             using var stream = await httpClient.GetStreamAsync(requestUri);
-            var doc = new XmlDocument();
+            var doc = new XmlDocument { PreserveWhitespace = true };
             doc.Load(stream);
             return doc;
         }
@@ -1014,6 +1160,16 @@ file static class Extensions
     extension<T>(TextPrompt<T>) where T : struct
     {
         public static TextPrompt<T> Create(string text, T? defaultValueIfNotNull)
+        {
+            return defaultValueIfNotNull is { } v
+                ? TextPrompt<T>.Create(text, defaultValue: v)
+                : new TextPrompt<T>($"{text}:");
+        }
+    }
+
+    extension<T>(TextPrompt<T>) where T : class
+    {
+        public static TextPrompt<T> CreateExt(string text, T? defaultValueIfNotNull)
         {
             return defaultValueIfNotNull is { } v
                 ? TextPrompt<T>.Create(text, defaultValue: v)
