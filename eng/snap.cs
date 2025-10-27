@@ -662,10 +662,9 @@ file sealed class GitHubUtil(
         return new Commit(sha);
     }
 
-    public void PushOrOpenPrToUpdateFile(ActionList actions, string branchName, string filePath, string fileName, string updateBranchName, Func<Task<byte[]>> bytes, string prTitle)
+    public void PushOrOpenPrToUpdateFile(ActionList actions, string title, string branchName, string updateBranchName, Func<IAsyncEnumerable<(string FilePath, byte[] Bytes)>> files, string prTitle)
     {
         var console = actions.Console;
-        var title = $"Update [teal]{branchName}[/] {fileName}";
         actions.Add(title, async () =>
         {
             var updateBranchExists = await DoesBranchExistAsync(updateBranchName);
@@ -677,40 +676,43 @@ file sealed class GitHubUtil(
                 await CreateBranchAsync(updateBranchName, baseBranchHead);
             }
 
-            // Obtain SHA of the file (needed for the update API call).
-            var fileSha = (await Cli.Wrap("gh")
-                .WithArguments(["api", "-X", "GET", $"repos/{RepoOwnerAndName}/contents/{filePath}",
-                    "--field", $"ref=refs/heads/{updateBranchName}"])
-                .ExecuteBufferedAsync(logger))
-                .StandardOutput
-                .Trim()
-                .ParseJson<JsonElement>()
-                .GetProperty("sha")
-                .GetString()
-                ?? throw new InvalidOperationException("Null file SHA");
+            await foreach (var (filePath, bytes) in files())
+            {
+                // Obtain SHA of the file (needed for the update API call).
+                var fileSha = (await Cli.Wrap("gh")
+                    .WithArguments(["api", "-X", "GET", $"repos/{RepoOwnerAndName}/contents/{filePath}",
+                        "--field", $"ref=refs/heads/{updateBranchName}"])
+                    .ExecuteBufferedAsync(logger))
+                    .StandardOutput
+                    .Trim()
+                    .ParseJson<JsonElement>()
+                    .GetProperty("sha")
+                    .GetString()
+                    ?? throw new InvalidOperationException("Null file SHA");
 
-            // Apply changes. Write to temp file to avoid issues with large content on command line.
-            var tempFilePath = Path.GetTempFileName();
-            try
-            {
-                await File.WriteAllTextAsync(tempFilePath, Convert.ToBase64String(await bytes()));
-                await Cli.Wrap("gh")
-                    .WithArguments(["api", "-X", "PUT", $"repos/{RepoOwnerAndName}/contents/{filePath}",
-                        "--field", $"message=Update {fileName}",
-                        "--field", $"branch={updateBranchName}",
-                        "--field", $"sha={fileSha}",
-                        "--field", $"content=@{tempFilePath}"])
-                    .ExecuteBufferedAsync(logger);
-            }
-            finally
-            {
+                // Apply changes. Write to temp file to avoid issues with large content on command line.
+                var tempFilePath = Path.GetTempFileName();
                 try
                 {
-                    File.Delete(tempFilePath);
+                    await File.WriteAllTextAsync(tempFilePath, Convert.ToBase64String(bytes));
+                    await Cli.Wrap("gh")
+                        .WithArguments(["api", "-X", "PUT", $"repos/{RepoOwnerAndName}/contents/{filePath}",
+                            "--field", $"message=Update {Path.GetFileName(filePath)}",
+                            "--field", $"branch={updateBranchName}",
+                            "--field", $"sha={fileSha}",
+                            "--field", $"content=@{tempFilePath}"])
+                        .ExecuteBufferedAsync(logger);
                 }
-                catch (Exception ex)
+                finally
                 {
-                    logger.Log($"Failed to delete temp file '{tempFilePath}': {ex}");
+                    try
+                    {
+                        File.Delete(tempFilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Log($"Failed to delete temp file '{tempFilePath}': {ex}");
+                    }
                 }
             }
 
@@ -795,12 +797,16 @@ file sealed class PublishData(
 
         gitHub.PushOrOpenPrToUpdateFile(
             actions,
+            title: $"Update [teal]{BranchName}[/] {FileName}",
             branchName: branchName,
-            filePath: FilePath,
-            fileName: FileName,
             updateBranchName: updateBranchName,
-            bytes: () => Task.FromResult(Encoding.UTF8.GetBytes(data.ToJson())),
+            files: () => GetFilesAsync(data),
             prTitle: GitHubUtil.UpdateConfigsPrTitle);
+    }
+
+    private static async IAsyncEnumerable<(string FilePath, byte[] Bytes)> GetFilesAsync(PublishDataJson data)
+    {
+        yield return (FilePath, Encoding.UTF8.GetBytes(data.ToJson()));
     }
 }
 
@@ -953,26 +959,27 @@ file sealed record VersionsProps(
 
         gitHub.PushOrOpenPrToUpdateFile(
             actions,
+            title: $"Update [teal]{branchName}[/] {FileName} and SARIF files",
             branchName: branchName,
-            filePath: FilePath,
-            fileName: FileName,
             updateBranchName: updateBranchName,
-            bytes: () =>
-            {
-                this.SaveTo(xml);
-                return Task.FromResult(Encoding.UTF8.GetBytes(xml.OuterXml));
-            },
+            files: () => GetFilesAsync(gitHub, branchName, original.Value.Data, xml),
             prTitle: GitHubUtil.UpdateConfigsPrTitle);
+    }
+
+    private async IAsyncEnumerable<(string FilePath, byte[] Bytes)> GetFilesAsync(GitHubUtil gitHub, string branchName, VersionsProps original, XmlDocument xml)
+    {
+        this.SaveTo(xml);
+        yield return (FilePath, Encoding.UTF8.GetBytes(xml.OuterXml));
 
         // Update sarif files too.
-        var previousVersion = original.Value.Data.ToShortString();
+        var previousVersion = original.ToShortString();
         var newVersion = this.ToShortString();
         if (previousVersion == newVersion)
         {
-            console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{branchName}[/] SARIF files already reference version [teal]{newVersion}[/]");
-            return;
+            gitHub.Logger.Log($"Version didn't change ({previousVersion}), skipping SARIF files update.");
+            yield break;
         }
-        ReadOnlySpan<string> files =
+        string[] files =
         [
             "src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/Microsoft.CodeAnalysis.Analyzers.sarif",
             "src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers.sarif",
@@ -983,19 +990,14 @@ file sealed record VersionsProps(
         ];
         foreach (var filePath in files)
         {
-            gitHub.PushOrOpenPrToUpdateFile(
-                actions,
-                branchName: branchName,
-                filePath: filePath,
-                fileName: Path.GetFileName(filePath),
-                updateBranchName: updateBranchName,
-                bytes: async () =>
-                {
-                    var originalContent = await gitHub.FetchFileAsStringAsync(branchName, filePath);
-                    var updatedContent = originalContent.Replace(previousVersion, newVersion, StringComparison.Ordinal);
-                    return Encoding.Utf8WithBom.GetBytes(updatedContent);
-                },
-                prTitle: GitHubUtil.UpdateConfigsPrTitle);
+            var originalContent = await gitHub.FetchFileAsStringAsync(branchName, filePath);
+            var updatedContent = originalContent.Replace(previousVersion, newVersion, StringComparison.Ordinal);
+            if (originalContent == updatedContent)
+            {
+                gitHub.Logger.Log($"No changes in SARIF file '{filePath}'.");
+                continue;
+            }
+            yield return (filePath, Encoding.Utf8WithBom.GetBytes(updatedContent));
         }
     }
 }
