@@ -3,6 +3,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// NOTE: This should work for as many repos as possible, not just dotnet/roslyn, e.g., at least dotnet/razor, too.
+// NOTE: This script doesn't assume anything in the current working directory, hence it also doesn't use `git`, but only GitHub APIs (mostly via the `gh` CLI).
+
 // Workaround for https://github.com/dotnet/roslyn/issues/76197.
 #:property SignAssembly=false
 
