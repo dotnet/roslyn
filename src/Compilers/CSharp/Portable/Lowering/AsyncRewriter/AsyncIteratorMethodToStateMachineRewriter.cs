@@ -368,7 +368,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var savedDisposalLabel = _currentDisposalLabel;
             LabelSymbol finallyEntry = null;
             bool hasCatchBlocks = !node.CatchBlocks.IsEmpty;
-            
             if (node.FinallyBlockOpt is object)
             {
                 finallyEntry = F.GenerateLabel("finallyEntry");
