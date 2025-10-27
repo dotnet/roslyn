@@ -54,7 +54,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.Analyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FileBasedPrograms\AppDirectiveDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileBasedPrograms\FileLevelDirectiveDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileBasedPrograms\ExternalHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderHelper.cs" />

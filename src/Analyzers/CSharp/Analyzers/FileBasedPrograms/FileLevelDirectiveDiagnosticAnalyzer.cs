@@ -9,7 +9,7 @@ using Microsoft.DotNet.FileBasedPrograms;
 namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class AppDirectiveDiagnosticAnalyzer : DiagnosticAnalyzer
+internal sealed class FileLevelDirectiveDiagnosticAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "FileBasedPrograms";
 
