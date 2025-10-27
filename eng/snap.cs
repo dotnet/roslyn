@@ -6,22 +6,21 @@
 // Workaround for https://github.com/dotnet/roslyn/issues/76197.
 #:property SignAssembly=false
 
-// Workaround for https://github.com/microsoft/vscode-dotnettools/issues/2415.
-#:property PlatformName=AnyCPU
-#:property IntermediateOutputPath=$(BaseIntermediateOutputPath)$(Configuration)\
-#:property OutputPath=$(BaseOutputPath)$(Configuration)\
-
 #:property PublishAot=false
 #:package CliWrap
 #:package Microsoft.DotNet.DarcLib
 #:package Spectre.Console
+#:package System.CommandLine
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 
 using System.Collections.Concurrent;
+using System.CommandLine;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -32,6 +31,7 @@ using Microsoft.DotNet.DarcLib;
 using Microsoft.DotNet.ProductConstructionService.Client.Models;
 using Spectre.Console;
 using Spectre.Console.Rendering;
+using Command = CliWrap.Command;
 
 const string nextMilestoneName = "Next";
 
@@ -55,13 +55,32 @@ TaskScheduler.UnobservedTaskException += (s, e) =>
 console.Pipeline.Attach(new LoggingRenderHook(logger));
 
 // Parse args.
-const string dryRunLong = "--dry-run";
-const string dryRunShort = "-n";
-bool dryRun = args is [dryRunLong or dryRunShort];
-if (!dryRun && args is not [])
+var dryRunOption = new Option<bool>("--dry-run");
+var waitForDebuggerOption = new Option<bool>("--wait-for-debugger");
+var rootCommand = new RootCommand("Snap script")
 {
-    console.MarkupLineInterpolated($"[red]Error:[/] This script does not take any arguments except [teal]{dryRunLong}[/]/[teal]{dryRunShort}[/], found: [grey]{string.Join(' ', args)}[/]");
-    return 1;
+    dryRunOption,
+    waitForDebuggerOption,
+};
+rootCommand.TreatUnmatchedTokensAsErrors = true;
+var parsedArgs = rootCommand.Parse(args);
+var argsParsingResult = parsedArgs.Invoke(); // validates args
+if (argsParsingResult != 0)
+{
+    return argsParsingResult;
+}
+var dryRun = parsedArgs.GetValue(dryRunOption);
+var waitForDebugger = parsedArgs.GetValue(waitForDebuggerOption);
+
+// Wait for debugger (VSCode's debugger cannot handle interactive input).
+if (waitForDebugger)
+{
+    console.MarkupLineInterpolated($"[yellow]Waiting for debugger to attach (PID: {Environment.ProcessId}, Process: {Path.GetFileName(Environment.ProcessPath) ?? "unknown"})...[/]");
+    while (!Debugger.IsAttached)
+    {
+        await Task.Delay(1000);
+    }
+    Debugger.Break();
 }
 
 // Welcome message.
@@ -150,12 +169,12 @@ var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After s
     defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsBranchName()));
 var sourceVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
 var sourceVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{sourceBranchName}[/]?",
-    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData.Data?.Parsed.BranchInfo.InsertionTitlePrefix));
+    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData.Data?.BranchInfo.InsertionTitlePrefix));
 var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to",
     defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
 var targetVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
 var targetVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{targetBranchName}[/]?",
-    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData.Data?.Parsed.BranchInfo.InsertionTitlePrefix));
+    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData.Data?.BranchInfo.InsertionTitlePrefix));
 
 // Check subscriptions.
 console.WriteLine();
@@ -507,17 +526,15 @@ actions.Add($"Merge changes from [teal]{sourceBranchName}[/] to [teal]{targetBra
 
 // Change PublishData.json.
 // Needs to be done after the merge which would create the target branch if it doesn't exist yet.
-var sourcePublishDataAfterSnap = sourcePublishData.WithData(new PublishDataJson(
-    BranchInfo: new BranchInfo(
-        VsBranch: sourceVsBranchAfterSnap,
-        InsertionTitlePrefix: sourceVsPrefixAfterSnap,
-        InsertionCreateDraftPR: sourceVsAsDraftAfterSnap)));
+var sourcePublishDataAfterSnap = sourcePublishData.WithBranchInfo(new(
+    VsBranch: sourceVsBranchAfterSnap,
+    InsertionTitlePrefix: sourceVsPrefixAfterSnap,
+    InsertionCreateDraftPR: sourceVsAsDraftAfterSnap));
 sourcePublishDataAfterSnap.PushOrOpenPrIfNeeded(actions, sourcePublishData);
-var targetPublishDataAfterSnap = targetPublishData.WithData(new PublishDataJson(
-    BranchInfo: new BranchInfo(
-        VsBranch: targetVsBranchAfterSnap,
-        InsertionTitlePrefix: targetVsPrefixAfterSnap,
-        InsertionCreateDraftPR: targetVsAsDraftAfterSnap)));
+var targetPublishDataAfterSnap = targetPublishData.WithBranchInfo(new(
+    VsBranch: targetVsBranchAfterSnap,
+    InsertionTitlePrefix: targetVsPrefixAfterSnap,
+    InsertionCreateDraftPR: targetVsAsDraftAfterSnap));
 targetPublishDataAfterSnap.PushOrOpenPrIfNeeded(actions, targetPublishData, snapBranchName);
 
 // Perform actions.
@@ -610,30 +627,15 @@ file sealed class GitHubUtil(
 file sealed class PublishData(
     GitHubUtil gitHub,
     string branchName,
-    (byte[] Bytes, PublishDataJson Parsed)? data)
+    PublishDataJson? data)
 {
     public string RepoOwnerAndName => gitHub.RepoOwnerAndName;
     public string BranchName => branchName;
-    public (byte[] Bytes, PublishDataJson Parsed)? Data => data;
+    public PublishDataJson? Data => data;
 
-    public PublishData WithData(PublishDataJson newData)
+    public PublishData WithBranchInfo(BranchInfo branchInfo)
     {
-        if (data?.Parsed.Equals(newData) == true)
-        {
-            return this;
-        }
-
-        if (data is { } d)
-        {
-            var jsonEditor = new JsonEditor(d.Bytes);
-            jsonEditor.ReplaceString("branchInfo.vsBranch", newData.BranchInfo.VsBranch);
-            jsonEditor.ReplaceBool("branchInfo.insertionCreateDraftPR", newData.BranchInfo.InsertionCreateDraftPR);
-            jsonEditor.ReplaceString("branchInfo.insertionTitlePrefix", newData.BranchInfo.InsertionTitlePrefix);
-            var newBytes = jsonEditor.ApplyReplacements();
-            return new(gitHub, branchName, (newBytes, newData));
-        }
-
-        return new(gitHub, branchName, (newData.ToUtf8Json(), newData));
+        return new(gitHub, branchName, Data is null ? new() { BranchInfo = branchInfo } : Data with { BranchInfo = branchInfo });
     }
 
     /// <returns>
@@ -643,11 +645,9 @@ file sealed class PublishData(
     {
         try
         {
-            var bytes = await httpClient.GetByteArrayAsync($"https://raw.githubusercontent.com/{gitHub.RepoOwnerAndName}/{branchName}/eng/config/PublishData.json")
+            var data = await httpClient.GetFromJsonAsync<PublishDataJson>($"https://raw.githubusercontent.com/{gitHub.RepoOwnerAndName}/{branchName}/eng/config/PublishData.json")
                 ?? throw new InvalidOperationException("Null PublishData.json");
-            var parsed = JsonSerializer.Deserialize<PublishDataJson>(bytes, JsonSerializerOptions.Web)
-                ?? throw new InvalidOperationException("Null parsed PublishData.json");
-            return new PublishData(gitHub, branchName, (bytes, parsed));
+            return new PublishData(gitHub, branchName, data);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -661,7 +661,7 @@ file sealed class PublishData(
 
     public void Report(IAnsiConsole console)
     {
-        console.MarkupLineInterpolated($"Branch [teal]{branchName}[/] inserts to VS [teal]{data?.Parsed.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{data?.Parsed.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
+        console.MarkupLineInterpolated($"Branch [teal]{branchName}[/] inserts to VS [teal]{data?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{data?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
     }
 
     public void PushOrOpenPrIfNeeded(ActionList actions, PublishData? original, string? updateBranchName = null)
@@ -708,12 +708,13 @@ file sealed class PublishData(
                 ?? throw new InvalidOperationException("Null file SHA");
 
             // Apply changes.
+            var serialized = data.ToJson();
             await Cli.Wrap("gh")
                 .WithArguments(["api", "-X", "PUT", $"repos/{RepoOwnerAndName}/contents/eng/config/PublishData.json",
                     "--field", $"message={prTitle}",
                     "--field", $"branch={updateBranchName}",
                     "--field", $"sha={fileSha}",
-                    "--field", $"content={Convert.ToBase64String(data.GetValueOrDefault().Bytes)}"])
+                    "--field", $"content={Convert.ToBase64String(Encoding.UTF8.GetBytes(serialized))}"])
                 .ExecuteBufferedAsync(logger);
 
             // Open the PR (unless the branch already exists - then this is part of already-opened snap PR).
@@ -737,15 +738,20 @@ file sealed class PublishData(
     }
 }
 
-file sealed record PublishDataJson(
-    [property: JsonRequired] BranchInfo BranchInfo)
+file sealed record PublishDataJson
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
+        NewLine = "\n",
     };
 
-    public byte[] ToUtf8Json() => JsonSerializer.SerializeToUtf8Bytes(this, s_jsonOptions);
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? ExtraProperties { get; init; }
+
+    public required BranchInfo BranchInfo { get; init; }
+
+    public string ToJson() => JsonSerializer.Serialize(this, s_jsonOptions) + "\n";
 }
 
 file sealed record BranchInfo(
@@ -1214,150 +1220,5 @@ file sealed class ActionList(IAnsiConsole console)
                 console.MarkupLine("[yellow]Aborted[/]: No changes made");
             }
         }
-    }
-}
-
-file readonly ref struct JsonEditor(ReadOnlySpan<byte> jsonText)
-{
-    private static readonly JsonReaderOptions s_jsonReaderOptions = new()
-    {
-        CommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true,
-    };
-    private static readonly JsonWriterOptions s_jsonWriterOptions = new()
-    {
-        Indented = false,
-        SkipValidation = true,
-    };
-
-    private readonly ReadOnlySpan<byte> _jsonText = jsonText;
-    private readonly List<(Range Range, byte[] NewValue)> _replacements = [];
-
-    /// <summary>
-    /// Replaces the JSON value at a dotted object path while preserving all original formatting.
-    /// </summary>
-    /// <param name="dottedPath">
-    /// Only properties are currently supported, not array indexes.
-    /// </param>
-    public bool ReplaceValue(string dottedPath, Action<Utf8JsonWriter> writeNewValue)
-    {
-        var path = dottedPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
-
-        var reader = new Utf8JsonReader(_jsonText, s_jsonReaderOptions);
-
-        int matchedSegments = 0;
-
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.PropertyName)
-            {
-                string? name = reader.GetString();
-                // Only consider the next segment in the path:
-                if (name == path[matchedSegments])
-                {
-                    // Move to the value token for this property name
-                    if (!reader.Read())
-                        break;
-
-                    // If this is the last segment, we found the value to replace
-                    if (matchedSegments == path.Length - 1)
-                    {
-                        // Start index of the value token
-                        long valueStart = reader.TokenStartIndex;
-
-                        // Skip the entire value (including nested objects/arrays) so we know where it ends
-                        if (reader.TokenType is JsonTokenType.StartObject or JsonTokenType.StartArray)
-                        {
-                            if (!reader.TrySkip())
-                                throw new InvalidOperationException("Failed to skip nested value.");
-                        }
-
-                        // After reading/skipping the value, BytesConsumed points just after it
-                        long valueEndExclusive = reader.BytesConsumed;
-
-                        // Generate the new value bytes using Utf8JsonWriter (handles quoting/escaping)
-                        using var ms = new MemoryStream();
-                        using (var writer = new Utf8JsonWriter(ms, s_jsonWriterOptions))
-                        {
-                            writeNewValue(writer);
-                        }
-                        var newValueBytes = ms.ToArray();
-
-                        _replacements.Add((Range: new Range((int)valueStart, (int)valueEndExclusive), NewValue: newValueBytes));
-
-                        return true;
-                    }
-                    else
-                    {
-                        // We matched a segment but haven't reached the target yet.
-                        // To continue matching within this object's value, that value must be an object.
-                        if (reader.TokenType == JsonTokenType.StartObject)
-                        {
-                            matchedSegments++;
-                            continue; // descend into object naturally as reader continues
-                        }
-                        else
-                        {
-                            // Path expects object but got something else, reset matches for this branch
-                            // Skip this value (so we don't descend incorrectly).
-                            if (reader.TokenType == JsonTokenType.StartArray)
-                                reader.TrySkip();
-                            matchedSegments = 0;
-                        }
-                    }
-                }
-                else
-                {
-                    // Different property — skip its value
-                    if (!reader.Read()) break;
-                    if (reader.TokenType == JsonTokenType.StartObject || reader.TokenType == JsonTokenType.StartArray)
-                        reader.TrySkip();
-                    // Do not change matchedSegments here; only advance when we match in the right branch
-                }
-            }
-            else if (reader.TokenType == JsonTokenType.EndObject)
-            {
-                // When exiting an object and we had matched into it, back up one segment
-                if (matchedSegments > 0) matchedSegments--;
-            }
-        }
-
-        // Path not found
-        return false;
-    }
-
-    public bool ReplaceString(string path, string newValue)
-        => ReplaceValue(path, w => w.WriteStringValue(newValue));
-
-    public bool ReplaceBool(string path, bool newValue)
-        => ReplaceValue(path, w => w.WriteBooleanValue(newValue));
-
-    public byte[] ApplyReplacements()
-    {
-        if (_replacements.Count == 0)
-        {
-            return _jsonText.ToArray();
-        }
-
-        var sortedReplacements = _replacements.OrderBy(r => r.Range.Start.Value);
-
-        using var ms = new MemoryStream();
-        int currentIndex = 0;
-        foreach (var (range, newValue) in sortedReplacements)
-        {
-            var (offset, length) = range.GetOffsetAndLength(_jsonText.Length);
-            if (offset < currentIndex)
-                throw new InvalidOperationException("Overlapping replacements are not supported.");
-
-            // Copy unchanged text before this replacement
-            ms.Write(_jsonText[currentIndex..offset]);
-            // Write the new value
-            ms.Write(newValue);
-            currentIndex = offset + length;
-        }
-        // Copy any remaining text after the last replacement
-        ms.Write(_jsonText[currentIndex..]);
-
-        return ms.ToArray();
     }
 }
