@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Text
                         // Special case splitting the CRLF at the end as the UnderlyingText doesn't view the position
                         // after between the \r and \n as on a new line whereas this subtext doesn't contain the \n
                         // and needs to view that position as on a new line.
-                        return TextLine.FromSpanUnsafe(_subText, new TextSpan(_subText.UnderlyingSpan.End, 0));
+                        return TextLine.FromSpanUnsafe(_subText, new TextSpan(_subText.UnderlyingSpan.Length, 0));
                     }
 
                     var underlyingTextLine = _subText.UnderlyingText.Lines[lineNumber + _startLineNumberInUnderlyingText];
