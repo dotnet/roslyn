@@ -2119,7 +2119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(attributeConstructor is { });
 
                 var typeSymbol = new SynthesizedInlineArrayTypeSymbol(SourceModule, typeName, arrayLength, attributeConstructor);
-                typeAdapter = _synthesizedTopLevelTypes.GetOrAdd(typeName, typeSymbol.GetCciAdapter());
+                var adapter = typeSymbol.GetCciAdapter();
+                typeAdapter = _synthesizedTopLevelTypes.GetOrAdd(typeName, adapter);
             }
 
             Debug.Assert(typeAdapter.Name == typeName);
@@ -2135,7 +2136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (!_synthesizedTopLevelTypes.TryGetValue(typeName, out var typeAdapter))
             {
                 var typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, kind);
-                typeAdapter = _synthesizedTopLevelTypes.GetOrAdd(typeName, typeSymbol.GetCciAdapter());
+                var adapter = typeSymbol.GetCciAdapter();
+                typeAdapter = _synthesizedTopLevelTypes.GetOrAdd(typeName, adapter);
             }
 
             Debug.Assert(typeAdapter.Name == typeName);

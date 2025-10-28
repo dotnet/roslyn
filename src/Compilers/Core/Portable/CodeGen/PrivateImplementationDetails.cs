@@ -464,8 +464,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public IEnumerable<Cci.IMethodDefinition> GetTopLevelAndNestedTypeMethods(EmitContext context)
         {
-            // Synthesized top-level types are now tracked by PEModuleBuilder instead of PrivateImplementationDetails
-            // This method is no longer needed but kept for compatibility
+            // Synthesized top-level types are now tracked by PEModuleBuilder instead of PrivateImplementationDetails.
+            // This method returns empty because methods from those types are now compiled via PEModuleBuilder.GetAdditionalTopLevelTypes().
+            // The method is kept to maintain binary compatibility with the signature.
             return SpecializedCollections.EmptyEnumerable<Cci.IMethodDefinition>();
         }
 
