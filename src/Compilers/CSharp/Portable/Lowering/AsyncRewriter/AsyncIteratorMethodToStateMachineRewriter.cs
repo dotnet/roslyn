@@ -367,28 +367,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var savedDisposalLabel = _currentDisposalLabel;
             LabelSymbol finallyEntry = null;
-            bool hasCatchBlocks = !node.CatchBlocks.IsEmpty;
             if (node.FinallyBlockOpt is object)
             {
                 finallyEntry = F.GenerateLabel("finallyEntry");
                 _currentDisposalLabel = finallyEntry;
 
-                // When there are no catch blocks, we can place the finallyEntry label at the end
-                // of the try block. But when there are catch blocks, we must
-                // place it after the entire try-catch-finally structure to avoid invalid IL
-                // (leaving from a catch block into a try block).
-                //
-                //  try
-                //  {
-                //      ...
-                //      finallyEntry:
-                //  }
-                if (!hasCatchBlocks)
-                {
-                    node = node.Update(
-                        tryBlock: F.Block(node.TryBlock, F.Label(finallyEntry)),
-                        node.CatchBlocks, node.FinallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
-                }
+                // Place finallyEntry label after the entire try-catch-finally structure
+                // to ensure valid IL regardless of whether there are catch blocks.
+                // This allows both try blocks and catch blocks to validly leave to the label.
             }
             else if (node.FinallyLabelOpt is object)
             {
@@ -399,9 +385,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _currentDisposalLabel = savedDisposalLabel;
 
-            if (finallyEntry != null && hasCatchBlocks)
+            if (finallyEntry != null)
             {
-                // When there are catch blocks, place the finallyEntry label after the try-catch-finally:
+                // Place the finallyEntry label after the try-catch-finally:
                 //  try
                 //  {
                 //      ...
