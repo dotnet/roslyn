@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -55,16 +56,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>
-    /// Represents a state machine MoveNext method.
+    /// Represents a state machine MoveNext or MoveNextAsync method.
     /// Handles special behavior around inheriting some attributes from the original async/iterator method.
     /// </summary>
     internal sealed class SynthesizedStateMachineMoveNextMethod : SynthesizedStateMachineMethod
     {
         private ImmutableArray<CSharpAttributeData> _attributes;
 
-        public SynthesizedStateMachineMoveNextMethod(MethodSymbol interfaceMethod, StateMachineTypeSymbol stateMachineType)
-            : base(WellKnownMemberNames.MoveNextMethodName, interfaceMethod, stateMachineType, null, generateDebugInfo: true, hasMethodBodyDependency: true)
+        // Indicates that the method body follows runtime-async conventions and should be emitted with MethodImplAttributes.Async flag
+        private readonly bool _runtimeAsync;
+
+        public SynthesizedStateMachineMoveNextMethod(MethodSymbol interfaceMethod, StateMachineTypeSymbol stateMachineType, bool runtimeAsync)
+            : base(interfaceMethod.Name, interfaceMethod, stateMachineType, null, generateDebugInfo: true, hasMethodBodyDependency: true)
         {
+            // PROTOTYPE consider reverting to only use "MoveNext" name, as it is expected by various tools that are aware of state machines (EnC, symbols)
+            Debug.Assert(interfaceMethod.Name is WellKnownMemberNames.MoveNextMethodName or WellKnownMemberNames.MoveNextAsyncMethodName);
+            _runtimeAsync = runtimeAsync;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
@@ -100,6 +107,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return _attributes;
         }
+
+        public override bool IsAsync => _runtimeAsync;
+
+        internal override MethodImplAttributes ImplementationAttributes
+        {
+            get
+            {
+                MethodImplAttributes result = default;
+                if (_runtimeAsync)
+                {
+                    result |= MethodImplAttributes.Async;
+                }
+
+                return result;
+            }
+        }
     }
 
     /// <summary>
@@ -108,14 +131,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class SynthesizedStateMachineDebuggerHiddenMethod : SynthesizedStateMachineMethod
     {
+        // Indicates that the method should be emitted with MethodImplAttributes.Async flag
+        private readonly bool _runtimeAsync;
+
         public SynthesizedStateMachineDebuggerHiddenMethod(
             string name,
             MethodSymbol interfaceMethod,
             StateMachineTypeSymbol stateMachineType,
             PropertySymbol associatedProperty,
-            bool hasMethodBodyDependency)
+            bool hasMethodBodyDependency,
+            bool runtimeAsync)
             : base(name, interfaceMethod, stateMachineType, associatedProperty, generateDebugInfo: false, hasMethodBodyDependency: hasMethodBodyDependency)
         {
+            _runtimeAsync = runtimeAsync;
         }
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
@@ -124,6 +152,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
 
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+        }
+
+        public override bool IsAsync => _runtimeAsync;
+
+        internal override MethodImplAttributes ImplementationAttributes
+        {
+            get
+            {
+                MethodImplAttributes result = default;
+                if (_runtimeAsync)
+                {
+                    result |= MethodImplAttributes.Async;
+                }
+
+                return result;
+            }
         }
     }
 }

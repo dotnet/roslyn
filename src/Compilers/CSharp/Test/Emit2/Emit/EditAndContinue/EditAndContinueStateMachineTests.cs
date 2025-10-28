@@ -5701,6 +5701,7 @@ class C
 }");
         }
 
+        // PROTOTYPE figure out EnC impact
         [Fact]
         public void UpdateAsyncEnumerable_AwaitAndYield_AddAndRemove()
         {

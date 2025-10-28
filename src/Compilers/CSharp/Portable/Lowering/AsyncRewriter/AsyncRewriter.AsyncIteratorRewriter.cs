@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This rewriter rewrites an async-iterator method. See async-streams.md for design overview.
         /// </summary>
-        private sealed class AsyncIteratorRewriter : AsyncRewriter
+        internal sealed class AsyncIteratorRewriter : AsyncRewriter
         {
             private FieldSymbol _promiseOfValueOrEndField; // this struct implements the IValueTaskSource logic
             private FieldSymbol _currentField; // stores the current/yielded value
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(F.Assignment(F.InstanceField(stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
 
                 var managedThreadId = MakeCurrentThreadId();
-                if (managedThreadId != null && (object)initialThreadIdField != null)
+                if ((object)initialThreadIdField != null)
                 {
                     // this.initialThreadId = {managedThreadId};
                     bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
@@ -209,11 +209,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression resultParameter, BoundExpression parameterProxy)
             {
+                return InitializeParameterField(getEnumeratorMethod, parameter, resultParameter, parameterProxy, _combinedTokensField, F);
+            }
+
+            internal static BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression resultParameter, BoundExpression parameterProxy,
+                FieldSymbol combinedTokensField, SyntheticBoundNodeFactory f)
+            {
+                Debug.Assert(parameterProxy.Type is not null);
+
                 BoundStatement result;
-                if (_combinedTokensField is object &&
+                if (combinedTokensField is object &&
                     !parameter.IsExtensionParameterImplementation() &&
                     parameter.HasEnumeratorCancellationAttribute &&
-                    parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken), TypeCompareKind.ConsiderEverything))
+                    parameter.Type.Equals(f.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken), TypeCompareKind.ConsiderEverything))
                 {
                     // For a parameter of type CancellationToken with [EnumeratorCancellation]
                     // if (this.parameterProxy.Equals(default))
@@ -230,31 +238,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //     result.parameter = combinedTokens.Token;
                     // }
 
-                    BoundParameter tokenParameter = F.Parameter(getEnumeratorMethod.Parameters[0]);
-                    BoundFieldAccess combinedTokens = F.Field(F.This(), _combinedTokensField);
-                    result = F.If(
+                    BoundParameter tokenParameter = f.Parameter(getEnumeratorMethod.Parameters[0]);
+                    BoundFieldAccess combinedTokens = f.Field(f.This(), combinedTokensField);
+                    result = f.If(
                         // if (this.parameterProxy.Equals(default))
-                        F.Call(parameterProxy, WellKnownMember.System_Threading_CancellationToken__Equals, F.Default(parameterProxy.Type)),
+                        f.Call(parameterProxy, WellKnownMember.System_Threading_CancellationToken__Equals, f.Default(parameterProxy.Type)),
                         // result.parameter = token;
-                        thenClause: F.Assignment(resultParameter, tokenParameter),
-                        elseClauseOpt: F.If(
+                        thenClause: f.Assignment(resultParameter, tokenParameter),
+                        elseClauseOpt: f.If(
                             // else if (token.Equals(this.parameterProxy) || token.Equals(default))
-                            F.LogicalOr(
-                                F.Call(tokenParameter, WellKnownMember.System_Threading_CancellationToken__Equals, parameterProxy),
-                                F.Call(tokenParameter, WellKnownMember.System_Threading_CancellationToken__Equals, F.Default(tokenParameter.Type))),
+                            f.LogicalOr(
+                                f.Call(tokenParameter, WellKnownMember.System_Threading_CancellationToken__Equals, parameterProxy),
+                                f.Call(tokenParameter, WellKnownMember.System_Threading_CancellationToken__Equals, f.Default(tokenParameter.Type))),
                             // result.parameter = this.parameterProxy;
-                            thenClause: F.Assignment(resultParameter, parameterProxy),
-                            elseClauseOpt: F.Block(
+                            thenClause: f.Assignment(resultParameter, parameterProxy),
+                            elseClauseOpt: f.Block(
                                 // result.combinedTokens = CancellationTokenSource.CreateLinkedTokenSource(this.parameterProxy, token);
-                                F.Assignment(combinedTokens, F.StaticCall(WellKnownMember.System_Threading_CancellationTokenSource__CreateLinkedTokenSource, parameterProxy, tokenParameter)),
+                                f.Assignment(combinedTokens, f.StaticCall(WellKnownMember.System_Threading_CancellationTokenSource__CreateLinkedTokenSource, parameterProxy, tokenParameter)),
                                 // result.parameter = result.combinedTokens.Token;
-                                F.Assignment(resultParameter, F.Property(combinedTokens, WellKnownMember.System_Threading_CancellationTokenSource__Token)))));
+                                f.Assignment(resultParameter, f.Property(combinedTokens, WellKnownMember.System_Threading_CancellationTokenSource__Token)))));
                 }
                 else
                 {
                     // For parameters that don't have [EnumeratorCancellation], initialize their parameter fields
                     // result.parameter = this.parameterProxy;
-                    result = F.Assignment(resultParameter, parameterProxy);
+                    result = f.Assignment(resultParameter, parameterProxy);
                 }
 
                 return result;
@@ -472,20 +480,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void GenerateIAsyncEnumeratorImplementation_Current()
             {
+                GenerateIAsyncEnumeratorImplementation_Current(_currentField, this, F);
+            }
+
+            internal static void GenerateIAsyncEnumeratorImplementation_Current(FieldSymbol currentField, StateMachineRewriter stateMachineRewriter, SyntheticBoundNodeFactory f)
+            {
+                Debug.Assert(currentField is not null);
                 // Produce the implementation for `T Current { get; }`:
                 // return _current;
 
                 NamedTypeSymbol IAsyncEnumeratorOfElementType =
-                    F.WellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T)
-                    .Construct(_currentField.Type);
+                    f.WellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T)
+                    .Construct(currentField.Type);
 
                 MethodSymbol IAsyncEnumerableOfElementType_get_Current =
-                    F.WellKnownMethod(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current)
+                    f.WellKnownMethod(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current)
                     .AsMember(IAsyncEnumeratorOfElementType);
 
-                OpenPropertyImplementation(IAsyncEnumerableOfElementType_get_Current);
+                stateMachineRewriter.OpenPropertyImplementation(IAsyncEnumerableOfElementType_get_Current);
 
-                F.CloseMethod(F.Block(F.Return(F.InstanceField(_currentField))));
+                f.CloseMethod(f.Block(f.Return(f.InstanceField(currentField))));
             }
 
             private void GenerateIValueTaskSourceBoolImplementation_GetResult()

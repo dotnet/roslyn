@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void AddAsyncImplAttributeIfNeeded(ref System.Reflection.MethodImplAttributes result)
         {
-            if (this.IsAsync && this.DeclaringCompilation.IsRuntimeAsyncEnabledIn(this))
+            if (this.IsAsync && !this.IsIterator && this.DeclaringCompilation.IsRuntimeAsyncEnabledIn(this))
             {
                 // When a method is emitted using runtime async, we add MethodImplAttributes.Async to indicate to the 
                 // runtime to generate the state machine

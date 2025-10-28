@@ -283,18 +283,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expected = RemoveHeaderComments(expected);
                 output = RemoveHeaderComments(output);
 
+                if (!s_rvaCommentsRegex.IsMatch(expected))
+                {
+                    // RVA comments are noisy (vary due to surrounding codegen) and not important to validate
+                    // But if the expected IL includes them already, we honor/keep them in the output
+                    output = s_rvaCommentsRegex.Replace(output, "");
+                }
+
                 output = FixupCodeSizeComments(output);
+                output = RemoveTrailingWhitespaces(output);
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false);
             });
         }
 
-        private static readonly Regex s_headerCommentsRegex = new("""^\s*// Header size: [0-9]+\s*$""", RegexOptions.Multiline);
-        private static readonly Regex s_codeSizeCommentsRegex = new("""^\s*// Code size(:) [0-9]+\s*""", RegexOptions.Multiline);
+        private static readonly Regex s_headerCommentsRegex = new Regex("""^\s*// Header size: [0-9]+\s*$""", RegexOptions.Multiline);
+        private static readonly Regex s_codeSizeCommentsRegex = new Regex("""^\s*// Code size(:) [0-9]+\s*""", RegexOptions.Multiline);
+        private static readonly Regex s_rvaCommentsRegex = new Regex("""^\s*// Method begins at RVA 0x[0-9a-f]+\s*$""", RegexOptions.Multiline);
+        private static readonly Regex s_trailingWhitespacesRegex = new Regex("""\s*$""", RegexOptions.Multiline);
 
         private static string RemoveHeaderComments(string value)
         {
             return s_headerCommentsRegex.Replace(value, "");
+        }
+
+        private static string RemoveTrailingWhitespaces(string value)
+        {
+            return s_trailingWhitespacesRegex.Replace(value, "");
         }
 
         private static string FixupCodeSizeComments(string output)

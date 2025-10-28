@@ -298,11 +298,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="locals">The set of locals declared in the original version of this statement</param>
         /// <param name="wrapped">A delegate to return the translation of the body of this statement</param>
-        private BoundStatement PossibleIteratorScope(ImmutableArray<LocalSymbol> locals, Func<BoundStatement> wrapped)
+        private BoundStatement PossibleIteratorScope(ImmutableArray<LocalSymbol> locals, Func<MethodToStateMachineRewriter, BoundBlock, BoundStatement> wrapped, BoundBlock node)
         {
             if (locals.IsDefaultOrEmpty)
             {
-                return wrapped();
+                return wrapped(this, node);
             }
 
             var hoistedLocalsWithDebugScopes = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var translatedStatement = wrapped();
+            var translatedStatement = wrapped(this, node);
             var variableCleanup = ArrayBuilder<BoundExpression>.GetInstance();
 
             // produce cleanup code for all fields of locals defined by this block
@@ -529,7 +529,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 instrumentation = (BoundBlockInstrumentation)Visit(node.Instrumentation);
             }
 
-            return PossibleIteratorScope(node.Locals, () => VisitBlock(node, removeInstrumentation: true));
+            return PossibleIteratorScope(
+                node.Locals,
+                static (MethodToStateMachineRewriter @this, BoundBlock node) => @this.VisitBlock(node, removeInstrumentation: true),
+                node);
         }
 
         public override BoundNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node)

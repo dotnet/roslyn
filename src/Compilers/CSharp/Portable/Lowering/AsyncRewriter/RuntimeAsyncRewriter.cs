@@ -70,6 +70,28 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         }
     }
 
+    public static BoundStatement RewriteWithoutHoisting(
+        BoundStatement node,
+        MethodSymbol method,
+        TypeCompilationState compilationState,
+        BindingDiagnosticBag diagnostics)
+    {
+        if (!method.IsAsync)
+        {
+            return node;
+        }
+
+        OrderedSet<Symbol> variablesToHoist = new OrderedSet<Symbol>();
+        var hoistedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+        var factory = new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics);
+        var rewriter = new RuntimeAsyncRewriter(factory, variablesToHoist, hoistedLocals);
+        var result = (BoundStatement)rewriter.Visit(node);
+
+        hoistedLocals.Free();
+
+        return SpillSequenceSpiller.Rewrite(result, method, compilationState, diagnostics);
+    }
+
     private readonly SyntheticBoundNodeFactory _factory;
     private readonly Dictionary<BoundAwaitableValuePlaceholder, BoundExpression> _placeholderMap;
     private readonly IReadOnlySet<Symbol> _variablesToHoist;
@@ -325,4 +347,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
         return node.Update(expr);
     }
+
+    public override BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
+        => throw ExceptionUtilities.Unreachable();
 }

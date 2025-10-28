@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.TopLevelMethod is not null);
             Debug.Assert(_factory.CurrentFunction is not null);
 
-            var isStateMachine = _factory.CurrentFunction.IsAsync || _factory.CurrentFunction.IsIterator;
+            var isStateMachine = getIsStateMachine(_factory.CurrentFunction);
 
             var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(_factory.CurrentFunction.ParameterCount);
 
@@ -355,6 +355,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             instrumentation = _factory.CombineInstrumentation(instrumentation, _scope.ContextVariable, instrumentationPrologue, instrumentationEpilogue);
 
             _scope.Close(isMethodBody);
+
+            static bool getIsStateMachine(MethodSymbol method)
+            {
+                if (method.IsIterator)
+                {
+                    return true;
+                }
+
+                if (method.IsAsync)
+                {
+                    return !method.DeclaringCompilation.IsRuntimeAsyncEnabledIn(method);
+                }
+
+                return false;
+            }
         }
 
         public override BoundExpression InstrumentUserDefinedLocalAssignment(BoundAssignmentOperator original)

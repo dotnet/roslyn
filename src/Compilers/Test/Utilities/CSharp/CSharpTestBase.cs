@@ -3206,7 +3206,12 @@ namespace System.Runtime.CompilerServices
 
         internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
 
-        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, bool includeSuppression = true)
+        internal static CSharpCompilation CreateRuntimeAsyncCompilation(
+            CSharpTestSource source,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            bool includeSuppression = true,
+            IEnumerable<MetadataReference>? references = null)
         {
             parseOptions ??= WithRuntimeAsync(TestOptions.RegularPreview);
             var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName: "");
@@ -3220,7 +3225,7 @@ namespace System.Runtime.CompilerServices
                 options = options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
             }
 
-            return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
+            return CreateCompilation(source, references: references, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
         }
 
         #endregion

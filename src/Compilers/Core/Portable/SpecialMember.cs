@@ -199,6 +199,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task,
         System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32,
 
+        System_Runtime_CompilerServices_AsyncHelpers__Await_T_FromValueTaskT,
+
         Count
     }
 }

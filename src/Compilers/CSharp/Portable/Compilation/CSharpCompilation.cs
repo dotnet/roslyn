@@ -356,14 +356,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
 
-            var methodReturn = method.ReturnType.OriginalDefinition;
-            if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
-                    InternalSpecialType.System_Threading_Tasks_Task or
-                    InternalSpecialType.System_Threading_Tasks_Task_T or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask_T))
+            if (!method.IsAsyncReturningIAsyncEnumerable(this) && !method.IsAsyncReturningIAsyncEnumerator(this))
             {
-                return false;
+                var methodReturn = method.ReturnType.OriginalDefinition;
+                if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
+                        InternalSpecialType.System_Threading_Tasks_Task or
+                        InternalSpecialType.System_Threading_Tasks_Task_T or
+                        InternalSpecialType.System_Threading_Tasks_ValueTask or
+                        InternalSpecialType.System_Threading_Tasks_ValueTask_T))
+                {
+                    return false;
+                }
             }
 
             return symbol switch
@@ -2854,8 +2857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordImportInternal(CSharpSyntaxNode syntax)
         {
-            // Note: the suppression will be unnecessary once LazyInitializer is properly annotated
-            LazyInitializer.EnsureInitialized(ref _lazyImportInfos)!.
+            LazyInitializer.EnsureInitialized(ref _lazyImportInfos).
                 TryAdd(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), default);
         }
 
