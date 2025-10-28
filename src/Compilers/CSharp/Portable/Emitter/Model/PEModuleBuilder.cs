@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private SynthesizedPrivateImplementationDetailsType _lazyPrivateImplementationDetailsClass;
 
+        // Synthesized top-level types (for inline arrays and collection expression types currently)
+        private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedTopLevelTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
+
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
 
@@ -2110,17 +2113,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, CurrentGenerationOrdinal);
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics.DiagnosticBag).PrivateImplementationDetails;
-            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
-
-            if (typeAdapter is null)
+            if (!_synthesizedTopLevelTypes.TryGetValue(typeName, out var typeAdapter))
             {
                 var attributeConstructor = (MethodSymbol)factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
                 Debug.Assert(attributeConstructor is { });
 
                 var typeSymbol = new SynthesizedInlineArrayTypeSymbol(SourceModule, typeName, arrayLength, attributeConstructor);
-                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
-                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
+                typeAdapter = _synthesizedTopLevelTypes.GetOrAdd(typeName, typeSymbol.GetCciAdapter());
             }
 
             Debug.Assert(typeAdapter.Name == typeName);
@@ -2133,27 +2132,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(diagnostics is { });
 
             string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(kind, CurrentGenerationOrdinal);
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
-            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
-            NamedTypeSymbol typeSymbol;
-
-            if (typeAdapter is null)
+            if (!_synthesizedTopLevelTypes.TryGetValue(typeName, out var typeAdapter))
             {
-                typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, kind);
-                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
-                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
+                var typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, kind);
+                typeAdapter = _synthesizedTopLevelTypes.GetOrAdd(typeName, typeSymbol.GetCciAdapter());
             }
 
             Debug.Assert(typeAdapter.Name == typeName);
-            typeSymbol = (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
+            var resultTypeSymbol = (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
 
-            var info = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
+            var info = resultTypeSymbol.GetUseSiteInfo().DiagnosticInfo;
             if (info is { })
             {
                 Symbol.ReportUseSiteDiagnostic(info, diagnostics, syntaxNode.Location);
             }
 
-            return typeSymbol;
+            return resultTypeSymbol;
         }
 
         internal MethodSymbol EnsureInlineArrayAsReadOnlySpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)
@@ -2232,6 +2226,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
 #nullable disable
+
+        public override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        {
+            // Return synthesized top-level types in a deterministic order
+            return _synthesizedTopLevelTypes
+                .OrderBy(kvp => kvp.Key)
+                .Select(kvp => (NamedTypeSymbol)kvp.Value.GetInternalSymbol())
+                .ToImmutableArray();
+        }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
         {
