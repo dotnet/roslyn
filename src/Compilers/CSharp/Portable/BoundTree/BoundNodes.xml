@@ -481,7 +481,7 @@
     <Field Name="Right" Type="BoundExpression"/>
   </AbstractNode>
 
-  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
+  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Data" Type="BoundBinaryOperator.UncommonData?" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>

@@ -10,6 +10,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundBinaryOperator
     {
+        private partial void Validate()
+        {
+            if (Data is { Method: { } method })
+            {
+                if (OperatorKind.IsDynamic())
+                {
+                    Debug.Assert(OperatorKind.IsLogical());
+                    Debug.Assert(method.Name is WellKnownMemberNames.TrueOperatorName or WellKnownMemberNames.FalseOperatorName);
+                    Debug.Assert(method.ParameterCount == 1);
+                }
+                else
+                {
+                    Debug.Assert(method is ErrorMethodSymbol or { ParameterCount: 2 });
+                }
+            }
+        }
+
         internal class UncommonData
         {
             public static UncommonData UnconvertedInterpolatedStringAddition(ConstantValue? constantValue) =>
@@ -54,6 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             private UncommonData(ConstantValue? constantValue, MethodSymbol? method, TypeSymbol? constrainedToType, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, bool isUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData? interpolatedStringHandlerData)
             {
                 Debug.Assert(interpolatedStringHandlerData is null || !isUnconvertedInterpolatedStringAddition);
+                Debug.Assert(method is null ||
+                             method is ErrorMethodSymbol { ParameterCount: 0 } or { MethodKind: MethodKind.UserDefinedOperator } ||
+                             method.ParameterCount == 2);
+
                 ConstantValue = constantValue;
                 Method = method;
                 ConstrainedToType = constrainedToType;

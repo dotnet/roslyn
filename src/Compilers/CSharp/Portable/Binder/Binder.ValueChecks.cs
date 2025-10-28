@@ -220,13 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static MethodInvocationInfo FromBinaryOperator(BoundBinaryOperator binaryOperator)
             {
-                Debug.Assert(binaryOperator.Method is not null);
+                var binaryOperatorMethod = binaryOperator.BinaryOperatorMethod;
+                Debug.Assert(binaryOperatorMethod is not null);
                 return new MethodInvocationInfo
                 {
-                    MethodInfo = MethodInfo.Create(binaryOperator.Method),
+                    MethodInfo = MethodInfo.Create(binaryOperatorMethod),
                     Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
-                    Parameters = binaryOperator.Method.Parameters,
+                    Parameters = binaryOperatorMethod.Parameters,
                     ArgsOpt = [binaryOperator.Left, binaryOperator.Right],
                     ArgumentRefKindsOpt = default,
                     ArgsToParamsOpt = default,
@@ -3912,7 +3913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.BinaryOperator:
                     Debug.Assert(expr is BoundBinaryOperator binaryOperator &&
-                        (binaryOperator.Method is not { } binaryMethod ||
+                        (binaryOperator.BinaryOperatorMethod is not { } binaryMethod ||
                         binaryMethod.HasUnsupportedMetadata ||
                         binaryMethod.RefKind == RefKind.None));
                     break;
@@ -4257,7 +4258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.BinaryOperator:
                     Debug.Assert(expr is BoundBinaryOperator binaryOperator &&
-                        (binaryOperator.Method is not { } binaryMethod ||
+                        (binaryOperator.BinaryOperatorMethod is not { } binaryMethod ||
                         binaryMethod.HasUnsupportedMetadata ||
                         binaryMethod.RefKind == RefKind.None));
                     break;
@@ -4672,7 +4673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.BinaryOperator:
                     var binary = (BoundBinaryOperator)expr;
 
-                    if (binary.Method is { } binaryMethod)
+                    if (binary.BinaryOperatorMethod is { } binaryMethod)
                     {
                         return GetInvocationEscapeScope(
                             MethodInvocationInfo.FromBinaryOperator(binary),
@@ -5441,7 +5442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    if (binary.Method is { } binaryMethod)
+                    if (binary.BinaryOperatorMethod is { } binaryMethod)
                     {
                         return CheckInvocationEscape(
                             binary.Syntax,
