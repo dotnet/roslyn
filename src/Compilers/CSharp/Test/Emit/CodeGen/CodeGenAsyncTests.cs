@@ -9088,6 +9088,110 @@ static class Test1
                 """);
         }
 
+        [Fact]
+        public void CustomAwaitable_InSwitch_SequencePoints()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    static async Task Main()
+                    {
+                        var result = (await new C()) switch
+                        {
+                            42 => "1",
+                            _ => throw new Exception()
+                        };
+
+                        Console.Write(result);
+                    }
+
+                    public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+                    {
+                        private bool isCompleted = false;
+                        public void OnCompleted(Action continuation)
+                            => Task.Run(continuation);
+                        public bool IsCompleted
+                        {
+                            get
+                            {
+                                var isCompleted = this.isCompleted;
+                                this.isCompleted = true;
+                                return isCompleted;
+                            }
+                        }
+
+                        public int GetResult() => 42;
+                    }
+
+                    public Awaiter GetAwaiter() => new Awaiter();
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.DebugExe, includeSuppression: true);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("1"), verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0x4e") });
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       79 (0x4f)
+                  .maxstack  2
+                  .locals init (string V_0, //result
+                                string V_1,
+                                int V_2,
+                                int V_3,
+                                C.Awaiter V_4)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: var result = ...         };
+                  IL_0001:  newobj     "C..ctor()"
+                  IL_0006:  call       "C.Awaiter C.GetAwaiter()"
+                  IL_000b:  stloc.s    V_4
+                  IL_000d:  ldloc.s    V_4
+                  IL_000f:  callvirt   "bool C.Awaiter.IsCompleted.get"
+                  IL_0014:  brtrue.s   IL_001e
+                  IL_0016:  ldloc.s    V_4
+                  IL_0018:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<C.Awaiter>(C.Awaiter)"
+                  IL_001d:  nop
+                  IL_001e:  ldloc.s    V_4
+                  IL_0020:  callvirt   "int C.Awaiter.GetResult()"
+                  IL_0025:  stloc.3
+                  IL_0026:  ldloc.3
+                  IL_0027:  stloc.2
+                  IL_0028:  ldc.i4.1
+                  IL_0029:  brtrue.s   IL_002c
+                  // sequence point: switch ...         }
+                  IL_002b:  nop
+                  // sequence point: <hidden>
+                  IL_002c:  ldloc.2
+                  IL_002d:  ldc.i4.s   42
+                  IL_002f:  beq.s      IL_0033
+                  IL_0031:  br.s       IL_003b
+                  // sequence point: "1"
+                  IL_0033:  ldstr      "1"
+                  IL_0038:  stloc.1
+                  IL_0039:  br.s       IL_0041
+                  // sequence point: throw new Exception()
+                  IL_003b:  newobj     "System.Exception..ctor()"
+                  IL_0040:  throw
+                  // sequence point: <hidden>
+                  IL_0041:  ldc.i4.1
+                  IL_0042:  brtrue.s   IL_0045
+                  // sequence point: var result = ...         };
+                  IL_0044:  nop
+                  // sequence point: <hidden>
+                  IL_0045:  ldloc.1
+                  IL_0046:  stloc.0
+                  // sequence point: Console.Write(result);
+                  IL_0047:  ldloc.0
+                  IL_0048:  call       "void System.Console.Write(string)"
+                  IL_004d:  nop
+                  IL_004e:  ret
+                }
+                """, sequencePoints: "C.Main", source: code);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77897")]
         public void AwaitYield()
         {
