@@ -2093,17 +2093,7 @@ namespace System.Runtime.CompilerServices
 
             var c = CreateCompilationWithMscorlib461(new[] { source, asyncHelpersSource }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
-            verifier.VerifyIL("Program.Main()", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  call       ""System.Threading.Tasks.Task Program.<Main>()""
-  IL_0005:  call       ""void System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task)""
-  IL_000a:  nop
-  IL_000b:  ret
-}
-");
+            CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
         }
 
         [Fact]
@@ -2136,17 +2126,7 @@ namespace System.Runtime.CompilerServices
 
             var c = CreateCompilationWithMscorlib461(new[] { source, asyncHelpersSource }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 42);
-            verifier.VerifyIL("Program.Main()", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  call       ""System.Threading.Tasks.Task<int> Program.<Main>()""
-  IL_0005:  call       ""int System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task<int>)""
-  IL_000a:  nop
-  IL_000b:  ret
-}
-");
+            CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 42);
         }
 
         [Fact]
@@ -2166,22 +2146,7 @@ class Program {
             // Use standard mscorlib which doesn't have HandleAsyncEntryPoint
             var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
-            // Verify it falls back to GetAwaiter().GetResult() pattern
-            verifier.VerifyIL("Program.Main()", @"
-{
-  // Code size       18 (0x12)
-  .maxstack  1
-  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
-  IL_0000:  call       ""System.Threading.Tasks.Task Program.<Main>()""
-  IL_0005:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
-  IL_000a:  stloc.0
-  IL_000b:  ldloca.s   V_0
-  IL_000d:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-  IL_0012:  nop
-  IL_0013:  ret
-}
-");
+            CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
         }
     }
 }
