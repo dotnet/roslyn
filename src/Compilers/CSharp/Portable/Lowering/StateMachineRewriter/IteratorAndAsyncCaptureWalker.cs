@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void TryHoistTopLevelParameter(BoundParameter node)
         {
-            Debug.Assert(!topLevelMethod.GetIsNewExtensionMember()); // extension methods were replaced with implementation methods earlier in the pipeline
+            Debug.Assert(!topLevelMethod.IsExtensionBlockMember()); // extension methods were replaced with implementation methods earlier in the pipeline
 
             if (node.ParameterSymbol.ContainingSymbol == topLevelMethod)
             {

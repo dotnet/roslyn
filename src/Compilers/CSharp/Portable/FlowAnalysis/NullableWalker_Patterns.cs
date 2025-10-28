@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagPropertyEvaluation e:
                                     {
                                         Debug.Assert(inputSlot > 0);
-                                        var property = e.Property.GetIsNewExtensionMember()
+                                        var property = e.Property.IsExtensionBlockMember()
                                             ? ReInferAndVisitExtensionPropertyAccess(e, e.Property, new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType)).updatedProperty
                                             : (PropertySymbol)AsMemberOfType(inputType, e.Property);
                                         var type = property.TypeWithAnnotations;

@@ -1680,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(symbol.GetIsNewExtensionMember());
+                            Debug.Assert(symbol.IsExtensionBlockMember());
                             if (SourceNamedTypeSymbol.ReduceExtensionMember(binder.Compilation, symbol, receiverType, wasExtensionFullyInferred: out _) is { } compatibleSubstitutedMember)
                             {
                                 results.Add(compatibleSubstitutedMember.GetPublicSymbol());
@@ -3745,7 +3745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Method:
                 case SymbolKind.Field:
                 case SymbolKind.Property:
-                    if (containingMember.GetIsNewExtensionMember())
+                    if (containingMember.IsExtensionBlockMember())
                     {
                         resultKind = LookupResultKind.NotReferencable;
                         thisParam = new ThisParameterSymbol(null, containingType);
