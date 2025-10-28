@@ -2063,5 +2063,125 @@ class Program
                 //     static async MyTask Main()
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(43, 25));
         }
+
+        [Fact]
+        public void AsyncMainWithHandleAsyncEntryPoint_Task()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program {
+    static async Task Main() {
+        Console.Write(""hello "");
+        await Task.Factory.StartNew(() => 5);
+        Console.Write(""async main"");
+    }
+}";
+
+            var asyncHelpersSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public static class AsyncHelpers
+    {
+        public static void HandleAsyncEntryPoint(System.Threading.Tasks.Task task)
+        {
+            task.GetAwaiter().GetResult();
+        }
+    }
+}";
+
+            var c = CreateCompilationWithMscorlib461(new[] { source, asyncHelpersSource }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
+            verifier.VerifyIL("Program.Main()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       ""System.Threading.Tasks.Task Program.<Main>()""
+  IL_0005:  call       ""void System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task)""
+  IL_000a:  nop
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AsyncMainWithHandleAsyncEntryPoint_TaskOfInt()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program {
+    static async Task<int> Main() {
+        Console.Write(""hello "");
+        await Task.Factory.StartNew(() => 5);
+        Console.Write(""async main"");
+        return 42;
+    }
+}";
+
+            var asyncHelpersSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public static class AsyncHelpers
+    {
+        public static int HandleAsyncEntryPoint(System.Threading.Tasks.Task<int> task)
+        {
+            return task.GetAwaiter().GetResult();
+        }
+    }
+}";
+
+            var c = CreateCompilationWithMscorlib461(new[] { source, asyncHelpersSource }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 42);
+            verifier.VerifyIL("Program.Main()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       ""System.Threading.Tasks.Task<int> Program.<Main>()""
+  IL_0005:  call       ""int System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task<int>)""
+  IL_000a:  nop
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AsyncMainFallbackToOldPattern_WhenHandleAsyncEntryPointNotAvailable()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program {
+    static async Task Main() {
+        Console.Write(""hello "");
+        await Task.Factory.StartNew(() => 5);
+        Console.Write(""async main"");
+    }
+}";
+            // Use standard mscorlib which doesn't have HandleAsyncEntryPoint
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.Main()", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+  IL_0000:  call       ""System.Threading.Tasks.Task Program.<Main>()""
+  IL_0005:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+        }
     }
 }
