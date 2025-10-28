@@ -8351,7 +8351,7 @@ class Program
         comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe);
         // The goal of this test is to validate that there's a `ldsfld     "T Program<T>.F"` after the async call. Regular state machine code is so large that it's
         // very hard to verify this by reading the IL, so it does what is undefined behavior (modifying a static readonly field) to observe this. In runtime async
-        // mode, this UB results in a different output, but the IL is also smaller so we can easily verify that the read occurs where it should in the IL.
+        // mode, this undefined behavior results in a different output, but the IL is also smaller so we can easily verify that the read occurs where it should in the IL.
         verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
         {
             ILVerifyMessage = """
@@ -9680,7 +9680,7 @@ class Program
         comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe);
         // The goal of this test is to validate that there's a `ldsfld     "T Program<T>.F"` after the async call. Regular state machine code is so large that it's
         // very hard to verify this by reading the IL, so it does what is undefined behavior (modifying a static readonly field) to observe this. In runtime async
-        // mode, this UB results in a different output, but the IL is also smaller so we can easily verify that the read occurs where it should in the IL.
+        // mode, this undefined behavior results in a different output, but the IL is also smaller so we can easily verify that the read occurs where it should in the IL.
         verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
         {
             ILVerifyMessage = """

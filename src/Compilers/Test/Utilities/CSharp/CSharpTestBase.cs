@@ -3217,7 +3217,7 @@ namespace System.Runtime.CompilerServices
 
             if (includeSuppression)
             {
-                options = options.WithRuntimeAsyncWarningSuppression();
+                options = options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
             }
 
             return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);

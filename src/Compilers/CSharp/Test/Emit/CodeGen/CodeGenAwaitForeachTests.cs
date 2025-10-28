@@ -5960,10 +5960,11 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
+            var expectedOutput = "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done"), verify: Verification.Fails with
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x96 }
@@ -6739,10 +6740,10 @@ class C : IAsyncEnumerable<int>
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
+            var expectedOutput = "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var expectedOutput = "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done";
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -6929,7 +6930,8 @@ class Element
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Dispose(3) Done");
+            var expectedOutput = "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Dispose(3) Done";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -6954,7 +6956,6 @@ class Element
             Assert.True(internalInfo.NeedsDisposal);
 
             var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var expectedOutput = "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Dispose(3) Done";
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """

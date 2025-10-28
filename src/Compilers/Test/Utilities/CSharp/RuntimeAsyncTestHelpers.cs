@@ -25,11 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// The expected output string if the test should execute and validate output, 
         /// or null if the test should not execute the assembly.
         /// </returns>
-        public static string? ExpectedOutput(string output) => ExecutionConditionUtil.IsCoreClr && IsRuntimeAsyncEnabled ? output : null;
-
-        extension(CSharpCompilationOptions options)
-        {
-            public CSharpCompilationOptions WithRuntimeAsyncWarningSuppression() => options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
-        }
+        public static string? ExpectedOutput(string? output) => ExecutionConditionUtil.IsCoreClr && IsRuntimeAsyncEnabled ? output : null;
     }
 }

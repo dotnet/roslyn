@@ -352,6 +352,11 @@ class Test
 }";
 
             var expected = "42";
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                CompileAndVerify(source, expectedOutput: expected, targetFramework: TargetFramework.NetCoreApp);
+            }
+
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
@@ -469,6 +474,11 @@ class Test
     }
 }";
             var expected = @"O brave new world...";
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                CompileAndVerify(source, expectedOutput: expected, targetFramework: TargetFramework.NetCoreApp);
+            }
+
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
@@ -526,6 +536,12 @@ class Test
                     }
                 }
                 """;
+            // The Task versions will always deadlock if executed
+            var expected = useValueTask ? "42" : null;
+            if (useValueTask && ExecutionConditionUtil.IsCoreClr)
+            {
+                CompileAndVerify(source, expectedOutput: expected, targetFramework: TargetFramework.NetCoreApp);
+            }
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
@@ -548,8 +564,7 @@ class Test
                     """,
             };
 
-            // The Task versions will always deadlock if executed
-            var verifier = CompileAndVerify(comp, expectedOutput: useValueTask ? RuntimeAsyncTestHelpers.ExpectedOutput("42") : null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
             {
                 ILVerifyMessage = ilVerifyMessage
             }, symbolValidator: verify);
@@ -666,6 +681,13 @@ class Test
                     }
                 }
                 """;
+
+            var expectedOutput = "42";
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                CompileAndVerify(source, expectedOutput: expectedOutput, targetFramework: TargetFramework.NetCoreApp);
+            }
+
             var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
@@ -688,7 +710,7 @@ class Test
                     """,
             };
 
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = ilVerifyMessage,
             }, symbolValidator: verify);
@@ -789,6 +811,12 @@ class Test
                     }
                 }
                 """;
+            var expectedOutput = "True";
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                CompileAndVerify(source, expectedOutput: expectedOutput, targetFramework: TargetFramework.NetCoreApp);
+            }
+
             var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
@@ -811,7 +839,7 @@ class Test
                     """,
             };
 
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("True"), verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = ilVerifyMessage,
             }, symbolValidator: verify);
@@ -902,6 +930,13 @@ class Test
                     }
                 }
                 """;
+
+            var expectedOutput = "42";
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                CompileAndVerify(source, expectedOutput: expectedOutput, targetFramework: TargetFramework.NetCoreApp);
+            }
+
             var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
@@ -924,7 +959,7 @@ class Test
                     """,
             };
 
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = ilVerifyMessage,
             }, symbolValidator: verify);
@@ -1033,6 +1068,13 @@ class Test
                     }
                 }
                 """;
+
+            var expectedOutput = "42";
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                CompileAndVerify(source, expectedOutput: expectedOutput, targetFramework: TargetFramework.NetCoreApp);
+            }
+
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
@@ -1055,7 +1097,7 @@ class Test
                     """,
             };
 
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = ilVerifyMessage,
             }, symbolValidator: verify);
@@ -1146,6 +1188,13 @@ class Test
                     public static {{retType}} Prop => {{baseExpr}};
                 }
                 """;
+
+            var expectedOutput = "42";
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                CompileAndVerify(source, expectedOutput: expectedOutput, targetFramework: TargetFramework.NetCoreApp);
+            }
+
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
@@ -1168,7 +1217,7 @@ class Test
                     """,
             };
 
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = ilVerifyMessage,
             }, symbolValidator: verify);

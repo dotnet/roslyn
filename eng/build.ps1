@@ -421,9 +421,14 @@ function TestUsingRunTests() {
       $args += " --include '\.UnitTests'"
     }
   }
-  elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr) -or ($testRuntimeAsync -and -not $testCoreClr)) {
+  elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --runtime framework"
     $args += " --timeout 90"
+
+    if ($testRuntimeAsync) {
+      Write-Host "Cannot run desktop tests with runtime async validation enabled."
+      ExitWithExitCode 1
+    }
 
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
