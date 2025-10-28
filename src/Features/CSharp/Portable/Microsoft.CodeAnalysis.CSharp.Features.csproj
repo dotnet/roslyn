@@ -75,6 +75,9 @@
       GenerateSource="true"
       Namespace="Microsoft.DotNet.FileBasedPrograms" />
   </ItemGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);FILE_BASED_PROGRAMS_SOURCE_PACKAGE_GRACEFUL_EXCEPTION</DefineConstants>
+  </PropertyGroup>
   <Import Project="..\..\..\Analyzers\CSharp\Analyzers\CSharpAnalyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems" Label="Shared" />
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />

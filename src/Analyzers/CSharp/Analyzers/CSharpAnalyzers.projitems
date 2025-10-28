@@ -166,7 +166,4 @@
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);FILE_BASED_PROGRAMS_SOURCE_PACKAGE_GRACEFUL_EXCEPTION</DefineConstants>
-  </PropertyGroup>
 </Project>

@@ -9,17 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
-#if !NET
-namespace System
-{
-    internal static class HashCode
-    {
-        internal static int Combine(int newKey, int currentKey)
-            => Roslyn.Utilities.Hash.Combine(newKey, currentKey);
-    }
-}
-#endif
-
 namespace Roslyn.Utilities
 {
     internal static class Hash
