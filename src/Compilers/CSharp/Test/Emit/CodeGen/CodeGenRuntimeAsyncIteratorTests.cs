@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -32,8 +33,10 @@ class C
 }
 ";
             var comp = CreateRuntimeAsyncCompilation(source);
-            // Check all diagnostics
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,33): error CS9328: Method 'C.M()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //     async IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "M").WithArguments("C.M()").WithLocation(7, 33));
         }
 
         [Fact]
@@ -54,10 +57,10 @@ class C
 }
 ";
             var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,37): error CS9328: Method 'C.M()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+            comp.VerifyEmitDiagnostics(
+                // (7,33): error CS9328: Method 'C.M()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //     async IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "M").WithArguments("C.M()").WithLocation(7, 37));
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "M").WithArguments("C.M()").WithLocation(7, 33));
         }
 
         [Fact]
@@ -83,7 +86,7 @@ class C
 }
 ";
             var comp = CreateRuntimeAsyncCompilation(source);
-            CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

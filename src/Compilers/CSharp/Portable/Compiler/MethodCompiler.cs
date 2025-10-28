@@ -1595,21 +1595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AsyncStateMachine asyncStateMachine = null;
                 if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
                 {
-                    // Check if this is an async-iterator method
-                    bool isAsyncIterator = method.IsAsync && method.IsIterator;
-                    if (isAsyncIterator)
-                    {
-                        // TODO: Implement runtime-async lowering for async-iterators
-                        // For now, report an error
-                        diagnostics.Add(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync,
-                            method.GetFirstLocation(),
-                            method);
-                        bodyWithoutAsync = bodyWithoutIterators;
-                    }
-                    else
-                    {
-                        bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics);
-                    }
+                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics);
                 }
                 else
                 {

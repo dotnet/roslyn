@@ -76,6 +76,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
 
+            // Check if this is an async-iterator with runtime-async enabled
+            // Note: IsRuntimeAsyncEnabledIn returns false for async-iterators (since they don't return Task/ValueTask),
+            // so we check the feature flag directly
+            if (isAsyncEnumerableOrEnumerator && compilation.Feature("runtime-async") == "on")
+            {
+                // TODO: Implement runtime-async lowering for async-iterators
+                // For now, report an error
+                diagnostics.Add(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync,
+                    method.GetFirstLocation(),
+                    method);
+                stateMachineType = null;
+                return bodyWithAwaitLifted;
+            }
+
             AsyncRewriter rewriter = isAsyncEnumerableOrEnumerator
                 ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
                 : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics);
