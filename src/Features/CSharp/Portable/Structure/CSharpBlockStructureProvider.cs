@@ -54,6 +54,7 @@ internal sealed class CSharpBlockStructureProvider : AbstractBlockStructureProvi
         builder.Add<IfDirectiveTriviaSyntax, IfDirectiveTriviaStructureProvider>();
         builder.Add<CollectionExpressionSyntax, CollectionExpressionStructureProvider>();
         builder.Add<ArgumentListSyntax, ArgumentListStructureProvider>();
+        builder.Add<ParameterListSyntax, ParameterListStructureProvider>();
 
         return builder.ToImmutable();
     }
