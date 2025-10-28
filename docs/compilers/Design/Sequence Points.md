@@ -7,7 +7,7 @@ When the debugger stops on an IL instruction, it find the first preceding sequen
 Sequence points are generally used in roslyn at the statement level. They are constrained to appear only at locations in the code where the evaluation stack is empty.  
 
 We also have [infrastructure](https://github.com/dotnet/roslyn/blob/main/docs/compilers/CSharp/Expression%20Breakpoints.md) allowing expression breakpoints by way of spilling into statements.  
-That is used in `switch` expressions and allows to first stop with the operand highlighted and then stop again with the selected arm highlighted.
+That is used in `switch` expressions and allows the debugger to first stop with the operand highlighted and then stop again with the selected arm highlighted.
 
 The debugger pauses automatically after jump instructions. So synthesized labels generally need a sequence point. Otherwise whatever preceeding sequence point exists will be used, which would result in highlighting the previous statement.  
 Hidden sequence points can be used for this. They are sequence points with no associated span. When the debugger encounters hidden sequence points, it resumes the execution instead of pausing.
