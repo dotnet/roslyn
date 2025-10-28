@@ -47,6 +47,11 @@ internal static class SignatureHelpUtilities
 
     public static SignatureHelpState? GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position)
     {
+        if (IsPositionInLambdaBlock(argumentList, position))
+        {
+            return null;
+        }
+
         return CommonSignatureHelpUtilities.GetSignatureHelpState(
             argumentList, position,
             s_getBaseArgumentListOpenToken,
@@ -138,5 +143,16 @@ internal static class SignatureHelpUtilities
             triggerCharacters.Contains(token.ValueText[0]) &&
             token.Parent is ArgumentListSyntax &&
             token.Parent.Parent is TSyntaxNode;
+    }
+
+    private static bool IsPositionInLambdaBlock(SyntaxNode root, int position)
+    {
+        var token = root.FindToken(position);
+        var lambda = token.Parent?.AncestorsAndSelf().OfType<LambdaExpressionSyntax>().FirstOrDefault();
+        if (lambda?.Body is BlockSyntax block)
+        {
+            return block.Span.Contains(position);
+        }
+        return false;
     }
 }
