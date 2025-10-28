@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 testsSimplified.Push(seq.Update(newSequence));
                                 break;
 
-                            case Tests.Not n:
+                            case Tests.Not:
                                 testsSimplified.Push(Tests.Not.Create(testsSimplified.Pop()));
                                 break;
 
@@ -306,6 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             testsToSimplify.Free();
             testsToAssemble.Free();
             testsSimplified.Free();
+            usedValues.Free();
 
             return result;
         }
@@ -2437,9 +2438,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var length = toAssemble.RemainingTests.Length;
                         var newSequence = ArrayBuilder<Tests>.GetInstance(length, null!);
-                        for (int i = 1; i <= length; i++)
+                        for (int i = length - 1; i >= 0; i--)
                         {
-                            newSequence[length - i] = tests.Pop();
+                            newSequence[i] = tests.Pop();
                         }
 
                         tests.Push(toAssemble.Update(newSequence));
@@ -2586,7 +2587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return false;
                             }
 
-                            Debug.Assert(t2 is SequenceTests);
+                            Debug.Assert(t2 is SequenceTests seq && seq.RemainingTests.Length == sequence.RemainingTests.Length);
                             tests1.AddRange(sequence.RemainingTests);
                             tests2.AddRange(((SequenceTests)t2).RemainingTests);
                         }
