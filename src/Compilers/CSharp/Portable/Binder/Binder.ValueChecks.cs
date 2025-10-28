@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var setMethod = replace(SetMethod);
                 Symbol symbol = ReferenceEquals(Symbol, Method) && method is not null ? method : Symbol;
 
-                Debug.Assert(SetMethod?.GetIsNewExtensionMember() != true);
+                Debug.Assert(SetMethod?.IsExtensionBlockMember() != true);
                 wasError = (Method is not null && method is null) || (SetMethod is not null && setMethod is null);
 
                 return new MethodInfo(symbol, method, setMethod);
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // Tracked by https://github.com/dotnet/roslyn/issues/78829 : caller info on extension parameter of an extension indexer will need the receiver/argument to be passed
-                    Debug.Assert(!indexerAccess.Indexer.GetIsNewExtensionMember());
+                    Debug.Assert(!indexerAccess.Indexer.IsExtensionBlockMember());
                     BindDefaultArguments(indexerAccess.Syntax, parameters, extensionReceiver: null, argumentsBuilder, refKindsBuilderOpt, namesBuilder, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics: diagnostics);
 
                     if (namesBuilder is object)
@@ -2363,7 +2363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodInvocationInfo ReplaceWithExtensionImplementationIfNeeded(ref readonly MethodInvocationInfo methodInvocationInfo)
         {
             Symbol? symbol = methodInvocationInfo.MethodInfo.Symbol;
-            if (symbol?.GetIsNewExtensionMember() != true || symbol.IsStatic)
+            if (symbol?.IsExtensionBlockMember() != true || symbol.IsStatic)
             {
                 return methodInvocationInfo;
             }

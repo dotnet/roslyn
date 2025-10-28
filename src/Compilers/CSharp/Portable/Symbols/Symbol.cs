@@ -1757,7 +1757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(variable.Kind);
             }
 
-            if (containingSymbol.GetIsNewExtensionMember()
+            if (containingSymbol.IsExtensionBlockMember()
                 && variable is ParameterSymbol { ContainingSymbol: NamedTypeSymbol { IsExtension: true } })
             {
                 // An extension member doesn't capture the extension parameter

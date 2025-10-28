@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitInstanceCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool used)
         {
             Debug.Assert(node.Operator.Method is { });
-            Debug.Assert(node.LeftConversion is null || (node.Left.Type!.IsReferenceType && node.Operator.Method.GetIsNewExtensionMember()));
+            Debug.Assert(node.LeftConversion is null || (node.Left.Type!.IsReferenceType && node.Operator.Method.IsExtensionBlockMember()));
             Debug.Assert(node.FinalConversion is null);
 
             SyntaxNode syntax = node.Syntax;
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         static bool IsNewExtensionMemberWithByValPossiblyStructReceiver(Symbol symbol)
         {
-            return symbol.GetIsNewExtensionMember() && !symbol.IsStatic && symbol.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
+            return symbol.IsExtensionBlockMember() && !symbol.IsStatic && symbol.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
         }
 
         private BoundExpression? TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression? receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind refKind;
             bool isKnownToReferToTempIfReferenceType = false;
 
-            if (propertyOrEvent.GetIsNewExtensionMember())
+            if (propertyOrEvent.IsExtensionBlockMember())
             {
                 refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, propertyOrEvent);
             }
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             temps.Add(receiverTemp.LocalSymbol);
 
             if (receiverTemp.LocalSymbol.IsRef &&
-                (propertyOrEvent.GetIsNewExtensionMember() ?
+                (propertyOrEvent.IsExtensionBlockMember() ?
                      !receiverTemp.Type.IsValueType :
                      CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
                 !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp))

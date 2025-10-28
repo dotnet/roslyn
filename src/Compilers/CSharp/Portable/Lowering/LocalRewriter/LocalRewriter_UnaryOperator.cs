@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitInstanceIncrementOperator(BoundIncrementOperator node, bool used)
         {
             Debug.Assert(node.MethodOpt is { });
-            Debug.Assert(node.OperandConversion is null || (node.Operand.Type!.IsReferenceType && node.MethodOpt.GetIsNewExtensionMember()));
+            Debug.Assert(node.OperandConversion is null || (node.Operand.Type!.IsReferenceType && node.MethodOpt.IsExtensionBlockMember()));
 
             SyntaxNode syntax = node.Syntax;
 

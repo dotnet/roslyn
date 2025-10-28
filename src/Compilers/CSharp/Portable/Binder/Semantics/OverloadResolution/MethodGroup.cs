@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member is MethodSymbol method)
                 {
-                    Debug.Assert(method.IsExtensionMethod || method.GetIsNewExtensionMember());
+                    Debug.Assert(method.IsExtensionMethod || method.IsExtensionBlockMember());
                     this.Methods.Add(method);
                 }
             }

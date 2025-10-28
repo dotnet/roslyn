@@ -1629,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(signature.Kind.OperandTypes() == BinaryOperatorKind.UserDefined);
             Debug.Assert(signature.Method is not null);
 
-            if (signature.Method.GetIsNewExtensionMember())
+            if (signature.Method.IsExtensionBlockMember())
             {
                 return isValidExtensionUserDefinedConditionalLogicalOperator(syntax, signature, diagnostics, out trueOperator, out falseOperator);
             }
@@ -3876,7 +3876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (Compilation.SourceModule != methodOpt.ContainingModule)
                 {
-                    if (methodOpt.GetIsNewExtensionMember())
+                    if (methodOpt.IsExtensionBlockMember())
                     {
                         result &= CheckFeatureAvailability(node, MessageID.IDS_FeatureExtensions, diagnostics);
                     }

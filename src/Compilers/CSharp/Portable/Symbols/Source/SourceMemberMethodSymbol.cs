@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter)
+            if (this.IsExtensionBlockMember() && ContainingType.ExtensionParameter is { } extensionParameter)
             {
                 if (!extensionParameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                 {
@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = _lazyThisParameter;
-            if ((object)thisParameter != null || IsStatic || this.GetIsNewExtensionMember())
+            if ((object)thisParameter != null || IsStatic || this.IsExtensionBlockMember())
             {
                 return true;
             }
