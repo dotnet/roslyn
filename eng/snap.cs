@@ -164,9 +164,8 @@ string? suggestedTargetBranchName = null;
 // From the version number, infer the VS version it inserts to.
 if (sourceVersionsProps is { Data: { } data })
 {
-    // Roslyn 4.x corresponds to VS 17.x and so on.
-    var vsMajorVersion = data.MajorVersion + 13;
-    suggestedTargetBranchName = $"release/dev{vsMajorVersion}.{data.MinorVersion}";
+    var vsVersion = sourceVersionsProps.CorrespondingVsVersion;
+    suggestedTargetBranchName = $"release/dev{vsVersion.ToMajorMinorString()}";
 }
 
 var targetBranchName = console.Prompt(TextPrompt<string>.Create("Target branch",
@@ -197,8 +196,7 @@ var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After s
 var sourceVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
 var sourceVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{sourceBranchName}[/]?",
     defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData.Data?.BranchInfo.InsertionTitlePrefix));
-var sourceVersionAfterSnap = console.Prompt(TextPrompt<VersionsProps>.CreateExt($"After snap, [teal]{sourceBranchName}[/] should have version",
-    defaultValueIfNotNull: sourceVersionsProps?.Data.WithIncrementedMinor()));
+var sourceVersionsPropsUpdater = sourceVersionsProps.GetUpdater(console, gitHub, sourceBranchName);
 var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to",
     defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
 var targetVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
@@ -561,7 +559,7 @@ var sourcePublishDataAfterSnap = sourcePublishData.WithBranchInfo(new(
     InsertionTitlePrefix: sourceVsPrefixAfterSnap,
     InsertionCreateDraftPR: sourceVsAsDraftAfterSnap));
 sourcePublishDataAfterSnap.PushOrOpenPrIfNeeded(actions, sourcePublishData, snapConfigsBranchName);
-sourceVersionAfterSnap.PushOrOpenPrIfNeeded(gitHub, actions, sourceBranchName, sourceVersionsProps, snapConfigsBranchName);
+sourceVersionsPropsUpdater(actions, snapConfigsBranchName);
 var targetPublishDataAfterSnap = targetPublishData.WithBranchInfo(new(
     VsBranch: targetVsBranchAfterSnap,
     InsertionTitlePrefix: targetVsPrefixAfterSnap,
@@ -834,35 +832,55 @@ file sealed record BranchInfo(
     public string Summarize() => VsBranch + (InsertionCreateDraftPR ? " (as draft)" : null);
 }
 
-[TypeConverter(typeof(ParsableTypeConverter<VersionsProps>))]
-file sealed record VersionsProps(
-    int MajorVersion,
-    int MinorVersion,
-    int PatchVersion,
-    string PreReleaseVersionLabel)
-    : IParsable<VersionsProps>
+file sealed class VersionsProps
 {
-    private const string FileName = "Versions.props";
+    public const string FileName = "Versions.props";
     private const string FilePath = $"eng/{FileName}";
 
-    public XmlDocument? Document { get; init; }
+    public required VersionsPropsData Data { get; init; }
+    public required XmlDocument Document { get; init; }
+    public required bool VsixVersionPrefix { get; init; }
+
+    public VersionsPropsData CorrespondingVsVersion => VsixVersionPrefix
+        ? Data
+        // Roslyn 4.x corresponds to VS 17.x and so on.
+        : new VersionsPropsData(
+            MajorVersion: Data.MajorVersion + 13,
+            MinorVersion: Data.MinorVersion,
+            PatchVersion: Data.PatchVersion);
 
     /// <returns>
     /// <see langword="null"/> if the repo or branch does not exist.
     /// </returns>
-    public static async Task<(VersionsProps Data, XmlDocument Document)?> LoadAsync(HttpClient httpClient, string repoOwnerAndName, string branchName)
+    public static async Task<VersionsProps?> LoadAsync(HttpClient httpClient, string repoOwnerAndName, string branchName)
     {
         try
         {
             var xml = await httpClient.GetAsXmlDocumentAsync($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/{FilePath}");
 
-            var data = new VersionsProps(
-                MajorVersion: int.Parse(xml.FindSingleRequiredNode(nameof(MajorVersion)).InnerText),
-                MinorVersion: int.Parse(xml.FindSingleRequiredNode(nameof(MinorVersion)).InnerText),
-                PatchVersion: int.Parse(xml.FindSingleRequiredNode(nameof(PatchVersion)).InnerText),
-                PreReleaseVersionLabel: xml.FindSingleRequiredNode(nameof(PreReleaseVersionLabel)).InnerText);
+            // If the file has VsixVersionPrefix (e.g., razor), use that.
+            if (xml.FindSingleNode(nameof(VsixVersionPrefix))?.InnerText is { } vsixVersionPrefix &&
+                VersionsPropsData.TryParse(vsixVersionPrefix, CultureInfo.InvariantCulture, out var data))
+            {
+                return new()
+                {
+                    Data = data,
+                    Document = xml,
+                    VsixVersionPrefix = true,
+                };
+            }
 
-            return (data, xml);
+            data = new VersionsPropsData(
+                MajorVersion: int.Parse(xml.FindSingleRequiredNode(nameof(VersionsPropsData.MajorVersion)).InnerText),
+                MinorVersion: int.Parse(xml.FindSingleRequiredNode(nameof(VersionsPropsData.MinorVersion)).InnerText),
+                PatchVersion: int.Parse(xml.FindSingleRequiredNode(nameof(VersionsPropsData.PatchVersion)).InnerText));
+
+            return new()
+            {
+                Data = data,
+                Document = xml,
+                VsixVersionPrefix = false,
+            };
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -874,81 +892,26 @@ file sealed record VersionsProps(
         }
     }
 
-    public static VersionsProps Parse(string s, IFormatProvider? provider)
-    {
-        if (TryParse(s, provider, out var versionsProps))
-        {
-            return versionsProps;
-        }
-
-        throw new FormatException($"Cannot parse {nameof(VersionsProps)} from '{s}'");
-    }
-
-    public static bool TryParse([NotNullWhen(returnValue: true)] string? s, IFormatProvider? provider, [MaybeNullWhen(returnValue: false)] out VersionsProps versionsProps)
-    {
-        versionsProps = null;
-
-        if (s is null)
-        {
-            return false;
-        }
-
-        var parts = s.Split('-', 2);
-        var versionParts = parts[0].Split('.', 3);
-        if (versionParts.Length != 3)
-        {
-            return false;
-        }
-
-        if (!int.TryParse(versionParts[0], out var majorVersion))
-        {
-            return false;
-        }
-
-        if (!int.TryParse(versionParts[1], out var minorVersion))
-        {
-            return false;
-        }
-
-        if (!int.TryParse(versionParts[2], out var patchVersion))
-        {
-            return false;
-        }
-
-        var preReleaseVersionLabel = parts.Length == 2 ? parts[1] : string.Empty;
-
-        versionsProps = new VersionsProps(majorVersion, minorVersion, patchVersion, preReleaseVersionLabel);
-        return true;
-    }
-
-    public override string ToString() => $"{MajorVersion}.{MinorVersion}.{PatchVersion}-{PreReleaseVersionLabel}";
-
-    public string ToShortString() => $"{MajorVersion}.{MinorVersion}.{PatchVersion}";
-
-    public VersionsProps WithIncrementedMinor() => this with { MinorVersion = MinorVersion + 1 };
-
     public void SaveTo(XmlDocument xml)
     {
-        xml.FindSingleRequiredNode(nameof(MajorVersion)).InnerText = MajorVersion.ToString(CultureInfo.InvariantCulture);
-        xml.FindSingleRequiredNode(nameof(MinorVersion)).InnerText = MinorVersion.ToString(CultureInfo.InvariantCulture);
-        xml.FindSingleRequiredNode(nameof(PatchVersion)).InnerText = PatchVersion.ToString(CultureInfo.InvariantCulture);
-        xml.FindSingleRequiredNode(nameof(PreReleaseVersionLabel)).InnerText = PreReleaseVersionLabel;
+        if (VsixVersionPrefix)
+        {
+            xml.FindSingleRequiredNode(nameof(VsixVersionPrefix)).InnerText = Data.ToString();
+            xml.FindSingleRequiredNode("AddinMajorVersion").InnerText = Data.ToMajorMinorString();
+        }
+        else
+        {
+            xml.FindSingleRequiredNode(nameof(Data.MajorVersion)).InnerText = Data.MajorVersion.ToString(CultureInfo.InvariantCulture);
+            xml.FindSingleRequiredNode(nameof(Data.MinorVersion)).InnerText = Data.MinorVersion.ToString(CultureInfo.InvariantCulture);
+            xml.FindSingleRequiredNode(nameof(Data.PatchVersion)).InnerText = Data.PatchVersion.ToString(CultureInfo.InvariantCulture);
+        }
     }
 
-    public void PushOrOpenPrIfNeeded(GitHubUtil gitHub, ActionList actions, string branchName, (VersionsProps Data, XmlDocument Document)? original, string updateBranchName)
+    public void PushOrOpenPrIfNeeded(GitHubUtil gitHub, ActionList actions, string branchName, VersionsPropsData newData, string updateBranchName)
     {
         var console = actions.Console;
 
-        var xml = (XmlDocument?)original?.Document.CloneNode(deep: true);
-        if (xml is null)
-        {
-            console.MarkupLineInterpolated($"[yellow]Warning:[/] Cannot update [teal]{branchName}[/] {FileName} as original XML document is missing");
-            return;
-        }
-
-        Debug.Assert(original != null);
-
-        if (this.Equals(original.Value.Data))
+        if (Data.Equals(newData))
         {
             console.MarkupLineInterpolated($"[green]No change needed:[/] [teal]{branchName}[/] {FileName} already up to date");
             return;
@@ -959,18 +922,18 @@ file sealed record VersionsProps(
             title: $"Update [teal]{branchName}[/] {FileName} and SARIF files",
             branchName: branchName,
             updateBranchName: updateBranchName,
-            files: () => GetFilesAsync(gitHub, branchName, original.Value.Data, xml),
+            files: () => GetFilesAsync(gitHub, branchName, newData, (XmlDocument)Document.CloneNode(deep: true)),
             prTitle: GitHubUtil.UpdateConfigsPrTitle);
     }
 
-    private async IAsyncEnumerable<(string FilePath, byte[] Bytes)> GetFilesAsync(GitHubUtil gitHub, string branchName, VersionsProps original, XmlDocument xml)
+    private async IAsyncEnumerable<(string FilePath, byte[] Bytes)> GetFilesAsync(GitHubUtil gitHub, string branchName, VersionsPropsData newData, XmlDocument xml)
     {
         this.SaveTo(xml);
         yield return (FilePath, Encoding.UTF8.GetBytes(xml.OuterXml));
 
         // Update sarif files too.
-        var previousVersion = original.ToShortString();
-        var newVersion = this.ToShortString();
+        var previousVersion = this.Data.ToString();
+        var newVersion = newData.ToString();
         if (previousVersion == newVersion)
         {
             gitHub.Logger.Log($"Version didn't change ({previousVersion}), skipping SARIF files update.");
@@ -997,6 +960,64 @@ file sealed record VersionsProps(
             yield return (filePath, Encoding.Utf8WithBom.GetBytes(updatedContent));
         }
     }
+}
+
+[TypeConverter(typeof(ParsableTypeConverter<VersionsPropsData>))]
+file sealed record VersionsPropsData(
+    int MajorVersion,
+    int MinorVersion,
+    int PatchVersion)
+    : IParsable<VersionsPropsData>
+{
+    public static VersionsPropsData Parse(string s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException($"Cannot parse {nameof(VersionsPropsData)} from '{s}'");
+    }
+
+    public static bool TryParse([NotNullWhen(returnValue: true)] string? s, IFormatProvider? provider, [MaybeNullWhen(returnValue: false)] out VersionsPropsData result)
+    {
+        result = null;
+
+        if (s is null)
+        {
+            return false;
+        }
+
+        var versionParts = s.Split('.', 3);
+        if (versionParts.Length != 3)
+        {
+            return false;
+        }
+
+        if (!int.TryParse(versionParts[0], out var majorVersion))
+        {
+            return false;
+        }
+
+        if (!int.TryParse(versionParts[1], out var minorVersion))
+        {
+            return false;
+        }
+
+        if (!int.TryParse(versionParts[2], out var patchVersion))
+        {
+            return false;
+        }
+
+        result = new VersionsPropsData(majorVersion, minorVersion, patchVersion);
+        return true;
+    }
+
+    public override string ToString() => $"{MajorVersion.ToString(CultureInfo.InvariantCulture)}.{MinorVersion.ToString(CultureInfo.InvariantCulture)}.{PatchVersion.ToString(CultureInfo.InvariantCulture)}";
+
+    public string ToMajorMinorString() => $"{MajorVersion.ToString(CultureInfo.InvariantCulture)}.{MinorVersion.ToString(CultureInfo.InvariantCulture)}";
+
+    public VersionsPropsData WithIncrementedMinor() => this with { MinorVersion = MinorVersion + 1 };
 }
 
 file sealed record VsVersion(int Major, int Minor)
@@ -1202,16 +1223,6 @@ file static class Extensions
         }
     }
 
-    extension<T>(TextPrompt<T>) where T : class
-    {
-        public static TextPrompt<T> CreateExt(string text, T? defaultValueIfNotNull)
-        {
-            return defaultValueIfNotNull is { } v
-                ? TextPrompt<T>.Create(text, defaultValue: v)
-                : new TextPrompt<T>($"{text}:");
-        }
-    }
-
     extension(TextPrompt<string>)
     {
         public static TextPrompt<string> Create(string text, string? defaultValueIfNotNullOrEmpty)
@@ -1219,6 +1230,22 @@ file static class Extensions
             return !string.IsNullOrEmpty(defaultValueIfNotNullOrEmpty)
                 ? TextPrompt<string>.Create(text, defaultValue: defaultValueIfNotNullOrEmpty)
                 : new TextPrompt<string>($"{text}:");
+        }
+    }
+
+    extension(VersionsProps? versionsProps)
+    {
+        public Action<ActionList, string> GetUpdater(IAnsiConsole console, GitHubUtil gitHub, string branchName)
+        {
+            if (versionsProps is null)
+            {
+                console.MarkupLineInterpolated($"[yellow]Warning:[/] Cannot update [teal]{branchName}[/] {VersionsProps.FileName} as original XML document is missing");
+                return delegate { };
+            }
+
+            var versionAfterSnap = console.Prompt(TextPrompt<VersionsPropsData>.Create($"After snap, [teal]{branchName}[/] should have version",
+                defaultValue: versionsProps.Data.WithIncrementedMinor()));
+            return (ActionList actions, string updateBranchName) => versionsProps.PushOrOpenPrIfNeeded(gitHub, actions, branchName, versionAfterSnap, updateBranchName);
         }
     }
 
