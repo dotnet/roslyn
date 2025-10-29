@@ -155,7 +155,7 @@ var gitHub = new GitHubUtil(httpClient, logger, sourceRepoShort);
 var sourceBranchName = console.Prompt(TextPrompt<string>.Create("Source branch",
     defaultValue: "main"));
 
-// Find Roslyn version number.
+// Find version number.
 var sourceVersionsProps = await VersionsProps.LoadAsync(httpClient, sourceRepoShort, sourceBranchName);
 console.MarkupLineInterpolated($"Branch [teal]{sourceBranchName}[/] has version [teal]{sourceVersionsProps?.Data.ToString() ?? "N/A"}[/]");
 
@@ -856,16 +856,13 @@ file sealed record VersionsProps(
         {
             var xml = await httpClient.GetAsXmlDocumentAsync($"https://raw.githubusercontent.com/{repoOwnerAndName}/{branchName}/{FilePath}");
 
-            var majorVersion = int.Parse(xml.SelectSingleNode("//MajorVersion")?.InnerText
-                ?? throw new InvalidOperationException("MajorVersion not found"));
-            var minorVersion = int.Parse(xml.SelectSingleNode("//MinorVersion")?.InnerText
-                ?? throw new InvalidOperationException("MinorVersion not found"));
-            var patchVersion = int.Parse(xml.SelectSingleNode("//PatchVersion")?.InnerText
-                ?? throw new InvalidOperationException("PatchVersion not found"));
-            var preReleaseVersionLabel = xml.SelectSingleNode("//PreReleaseVersionLabel")?.InnerText
-                ?? throw new InvalidOperationException("PreReleaseVersionLabel not found");
+            var data = new VersionsProps(
+                MajorVersion: int.Parse(xml.FindSingleRequiredNode(nameof(MajorVersion)).InnerText),
+                MinorVersion: int.Parse(xml.FindSingleRequiredNode(nameof(MinorVersion)).InnerText),
+                PatchVersion: int.Parse(xml.FindSingleRequiredNode(nameof(PatchVersion)).InnerText),
+                PreReleaseVersionLabel: xml.FindSingleRequiredNode(nameof(PreReleaseVersionLabel)).InnerText);
 
-            return (new VersionsProps(majorVersion, minorVersion, patchVersion, preReleaseVersionLabel), xml);
+            return (data, xml);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -932,10 +929,10 @@ file sealed record VersionsProps(
 
     public void SaveTo(XmlDocument xml)
     {
-        xml.SelectSingleNode("//MajorVersion")!.InnerText = MajorVersion.ToString(CultureInfo.InvariantCulture);
-        xml.SelectSingleNode("//MinorVersion")!.InnerText = MinorVersion.ToString(CultureInfo.InvariantCulture);
-        xml.SelectSingleNode("//PatchVersion")!.InnerText = PatchVersion.ToString(CultureInfo.InvariantCulture);
-        xml.SelectSingleNode("//PreReleaseVersionLabel")!.InnerText = PreReleaseVersionLabel;
+        xml.FindSingleRequiredNode(nameof(MajorVersion)).InnerText = MajorVersion.ToString(CultureInfo.InvariantCulture);
+        xml.FindSingleRequiredNode(nameof(MinorVersion)).InnerText = MinorVersion.ToString(CultureInfo.InvariantCulture);
+        xml.FindSingleRequiredNode(nameof(PatchVersion)).InnerText = PatchVersion.ToString(CultureInfo.InvariantCulture);
+        xml.FindSingleRequiredNode(nameof(PreReleaseVersionLabel)).InnerText = PreReleaseVersionLabel;
     }
 
     public void PushOrOpenPrIfNeeded(GitHubUtil gitHub, ActionList actions, string branchName, (VersionsProps Data, XmlDocument Document)? original, string updateBranchName)
@@ -1222,6 +1219,20 @@ file static class Extensions
             return !string.IsNullOrEmpty(defaultValueIfNotNullOrEmpty)
                 ? TextPrompt<string>.Create(text, defaultValue: defaultValueIfNotNullOrEmpty)
                 : new TextPrompt<string>($"{text}:");
+        }
+    }
+
+    extension(XmlDocument document)
+    {
+        public XmlNode? FindSingleNode(string localName)
+        {
+            return document.SelectSingleNode($"//*[local-name()='{localName}']");
+        }
+
+        public XmlNode FindSingleRequiredNode(string localName)
+        {
+            return document.FindSingleNode(localName)
+                ?? throw new InvalidOperationException($"{localName} not found");
         }
     }
 }
