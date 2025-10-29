@@ -71,9 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private UncommonData(ConstantValue? constantValue, MethodSymbol? method, TypeSymbol? constrainedToType, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, bool isUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData? interpolatedStringHandlerData)
             {
                 Debug.Assert(interpolatedStringHandlerData is null || !isUnconvertedInterpolatedStringAddition);
-                Debug.Assert(method is null ||
-                             method is ErrorMethodSymbol { ParameterCount: 0 } or { MethodKind: MethodKind.UserDefinedOperator } ||
-                             method.ParameterCount == 2);
+                Debug.Assert(method is null or ErrorMethodSymbol { ParameterCount: 0 } or { MethodKind: MethodKind.UserDefinedOperator } or { ParameterCount: 2 });
 
                 ConstantValue = constantValue;
                 Method = method;
