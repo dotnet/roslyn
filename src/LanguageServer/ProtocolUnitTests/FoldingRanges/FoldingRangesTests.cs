@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,9 +65,77 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
             }|}
             """);
 
-    private async Task AssertFoldingRanges(bool mutatingLspWorkspace, string markup, string collapsedText = null)
+    [Theory, CombinatorialData]
+    public Task TestGetFoldingRangeAsync_LineFoldingOnly_NoOverlappingRanges(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
+            class C{|foldingRange:
+            {
+                public void M1(){|implementation:
+                {
+                    var x = 1;
+                }|}
+                public void M2(){|implementation:
+                {
+                    var y = 2;
+                }|}
+            }|}
+            """, lineFoldingOnly: true);
+
+    [Theory, CombinatorialData]
+    public Task TestGetFoldingRangeAsync_LineFoldingOnly_StartLineOverlapsChoosesInner(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
+            class C { public void M1() {|implementation:{
+                    var x = 1;
+                }|}
+            }
+            """, lineFoldingOnly: true);
+
+    [Theory, CombinatorialData]
+    public Task TestGetFoldingRangeAsync_LineFoldingOnly_EndLineOverlaps(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
+            class C{|foldingRange:
+            {
+                void M(){|implementation:
+                {
+                    void Local(){|foldingRange:
+                    {
+                    }|}}|}}|}
+            """, lineFoldingOnly: true);
+
+    [Theory, CombinatorialData]
+    public Task TestGetFoldingRangeAsync_LineFoldingOnly_EndLineOverlapsStartLine(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
+            class C{|foldingRange:
+            {
+                void M(){|implementation:
+                {
+                    if (true){|foldingRange:
+                    {|}
+                    } else{|foldingRange: {
+                    }|}
+                }|}
+            }|}
+            """, lineFoldingOnly: true);
+
+    private async Task AssertFoldingRanges(
+        bool mutatingLspWorkspace,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        string collapsedText = null,
+        bool lineFoldingOnly = false)
     {
-        var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var clientCapabilities = new LSP.ClientCapabilities();
+        if (lineFoldingOnly)
+        {
+            clientCapabilities.TextDocument = new LSP.TextDocumentClientCapabilities
+            {
+                FoldingRange = new LSP.FoldingRangeSetting
+                {
+                    LineFoldingOnly = true
+                }
+            };
+        }
+
+        var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expected = testLspServer.GetLocations()
             .SelectMany(kvp => kvp.Value.Select(location => CreateFoldingRange(kvp.Key, location.Range, collapsedText ?? "...")))
             .OrderByDescending(range => range.StartLine)

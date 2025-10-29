@@ -18,6 +18,6 @@ internal static class FoldingRanges
         // composition so can't import it (and its internal anyway)
         var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
 
-        return FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, document, cancellationToken);
+        return FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, document, lineFoldingOnly: false, cancellationToken);
     }
 }
