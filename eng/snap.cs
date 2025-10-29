@@ -4,7 +4,7 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This should work for as many repos as possible, not just dotnet/roslyn, e.g., at least dotnet/razor, too.
-// NOTE: This script doesn't assume anything in the current working directory, hence it also doesn't use `git`, but only GitHub APIs (mostly via the `gh` CLI).
+// NOTE: This script shouldn't assume anything in the current working directory, hence it also doesn't use `git`, but only GitHub APIs (mostly via the `gh` CLI).
 
 // Workaround for https://github.com/dotnet/roslyn/issues/76197.
 #:property SignAssembly=false
@@ -771,7 +771,7 @@ file sealed class PublishData(
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Cannot load {FileName} from '{gitHub.RepoOwnerAndName}' branch '{branchName}'", ex);
+            throw new InvalidOperationException($"Cannot load '{FilePath}' from '{gitHub.RepoOwnerAndName}' branch '{branchName}'", ex);
         }
     }
 
@@ -873,7 +873,7 @@ file sealed record VersionsProps(
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Cannot load {FileName} from '{repoOwnerAndName}' branch '{branchName}'", ex);
+            throw new InvalidOperationException($"Cannot load '{FilePath}' from '{repoOwnerAndName}' branch '{branchName}'", ex);
         }
     }
 
