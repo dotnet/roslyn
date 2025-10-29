@@ -11,7 +11,6 @@ using System.Resources;
 using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -78,6 +77,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return useAppHost;
             }
         }
+
+        internal bool UseAppHost_TestOnly { set => _useAppHost = value; }
 
         protected ManagedToolTask(ResourceManager resourceManager)
             : base(resourceManager)
@@ -259,14 +260,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return base.ValidateParameters();
-        }
-
-        internal static class TestAccessor
-        {
-            public static void SetUseAppHost(ManagedToolTask task, bool value)
-            {
-                task._useAppHost = value;
-            }
         }
     }
 }

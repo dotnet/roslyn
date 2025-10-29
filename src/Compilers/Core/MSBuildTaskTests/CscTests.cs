@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void BuiltInToolExe(bool useAppHost, bool setToolExe)
         {
             var csc = new Csc();
-            ManagedToolTask.TestAccessor.SetUseAppHost(csc, useAppHost);
+            csc.UseAppHost_TestOnly = useAppHost;
             if (setToolExe)
             {
                 csc.ToolExe = $"csc{PlatformInformation.ExeExtension}";

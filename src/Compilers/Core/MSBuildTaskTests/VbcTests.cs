@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void BuiltInToolExe(bool useAppHost, bool setToolExe)
         {
             var vbc = new Vbc();
-            ManagedToolTask.TestAccessor.SetUseAppHost(vbc, useAppHost);
+            vbc.UseAppHost_TestOnly = useAppHost;
             if (setToolExe)
             {
                 vbc.ToolExe = $"vbc{PlatformInformation.ExeExtension}";
