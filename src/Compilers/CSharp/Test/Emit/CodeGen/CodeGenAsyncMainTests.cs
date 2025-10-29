@@ -2198,7 +2198,7 @@ class Program
 
             var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
             var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
-            
+
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.<Main>()", @"
 {
@@ -2228,7 +2228,7 @@ class Program
 
             var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
             var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
-            
+
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.<Main>()", @"
 {
@@ -2258,7 +2258,7 @@ class Program
             var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
             var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task);
-            
+
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             // Verify it falls back to GetAwaiter().GetResult() pattern
             verifier.VerifyIL("Program.<Main>()", @"
@@ -2294,7 +2294,7 @@ class Program
             var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
             var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_T);
-            
+
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             // Verify it falls back to GetAwaiter().GetResult() pattern
             verifier.VerifyIL("Program.<Main>()", @"
