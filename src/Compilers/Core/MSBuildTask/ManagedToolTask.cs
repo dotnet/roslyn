@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             // Set DOTNET_ROOT so that the apphost executables launch properly.
             // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
-            if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
+            if (RuntimeHostInfo.GetToolDotNetRoot(Log.LogMessage) is { } dotNetRoot)
             {
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables =

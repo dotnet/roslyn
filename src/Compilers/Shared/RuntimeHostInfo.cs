@@ -6,6 +6,7 @@
 
 using System;
 using System.IO;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -32,9 +33,26 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
         /// </summary>
-        internal static string? GetToolDotNetRoot()
+        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger)
         {
-            var directoryName = Path.GetDirectoryName(GetDotNetPathOrDefault());
+            var dotNetPath = GetDotNetPathOrDefault();
+
+            // Resolve symlinks to dotnet
+            try
+            {
+                var resolvedPath = File.ResolveLinkTarget(dotNetPath, returnFinalTarget: true);
+                if (resolvedPath != null)
+                {
+                    dotNetPath = resolvedPath.FullName;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex.Message]);
+                return null;
+            }
+
+            var directoryName = Path.GetDirectoryName(dotNetPath);
             if (string.IsNullOrEmpty(directoryName))
             {
                 return null;
