@@ -247,11 +247,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
             Debug.Assert(node.InterpolatedStringHandlerData is null);
+            Debug.Assert(!node.OperatorKind.IsDynamic());
 
-            MethodSymbol? method = VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method);
+            var binaryOperatorMethod = node.BinaryOperatorMethod;
+            MethodSymbol? method = VisitMethodSymbolWithExtensionRewrite(rewriter, binaryOperatorMethod);
             TypeSymbol? constrainedToType = rewriter.VisitType(node.ConstrainedToType);
 
-            if (Symbol.Equals(method, node.Method, TypeCompareKind.AllIgnoreOptions) && TypeSymbol.Equals(constrainedToType, node.ConstrainedToType, TypeCompareKind.AllIgnoreOptions))
+            if (Symbol.Equals(method, binaryOperatorMethod, TypeCompareKind.AllIgnoreOptions) && TypeSymbol.Equals(constrainedToType, node.ConstrainedToType, TypeCompareKind.AllIgnoreOptions))
             {
                 return node.Data;
             }

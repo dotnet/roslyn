@@ -1650,7 +1650,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.OperatorKind = operatorKind;
             this.Data = data;
             this.ResultKind = resultKind;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BinaryOperatorKind OperatorKind { get; }
         public BoundBinaryOperator.UncommonData? Data { get; }
