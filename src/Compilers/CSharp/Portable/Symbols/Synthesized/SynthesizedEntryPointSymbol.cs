@@ -333,13 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// <summary> The syntax for the user-defined asynchronous main method. </summary>
             private readonly CSharpSyntaxNode _userMainReturnTypeSyntax;
 
-            private readonly BoundExpression _getAwaiterGetResultCall;
+            private readonly BoundExpression _userEntryPointCall;
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
-
-            private readonly CSharpCompilation _compilation;
-
-            private readonly MethodSymbol _handleAsyncEntryPointMethod;
 
             /// <summary> The user-defined asynchronous main method. </summary>
             internal readonly MethodSymbol UserMain;
@@ -351,7 +347,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // parameter checks for determining entrypoint validity.
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
-                _compilation = compilation;
                 UserMain = userMain;
                 _userMainReturnTypeSyntax = userMain.ExtractReturnTypeSyntax();
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
@@ -382,13 +377,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ? SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_T
                     : SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task;
 
-                _handleAsyncEntryPointMethod = compilation.GetSpecialTypeMember(specialMember) as MethodSymbol;
-
-                // If the new API is not available, fall back to the old GetAwaiter/GetResult pattern
-                if (_handleAsyncEntryPointMethod == null)
+                if (Binder.TryGetSpecialTypeMember(compilation, specialMember, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded, out MethodSymbol handleAsyncEntryPointMethod, isOptional: true))
                 {
+                    // Use the new HandleAsyncEntryPoint API
+                    _userEntryPointCall = new BoundCall(
+                            syntax: _userMainReturnTypeSyntax,
+                            receiverOpt: null,
+                            initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                            method: handleAsyncEntryPointMethod,
+                            arguments: ImmutableArray.Create<BoundExpression>(userMainInvocation),
+                            argumentNamesOpt: default(ImmutableArray<string>),
+                            argumentRefKindsOpt: default(ImmutableArray<RefKind>),
+                            isDelegateCall: false,
+                            expanded: false,
+                            invokedAsExtensionMethod: false,
+                            argsToParamsOpt: default(ImmutableArray<int>),
+                            defaultArguments: default(BitVector),
+                            resultKind: LookupResultKind.Viable,
+                            type: handleAsyncEntryPointMethod.ReturnType)
+                    { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    // Fall back to the old GetAwaiter/GetResult pattern
                     // The diagnostics that would be produced here will already have been captured and returned.
-                    var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall!, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
+                    var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _userEntryPointCall!, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
                 }
 
                 Debug.Assert(
@@ -408,96 +421,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-            public override TypeWithAnnotations ReturnTypeWithAnnotations => _handleAsyncEntryPointMethod != null
-                ? TypeWithAnnotations.Create(_handleAsyncEntryPointMethod.ReturnType)
-                : TypeWithAnnotations.Create(_getAwaiterGetResultCall.Type);
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(_userEntryPointCall.Type);
 
             internal override BoundBlock CreateBody(BindingDiagnosticBag diagnostics)
             {
                 var syntax = _userMainReturnTypeSyntax;
 
-                if (_handleAsyncEntryPointMethod != null)
-                {
-                    // Use the new HandleAsyncEntryPoint API
-                    var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, p, p.Type), _userMainReturnTypeSyntax);
-
-                    // Main(args) or Main()
-                    BoundCall userMainInvocation = new BoundCall(
-                            syntax: syntax,
-                            receiverOpt: null,
-                            initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                            method: UserMain,
-                            arguments: arguments,
-                            argumentNamesOpt: default(ImmutableArray<string>),
-                            argumentRefKindsOpt: default(ImmutableArray<RefKind>),
-                            isDelegateCall: false,
-                            expanded: false,
-                            invokedAsExtensionMethod: false,
-                            argsToParamsOpt: default(ImmutableArray<int>),
-                            defaultArguments: default(BitVector),
-                            resultKind: LookupResultKind.Viable,
-                            type: UserMain.ReturnType)
-                    { WasCompilerGenerated = true };
-
-                    // HandleAsyncEntryPoint(Main(args)) or return HandleAsyncEntryPoint(Main(args))
-                    BoundCall handleAsyncEntryPointCall = new BoundCall(
-                            syntax: syntax,
-                            receiverOpt: null,
-                            initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                            method: _handleAsyncEntryPointMethod,
-                            arguments: ImmutableArray.Create<BoundExpression>(userMainInvocation),
-                            argumentNamesOpt: default(ImmutableArray<string>),
-                            argumentRefKindsOpt: default(ImmutableArray<RefKind>),
-                            isDelegateCall: false,
-                            expanded: false,
-                            invokedAsExtensionMethod: false,
-                            argsToParamsOpt: default(ImmutableArray<int>),
-                            defaultArguments: default(BitVector),
-                            resultKind: LookupResultKind.Viable,
-                            type: _handleAsyncEntryPointMethod.ReturnType)
-                    { WasCompilerGenerated = true };
-
-                    if (ReturnsVoid)
-                    {
-                        return new BoundBlock(
-                            syntax: syntax,
-                            locals: ImmutableArray<LocalSymbol>.Empty,
-                            statements: ImmutableArray.Create<BoundStatement>(
-                                new BoundExpressionStatement(
-                                    syntax: syntax,
-                                    expression: handleAsyncEntryPointCall
-                                )
-                                { WasCompilerGenerated = true },
-                                new BoundReturnStatement(
-                                    syntax: syntax,
-                                    refKind: RefKind.None,
-                                    expressionOpt: null,
-                                    @checked: false
-                                )
-                                { WasCompilerGenerated = true }
-                            )
-                        )
-                        { WasCompilerGenerated = true };
-                    }
-                    else
-                    {
-                        return new BoundBlock(
-                            syntax: syntax,
-                            locals: ImmutableArray<LocalSymbol>.Empty,
-                            statements: ImmutableArray.Create<BoundStatement>(
-                                new BoundReturnStatement(
-                                    syntax: syntax,
-                                    refKind: RefKind.None,
-                                    expressionOpt: handleAsyncEntryPointCall,
-                                    @checked: false
-                                )
-                            )
-                        )
-                        { WasCompilerGenerated = true };
-                    }
-                }
-
-                // Fall back to the old GetAwaiter/GetResult pattern
                 if (ReturnsVoid)
                 {
                     return new BoundBlock(
@@ -506,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         statements: ImmutableArray.Create<BoundStatement>(
                             new BoundExpressionStatement(
                                 syntax: syntax,
-                                expression: _getAwaiterGetResultCall
+                                expression: _userEntryPointCall
                             )
                             { WasCompilerGenerated = true },
                             new BoundReturnStatement(
@@ -530,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
-                                expressionOpt: _getAwaiterGetResultCall,
+                                expressionOpt: _userEntryPointCall,
                                 @checked: false
                             )
                         )
