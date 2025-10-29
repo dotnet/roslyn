@@ -2393,13 +2393,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleInapplicableBinaryOperator">
-        <source>Operator cannot be applied on operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
-        <target state="new">Operator cannot be applied on operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
+        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleInapplicableUnaryOperator">
-        <source>Operator cannot be applied on operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
-        <target state="new">Operator cannot be applied on operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
+        <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
+        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">

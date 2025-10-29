@@ -16950,7 +16950,7 @@ public class Program
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
-                // (7,11): error CS9340: Operator cannot be applied on operands of type 'C1' and 'int'. The closest inapplicable candidate is 'C1.operator +=(params int[])'
+                // (7,11): error CS9340: Operator cannot be applied to operands of type 'C1' and 'int'. The closest inapplicable candidate is 'C1.operator +=(params int[])'
                 //         x += 1;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+=").WithArguments("C1", "int", "C1.operator +=(params int[])").WithLocation(7, 11)
                 );

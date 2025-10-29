@@ -8172,10 +8172,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
   <data name="ERR_SingleInapplicableBinaryOperator" xml:space="preserve">
-    <value>Operator cannot be applied on operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</value>
+    <value>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</value>
   </data>
   <data name="ERR_SingleInapplicableUnaryOperator" xml:space="preserve">
-    <value>Operator cannot be applied on operand of type '{0}'. The closest inapplicable candidate is '{1}'</value>
+    <value>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</value>
   </data>
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>

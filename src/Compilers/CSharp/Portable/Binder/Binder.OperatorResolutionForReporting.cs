@@ -22,6 +22,13 @@ internal partial class Binder
         private object? _nonExtensionResult;
         private object? _extensionResult;
 
+        [Conditional("DEBUG")]
+        private void AssertInvariant()
+        {
+            Debug.Assert(_nonExtensionResult is null or OverloadResolutionResult<MethodSymbol> or BinaryOperatorOverloadResolutionResult or UnaryOperatorOverloadResolutionResult);
+            Debug.Assert(_extensionResult is null or OverloadResolutionResult<MethodSymbol> or BinaryOperatorOverloadResolutionResult or UnaryOperatorOverloadResolutionResult);
+        }
+
         /// <returns>Returns true if the result was set and <see cref="OperatorResolutionForReporting"/> took ownership of the result.</returns>
         private bool SaveResult(object result, ref object? savedResult)
         {
@@ -71,7 +78,7 @@ internal partial class Binder
         /// <summary>
         /// Follows a very simplified version of OverloadResolutionResult.ReportDiagnostics which can be expanded in the future if needed.
         /// </summary>
-        internal bool TryReportDiagnostics(SyntaxNode node, BindingDiagnosticBag diagnostics, Binder binder, object leftDisplay, object? rightDisplay)
+        internal bool TryReportDiagnostics(SyntaxNode node, Binder binder, object leftDisplay, object? rightDisplay, BindingDiagnosticBag diagnostics)
         {
             object? resultToUse = pickResultToUse(_nonExtensionResult, _extensionResult);
             if (resultToUse is null)
@@ -82,16 +89,22 @@ internal partial class Binder
             var results = ArrayBuilder<(MethodSymbol?, OperatorAnalysisResultKind)>.GetInstance();
             populateResults(results, resultToUse);
 
-            bool reported = tryReportDiagnostics(node, diagnostics, binder, results, leftDisplay, rightDisplay);
+            bool reported = tryReportDiagnostics(node, binder, results, leftDisplay, rightDisplay, diagnostics);
             results.Free();
 
             return reported;
 
-            static bool tryReportDiagnostics(SyntaxNode node, BindingDiagnosticBag diagnostics, Binder binder, ArrayBuilder<(MethodSymbol? member, OperatorAnalysisResultKind resultKind)> results, object leftDisplay, object? rightDisplay)
+            static bool tryReportDiagnostics(
+                SyntaxNode node,
+                Binder binder,
+                ArrayBuilder<(MethodSymbol? member, OperatorAnalysisResultKind resultKind)> results,
+                object leftDisplay,
+                object? rightDisplay,
+                BindingDiagnosticBag diagnostics)
             {
                 assertNone(results, OperatorAnalysisResultKind.Undefined);
 
-                if (hadAmbiguousBestMethods(results, node, diagnostics, binder))
+                if (hadAmbiguousBestMethods(results, node, binder, diagnostics))
                 {
                     return true;
                 }
@@ -102,6 +115,12 @@ internal partial class Binder
                 }
 
                 assertNone(results, OperatorAnalysisResultKind.Applicable);
+
+                if (results.Any(m => m.resultKind == OperatorAnalysisResultKind.Worse))
+                {
+                    return false;
+                }
+
                 assertNone(results, OperatorAnalysisResultKind.Worse);
 
                 Debug.Assert(results.All(r => r.resultKind == OperatorAnalysisResultKind.Inapplicable));
@@ -112,12 +131,12 @@ internal partial class Binder
                     var toReport = nodeToReport(node);
                     if (rightDisplay is null)
                     {
-                        // error: Operator cannot be applied on operand of type '{0}'. The closest inapplicable candidate is '{1}'
+                        // error: Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'
                         Error(diagnostics, ErrorCode.ERR_SingleInapplicableUnaryOperator, toReport, leftDisplay, inapplicableMember);
                     }
                     else
                     {
-                        // error: Operator cannot be applied on operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'
+                        // error: Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'
                         Error(diagnostics, ErrorCode.ERR_SingleInapplicableBinaryOperator, toReport, leftDisplay, rightDisplay, inapplicableMember);
                     }
 
@@ -165,7 +184,7 @@ internal partial class Binder
                         {
                             if (res.Signature.Method is null)
                             {
-                                // Skip build-in operators
+                                // Skip built-in operators
                                 continue;
                             }
 
@@ -181,7 +200,7 @@ internal partial class Binder
                         {
                             if (res.Signature.Method is null)
                             {
-                                // Skip build-in operators
+                                // Skip built-in operators
                                 continue;
                             }
 
@@ -199,7 +218,7 @@ internal partial class Binder
                 return bestKind;
             }
 
-            static bool hadAmbiguousBestMethods(ArrayBuilder<(MethodSymbol?, OperatorAnalysisResultKind)> results, SyntaxNode node, BindingDiagnosticBag diagnostics, Binder binder)
+            static bool hadAmbiguousBestMethods(ArrayBuilder<(MethodSymbol?, OperatorAnalysisResultKind)> results, SyntaxNode node, Binder binder, BindingDiagnosticBag diagnostics)
             {
                 if (!tryGetTwoBest(results, out var first, out var second))
                 {
@@ -222,6 +241,7 @@ internal partial class Binder
                 };
             }
 
+            [Conditional("DEBUG")]
             static void assertNone(ArrayBuilder<(MethodSymbol? member, OperatorAnalysisResultKind resultKind)> results, OperatorAnalysisResultKind kind)
             {
                 Debug.Assert(results.All(r => r.resultKind != kind));
@@ -259,9 +279,9 @@ internal partial class Binder
                 return false;
             }
 
-            static void populateResults(ArrayBuilder<(MethodSymbol?, OperatorAnalysisResultKind)> results, object? extensionResult)
+            static void populateResults(ArrayBuilder<(MethodSymbol?, OperatorAnalysisResultKind)> results, object? result)
             {
-                switch (extensionResult)
+                switch (result)
                 {
                     case OverloadResolutionResult<MethodSymbol> result1:
                         foreach (var res in result1.ResultsBuilder)
@@ -287,7 +307,7 @@ internal partial class Binder
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(extensionResult);
+                        throw ExceptionUtilities.UnexpectedValue(result);
                 }
             }
 
@@ -328,13 +348,6 @@ internal partial class Binder
 
                 result = null;
             }
-        }
-
-        [Conditional("DEBUG")]
-        private void AssertInvariant()
-        {
-            Debug.Assert(_nonExtensionResult is null or OverloadResolutionResult<MethodSymbol> or BinaryOperatorOverloadResolutionResult or UnaryOperatorOverloadResolutionResult);
-            Debug.Assert(_extensionResult is null or OverloadResolutionResult<MethodSymbol> or BinaryOperatorOverloadResolutionResult or UnaryOperatorOverloadResolutionResult);
         }
     }
 }

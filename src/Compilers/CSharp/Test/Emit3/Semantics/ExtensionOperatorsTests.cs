@@ -6358,7 +6358,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (20,13): error CS9341: Operator cannot be applied on operand of type 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator ++()'
+                // (20,13): error CS9341: Operator cannot be applied to operand of type 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator ++()'
                 //         _ = ++s1;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1?", "Extensions1.extension(ref S1).operator ++()").WithLocation(20, 13)
                 );
@@ -6480,7 +6480,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (19,13): error CS9341: Operator cannot be applied on operand of type 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S1?).operator ++()'
+                // (19,13): error CS9341: Operator cannot be applied to operand of type 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S1?).operator ++()'
                 //         _ = ++s1;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1", "Extensions1.extension(ref S1?).operator ++()").WithLocation(19, 13),
                 // (20,44): error CS1620: Argument 1 must be passed with the 'ref' keyword
@@ -6579,13 +6579,13 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (22,13): error CS9341: Operator cannot be applied on operand of type 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator ++()'
+                // (22,13): error CS9341: Operator cannot be applied to operand of type 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator ++()'
                 //         _ = ++s1;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1", "Extensions1.extension(ref S2).operator ++()").WithLocation(22, 13),
                 // (23,48): error CS1503: Argument 1: cannot convert from 'ref S1' to 'ref S2'
                 //         Extensions1.op_IncrementAssignment(ref s1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "s1").WithArguments("1", "ref S1", "ref S2").WithLocation(23, 48),
-                // (26,13): error CS9341: Operator cannot be applied on operand of type 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator ++()'
+                // (26,13): error CS9341: Operator cannot be applied to operand of type 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S2).operator ++()'
                 //         _ = ++s2;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1?", "Extensions1.extension(ref S2).operator ++()").WithLocation(26, 13),
                 // (27,48): error CS1503: Argument 1: cannot convert from 'ref S1?' to 'ref S2'
@@ -6660,10 +6660,10 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS9341: Operator cannot be applied on operand of type 'S1'. The closest inapplicable candidate is 'Extensions1.extension(object).operator ++()'
+                // (17,13): error CS9341: Operator cannot be applied to operand of type 'S1'. The closest inapplicable candidate is 'Extensions1.extension(object).operator ++()'
                 //         _ = ++s1;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1", "Extensions1.extension(object).operator ++()").WithLocation(17, 13),
-                // (21,13): error CS9341: Operator cannot be applied on operand of type 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(object).operator ++()'
+                // (21,13): error CS9341: Operator cannot be applied to operand of type 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(object).operator ++()'
                 //         _ = ++s2;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1?", "Extensions1.extension(object).operator ++()").WithLocation(21, 13)
                 );
@@ -6866,7 +6866,7 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS9341: Operator cannot be applied on operand of type 'int[]'. The closest inapplicable candidate is 'Extensions1.extension(ref Span<int>).operator ++()'
+                // (17,13): error CS9341: Operator cannot be applied to operand of type 'int[]'. The closest inapplicable candidate is 'Extensions1.extension(ref Span<int>).operator ++()'
                 //         _ = ++a1;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("int[]", "Extensions1.extension(ref System.Span<int>).operator ++()").WithLocation(17, 13),
                 // (18,48): error CS1503: Argument 1: cannot convert from 'ref int[]' to 'ref System.Span<int>'
@@ -7207,7 +7207,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS9341: Operator cannot be applied on operand of type 'S1<int>'. The closest inapplicable candidate is 'Extensions1.extension<int>(ref S1<int>).operator ++()'
+                // (17,13): error CS9341: Operator cannot be applied to operand of type 'S1<int>'. The closest inapplicable candidate is 'Extensions1.extension<int>(ref S1<int>).operator ++()'
                 //         _ = ++s1;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableUnaryOperator, "++").WithArguments("S1<int>", "Extensions1.extension<int>(ref S1<int>).operator ++()").WithLocation(17, 13)
                 );
@@ -19911,7 +19911,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (22,16): error CS9340: Operator cannot be applied on operands of type 'S2' and 'S2'. The closest inapplicable candidate is 'Extensions1.extension(S2).operator +(S2, int)'
+                // (22,16): error CS9340: Operator cannot be applied to operands of type 'S2' and 'S2'. The closest inapplicable candidate is 'Extensions1.extension(S2).operator +(S2, int)'
                 //         _ = s2 + s2;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, "+").WithArguments("S2", "S2", "Extensions1.extension(S2).operator +(S2, int)").WithLocation(22, 16)
                 );
@@ -21971,7 +21971,7 @@ class Program
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (18,17): error CS9340: Operator cannot be applied on operands of type 'S1?' and 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator %=(S1)'
+                // (18,17): error CS9340: Operator cannot be applied to operands of type 'S1?' and 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator %=(S1)'
                 //         _ = s11 %= s12;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, op + "=").WithArguments("S1?", "S1?", "Extensions1.extension(ref S1).operator " + op + "=(S1)").WithLocation(18, 17)
                 );
@@ -22091,10 +22091,10 @@ class Program
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (18,17): error CS9340: Operator cannot be applied on operands of type 'S1?' and 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator %=(S1)'
+                // (18,17): error CS9340: Operator cannot be applied to operands of type 'S1?' and 'S1'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator %=(S1)'
                 //         _ = s11 %= s12;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, op + "=").WithArguments("S1?", "S1", "Extensions1.extension(ref S1).operator " + op + "=(S1)").WithLocation(18, 17),
-                // (19,17): error CS9340: Operator cannot be applied on operands of type 'S1' and 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator %=(S1)'
+                // (19,17): error CS9340: Operator cannot be applied to operands of type 'S1' and 'S1?'. The closest inapplicable candidate is 'Extensions1.extension(ref S1).operator %=(S1)'
                 //         _ = s12 %= s11;
                 Diagnostic(ErrorCode.ERR_SingleInapplicableBinaryOperator, op + "=").WithArguments("S1", "S1?", "Extensions1.extension(ref S1).operator " + op + "=(S1)").WithLocation(19, 17)
                 );
