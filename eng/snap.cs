@@ -1500,7 +1500,18 @@ file sealed class ActionList(IAnsiConsole console)
             {
                 foreach (var action in _actions)
                 {
-                    await action.Func();
+                    try
+                    {
+                        await action.Func();
+                    }
+                    catch (Exception ex)
+                    {
+                        console.MarkupLineInterpolated($"[red]Error:[/] Action [teal]{action.Name}[/] failed: {Markup.Escape(ex.ToString())}");
+                        if (!console.Confirm($"Continue executing the remaining actions?", defaultValue: true))
+                        {
+                            return;
+                        }
+                    }
                 }
 
                 console.MarkupLine("[green]Done[/]");
