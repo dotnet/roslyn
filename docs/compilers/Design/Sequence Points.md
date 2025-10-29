@@ -2,7 +2,7 @@ Sequence Points design
 ======================
 
 Sequence points are emitted in PDBs/symbols to inform the debugger of the correspondance between IL and source. A sequence point is comprised of an IL offset and an associated document span.  
-When the debugger stops on an IL instruction, it find the first preceding sequence point from the IL offset, finds the associated span and highlights it for the user.  
+When the debugger stops on an IL instruction, it finds the first preceding sequence point from the IL offset, finds the associated span and highlights it for the user.  
 
 Sequence points are generally used in roslyn at the statement level. They are constrained to appear only at locations in the code where the evaluation stack is empty.  
 
