@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.CodeAnalysis.BuildTasks;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -444,7 +445,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             ManagedToolTask.TestAccessor.SetUseAppHost(vbc, useAppHost);
             if (setToolExe)
             {
-                vbc.ToolExe = "vbc.exe";
+                vbc.ToolExe = $"vbc{PlatformInformation.ExeExtension}";
             }
             if (useAppHost)
             {
