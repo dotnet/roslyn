@@ -341,6 +341,46 @@ throw e;", options: ScriptOptions, globals: new ScriptTests());
         }
 
         [Fact]
+        public async Task TestRunScriptWithScriptGlobalsAndSwitchExpression()
+        {
+            var options = ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
+            var code = @"
+using System;
+var reply = X switch {
+    0 => ""Option 0"",
+    1 => ""Option 1"",
+    _ => ""Option more than 1""
+};
+
+return reply;";
+
+            var script = CSharpScript.Create<string>(code, options, typeof(Globals));
+            var compilation = script.Compile();
+            var result = await script.RunAsync(new Globals { X = 1 });
+            Assert.Equal("Option 1", result.ReturnValue);
+        }
+
+        [Fact]
+        public async Task TestRunScriptWithScriptGlobalsAndNestedTernaryExpression()
+        {
+            var options = ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
+            var code = @"
+using System;
+var reply = X is 0
+    ? ""Option 0""
+    : X is 1
+        ? ""Option 1""
+        : ""Option more than 1"";
+
+return reply;";
+
+            var script = CSharpScript.Create<string>(code, options, typeof(Globals));
+            var compilation = script.Compile();
+            var result = await script.RunAsync(new Globals { X = 1 });
+            Assert.Equal("Option 1", result.ReturnValue);
+        }
+
+        [Fact]
         public async Task TestRunScriptWithScriptState()
         {
             // run a script using another scripts end state as the starting state (globals)
