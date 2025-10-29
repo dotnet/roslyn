@@ -195,13 +195,13 @@ var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After s
     defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsBranchName()));
 var sourceVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
 var sourceVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{sourceBranchName}[/]?",
-    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData.Data?.BranchInfo.InsertionTitlePrefix));
+    defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData.Data?.RequiredBranchInfo.InsertionTitlePrefix));
 var sourceVersionsPropsUpdater = sourceVersionsProps.GetUpdater(console, gitHub, sourceBranchName);
 var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to",
     defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
 var targetVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
 var targetVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{targetBranchName}[/]?",
-    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData.Data?.BranchInfo.InsertionTitlePrefix));
+    defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData.Data?.RequiredBranchInfo.InsertionTitlePrefix));
 
 // Check subscriptions.
 console.WriteLine();
@@ -557,13 +557,13 @@ var snapConfigsBranchName = $"snap-configs-{DateTimeOffset.UtcNow:yyyyMMddHHmmss
 var sourcePublishDataAfterSnap = sourcePublishData.WithBranchInfo(new(
     VsBranch: sourceVsBranchAfterSnap,
     InsertionTitlePrefix: sourceVsPrefixAfterSnap,
-    InsertionCreateDraftPR: sourceVsAsDraftAfterSnap));
+    InsertionCreateDraftPR: sourceVsAsDraftAfterSnap), targetPublishData.Data);
 sourcePublishDataAfterSnap.PushOrOpenPrIfNeeded(actions, sourcePublishData, snapConfigsBranchName);
 sourceVersionsPropsUpdater(actions, snapConfigsBranchName);
 var targetPublishDataAfterSnap = targetPublishData.WithBranchInfo(new(
     VsBranch: targetVsBranchAfterSnap,
     InsertionTitlePrefix: targetVsPrefixAfterSnap,
-    InsertionCreateDraftPR: targetVsAsDraftAfterSnap));
+    InsertionCreateDraftPR: targetVsAsDraftAfterSnap), sourcePublishData.Data);
 targetPublishDataAfterSnap.PushOrOpenPrIfNeeded(actions, targetPublishData, snapBranchName);
 
 // Perform actions.
@@ -740,16 +740,20 @@ file sealed class PublishData(
     string branchName,
     PublishDataJson? data)
 {
-    private const string FileName = "PublishData.json";
+    public const string FileName = "PublishData.json";
     private const string FilePath = $"eng/config/{FileName}";
 
     public string RepoOwnerAndName => gitHub.RepoOwnerAndName;
     public string BranchName => branchName;
     public PublishDataJson? Data => data;
 
-    public PublishData WithBranchInfo(BranchInfo branchInfo)
+    public PublishData WithBranchInfo(BranchInfo branchInfo, PublishDataJson? templateData)
     {
-        return new(gitHub, branchName, Data is null ? new() { BranchInfo = branchInfo } : Data with { BranchInfo = branchInfo });
+        return new(gitHub, branchName, Data is null
+            ? (templateData is null
+                ? throw new InvalidOperationException($"Cannot create {FileName} without existing data or template data")
+                : templateData.WithBranchInfo(branchInfo))
+            : Data.WithBranchInfo(branchInfo));
     }
 
     /// <returns>
@@ -761,6 +765,7 @@ file sealed class PublishData(
         {
             var data = await httpClient.GetFromJsonAsync<PublishDataJson>($"https://raw.githubusercontent.com/{gitHub.RepoOwnerAndName}/{branchName}/{FilePath}")
                 ?? throw new InvalidOperationException($"Null {FileName}");
+            _ = data.RequiredBranchInfo;
             return new PublishData(gitHub, branchName, data);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -775,7 +780,7 @@ file sealed class PublishData(
 
     public void Report(IAnsiConsole console)
     {
-        console.MarkupLineInterpolated($"Branch [teal]{branchName}[/] inserts to VS [teal]{data?.BranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{data?.BranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
+        console.MarkupLineInterpolated($"Branch [teal]{branchName}[/] inserts to VS [teal]{data?.RequiredBranchInfo.Summarize() ?? "N/A"}[/] with prefix [teal]{data?.RequiredBranchInfo.InsertionTitlePrefix ?? "N/A"}[/]");
     }
 
     public void PushOrOpenPrIfNeeded(ActionList actions, PublishData? original, string updateBranchName)
@@ -819,9 +824,29 @@ file sealed record PublishDataJson
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? ExtraProperties { get; init; }
 
-    public required BranchInfo BranchInfo { get; init; }
+    public BranchInfo? BranchInfo { get; init; } // roslyn spelling
+
+    public BranchInfo? Branches { get; init; } // razor spelling
+
+    public BranchInfo RequiredBranchInfo => BranchInfo ?? Branches ?? throw new InvalidOperationException($"Missing {nameof(BranchInfo)} in {PublishData.FileName}");
 
     public string ToJson() => JsonSerializer.Serialize(this, s_jsonOptions) + "\n";
+
+    public PublishDataJson WithBranchInfo(BranchInfo branchInfo)
+    {
+        if (BranchInfo != null)
+        {
+            return this with { BranchInfo = branchInfo };
+        }
+        else if (Branches != null)
+        {
+            return this with { Branches = branchInfo };
+        }
+        else
+        {
+            throw new InvalidOperationException($"Missing {nameof(BranchInfo)} in {PublishData.FileName}");
+        }
+    }
 }
 
 file sealed record BranchInfo(
