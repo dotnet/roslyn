@@ -1530,17 +1530,17 @@ unsafe class A
         public void EmbeddedAttribute_IsSymbolAccessibleWithin()
         {
             // Create assembly 1 with an internal type marked with EmbeddedAttribute
-            var source1 = @"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Assembly2"")]
+            var source1 = """
+                [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Assembly2")]
 
-namespace Microsoft.CodeAnalysis
-{
-    internal sealed class EmbeddedAttribute : System.Attribute { }
-}
+                namespace Microsoft.CodeAnalysis
+                {
+                    internal sealed class EmbeddedAttribute : System.Attribute { }
+                }
 
-[Microsoft.CodeAnalysis.Embedded]
-internal class Sample { }
-";
+                [Microsoft.CodeAnalysis.Embedded]
+                internal class Sample { }
+                """;
 
             var comp1 = CreateCompilation(source1, assemblyName: "Assembly1");
             comp1.VerifyDiagnostics();
@@ -1550,7 +1550,7 @@ internal class Sample { }
             Assert.True(sampleTypeInComp1.HasCodeAnalysisEmbeddedAttribute);
 
             // Create assembly 2 that references assembly 1
-            var comp2 = CreateCompilation("class OtherClass { }", references: new[] { comp1.ToMetadataReference() }, assemblyName: "Assembly2");
+            var comp2 = CreateCompilation("class OtherClass { }", references: [comp1.ToMetadataReference()], assemblyName: "Assembly2");
 
             // Get the Sample type from the referenced assembly
             var assembly1Symbol = comp2.GetReferencedAssemblySymbol(comp1.ToMetadataReference());
@@ -1573,26 +1573,26 @@ internal class Sample { }
         public void EmbeddedAttribute_NestedType_IsSymbolAccessibleWithin()
         {
             // Test that nested types within an EmbeddedAttribute-decorated type are also inaccessible
-            var source1 = @"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Assembly2"")]
+            var source1 = """
+                [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Assembly2")]
 
-namespace Microsoft.CodeAnalysis
-{
-    internal sealed class EmbeddedAttribute : System.Attribute { }
-}
+                namespace Microsoft.CodeAnalysis
+                {
+                    internal sealed class EmbeddedAttribute : System.Attribute { }
+                }
 
-[Microsoft.CodeAnalysis.Embedded]
-internal class OuterSample 
-{
-    public class NestedPublic { }
-    internal class NestedInternal { }
-}
-";
+                [Microsoft.CodeAnalysis.Embedded]
+                internal class OuterSample 
+                {
+                    public class NestedPublic { }
+                    internal class NestedInternal { }
+                }
+                """;
 
             var comp1 = CreateCompilation(source1, assemblyName: "Assembly1");
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateCompilation("class OtherClass { }", references: new[] { comp1.ToMetadataReference() }, assemblyName: "Assembly2");
+            var comp2 = CreateCompilation("class OtherClass { }", references: [comp1.ToMetadataReference()], assemblyName: "Assembly2");
 
             // Get types from the referenced assembly
             var assembly1Symbol = comp2.GetReferencedAssemblySymbol(comp1.ToMetadataReference());
