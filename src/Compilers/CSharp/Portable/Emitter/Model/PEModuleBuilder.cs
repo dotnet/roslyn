@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         // Synthesized top-level types (for inline arrays and collection expression types currently)
         private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedTopLevelTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
+        private ImmutableArray<Cci.INamespaceTypeDefinition> _frozenSynthesizedTopLevelTypes;
 
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
@@ -2229,6 +2230,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
 #nullable disable
 
+        internal void FreezeSynthesizedTopLevelTypes()
+        {
+            if (_frozenSynthesizedTopLevelTypes.IsDefault)
+            {
+                _frozenSynthesizedTopLevelTypes = _synthesizedTopLevelTypes
+                    .OrderBy(kvp => kvp.Key)
+                    .Select(kvp => kvp.Value)
+                    .ToImmutableArray();
+            }
+        }
+
         public override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
         {
             // Return synthesized top-level types in a deterministic order
@@ -2240,11 +2252,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
         {
-            return GetAdditionalTopLevelTypes()
-#if DEBUG
-                   .Select(type => type.GetCciAdapter())
-#endif
-                   ;
+            // Return frozen synthesized top-level types
+            // They are only returned after their methods have been compiled
+            return _frozenSynthesizedTopLevelTypes.IsDefault 
+                ? ImmutableArray<Cci.INamespaceTypeDefinition>.Empty 
+                : _frozenSynthesizedTopLevelTypes;
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context)
