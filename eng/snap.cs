@@ -819,6 +819,7 @@ file sealed record PublishDataJson
     {
         WriteIndented = true,
         NewLine = "\n",
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     [JsonExtensionData]
