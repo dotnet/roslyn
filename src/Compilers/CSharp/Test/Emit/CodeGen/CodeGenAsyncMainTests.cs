@@ -2064,10 +2064,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(43, 25));
         }
 
-        [Fact]
-        public void AsyncMainWithHandleAsyncEntryPoint_Task()
-        {
-            var corlib = @"
+        private const string MinimalAsyncCorelibWithAsyncHelpers = @"
 namespace System
 {
     public class Object { }
@@ -2100,111 +2097,7 @@ namespace System
             public void GetResult() { }
             public void OnCompleted(Action continuation) { }
         }
-    }
 
-    namespace Runtime.CompilerServices
-    {
-        public interface INotifyCompletion
-        {
-            void OnCompleted(Action continuation);
-        }
-
-        public interface IAsyncStateMachine
-        {
-            void MoveNext();
-            void SetStateMachine(IAsyncStateMachine stateMachine);
-        }
-
-        public class AsyncTaskMethodBuilder
-        {
-            public static AsyncTaskMethodBuilder Create() => default;
-            public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-            public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-            public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-            public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
-                where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-            public void SetResult() { }
-            public void SetException(Exception exception) { }
-            public Threading.Tasks.Task Task => default;
-        }
-
-        public static class AsyncHelpers
-        {
-            public static void HandleAsyncEntryPoint(Threading.Tasks.Task task)
-            {
-                task.GetAwaiter().GetResult();
-            }
-        }
-    }
-
-    public enum AttributeTargets { All = ~0 }
-
-    [AttributeUsage(AttributeTargets.All)]
-    public sealed class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets validOn) { }
-        public bool AllowMultiple { get; set; }
-        public bool Inherited { get; set; }
-    }
-}
-
-namespace System.Diagnostics
-{
-    public class DebuggerStepThroughAttribute : Attribute { }
-}";
-
-            var source = @"
-using System.Threading.Tasks;
-
-class Program
-{
-    static async Task Main()
-    {
-        await new Task();
-    }
-}";
-
-            var corlibRef = CreateEmptyCompilation(corlib, assemblyName: "mincorlib").EmitToImageReference();
-            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
-            
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
-            verifier.VerifyIL("Program.<Main>()", @"
-{
-  // Code size       11 (0xb)
-  .maxstack  1
-  IL_0000:  call       ""System.Threading.Tasks.Task Program.Main()""
-  IL_0005:  call       ""void System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task)""
-  IL_000a:  ret
-}
-");
-        }
-
-        [Fact]
-        public void AsyncMainWithHandleAsyncEntryPoint_TaskOfInt()
-        {
-            var corlib = @"
-namespace System
-{
-    public class Object { }
-    public class Void { }
-    public abstract class ValueType { }
-    public struct Int32 { }
-    public struct Boolean { }
-    public class String { }
-    public class Exception { }
-    public class Attribute { }
-    public abstract class Enum : ValueType { }
-    public abstract class Delegate { }
-    public abstract class MulticastDelegate : Delegate { }
-    public delegate void Action();
-    public class Type { }
-    public struct IntPtr { }
-    public struct RuntimeTypeHandle { }
-    public struct RuntimeFieldHandle { }
-    
-    namespace Threading.Tasks
-    {
         public class Task<T>
         {
             public TaskAwaiter<T> GetAwaiter() => default;
@@ -2231,6 +2124,20 @@ namespace System
             void SetStateMachine(IAsyncStateMachine stateMachine);
         }
 
+        public class AsyncTaskMethodBuilder
+        {
+            public static AsyncTaskMethodBuilder Create() => default;
+            public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+            public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+            public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+            public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+            public void SetResult() { }
+            public void SetException(Exception exception) { }
+            public Threading.Tasks.Task Task => default;
+        }
+
         public class AsyncTaskMethodBuilder<T>
         {
             public static AsyncTaskMethodBuilder<T> Create() => default;
@@ -2247,6 +2154,11 @@ namespace System
 
         public static class AsyncHelpers
         {
+            public static void HandleAsyncEntryPoint(Threading.Tasks.Task task)
+            {
+                task.GetAwaiter().GetResult();
+            }
+
             public static int HandleAsyncEntryPoint(Threading.Tasks.Task<int> task)
             {
                 return task.GetAwaiter().GetResult();
@@ -2270,6 +2182,38 @@ namespace System.Diagnostics
     public class DebuggerStepThroughAttribute : Attribute { }
 }";
 
+        [Fact]
+        public void AsyncMainWithHandleAsyncEntryPoint_Task()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        await new Task();
+    }
+}";
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+            
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("Program.<Main>()", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  call       ""System.Threading.Tasks.Task Program.Main()""
+  IL_0005:  call       ""void System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task)""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AsyncMainWithHandleAsyncEntryPoint_TaskOfInt()
+        {
             var source = @"
 using System.Threading.Tasks;
 
@@ -2282,7 +2226,7 @@ class Program
     }
 }";
 
-            var corlibRef = CreateEmptyCompilation(corlib, assemblyName: "mincorlib").EmitToImageReference();
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
             var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
             
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
@@ -2298,89 +2242,8 @@ class Program
         }
 
         [Fact]
-        public void AsyncMainFallbackToOldPattern_WhenHandleAsyncEntryPointNotAvailable()
+        public void AsyncMainFallbackToOldPattern_Task()
         {
-            var corlib = @"
-namespace System
-{
-    public class Object { }
-    public class Void { }
-    public abstract class ValueType { }
-    public struct Int32 { }
-    public struct Boolean { }
-    public class String { }
-    public class Exception { }
-    public class Attribute { }
-    public abstract class Enum : ValueType { }
-    public abstract class Delegate { }
-    public abstract class MulticastDelegate : Delegate { }
-    public delegate void Action();
-    public class Type { }
-    public struct IntPtr { }
-    public struct RuntimeTypeHandle { }
-    public struct RuntimeFieldHandle { }
-    
-    namespace Threading.Tasks
-    {
-        public class Task
-        {
-            public TaskAwaiter GetAwaiter() => default;
-        }
-
-        public struct TaskAwaiter : Runtime.CompilerServices.INotifyCompletion
-        {
-            public bool IsCompleted => true;
-            public void GetResult() { }
-            public void OnCompleted(Action continuation) { }
-        }
-    }
-
-    namespace Runtime.CompilerServices
-    {
-        public interface INotifyCompletion
-        {
-            void OnCompleted(Action continuation);
-        }
-
-        public interface IAsyncStateMachine
-        {
-            void MoveNext();
-            void SetStateMachine(IAsyncStateMachine stateMachine);
-        }
-
-        public class AsyncTaskMethodBuilder
-        {
-            public static AsyncTaskMethodBuilder Create() => default;
-            public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-            public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-            public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-            public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
-                where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-            public void SetResult() { }
-            public void SetException(Exception exception) { }
-            public Threading.Tasks.Task Task => default;
-        }
-
-        // Note: AsyncHelpers type is NOT defined here to test fallback
-    }
-
-    public enum AttributeTargets { All = ~0 }
-
-    [AttributeUsage(AttributeTargets.All)]
-    public sealed class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets validOn) { }
-        public bool AllowMultiple { get; set; }
-        public bool Inherited { get; set; }
-    }
-}
-
-namespace System.Diagnostics
-{
-    public class DebuggerStepThroughAttribute : Attribute { }
-}";
-
             var source = @"
 using System.Threading.Tasks;
 
@@ -2392,14 +2255,15 @@ class Program
     }
 }";
 
-            var corlibRef = CreateEmptyCompilation(corlib, assemblyName: "mincorlib").EmitToImageReference();
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
             var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task);
             
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             // Verify it falls back to GetAwaiter().GetResult() pattern
             verifier.VerifyIL("Program.<Main>()", @"
 {
-  // Code size       18 (0x12)
+  // Code size       19 (0x13)
   .maxstack  1
   .locals init (System.Threading.Tasks.TaskAwaiter V_0)
   IL_0000:  call       ""System.Threading.Tasks.Task Program.Main()""
@@ -2407,6 +2271,42 @@ class Program
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_0
   IL_000d:  call       ""void System.Threading.Tasks.TaskAwaiter.GetResult()""
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AsyncMainFallbackToOldPattern_TaskOfInt()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task<int> Main()
+    {
+        await new Task<int>();
+        return 42;
+    }
+}";
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_T);
+            
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (System.Threading.Tasks.TaskAwaiter<int> V_0)
+  IL_0000:  call       ""System.Threading.Tasks.Task<int> Program.Main()""
+  IL_0005:  callvirt   ""System.Threading.Tasks.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int System.Threading.Tasks.TaskAwaiter<int>.GetResult()""
   IL_0012:  ret
 }
 ");
