@@ -942,19 +942,27 @@ file sealed class VersionsProps
             return;
         }
 
+        bool updateSarifFiles = gitHub.RepoOwnerAndName.EndsWith("/roslyn", StringComparison.Ordinal);
+
         gitHub.PushOrOpenPrToUpdateFile(
             actions,
-            title: $"Update [teal]{branchName}[/] {FileName} and SARIF files",
+            title: $"Update [teal]{branchName}[/] {FileName}{(updateSarifFiles ? " and SARIF files" : "")}",
             branchName: branchName,
             updateBranchName: updateBranchName,
-            files: () => GetFilesAsync(gitHub, branchName, newData, (XmlDocument)Document.CloneNode(deep: true)),
+            files: () => GetFilesAsync(gitHub, branchName, newData, (XmlDocument)Document.CloneNode(deep: true), updateSarifFiles),
             prTitle: GitHubUtil.UpdateConfigsPrTitle);
     }
 
-    private async IAsyncEnumerable<(string FilePath, byte[] Bytes)> GetFilesAsync(GitHubUtil gitHub, string branchName, VersionsPropsData newData, XmlDocument xml)
+    private async IAsyncEnumerable<(string FilePath, byte[] Bytes)> GetFilesAsync(GitHubUtil gitHub, string branchName, VersionsPropsData newData, XmlDocument xml, bool updateSarifFiles)
     {
         this.SaveTo(xml);
         yield return (FilePath, Encoding.UTF8.GetBytes(xml.OuterXml));
+
+        if (!updateSarifFiles)
+        {
+            gitHub.Logger.Log($"Not a Roslyn repo ({gitHub.RepoOwnerAndName}), skipping SARIF files update.");
+            yield break;
+        }
 
         // Update sarif files too.
         var previousVersion = this.Data.ToString();
