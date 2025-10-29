@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
-[Kind("create")]
 internal sealed class CreateFile : IAnnotatedChange
 {
     /// <summary>

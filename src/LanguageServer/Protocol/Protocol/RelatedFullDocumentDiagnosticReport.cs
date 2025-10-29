@@ -15,7 +15,6 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-[Kind(DocumentDiagnosticReportKind.Full)]
 internal sealed class RelatedFullDocumentDiagnosticReport : FullDocumentDiagnosticReport
 {
     /// <summary>
