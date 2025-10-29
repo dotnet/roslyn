@@ -195,10 +195,10 @@ internal static class PredefinedCommandHandlerNames
     /// <summary>
     /// Command handler name for LSP Go To Definition.
     /// </summary>
-    public const string LspGoToDefinition = "LSP Go To Definition Command Handler";
+    public const string LspGoToDefinition = "LSP GoToDefinitionCommandHandler";
 
     /// <summary>
     /// Command handler name for LSP Find References.
     /// </summary>
-    public const string LspFindReferences = "LSP Find References Command Handler";
+    public const string LspFindReferences = "LSP FindReferenceCommandHandler";
 }
