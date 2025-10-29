@@ -438,11 +438,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         /// Setting ToolExe to "vbc.exe" should use the built-in compiler regardless of apphost being used or not.
         /// </summary>
         [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
-        public void BuiltInToolExe(bool useAppHost)
+        public void BuiltInToolExe(bool useAppHost, bool setToolExe)
         {
             var vbc = new Vbc();
             ManagedToolTask.TestAccessor.SetUseAppHost(vbc, useAppHost);
-            vbc.ToolExe = "vbc.exe";
+            if (setToolExe)
+            {
+                vbc.ToolExe = "vbc.exe";
+            }
             if (useAppHost)
             {
                 AssertEx.Equal(vbc.PathToBuiltInTool, vbc.GeneratePathToTool());

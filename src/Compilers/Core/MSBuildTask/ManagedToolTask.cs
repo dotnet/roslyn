@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <para />
         /// We want to continue using the builtin tool if user sets <see cref="ToolTask.ToolExe"/> = <c>csc.exe</c>,
         /// regardless of whether apphosts will be used or not (in the former case, <see cref="ToolName"/> could be <c>csc.dll</c>),
-        /// hence we actually compare <see cref="ToolTask.ToolExe"/> with <see cref="AppHostToolName"/> instead of <see cref="ToolName"/>.
+        /// hence we also compare <see cref="ToolTask.ToolExe"/> with <see cref="AppHostToolName"/> in addition to <see cref="ToolName"/>.
         /// </remarks>
-        protected bool UsingBuiltinTool => string.IsNullOrEmpty(ToolPath) && ToolExe == AppHostToolName;
+        protected bool UsingBuiltinTool => string.IsNullOrEmpty(ToolPath) && (ToolExe == ToolName || ToolExe == AppHostToolName);
 
         /// <summary>
         /// Is the builtin tool executed by this task running on .NET Core?

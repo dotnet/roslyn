@@ -498,11 +498,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         /// Setting ToolExe to "csc.exe" should use the built-in compiler regardless of apphost being used or not.
         /// </summary>
         [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
-        public void BuiltInToolExe(bool useAppHost)
+        public void BuiltInToolExe(bool useAppHost, bool setToolExe)
         {
             var csc = new Csc();
             ManagedToolTask.TestAccessor.SetUseAppHost(csc, useAppHost);
-            csc.ToolExe = "csc.exe";
+            if (setToolExe)
+            {
+                csc.ToolExe = "csc.exe";
+            }
             if (useAppHost)
             {
                 AssertEx.Equal(csc.PathToBuiltInTool, csc.GeneratePathToTool());
