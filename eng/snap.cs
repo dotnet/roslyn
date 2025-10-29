@@ -829,6 +829,7 @@ file sealed record PublishDataJson
 
     public BranchInfo? Branches { get; init; } // razor spelling
 
+    [JsonIgnore]
     public BranchInfo RequiredBranchInfo => BranchInfo ?? Branches ?? throw new InvalidOperationException($"Missing {nameof(BranchInfo)} in {PublishData.FileName}");
 
     public string ToJson() => JsonSerializer.Serialize(this, s_jsonOptions) + "\n";
