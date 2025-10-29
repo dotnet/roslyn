@@ -2086,7 +2086,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void C.Goo<T, U>(T a, U b)", string.Empty)]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79733")]
-    public Task NoSignatureHelpInsideLambdaBlock()
+    public Task NoSignatureHelpInsideLambdaStatementBlock()
         => TestAsync("""
             class C
             {
@@ -2097,6 +2097,35 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                     {
                         $$
                     });
+                }
+            }
+            """, []);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79733")]
+    public Task NoSignatureHelpInsideAnonymousMethodBlock()
+        => TestAsync("""
+            class C
+            {
+                void M1(Action a) { }
+                void M2()
+                {
+                    M1(delegate 
+                    {
+                        $$
+                    });
+                }
+            }
+            """, []);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79733")]
+    public Task NoSignatureHelpInsideLambdaExpressionBody()
+        => TestAsync("""
+            class C
+            {
+                void M1(Action a) { }
+                void M2()
+                {
+                    M1(() => ($$);
                 }
             }
             """, []);

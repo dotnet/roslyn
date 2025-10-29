@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -148,11 +149,34 @@ internal static class SignatureHelpUtilities
     private static bool IsPositionInLambdaBlock(SyntaxNode root, int position)
     {
         var token = root.FindToken(position);
-        var lambda = token.Parent?.AncestorsAndSelf().OfType<LambdaExpressionSyntax>().FirstOrDefault();
-        if (lambda?.Body is BlockSyntax block)
+        var textSpan = GetSyntaxSpan(token.Parent);
+        return textSpan?.Contains(position) ?? false;
+    }
+
+    private static TextSpan? GetSyntaxSpan(SyntaxNode? node)
+    {
+        var ancestors = node?.AncestorsAndSelf();
+        var lambda = ancestors?.OfType<LambdaExpressionSyntax>().FirstOrDefault();
+        var anonymous = ancestors?.OfType<AnonymousMethodExpressionSyntax>().FirstOrDefault();
+        var parenthesized = ancestors?.OfType<ParenthesizedLambdaExpressionSyntax>().FirstOrDefault();
+
+        if (lambda?.Body is BlockSyntax lambdaBlock)
         {
-            return block.Span.Contains(position);
+            return lambdaBlock.Span;
         }
-        return false;
+
+        if (anonymous?.Body is BlockSyntax anonymousBlock)
+        {
+            return anonymousBlock.Span;
+        }
+
+        if (parenthesized?.Body is ParenthesizedExpressionSyntax parenthesizedBlock)
+        {
+            return parenthesizedBlock.Span;
+        }
+
+        // Dont worry with '{'. It will fall on the lamdba.Body
+
+        return null;
     }
 }
