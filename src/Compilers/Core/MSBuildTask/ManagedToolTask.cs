@@ -48,8 +48,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// explicitly overridden.  So, if both ToolPath is unset and
         /// ToolExe == ToolName, we know nothing is overridden, and
         /// we can use our own csc.
+        /// <para />
+        /// We want to continue using the builtin tool if user sets <see cref="ToolTask.ToolExe"/> = <c>csc.exe</c>,
+        /// regardless of whether apphosts will be used or not (in the former case, <see cref="ToolName"/> could be <c>csc.dll</c>),
+        /// hence we actually compare <see cref="ToolTask.ToolExe"/> with <see cref="AppHostToolName"/> instead of <see cref="ToolName"/>.
         /// </remarks>
-        protected bool UsingBuiltinTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
+        protected bool UsingBuiltinTool => string.IsNullOrEmpty(ToolPath) && ToolExe == AppHostToolName;
 
         /// <summary>
         /// Is the builtin tool executed by this task running on .NET Core?
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <remarks>
         /// ToolName is only used in cases where <see cref="UsingBuiltinTool"/> returns true.
         /// It returns the name of the managed assembly, which might not be the path returned by
-        /// GenerateFullPathToTool, which can return the path to e.g. the dotnet executable.
+        /// <see cref="GenerateFullPathToTool"/>, which can return the path to e.g. the dotnet executable.
         /// </remarks>
         protected sealed override string ToolName
         {
@@ -255,6 +259,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return base.ValidateParameters();
+        }
+
+        internal static class TestAccessor
+        {
+            public static void SetUseAppHost(ManagedToolTask task, bool value)
+            {
+                task._useAppHost = value;
+            }
         }
     }
 }

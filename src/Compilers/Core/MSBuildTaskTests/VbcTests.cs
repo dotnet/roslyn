@@ -434,6 +434,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal(@"/optionstrict:custom /nosdkpath", vbc.GenerateResponseFileContents());
         }
 
+        /// <summary>
+        /// Setting ToolExe to "vbc.exe" should use the built-in compiler regardless of apphost being used or not.
+        /// </summary>
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
+        public void BuiltInToolExe(bool useAppHost)
+        {
+            var vbc = new Vbc();
+            ManagedToolTask.TestAccessor.SetUseAppHost(vbc, useAppHost);
+            vbc.ToolExe = "vbc.exe";
+            if (useAppHost)
+            {
+                AssertEx.Equal(vbc.PathToBuiltInTool, vbc.GeneratePathToTool());
+                AssertEx.Equal("", vbc.GenerateCommandLineContents());
+            }
+            else
+            {
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(), vbc.GeneratePathToTool());
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(vbc.PathToBuiltInTool, ""), vbc.GenerateCommandLineContents());
+            }
+        }
+
         [Fact]
         public void EditorConfig()
         {
