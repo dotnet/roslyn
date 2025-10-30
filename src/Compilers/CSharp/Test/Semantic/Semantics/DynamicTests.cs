@@ -3736,7 +3736,7 @@ class Test
         _ = x && y;
     }
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
                 // (17,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C0' must define operator 'false'.
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("C0", "false")
             );
