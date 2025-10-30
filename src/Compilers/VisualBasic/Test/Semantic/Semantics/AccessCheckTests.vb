@@ -2287,7 +2287,7 @@ BC30389: 'A' is not accessible in this context because it is 'Friend'.
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
         Public Sub EmbeddedAttribute_IsSymbolAccessibleWithin()
-            ' Create assembly 1 with a Friend type marked with EmbeddedAttribute
+            ' Create assembly 1 with a Public type marked with EmbeddedAttribute
             Dim source1 = "
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Assembly2"")>
 
@@ -2298,7 +2298,10 @@ Namespace Microsoft.CodeAnalysis
 End Namespace
 
 <Microsoft.CodeAnalysis.Embedded>
-Friend Class Sample
+Public Class Sample
+End Class
+
+Public Class NonEmbedded
 End Class
 "
 
@@ -2306,8 +2309,15 @@ End Class
             comp1.AssertTheseDiagnostics()
 
             Dim sampleTypeInComp1 = comp1.GetTypeByMetadataName("Sample")
+            Dim nonEmbeddedTypeInComp1 = comp1.GetTypeByMetadataName("NonEmbedded")
             Assert.NotNull(sampleTypeInComp1)
+            Assert.NotNull(nonEmbeddedTypeInComp1)
             Assert.True(sampleTypeInComp1.HasCodeAnalysisEmbeddedAttribute)
+
+            ' The symbol should be accessible within its own assembly
+            Dim assembly1SymbolCurrent = comp1.Assembly
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(DirectCast(sampleTypeInComp1, ISymbol), DirectCast(assembly1SymbolCurrent, ISymbol)))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(DirectCast(sampleTypeInComp1, ISymbol), DirectCast(nonEmbeddedTypeInComp1, ISymbol)))
 
             ' Create assembly 2 that references assembly 1
             Dim comp2 = CreateCompilation("Class OtherClass : End Class", references:={comp1.ToMetadataReference()}, assemblyName:="Assembly2")
@@ -2320,13 +2330,9 @@ End Class
             Dim otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass")
             Dim assembly2Symbol = comp2.Assembly
 
-            ' Even with InternalsVisibleTo, symbols with EmbeddedAttribute should not be accessible from another assembly
+            ' Even with InternalsVisibleTo and public accessibility, symbols with EmbeddedAttribute should not be accessible from another assembly
             Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(DirectCast(sampleSymbol, ISymbol), DirectCast(otherClassSymbol, ISymbol)))
             Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(DirectCast(sampleSymbol, ISymbol), DirectCast(assembly2Symbol, ISymbol)))
-
-            ' The symbol should be accessible within its own assembly
-            Dim assembly1SymbolCurrent = comp1.Assembly
-            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(DirectCast(sampleTypeInComp1, ISymbol), DirectCast(assembly1SymbolCurrent, ISymbol)))
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
@@ -2342,16 +2348,25 @@ Namespace Microsoft.CodeAnalysis
 End Namespace
 
 <Microsoft.CodeAnalysis.Embedded>
-Friend Class OuterSample
+Public Class OuterSample
     Public Class NestedPublic
-    End Class
-    Friend Class NestedInternal
     End Class
 End Class
 "
 
             Dim comp1 = CreateCompilation(source1, assemblyName:="Assembly1")
             comp1.AssertTheseDiagnostics()
+
+            Dim outerSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample")
+            Dim nestedPublicSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+NestedPublic")
+            Assert.NotNull(outerSymbolInComp1)
+            Assert.NotNull(nestedPublicSymbolInComp1)
+
+            ' The types should be accessible within their own assembly
+            Dim assembly1SymbolCurrent = comp1.Assembly
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(DirectCast(outerSymbolInComp1, ISymbol), DirectCast(assembly1SymbolCurrent, ISymbol)))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(DirectCast(nestedPublicSymbolInComp1, ISymbol), DirectCast(assembly1SymbolCurrent, ISymbol)))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(DirectCast(nestedPublicSymbolInComp1, ISymbol), DirectCast(outerSymbolInComp1, ISymbol)))
 
             Dim comp2 = CreateCompilation("Class OtherClass : End Class", references:={comp1.ToMetadataReference()}, assemblyName:="Assembly2")
 
@@ -2408,14 +2423,25 @@ End Class
     ret
   }
 }
+
+.class public auto ansi beforefieldinit NonEmbedded
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+  {
+    ldarg.0
+    call instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
 ", prependDefaultHeader:=False)
 
             Dim comp = CreateCompilation("Class OtherClass : End Class", references:={reference}, assemblyName:="Assembly2")
             comp.AssertNoDiagnostics()
 
             ' Get the Sample type from the referenced assembly
-            Dim testRefAssembly = DirectCast(comp, VisualBasicCompilation).GetReferencedAssemblySymbol(reference)
-            Dim sampleSymbol = testRefAssembly.GetTypeByMetadataName("Sample")
+            Dim testRefAssemblyInComp = DirectCast(comp, VisualBasicCompilation).GetReferencedAssemblySymbol(reference)
+            Dim sampleSymbol = testRefAssemblyInComp.GetTypeByMetadataName("Sample")
             Assert.NotNull(sampleSymbol)
 
             Dim otherClassSymbol = comp.GetTypeByMetadataName("OtherClass")
@@ -2475,9 +2501,9 @@ End Class
             Dim comp = CreateCompilation("Class OtherClass : End Class", references:={reference}, assemblyName:="Assembly2")
 
             ' Get types from the referenced assembly
-            Dim testRefAssembly = DirectCast(comp, VisualBasicCompilation).GetReferencedAssemblySymbol(reference)
-            Dim outerSymbol = testRefAssembly.GetTypeByMetadataName("OuterSample")
-            Dim nestedPublicSymbol = testRefAssembly.GetTypeByMetadataName("OuterSample+NestedPublic")
+            Dim testRefAssemblyInComp = DirectCast(comp, VisualBasicCompilation).GetReferencedAssemblySymbol(reference)
+            Dim outerSymbol = testRefAssemblyInComp.GetTypeByMetadataName("OuterSample")
+            Dim nestedPublicSymbol = testRefAssemblyInComp.GetTypeByMetadataName("OuterSample+NestedPublic")
             Assert.NotNull(outerSymbol)
             Assert.NotNull(nestedPublicSymbol)
 
