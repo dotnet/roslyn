@@ -48,7 +48,7 @@ internal static class SignatureHelpUtilities
 
     public static SignatureHelpState? GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position)
     {
-        if (IsPositionInLambdaBlock(argumentList, position))
+        if (IsPositionInAnonymousFunctionExpression(argumentList, position))
         {
             return null;
         }
@@ -146,37 +146,15 @@ internal static class SignatureHelpUtilities
             token.Parent.Parent is TSyntaxNode;
     }
 
-    private static bool IsPositionInLambdaBlock(SyntaxNode root, int position)
+    private static bool IsPositionInAnonymousFunctionExpression(SyntaxNode root, int position)
     {
         var token = root.FindToken(position);
-        var textSpan = GetSyntaxSpan(token.Parent);
-        return textSpan?.Contains(position) ?? false;
-    }
-
-    private static TextSpan? GetSyntaxSpan(SyntaxNode? node)
-    {
-        var ancestors = node?.AncestorsAndSelf();
-        var lambda = ancestors?.OfType<LambdaExpressionSyntax>().FirstOrDefault();
-        var anonymous = ancestors?.OfType<AnonymousMethodExpressionSyntax>().FirstOrDefault();
-        var parenthesized = ancestors?.OfType<ParenthesizedLambdaExpressionSyntax>().FirstOrDefault();
-
-        if (lambda?.Body is BlockSyntax lambdaBlock)
+        var anonymous = token.Parent?.AncestorsAndSelf()?.OfType<AnonymousFunctionExpressionSyntax>().FirstOrDefault();
+        if (anonymous?.Body.Span is TextSpan span)
         {
-            return lambdaBlock.Span;
+            return span.Contains(position);
         }
 
-        if (anonymous?.Body is BlockSyntax anonymousBlock)
-        {
-            return anonymousBlock.Span;
-        }
-
-        if (parenthesized?.Body is ParenthesizedExpressionSyntax parenthesizedBlock)
-        {
-            return parenthesizedBlock.Span;
-        }
-
-        // Dont worry with '{'. It will fall on the lamdba.Body
-
-        return null;
+        return false;
     }
 }
