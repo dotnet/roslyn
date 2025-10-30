@@ -245,8 +245,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Check if the type has the EmbeddedAttribute and is in a different assembly.
             // The EmbeddedAttribute marks a type as only visible within its own assembly.
-            var withinAssembly = within is AssemblySymbol assembly ? assembly : ((NamedTypeSymbol)within).ContainingAssembly;
-            if ((object)type.ContainingAssembly != withinAssembly && type.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            // When checking within the context of an assembly, we assume we are checking the primary module.
+            var withinModule = within is AssemblySymbol assembly ? assembly.Modules[0] : within.ContainingModule;
+            if ((object)type.ContainingModule != withinModule && type.IsHiddenByCodeAnalysisEmbeddedAttribute())
             {
                 return false;
             }
